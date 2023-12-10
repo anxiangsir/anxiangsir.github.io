@@ -6,7 +6,7 @@
   <link href="https://songchen.science/blog/zh-CN/atom.xml" rel="self"/>
   
   <link href="https://songchen.science/blog/zh-CN/"/>
-  <updated>2023-10-13T14:49:08.929Z</updated>
+  <updated>2023-11-11T14:39:35.948Z</updated>
   <id>https://songchen.science/blog/zh-CN/</id>
   
   <author>
@@ -17,11 +17,141 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Obsidian 教程归纳汇总</title>
+    <link href="https://songchen.science/blog/zh-CN/posts/16e9b000/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/16e9b000/</id>
+    <published>2023-10-29T21:55:55.000Z</published>
+    <updated>2023-11-11T14:39:35.948Z</updated>
+    
+    
+    <summary type="html">&lt;a class=&quot;tag is-dark is-medium&quot; href=&quot;https://publish.obsidian.md/chinesehelp/01+2021%E6%96%B0%E6%95%99%E7%A8%8B/2021%E5%B9%B4%E6%96%B0%E6%95%99%E7%A8%8B&quot;&gt;
+&lt;span class=&quot;icon&quot;&gt;&lt;i class=&quot;fa fa-book&quot;&gt;&lt;/i&gt;&lt;/span&gt;&amp;nbsp;&amp;nbsp;Obsidian 中文教程&lt;/a&gt;</summary>
+    
+    
+    
+    <category term="Obsidian" scheme="https://songchen.science/blog/zh-CN/categories/Obsidian/"/>
+    
+    
+    <category term="Obsidian" scheme="https://songchen.science/blog/zh-CN/tags/Obsidian/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Interview_Python (转载)</title>
+    <link href="https://songchen.science/blog/zh-CN/posts/890959d7/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/890959d7/</id>
+    <published>2023-10-22T22:23:41.000Z</published>
+    <updated>2023-10-26T20:21:38.090Z</updated>
+    
+    
+    <summary type="html">&lt;!-- markdown-toc start - Don&#39;t edit this section. Run M-x markdown-toc-generate-toc again --&gt;
+
+&lt;a class=&quot;tag is-dark is-medium&quot; href=&quot;https://github.com/taizilongxu/interview_python/tree/master&quot;&gt;
+&lt;span class=&quot;icon&quot;&gt;&lt;i class=&quot;fa fa-book&quot;&gt;&lt;/i&gt;&lt;/span&gt;&amp;nbsp;&amp;nbsp;Interview_Python&lt;/a&gt;</summary>
+    
+    
+    
+    <category term="Python" scheme="https://songchen.science/blog/zh-CN/categories/Python/"/>
+    
+    <category term="Bibliography" scheme="https://songchen.science/blog/zh-CN/categories/Python/Bibliography/"/>
+    
+    
+    <category term="python" scheme="https://songchen.science/blog/zh-CN/tags/python/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Python的F-String用于字符串插值和格式化</title>
+    <link href="https://songchen.science/blog/zh-CN/posts/ac0deb15/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/ac0deb15/</id>
+    <published>2023-10-19T20:05:37.000Z</published>
+    <updated>2023-10-26T20:21:38.096Z</updated>
+    
+    
+    <summary type="html">Python的f-strings提供了一种快速的方式来进行字符串插值和格式化。它们具有可读性，简洁，比传统的字符串插值和格式化工具如.format()方法和百分号操作符(%)更不容易出错。与这些工具相比，f-strings还稍微更快！在本教程结束时，您将了解为什么f-strings是一种强大的工具，作为Python开发人员，您应该学习和掌握它。在本教程中，您将学到如何：1.使用f-strings将值、对象和表达式插入到字符串中。 2.使用Python的字符串格式化迷你语言格式化f-strings。3.利用Python 3.12及更高版本中f-strings的一些有趣特性。4.决定何时使用传统的插值工具而不是f-strings。要充分利用本教程，您应该熟悉Python的字符串数据类型。对于其他字符串插值工具如百分号操作符(%)和.format()方法也有经验将是有益的。</summary>
+    
+    
+    
+    <category term="Python" scheme="https://songchen.science/blog/zh-CN/categories/Python/"/>
+    
+    <category term="Python_basic" scheme="https://songchen.science/blog/zh-CN/categories/Python/Python-basic/"/>
+    
+    
+    <category term="Python" scheme="https://songchen.science/blog/zh-CN/tags/Python/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>多版本Python管理，轻松应对不同需求</title>
+    <link href="https://songchen.science/blog/zh-CN/posts/dea9e976/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/dea9e976/</id>
+    <published>2023-10-18T19:25:44.000Z</published>
+    <updated>2023-10-26T20:21:38.102Z</updated>
+    
+    
+    <summary type="html">您是否曾想过为支持多个Python版本的项目贡献自己的力量，但却不确定如何轻松测试所有这些版本？您是否对Python的最新和最出色的版本感到好奇？也许您想尝试这些新功能，但又不希望担心损害您的开发环境。幸运的是，如果您使用pyenv，管理多个Python版本将不再令人困惑。本博客将为您提供一个精彩的概述，展示如何最大程度地提高您在项目上的工作效率，同时将头痛的时间减到最低，让您可以专注于使用正确的Python版本。</summary>
+    
+    
+    
+    <category term="Python" scheme="https://songchen.science/blog/zh-CN/categories/Python/"/>
+    
+    <category term="Configuration" scheme="https://songchen.science/blog/zh-CN/categories/Python/Configuration/"/>
+    
+    <category term="Tools" scheme="https://songchen.science/blog/zh-CN/categories/Python/Tools/"/>
+    
+    
+    <category term="Python" scheme="https://songchen.science/blog/zh-CN/tags/Python/"/>
+    
+    <category term="Pyenv" scheme="https://songchen.science/blog/zh-CN/tags/Pyenv/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>推荐常用的Hexo插件 (转载)</title>
+    <link href="https://songchen.science/blog/zh-CN/posts/346eb830/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/346eb830/</id>
+    <published>2023-10-17T19:18:33.000Z</published>
+    <updated>2023-10-26T20:21:38.101Z</updated>
+    
+    
+    <summary type="html">&lt;a class=&quot;tag is-dark is-medium&quot; href=&quot;https://github.com/TenviLi/awesome-hexo-plugins/tree/master&quot;&gt;
+&lt;span class=&quot;icon&quot;&gt;&lt;i class=&quot;fa fa-book&quot;&gt;&lt;/i&gt;&lt;/span&gt;&amp;nbsp;&amp;nbsp;Awesome-hexo-plugins&lt;/a&gt;
+
+&lt;h1 id=&quot;Awesome-hexo-plugins&quot;&gt;&lt;a href=&quot;#Awesome-hexo-plugins&quot; class=&quot;headerlink&quot; title=&quot;Awesome-hexo-plugins &quot;&gt;&lt;/a&gt;Awesome-hexo-plugins &lt;a href=&quot;https://github.com/sindresorhus/awesome&quot;&gt;&lt;img src=&quot;https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg&quot; alt=&quot;Awesome&quot;&gt;&lt;/a&gt;&lt;/h1&gt;&lt;blockquote&gt;
+&lt;p&gt;👓 推荐常用的 Hexo 插件&lt;/p&gt;
+&lt;p&gt;如果你有好的插件推荐，欢迎 pull requests 或 提出 Issues。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#%E6%96%87%E7%AB%A0&quot;&gt;文章&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#hexo-auto-category-%E6%A0%B9%E6%8D%AE%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E6%96%87%E7%AB%A0%E5%88%86%E7%B1%BB&quot;&gt;&lt;code&gt;hexo-auto-category&lt;/code&gt; 根据文件目录自动生成文章分类&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#hexo-renderer-markdown-it-%E4%BD%BF%E7%94%A8-markdown-it-%E4%BD%9C%E6%B8%B2%E6%9F%93%E5%99%A8&quot;&gt;&lt;code&gt;hexo-renderer-markdown-it&lt;/code&gt; 使用 markdown-it 作渲染器&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#hexo-related-popular-posts-%E7%94%9F%E6%88%90%E7%9B%B8%E5%85%B3%E7%83%AD%E9%97%A8%E6%96%87%E7%AB%A0%E5%88%97%E8%A1%A8&quot;&gt;&lt;code&gt;hexo-related-popular-posts&lt;/code&gt; 生成相关热门文章列表&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#hexo-description-%E6%A0%B9%E6%8D%AE%E6%A0%87%E8%AE%B0%E4%BD%8D%E7%BD%AE%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E6%96%87%E7%AB%A0%E7%AE%80%E4%BB%8B&quot;&gt;&lt;code&gt;hexo-description&lt;/code&gt; 根据标记位置自动生成文章简介&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="Documentation" scheme="https://songchen.science/blog/zh-CN/categories/Documentation/"/>
+    
+    <category term="Hexo" scheme="https://songchen.science/blog/zh-CN/categories/Documentation/Hexo/"/>
+    
+    
+    <category term="Hexo" scheme="https://songchen.science/blog/zh-CN/tags/Hexo/"/>
+    
+    <category term="Documentation" scheme="https://songchen.science/blog/zh-CN/tags/Documentation/"/>
+    
+    <category term="Hexo plugins" scheme="https://songchen.science/blog/zh-CN/tags/Hexo-plugins/"/>
+    
+  </entry>
+  
+  <entry>
     <title>用Python打造精美二维码，传递无限可能</title>
-    <link href="https://songchen.science/blog/zh-CN/2023/10/13/%E7%94%A8Python%E6%89%93%E9%80%A0%E7%B2%BE%E7%BE%8E%E4%BA%8C%E7%BB%B4%E7%A0%81%EF%BC%8C%E4%BC%A0%E9%80%92%E6%97%A0%E9%99%90%E5%8F%AF%E8%83%BD/"/>
-    <id>https://songchen.science/blog/zh-CN/2023/10/13/%E7%94%A8Python%E6%89%93%E9%80%A0%E7%B2%BE%E7%BE%8E%E4%BA%8C%E7%BB%B4%E7%A0%81%EF%BC%8C%E4%BC%A0%E9%80%92%E6%97%A0%E9%99%90%E5%8F%AF%E8%83%BD/</id>
+    <link href="https://songchen.science/blog/zh-CN/posts/5dbadbbd/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/5dbadbbd/</id>
     <published>2023-10-13T14:13:17.000Z</published>
-    <updated>2023-10-13T14:49:08.929Z</updated>
+    <updated>2023-11-19T22:01:18.860Z</updated>
     
     
     <summary type="html">从餐厅电子菜单到航空公司登机牌，QR码拥有广泛的应用，深刻影响着您的日常生活，为用户提供更丰富的体验。难道不想让它们看起来更美观吗？通过本教程，您将学会如何使用Python为个人需求生成精美的QR码。在最基本的形式中，QR码以白底黑块和点的方式呈现，包含了可以被任何具有专用QR码扫描功能的智能手机或设备解码的信息。与传统的条形码不同，QR码将信息以二维的方式保存，可以容纳超过百倍的信息。</summary>
@@ -39,10 +169,10 @@
   
   <entry>
     <title>Busuu_法语学习</title>
-    <link href="https://songchen.science/blog/zh-CN/2023/10/12/Busuu-French/"/>
-    <id>https://songchen.science/blog/zh-CN/2023/10/12/Busuu-French/</id>
+    <link href="https://songchen.science/blog/zh-CN/posts/b2a36a01/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/b2a36a01/</id>
     <published>2023-10-12T21:21:10.000Z</published>
-    <updated>2023-10-14T11:54:57.601Z</updated>
+    <updated>2023-11-24T20:51:57.535Z</updated>
     
     
     <summary type="html">Here&#39;s something encrypted, password is required to continue reading.</summary>
@@ -62,10 +192,10 @@
   
   <entry>
     <title>BCA Simulations</title>
-    <link href="https://songchen.science/blog/zh-CN/2023/10/11/BCA-Simulations/"/>
-    <id>https://songchen.science/blog/zh-CN/2023/10/11/BCA-Simulations/</id>
+    <link href="https://songchen.science/blog/zh-CN/posts/c1550b35/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/c1550b35/</id>
     <published>2023-10-11T16:57:14.000Z</published>
-    <updated>2023-10-11T18:50:06.305Z</updated>
+    <updated>2023-10-26T20:21:38.092Z</updated>
     
     
     <summary type="html">&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Binary_collision_approximation&quot;&gt;Binary Appriximation Collison&lt;/a&gt; (BCA), serves as a pragmatic approach to enhance the efficiency of simulating how high-energy ions, typically with kinetic energies in the kilo-electronvolt (keV) range or beyond, interact with solid materials in terms of their penetration depth and defect generation. In this method, the ion’s trajectory is simplified by assuming that it traverses through the material via a series of discrete, independent interactions with individual sample atoms (nuclei). In the intervals between these collisions, the ion is presumed to move along a straight path, experiencing electronic stopping power but not dissipating any energy during its interactions with the nuclei. &lt;/p&gt;</summary>
@@ -85,10 +215,10 @@
   
   <entry>
     <title>Finding An Effective Python Environment</title>
-    <link href="https://songchen.science/blog/zh-CN/2023/10/11/Finding-An-Effective-Python-Environment/"/>
-    <id>https://songchen.science/blog/zh-CN/2023/10/11/Finding-An-Effective-Python-Environment/</id>
+    <link href="https://songchen.science/blog/zh-CN/posts/28115c/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/28115c/</id>
     <published>2023-10-10T22:55:14.000Z</published>
-    <updated>2023-10-11T18:50:46.522Z</updated>
+    <updated>2023-10-26T20:21:38.086Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;Python-Version-Management-Tools&quot;&gt;&lt;a href=&quot;#Python-Version-Management-Tools&quot; class=&quot;headerlink&quot; title=&quot;Python Version Management Tools&quot;&gt;&lt;/a&gt;Python Version Management Tools&lt;/h2&gt;&lt;h3 id=&quot;pyenv&quot;&gt;&lt;a href=&quot;#pyenv&quot; class=&quot;headerlink&quot; title=&quot;pyenv&quot;&gt;&lt;/a&gt;pyenv&lt;/h3&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/pyenv/pyenv&quot;&gt;&lt;code&gt;pyenv&lt;/code&gt;&lt;/a&gt; is a polular and marture open-source tool used in the Python development ecosystem on MacOS. (It is &lt;a href=&quot;https://github.com/pyenv-win/pyenv-win#installation&quot;&gt;pyenv-win&lt;/a&gt; on windows). It allows developers to manage multiple Python installations on their system and easily switch between different Python versions. This is especially useful when you’re working on various Python projects that may have different version requirements.&lt;/p&gt;
@@ -98,11 +228,11 @@
     
     <category term="Python" scheme="https://songchen.science/blog/zh-CN/categories/Python/"/>
     
+    <category term="Configuration" scheme="https://songchen.science/blog/zh-CN/categories/Python/Configuration/"/>
+    
     <category term="Tools" scheme="https://songchen.science/blog/zh-CN/categories/Python/Tools/"/>
     
     <category term="Editors" scheme="https://songchen.science/blog/zh-CN/categories/Python/Editors/"/>
-    
-    <category term="Configuration" scheme="https://songchen.science/blog/zh-CN/categories/Python/Configuration/"/>
     
     
     <category term="python" scheme="https://songchen.science/blog/zh-CN/tags/python/"/>
@@ -117,10 +247,10 @@
   
   <entry>
     <title>Creating a Neural Network and Making Predictions with Python&#39;s AI</title>
-    <link href="https://songchen.science/blog/zh-CN/2023/10/10/Creating-a-Neural-Network-and-Making-Predictions-with-Python-s-AI/"/>
-    <id>https://songchen.science/blog/zh-CN/2023/10/10/Creating-a-Neural-Network-and-Making-Predictions-with-Python-s-AI/</id>
+    <link href="https://songchen.science/blog/zh-CN/posts/b1a039fb/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/b1a039fb/</id>
     <published>2023-10-09T22:06:29.000Z</published>
-    <updated>2023-10-11T18:50:54.757Z</updated>
+    <updated>2023-10-26T20:21:38.084Z</updated>
     
     
     <summary type="html">&lt;p&gt;If you’re new to the field of artificial intelligence (AI), Python is an excellent language to begin with because it serves as the foundation for many AI tools and libraries. &lt;strong&gt;Deep learning&lt;/strong&gt;, a method for making predictions based on data, heavily depends on neural networks. This blog will show you through the process of constructing a &lt;a href=&quot;https://en.wikipedia.org/wiki/Neural_network&quot;&gt;neural network&lt;/a&gt; from the ground up.&lt;/p&gt;
@@ -145,10 +275,10 @@
   
   <entry>
     <title>Basic Usage of Hexo</title>
-    <link href="https://songchen.science/blog/zh-CN/2023/10/06/second-post/"/>
-    <id>https://songchen.science/blog/zh-CN/2023/10/06/second-post/</id>
+    <link href="https://songchen.science/blog/zh-CN/posts/e44932a0/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/e44932a0/</id>
     <published>2023-10-06T00:24:52.000Z</published>
-    <updated>2023-10-11T18:51:30.154Z</updated>
+    <updated>2023-10-26T20:21:38.095Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;Writing&quot;&gt;&lt;a href=&quot;#Writing&quot; class=&quot;headerlink&quot; title=&quot;Writing&quot;&gt;&lt;/a&gt;Writing&lt;/h1&gt;&lt;p&gt;To create a new post or new page, run the following command:&lt;/p&gt;
@@ -171,10 +301,10 @@
   
   <entry>
     <title>Hello World</title>
-    <link href="https://songchen.science/blog/zh-CN/2023/10/03/hello-world/"/>
-    <id>https://songchen.science/blog/zh-CN/2023/10/03/hello-world/</id>
+    <link href="https://songchen.science/blog/zh-CN/posts/4a17b156/"/>
+    <id>https://songchen.science/blog/zh-CN/posts/4a17b156/</id>
     <published>2023-10-03T20:16:13.639Z</published>
-    <updated>2023-10-08T09:48:49.887Z</updated>
+    <updated>2023-10-26T20:21:38.094Z</updated>
     
     
     <summary type="html">Here&#39;s something encrypted, password is required to continue reading.</summary>
