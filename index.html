@@ -289,6 +289,65 @@
                 margin-bottom: 16px;
             }
         }
+
+
+        /*
+           ========================================
+           打印专用样式 (优化宽度与分页)
+           ========================================
+        */
+        @media print {
+            /* 1. 设置打印页面的边距 */
+            @page {
+                margin: 1cm 1cm; /* 上下1cm，左右1cm */
+                size: auto;
+            }
+
+            /* 2. 重置 Body 的边距和内边距，确保利用全部宽度 */
+            body {
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+                -webkit-print-color-adjust: exact; /* 尽可能保留背景色（如需要） */
+            }
+
+            /* 3. 重置主容器的样式：去掉最大宽度限制、阴影、边框和内边距 */
+            #layout-content {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                max-width: none !important; /* 强制覆盖 900px 限制 */
+                padding: 0;                 /* 移除容器内边距，让内容更宽 */
+                border: none;
+                border-radius: 0;
+            }
+
+            /* 4. 字体微调（可选，防止打印字体过大） */
+            .profile-info h1 {
+                font-size: 2rem;
+            }
+
+            /* 5. 核心分页控制：防止元素内部断页 */
+            .publication-entry,
+            .top-section,
+            h2,
+            .contact-box,
+            li {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            /* 防止标题与下方内容分离 */
+            h2 {
+                break-after: avoid;
+                page-break-after: avoid;
+                margin-top: 20px; /* 打印时稍微减少顶部间距 */
+            }
+
+            /* 6. 隐藏不需要打印的元素（可选，如果需要的话） */
+            /* .no-print { display: none; } */
+        }
+
     </style>
 </head>
 
