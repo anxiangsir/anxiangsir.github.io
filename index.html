@@ -248,33 +248,40 @@
         /* Navigation styles */
         .site-nav {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 32px;
-            padding: 16px;
-            background: #f9fafb;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 8px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .nav-link {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 16px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 500;
             color: var(--text-gray);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
             text-decoration: none;
-            transition: all 0.2s ease;
+            padding: 8px 0;
+            position: relative;
+            transition: color 0.2s ease;
         }
 
         .nav-link:hover {
-            background: #eff6ff;
-            border-color: var(--primary-color);
             color: var(--primary-color);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.2s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
         }
 
         /* 移动端适配 */
@@ -311,12 +318,11 @@
             }
 
             .site-nav {
-                justify-content: center;
+                gap: 16px;
             }
 
             .nav-link {
-                font-size: 0.8rem;
-                padding: 6px 12px;
+                font-size: 0.85rem;
             }
 
             .publication-entry {
@@ -419,7 +425,7 @@
         <!-- Navigation -->
         <nav class="site-nav">
             <a href="#publications" class="nav-link">Selected Publications</a>
-            <a href="publications.html" class="nav-link">(Full List)</a>
+            <a href="publications.html" class="nav-link">Full List</a>
             <a href="#community" class="nav-link">Community Contribution</a>
             <a href="#awards" class="nav-link">Awards & Competitions</a>
         </nav>
@@ -432,7 +438,7 @@
             Currently, our team is building the <b>next-generation Vision Transformer (ViT)</b> to address some of the most urgent needs in modern MLLMs.
         </p>
 
-        <h2 id="publications">Selected Publications <a href="publications.html" style="font-size: 0.7em; font-weight: 500; color: var(--primary-color); margin-left: 12px; text-decoration: none;">(Full List)</a></h2>
+        <h2 id="publications">Selected Publications</h2>
         <ul class="pub-list">
             <li>
                 <div class="publication-entry">
