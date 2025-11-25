@@ -245,6 +245,38 @@
             font-size: 1.2em;
         }
 
+        /* 导航栏样式 */
+        .site-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 32px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-gray);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
         /* 移动端适配 */
         @media (max-width: 768px) {
             #layout-content {
@@ -276,6 +308,15 @@
 
             .contact-box {
                 justify-content: center;
+            }
+
+            .site-nav {
+                justify-content: center;
+            }
+
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 6px 12px;
             }
 
             .publication-entry {
@@ -375,7 +416,15 @@
             </div>
         </div>
 
-        <h2>About Me</h2>
+        <!-- Navigation -->
+        <nav class="site-nav">
+            <a href="#publications" class="nav-link">Selected Publications</a>
+            <a href="publications.html" class="nav-link">(Full List)</a>
+            <a href="#community" class="nav-link">Community Contribution</a>
+            <a href="#awards" class="nav-link">Awards & Competitions</a>
+        </nav>
+
+        <h2 id="about">About Me</h2>
         <p>
             I am an <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, focusing on computer vision and multimodal large models.
         </p>
@@ -383,7 +432,7 @@
             Currently, our team is building the <b>next-generation Vision Transformer (ViT)</b> to address some of the most urgent needs in modern MLLMs.
         </p>
 
-        <h2>Selected Publications <a href="publications.html" style="font-size: 0.7em; font-weight: 500; color: var(--primary-color); margin-left: 12px; text-decoration: none;">(Full List)</a></h2>
+        <h2 id="publications">Selected Publications <a href="publications.html" style="font-size: 0.7em; font-weight: 500; color: var(--primary-color); margin-left: 12px; text-decoration: none;">(Full List)</a></h2>
         <ul class="pub-list">
             <li>
                 <div class="publication-entry">
@@ -506,7 +555,7 @@
             </li>
         </ul>
 
-        <h2>Community Contribution</h2>
+        <h2 id="community">Community Contribution</h2>
         <p>I actively contribute to open-source projects in face recognition, representation learning, and multimodal large models. I am the <b>#2 contributor</b> to the <b>InsightFace</b> ecosystem (~27k⭐), and co-maintain several influential vision and multimodal repositories.</p>
 
         <ul class="pub-list">
@@ -586,7 +635,7 @@
             </li>
         </ul>
 
-        <h2>Awards & Competitions</h2>
+        <h2 id="awards">Awards & Competitions</h2>
         <ul class="awards-list" style="list-style-type: none; padding-left: 0;">
             <li><span class="emoji">🏅</span> <b>ICCV 2025 Outstanding Reviewer</b></li>
             <li><span class="emoji">🏅</span> <b>CVPR 2024 Outstanding Reviewer</b></li>
