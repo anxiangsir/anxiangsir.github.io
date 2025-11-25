@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Xiang An's Full Publication List">
+    <title>Publications - Xiang An</title>
+    <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
+    <style>
+        :root {
+            --primary-color: #297be6;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --text-light: #6b7280;
+            --bg-page: #f3f4f6;
+            --bg-card: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            color: var(--text-dark);
+            background-color: var(--bg-page);
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        #layout-content {
+            margin: 0 auto;
+            max-width: 900px;
+            background-color: var(--bg-card);
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            margin: 0;
+            color: #111827;
+            letter-spacing: -0.025em;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            background: #f9fafb;
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .back-link::before {
+            content: "←";
+            margin-right: 8px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #111827;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        h2:first-of-type {
+            margin-top: 0;
+        }
+
+        .pub-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .pub-item {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .pub-item:last-child {
+            border-bottom: none;
+        }
+
+        .pub-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .pub-authors {
+            color: var(--text-light);
+            font-size: 0.92rem;
+            margin-bottom: 6px;
+        }
+
+        .pub-venue {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .me-highlight {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            #layout-content {
+                padding: 24px 20px;
+                width: auto;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            body {
+                padding: 0;
+                background-color: #fff;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Print */
+        @media print {
+            @page {
+                margin: 1cm 1cm;
+                size: auto;
+            }
+
+            body {
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+            }
+
+            #layout-content {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                max-width: none !important;
+                padding: 0;
+                border: none;
+                border-radius: 0;
+            }
+
+            .back-link {
+                display: none;
+            }
+
+            .pub-item {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            h2 {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="layout-content">
+        <div class="page-header">
+            <h1>Publication Full List</h1>
+            <a href="index.html" class="back-link">Back to Home</a>
+        </div>
+
+        <h2>2025</h2>
+        <ul class="pub-list">
+            <li class="pub-item">
+                <div class="pub-title">UniViT: Unifying Image and Video Understanding in One Vision Encoder</div>
+                <div class="pub-authors">Feilong Tang, <span class="me-highlight">Xiang An</span>, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Xingyu Zhou, Zimin Ran, Imran Razzak</div>
+                <div class="pub-venue">NeurIPS 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">Llava-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training</div>
+                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu</div>
+                <div class="pub-venue">arXiv 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning</div>
+                <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, Kaichen Zhang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Yueyi Zhang, Weidong Cai, Jiankang Deng, Lidong Bing</div>
+                <div class="pub-venue">arXiv 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">Region-based Cluster Discrimination for Visual Representation Learning</div>
+                <div class="pub-authors">Yin Xie, Kaicheng Yang, <span class="me-highlight">Xiang An</span>, Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng</div>
+                <div class="pub-venue">ICCV 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">High-Fidelity Facial Albedo Estimation via Texture Quantization</div>
+                <div class="pub-authors">Zimin Ran, Xingyu Ren, <span class="me-highlight">Xiang An</span>, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jia Guo, Linchao Zhu, Jiankang Deng</div>
+                <div class="pub-venue">ICCV 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">RealSyn: An Effective and Scalable Multimodal Interleaved Document Transformation Paradigm</div>
+                <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, Chaoyi Zhang, Yin Xie, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng</div>
+                <div class="pub-venue">ACM MM 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">ForCenNet: Foreground-Centric Network for Document Image Rectification</div>
+                <div class="pub-authors">Peng Cai, Qiang Li, Kaicheng Yang, Dong Guo, Jia Li, Nan Zhou, <span class="me-highlight">Xiang An</span>, Ninghua Yang, Jiankang Deng</div>
+                <div class="pub-venue">ICCV 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">HUST: High-Fidelity Unbiased Skin Tone Estimation via Texture Quantization</div>
+                <div class="pub-authors">Zimin Ran, Xingyu Ren, <span class="me-highlight">Xiang An</span>, Kaicheng Yang, Ziyong Feng, Jing Yang, Rolandos Alexandros Potamias, Linchao Zhu, Jiankang Deng</div>
+                <div class="pub-venue">ICCV 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">Gradient-Attention Guided Dual-Masking Synergetic Framework for Robust Text-based Person Retrieval</div>
+                <div class="pub-authors">Tianlu Zheng, Yifan Zhang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Kaicheng Yang, Qichuan Ding</div>
+                <div class="pub-venue">EMNLP 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">StreamAgent: Towards Anticipatory Agents for Streaming Video Understanding</div>
+                <div class="pub-authors">Haolin Yang, Feilong Tang, Linxiao Zhao, <span class="me-highlight">Xiang An</span>, Ming Hu, Huifa Li, Xinlin Zhuang, Boqian Wang, Yifan Lu, Xiaofeng Zhang</div>
+                <div class="pub-venue">arXiv 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">ProCLIP: Progressive Vision-Language Alignment via LLM-based Embedder</div>
+                <div class="pub-authors">Xiaoxing Hu, Kaicheng Yang, Ziyong Feng, Qi Ming, Zonghao Guo, <span class="me-highlight">Xiang An</span>, Junchi Yan, Xue Yang</div>
+                <div class="pub-venue">arXiv 2025</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">PaCo-FR: Patch-Pixel Aligned End-to-End Codebook Learning for Facial Representation Pre-training</div>
+                <div class="pub-authors">Yin Xie, Zhichao Chen, Xiaoze Yu, Yongle Zhao, <span class="me-highlight">Xiang An</span>, Kaicheng Yang, Zimin Ran, Jia Guo, Ziyong Feng, Jiankang Deng</div>
+                <div class="pub-venue">arXiv 2025</div>
+            </li>
+        </ul>
+
+        <h2>2024</h2>
+        <ul class="pub-list">
+            <li class="pub-item">
+                <div class="pub-title">RWKV-CLIP: A Robust Vision-Language Representation Learner</div>
+                <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng</div>
+                <div class="pub-venue">EMNLP 2024</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">VAR-CLIP: Text-to-Image Generator with Visual Auto-Regressive Modeling</div>
+                <div class="pub-authors">Qian Zhang, Xiangzi Dai, Ninghua Yang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Xingyu Ren</div>
+                <div class="pub-venue">arXiv 2024</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">CLIP-CID: Efficient CLIP Distillation via Cluster-Instance Discrimination</div>
+                <div class="pub-authors">Kaicheng Yang, Tiancheng Gu, <span class="me-highlight">Xiang An</span>, Haiqiang Jiang, Xiangzi Dai, Ziyong Feng, Weidong Cai, Jiankang Deng</div>
+                <div class="pub-venue">AAAI 2024</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">Croc: Pretraining Large Multimodal Models with Cross-Modal Comprehension</div>
+                <div class="pub-authors">Yin Xie, Kaicheng Yang, Ninghua Yang, Weimo Deng, Xiangzi Dai, Tiancheng Gu, Yumeng Wang, <span class="me-highlight">Xiang An</span>, Yongle Zhao, Ziyong Feng</div>
+                <div class="pub-venue">arXiv 2024</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">Multi-label Cluster Discrimination for Visual Representation Learning</div>
+                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jiankang Deng</div>
+                <div class="pub-venue">ECCV 2024</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">IDAdapter: Learning Mixed Features for Tuning-Free Personalization of Text-to-Image Models</div>
+                <div class="pub-authors">Siying Cui, Jia Guo, <span class="me-highlight">Xiang An</span>, Jiankang Deng, Yongle Zhao, Xinyu Wei, Ziyong Feng</div>
+                <div class="pub-venue">CVPR 2024</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">Plug-and-Play Grounding of Reasoning in Multimodal Large Language Models</div>
+                <div class="pub-authors">Jiaxing Chen, Yuxuan Liu, Dehu Li, <span class="me-highlight">Xiang An</span>, Weimo Deng, Ziyong Feng, Yongle Zhao, Yin Xie</div>
+                <div class="pub-venue">arXiv 2024</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">ORID: Organ-Regional Information Driven Framework for Radiology Report Generation</div>
+                <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Dongnan Liu, Weidong Cai</div>
+                <div class="pub-venue">arXiv 2024</div>
+            </li>
+        </ul>
+
+        <h2>2023</h2>
+        <ul class="pub-list">
+            <li class="pub-item">
+                <div class="pub-title">Unicom: Universal and Compact Representation Learning for Image Retrieval</div>
+                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Jiankang Deng, Kaicheng Yang, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu</div>
+                <div class="pub-venue">ICLR 2023</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">ALIP: Adaptive Language-Image Pre-training with Synthetic Caption</div>
+                <div class="pub-authors">Kaicheng Yang, Jiankang Deng, <span class="me-highlight">Xiang An</span>, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu</div>
+                <div class="pub-venue">ICCV 2023</div>
+            </li>
+        </ul>
+
+        <h2>2022</h2>
+        <ul class="pub-list">
+            <li class="pub-item">
+                <div class="pub-title">Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC</div>
+                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Jiankang Deng, Jia Guo, Ziyong Feng, Xuhan Zhu, Jing Yang, Tongliang Liu</div>
+                <div class="pub-venue">CVPR 2022</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">InsightFace: 2D and 3D Face Analysis Project</div>
+                <div class="pub-authors">Jiankang Deng, Jia Guo, <span class="me-highlight">Xiang An</span>, Jack Yu</div>
+                <div class="pub-venue">GitHub 2022</div>
+            </li>
+        </ul>
+
+        <h2>2021</h2>
+        <ul class="pub-list">
+            <li class="pub-item">
+                <div class="pub-title">Partial FC: Training 10 Million Identities on a Single Machine</div>
+                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Xuhan Zhu, Yuan Gao, Yang Xiao, Yongle Zhao, Ziyong Feng, Lan Wu, Bin Qin, Ming Zhang, Debing Zhang</div>
+                <div class="pub-venue">ICCVW 2021</div>
+            </li>
+            <li class="pub-item">
+                <div class="pub-title">Masked Face Recognition Challenge: The InsightFace Track Report</div>
+                <div class="pub-authors">Jiankang Deng, Jia Guo, <span class="me-highlight">Xiang An</span>, Zheng Zhu, Stefanos Zafeiriou</div>
+                <div class="pub-venue">ICCVW 2021</div>
+            </li>
+        </ul>
+
+        <h2>2020</h2>
+        <ul class="pub-list">
+            <li class="pub-item">
+                <div class="pub-title">InsightFace: 2D and 3D Face Analysis Project</div>
+                <div class="pub-authors">Jia Guo, Jiankang Deng, <span class="me-highlight">Xiang An</span>, Jack Yu</div>
+                <div class="pub-venue">GitHub 2020</div>
+            </li>
+        </ul>
+
+        <div style="margin-top: 40px; text-align: center;">
+            <a href="index.html" class="back-link">Back to Home</a>
+        </div>
+    </div>
+</body>
+
+</html>
