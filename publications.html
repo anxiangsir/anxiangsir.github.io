@@ -26,8 +26,62 @@
             color: var(--text-dark);
             background-color: var(--bg-page);
             margin: 0;
-            padding: 40px 20px;
+            padding: 100px 20px 40px 20px;
             line-height: 1.6;
+        }
+
+        /* Site Header - Meta-style fixed navigation */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+
+        .header-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1c1e21;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .header-logo:hover {
+            color: var(--primary-color);
+        }
+
+        .site-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1c1e21;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #f0f2f5;
+            color: #1c1e21;
+        }
+
+        .nav-link:active {
+            background-color: #e4e6e9;
         }
 
         #layout-content {
@@ -136,17 +190,34 @@
 
         /* Mobile */
         @media (max-width: 768px) {
+            body {
+                padding: 80px 0 0 0;
+                background-color: #fff;
+            }
+
+            .site-header {
+                padding: 0 16px;
+            }
+
+            .header-logo {
+                font-size: 1.1rem;
+            }
+
+            .site-nav {
+                gap: 4px;
+            }
+
+            .nav-link {
+                font-size: 0.75rem;
+                padding: 6px 8px;
+            }
+
             #layout-content {
                 padding: 24px 20px;
                 width: auto;
                 margin: 0;
                 border-radius: 0;
                 box-shadow: none;
-            }
-
-            body {
-                padding: 0;
-                background-color: #fff;
             }
 
             .page-header {
@@ -160,8 +231,37 @@
             }
         }
 
+        /* Extra small screens - stack nav below logo */
+        @media (max-width: 520px) {
+            .site-header {
+                height: auto;
+                flex-direction: column;
+                padding: 12px 16px;
+                gap: 8px;
+            }
+
+            body {
+                padding-top: 100px;
+            }
+
+            .site-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 6px 10px;
+            }
+        }
+
         /* Print */
         @media print {
+            /* Hide the fixed header when printing */
+            .site-header {
+                display: none;
+            }
+
             @page {
                 margin: 1cm 1cm;
                 size: auto;
@@ -201,6 +301,18 @@
 </head>
 
 <body>
+
+    <!-- Site Header (Meta-style fixed navigation) -->
+    <header class="site-header">
+        <a href="index.html" class="header-logo">Xiang An</a>
+        <nav class="site-nav">
+            <a href="index.html#publications" class="nav-link">Selected Publications</a>
+            <a href="publications.html" class="nav-link">All Publications</a>
+            <a href="index.html#community" class="nav-link">Community Contribution</a>
+            <a href="index.html#awards" class="nav-link">Awards & Competitions</a>
+        </nav>
+    </header>
+
     <div id="layout-content">
         <div class="page-header">
             <h1>Publication Full List</h1>
