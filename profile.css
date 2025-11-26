@@ -28,7 +28,7 @@
 }
 
 .header-logo:hover {
-    color: #297be6;
+    color: var(--primary-color, #297be6);
     border-bottom: none;
 }
 
