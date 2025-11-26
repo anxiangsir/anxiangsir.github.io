@@ -9,44 +9,32 @@
     <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
     <style>
         :root {
-            --primary-color: #0071e3;
-            --primary-hover: #0077ED;
-            --text-dark: #1d1d1f;
-            --text-gray: #515154;
-            --text-light: #86868b;
-            --bg-page: #f5f5f7;
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --text-light: #6b7280;
+            --bg-page: #ffffff;
             --bg-card: #ffffff;
-            --border-color: #d2d2d7;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
-            --transition-fast: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-            --transition-smooth: 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            --border-color: #e5e7eb;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-family: "Times New Roman", Georgia, serif;
             color: var(--text-dark);
             background-color: var(--bg-page);
             margin: 0;
-            padding: 100px 20px 40px 20px;
-            line-height: 1.47059;
+            padding: 80px 20px 40px 20px;
+            line-height: 1.6;
             font-weight: 400;
-            letter-spacing: -0.022em;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* 主容器：增加纸张质感 */
+        /* 主容器：简洁学术风格 */
         #layout-content {
             margin: 0 auto;
-            max-width: 900px;
+            max-width: 850px;
             background-color: var(--bg-card);
-            padding: 56px 64px;
-            border-radius: 20px;
-            box-shadow: var(--shadow-lg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            padding: 40px 50px;
         }
 
         /* 头部区域 */
@@ -59,15 +47,14 @@
         }
 
         .profile-info h1 {
-            font-size: 2.8rem;
+            font-size: 2.2rem;
             margin: 0 0 8px 0;
             color: var(--text-dark);
-            letter-spacing: -0.03em;
             font-weight: 700;
         }
 
         .profile-info h3 {
-            font-weight: 500;
+            font-weight: 400;
             color: var(--text-gray);
             margin: 0 0 16px 0;
             display: flex;
@@ -76,22 +63,15 @@
         }
 
         .profile-pic {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
+            width: 160px;
+            height: 160px;
+            border-radius: 4px;
             object-fit: cover;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            border: 4px solid #fff;
-            transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+            border: 1px solid var(--border-color);
             flex-shrink: 0;
         }
 
-        .profile-pic:hover {
-            transform: scale(1.03);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
-        }
-
-        /* 联系信息区域 - 简洁文字链接样式 */
+        /* 联系信息区域 */
         .contact-info {
             display: flex;
             align-items: center;
@@ -105,50 +85,33 @@
         .contact-info a {
             color: var(--primary-color);
             text-decoration: none;
-            transition: color var(--transition-fast), opacity var(--transition-fast);
-            font-weight: 500;
         }
 
         .contact-info a:hover {
-            color: var(--primary-hover);
-            opacity: 0.85;
+            text-decoration: underline;
         }
 
         .contact-separator {
             color: var(--text-light);
             margin: 0 4px;
-            font-weight: 300;
         }
 
         /* 标题样式 */
         h2 {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             color: var(--text-dark);
-            border-bottom: none;
-            padding-bottom: 0;
-            margin-top: 56px;
-            margin-bottom: 28px;
+            border-bottom: 2px solid var(--text-dark);
+            padding-bottom: 8px;
+            margin-top: 40px;
+            margin-bottom: 20px;
             font-weight: 700;
-            letter-spacing: -0.022em;
-            position: relative;
-        }
-
-        h2::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 0;
-            width: 40px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), #64b5f6);
-            border-radius: 2px;
         }
 
         p {
             color: var(--text-gray);
             margin-bottom: 16px;
-            font-size: 1.05rem;
-            line-height: 1.58;
+            font-size: 1rem;
+            line-height: 1.7;
         }
 
         b {
@@ -162,36 +125,25 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
-        /* 卡片样式优化 */
+        /* 卡片样式：简洁学术风格 */
         .publication-entry {
             display: flex;
-            padding: 24px;
-            border-radius: 16px;
-            background: linear-gradient(145deg, #ffffff 0%, #fafafa 100%);
-            border: 1px solid rgba(0, 0, 0, 0.04);
-            transition: transform var(--transition-smooth), box-shadow var(--transition-smooth), border-color var(--transition-fast);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-
-        .publication-entry:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-            border-color: rgba(0, 113, 227, 0.15);
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
         }
 
         .publication-entry img {
-            width: 180px;
-            height: 100px;
-            border-radius: 12px;
-            margin-right: 24px;
+            width: 160px;
+            height: 90px;
+            margin-right: 20px;
             object-fit: cover;
-            background-color: #f5f5f7;
-            border: none;
+            background-color: #f9fafb;
+            border: 1px solid var(--border-color);
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .pub-content {
@@ -199,19 +151,18 @@
         }
 
         .pub-title {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             color: var(--text-dark);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: block;
             line-height: 1.4;
-            letter-spacing: -0.01em;
         }
 
         .pub-authors {
             color: var(--text-light);
-            font-size: 0.92rem;
-            margin-bottom: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
             display: block;
             line-height: 1.5;
         }
@@ -219,39 +170,32 @@
         .pub-venue {
             color: var(--text-dark);
             font-weight: 600;
-            font-size: 0.88rem;
-            display: inline-flex;
-            align-items: center;
-            background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 100%);
-            padding: 6px 14px;
-            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+            background: #f3f4f6;
+            padding: 4px 10px;
         }
 
-        /* 胶囊按钮样式 [Paper] [Code] */
+        /* 链接按钮样式 [Paper] [Code] */
         .link-badges {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-top: 4px;
         }
 
         .badge-link {
             display: inline-flex;
             align-items: center;
-            padding: 6px 14px;
-            font-size: 0.82rem;
+            padding: 4px 10px;
+            font-size: 0.8rem;
             font-weight: 500;
             color: #fff;
-            background: linear-gradient(135deg, var(--primary-color) 0%, #0077ED 100%);
-            border-radius: 20px;
+            background: var(--primary-color);
             text-decoration: none;
-            transition: all var(--transition-fast);
-            box-shadow: 0 2px 6px rgba(0, 113, 227, 0.25);
         }
 
         .badge-link:hover {
-            background: linear-gradient(135deg, #0077ED 0%, #0066CC 100%);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.35);
-            transform: translateY(-1px);
+            background: var(--primary-hover);
             text-decoration: none;
         }
 
@@ -260,42 +204,34 @@
             color: var(--primary-color);
             font-weight: 600;
             text-decoration: none;
-            background: linear-gradient(135deg, rgba(0, 113, 227, 0.1) 0%, rgba(0, 119, 237, 0.05) 100%);
-            padding: 1px 6px;
-            border-radius: 4px;
         }
 
         /* 奖项列表 */
         .awards-list li {
-            padding: 12px 16px;
+            padding: 10px 0;
             display: flex;
             align-items: center;
             color: var(--text-dark);
-            background: linear-gradient(145deg, #ffffff 0%, #fafafa 100%);
-            border-radius: 12px;
-            margin-bottom: 10px;
-            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-            border: 1px solid rgba(0, 0, 0, 0.04);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .awards-list li:hover {
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        .awards-list li:last-child {
+            border-bottom: none;
         }
 
         .awards-list .emoji {
-            margin-right: 14px;
-            font-size: 1.3em;
+            margin-right: 12px;
+            font-size: 1.2em;
         }
 
-        /* Site Header - Apple-style fixed navigation */
+        /* Site Header - 保留导航栏样式 */
         .site-header {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 52px;
-            background-color: rgba(255, 255, 255, 0.72);
+            background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: saturate(180%) blur(20px);
             -webkit-backdrop-filter: saturate(180%) blur(20px);
             display: flex;
@@ -304,20 +240,18 @@
             padding: 0 32px;
             box-sizing: border-box;
             z-index: 1000;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .header-logo {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 600;
             color: var(--text-dark);
             text-decoration: none;
-            transition: opacity var(--transition-fast);
-            letter-spacing: -0.01em;
         }
 
         .header-logo:hover {
-            opacity: 0.7;
+            color: var(--primary-color);
         }
 
         .site-nav {
@@ -332,17 +266,16 @@
             color: var(--text-dark);
             text-decoration: none;
             padding: 8px 14px;
-            border-radius: 8px;
-            transition: background-color var(--transition-fast), color var(--transition-fast);
+            border-radius: 4px;
         }
 
         .nav-link:hover {
-            background-color: rgba(0, 0, 0, 0.04);
+            background-color: #f3f4f6;
             color: var(--text-dark);
         }
 
         .nav-link:active {
-            background-color: rgba(0, 0, 0, 0.08);
+            background-color: #e5e7eb;
         }
 
         /* 移动端适配 */
@@ -358,15 +291,13 @@
             }
 
             .header-logo {
-                font-size: 1.05rem;
+                font-size: 1rem;
             }
 
             #layout-content {
-                padding: 28px 20px;
+                padding: 24px 16px;
                 width: auto;
                 margin: 0;
-                border-radius: 0;
-                box-shadow: none;
             }
 
             .top-section {
@@ -380,7 +311,7 @@
             }
 
             .profile-info h1 {
-                font-size: 2.2rem;
+                font-size: 1.8rem;
             }
 
             .profile-info h3 {
@@ -392,25 +323,20 @@
             }
 
             h2 {
-                font-size: 1.5rem;
-                margin-top: 40px;
-            }
-
-            h2::after {
-                left: 50%;
-                transform: translateX(-50%);
+                font-size: 1.3rem;
+                margin-top: 32px;
             }
 
             .publication-entry {
                 flex-direction: column;
-                padding: 20px;
+                padding: 16px;
             }
 
             .publication-entry img {
                 width: 100%;
                 height: auto;
                 margin-right: 0;
-                margin-bottom: 16px;
+                margin-bottom: 12px;
             }
         }
 
@@ -428,10 +354,9 @@
             display: block;
             width: 22px;
             height: 2px;
-            background-color: #1c1e21;
+            background-color: #1f2937;
             margin: 5px 0;
             transition: transform 0.3s ease, opacity 0.3s ease;
-            border-radius: 1px;
         }
 
         .nav-toggle.active span:nth-child(1) {
@@ -454,9 +379,7 @@
             left: 0;
             width: 100%;
             height: calc(100vh - 48px);
-            background-color: rgba(255, 255, 255, 0.95);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            background-color: rgba(255, 255, 255, 0.98);
             z-index: 999;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -474,8 +397,8 @@
         }
 
         .mobile-nav .nav-link {
-            font-size: 1.1rem;
-            padding: 16px 0;
+            font-size: 1rem;
+            padding: 14px 0;
             border-bottom: 1px solid var(--border-color);
             border-radius: 0;
         }
@@ -518,7 +441,7 @@
 
             /* 1. 设置打印页面的边距 */
             @page {
-                margin: 1cm 1cm; /* 上下1cm，左右1cm */
+                margin: 1cm 1cm;
                 size: auto;
             }
 
@@ -527,23 +450,20 @@
                 background-color: #fff;
                 padding: 0;
                 margin: 0;
-                -webkit-print-color-adjust: exact; /* 尽可能保留背景色（如需要） */
             }
 
-            /* 3. 重置主容器的样式：去掉最大宽度限制、阴影、边框和内边距 */
+            /* 3. 重置主容器的样式 */
             #layout-content {
-                box-shadow: none;
                 margin: 0;
                 width: 100%;
-                max-width: none !important; /* 强制覆盖 900px 限制 */
-                padding: 0;                 /* 移除容器内边距，让内容更宽 */
+                max-width: none !important;
+                padding: 0;
                 border: none;
-                border-radius: 0;
             }
 
-            /* 4. 字体微调（可选，防止打印字体过大） */
+            /* 4. 字体微调 */
             .profile-info h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
 
             /* 5. 核心分页控制：防止元素内部断页 */
@@ -560,11 +480,8 @@
             h2 {
                 break-after: avoid;
                 page-break-after: avoid;
-                margin-top: 20px; /* 打印时稍微减少顶部间距 */
+                margin-top: 20px;
             }
-
-            /* 6. 隐藏不需要打印的元素（可选，如果需要的话） */
-            /* .no-print { display: none; } */
         }
 
     </style>
