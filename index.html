@@ -45,7 +45,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 40px;
+            margin-bottom: 24px;
             gap: 24px;
         }
 
@@ -81,38 +81,79 @@
             box-shadow: var(--shadow-lg);
         }
 
-        /* 联系方式框优化 */
-        .contact-box {
+        /* 社交链接区域 - Meta风格 */
+        .social-links {
             display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .contact-link {
-            display: inline-flex;
             align-items: center;
-            background: #f9fafb;
-            border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            color: var(--text-gray);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
-            transition: all 0.2s;
+            position: relative;
         }
 
-        .contact-link:hover {
-            background: #eff6ff;
-            border-color: var(--primary-color);
-            color: var(--primary-color);
+        .social-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
 
-        .contact-link img {
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
-            opacity: 0.8;
+        .social-link.email:hover {
+            background: linear-gradient(135deg, #ea4335 0%, #c62828 100%);
+        }
+
+        .social-link.scholar:hover {
+            background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%);
+        }
+
+        .social-link.github:hover {
+            background: linear-gradient(135deg, #333 0%, #24292e 100%);
+        }
+
+        .social-link img {
+            width: 22px;
+            height: 22px;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover img {
+            opacity: 1;
+            filter: brightness(0) invert(1);
+        }
+
+        .social-link::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -32px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1c1e21;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .social-link:hover::after {
+            opacity: 1;
+            visibility: visible;
+            bottom: -36px;
         }
 
         /* 标题样式 */
@@ -345,7 +386,7 @@
                 justify-content: center;
             }
 
-            .contact-box {
+            .social-links {
                 justify-content: center;
             }
 
@@ -468,15 +509,15 @@
         <div class="top-section">
             <div class="profile-info" style="max-width: 70%;">
                 <h1>Xiang An</h1>
-                <div class="contact-box" style="justify-content: center;">
-                    <a href="mailto:anxiangsir@outlook.com" class="contact-link">
-                        <img src="assets/img/envelope.png" alt="Email">Email
+                <div class="social-links">
+                    <a href="mailto:anxiangsir@outlook.com" class="social-link email" data-tooltip="Email">
+                        <img src="assets/img/envelope.png" alt="Email">
                     </a>
-                    <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank" class="contact-link">
-                        <img src="assets/img/google.png" alt="Google Scholar">Scholar
+                    <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank" class="social-link scholar" data-tooltip="Google Scholar">
+                        <img src="assets/img/google.png" alt="Google Scholar">
                     </a>
-                    <a href="https://github.com/anxiangsir" target="_blank" class="contact-link">
-                        <img src="assets/img/github.png" alt="GitHub">GitHub
+                    <a href="https://github.com/anxiangsir" target="_blank" class="social-link github" data-tooltip="GitHub">
+                        <img src="assets/img/github.png" alt="GitHub">
                     </a>
                 </div>
             </div>
