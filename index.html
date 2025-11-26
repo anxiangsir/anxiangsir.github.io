@@ -26,7 +26,7 @@
             color: var(--text-dark);
             background-color: var(--bg-page);
             margin: 0;
-            padding: 40px 20px;
+            padding: 100px 20px 40px 20px;
             line-height: 1.6;
         }
 
@@ -45,7 +45,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 40px;
+            margin-bottom: 24px;
             gap: 24px;
         }
 
@@ -81,38 +81,30 @@
             box-shadow: var(--shadow-lg);
         }
 
-        /* 联系方式框优化 */
-        .contact-box {
+        /* 联系信息区域 - 简洁文字链接样式 */
+        .contact-info {
             display: flex;
+            align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 16px;
+            gap: 6px;
+            margin-top: 12px;
+            font-size: 0.95rem;
+            color: var(--text-light);
         }
 
-        .contact-link {
-            display: inline-flex;
-            align-items: center;
-            background: #f9fafb;
-            border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
+        .contact-info a {
             color: var(--text-gray);
             text-decoration: none;
-            transition: all 0.2s;
+            transition: color 0.2s ease;
         }
 
-        .contact-link:hover {
-            background: #eff6ff;
-            border-color: var(--primary-color);
+        .contact-info a:hover {
             color: var(--primary-color);
         }
 
-        .contact-link img {
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
-            opacity: 0.8;
+        .contact-separator {
+            color: var(--border-color);
+            margin: 0 4px;
         }
 
         /* 标题样式 */
@@ -245,57 +237,90 @@
             font-size: 1.2em;
         }
 
-        /* Navigation styles */
-        .site-nav {
+        /* Site Header - Meta-style fixed navigation */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             display: flex;
-            justify-content: center;
-            gap: 32px;
-            margin-bottom: 8px;
-            padding: 12px 0;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            box-sizing: border-box;
+            z-index: 1000;
         }
 
-        .nav-link {
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: var(--text-gray);
+        .header-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1c1e21;
             text-decoration: none;
-            padding: 8px 0;
-            position: relative;
             transition: color 0.2s ease;
         }
 
-        .nav-link:hover {
+        .header-logo:hover {
             color: var(--primary-color);
         }
 
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary-color);
-            transition: width 0.2s ease;
+        .site-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .nav-link:hover::after {
-            width: 100%;
+        .nav-link {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1c1e21;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #f0f2f5;
+            color: #1c1e21;
+        }
+
+        .nav-link:active {
+            background-color: #e4e6e9;
         }
 
         /* 移动端适配 */
         @media (max-width: 768px) {
+            body {
+                padding: 76px 0 0 0;
+                background-color: #fff;
+            }
+
+            .site-header {
+                padding: 0 16px;
+            }
+
+            .header-logo {
+                font-size: 1.1rem;
+            }
+
+            .site-nav {
+                gap: 4px;
+            }
+
+            .nav-link {
+                font-size: 0.75rem;
+                padding: 6px 8px;
+            }
+
             #layout-content {
                 padding: 24px 20px;
                 width: auto;
                 margin: 0;
                 border-radius: 0;
                 box-shadow: none;
-            }
-
-            body {
-                padding: 0;
-                background-color: #fff;
             }
 
             .top-section {
@@ -312,16 +337,8 @@
                 justify-content: center;
             }
 
-            .contact-box {
+            .contact-info {
                 justify-content: center;
-            }
-
-            .site-nav {
-                gap: 16px;
-            }
-
-            .nav-link {
-                font-size: 0.85rem;
             }
 
             .publication-entry {
@@ -336,6 +353,30 @@
             }
         }
 
+        /* Extra small screens - stack nav below logo */
+        @media (max-width: 520px) {
+            .site-header {
+                height: auto;
+                flex-direction: column;
+                padding: 12px 16px;
+                gap: 8px;
+            }
+
+            body {
+                padding-top: 100px;
+            }
+
+            .site-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 6px 10px;
+            }
+        }
+
 
         /*
            ========================================
@@ -343,6 +384,11 @@
            ========================================
         */
         @media print {
+            /* Hide the fixed header when printing */
+            .site-header {
+                display: none;
+            }
+
             /* 1. 设置打印页面的边距 */
             @page {
                 margin: 1cm 1cm; /* 上下1cm，左右1cm */
@@ -399,34 +445,33 @@
 
 <body>
 
-    <div id="layout-content">
-        <div class="top-section">
-            <div class="profile-info" style="max-width: 70%;">
-                <h1>Xiang An</h1>
-                <div class="contact-box" style="justify-content: center;">
-                    <a href="mailto:anxiangsir@outlook.com" class="contact-link">
-                        <img src="assets/img/envelope.png" alt="Email">Email
-                    </a>
-                    <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank" class="contact-link">
-                        <img src="assets/img/google.png" alt="Google Scholar">Scholar
-                    </a>
-                    <a href="https://github.com/anxiangsir" target="_blank" class="contact-link">
-                        <img src="assets/img/github.png" alt="GitHub">GitHub
-                    </a>
-                </div>
-            </div>
-            <div>
-                <img class="profile-pic" src="assets/img/profile_pic.jpg" alt="Xiang An">
-            </div>
-        </div>
-
-        <!-- Navigation -->
+    <!-- Site Header (Meta-style fixed navigation) -->
+    <header class="site-header">
+        <a href="index.html" class="header-logo">Xiang An</a>
         <nav class="site-nav">
             <a href="#publications" class="nav-link">Selected Publications</a>
             <a href="publications.html" class="nav-link">All Publications</a>
             <a href="#community" class="nav-link">Community Contribution</a>
             <a href="#awards" class="nav-link">Awards & Competitions</a>
         </nav>
+    </header>
+
+    <div id="layout-content">
+        <div class="top-section">
+            <div class="profile-info" style="max-width: 70%;">
+                <h1>Xiang An</h1>
+                <div class="contact-info">
+                    <a href="mailto:anxiangsir@outlook.com">anxiangsir@outlook.com</a>
+                    <span class="contact-separator">·</span>
+                    <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a>
+                    <span class="contact-separator">·</span>
+                    <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>
+                </div>
+            </div>
+            <div>
+                <img class="profile-pic" src="assets/img/profile_pic.jpg" alt="Xiang An">
+            </div>
+        </div>
 
         <h2 id="about">About Me</h2>
         <p>
