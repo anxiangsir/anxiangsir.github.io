@@ -306,15 +306,6 @@
                 font-size: 1.1rem;
             }
 
-            .site-nav {
-                gap: 4px;
-            }
-
-            .nav-link {
-                font-size: 0.75rem;
-                padding: 6px 8px;
-            }
-
             #layout-content {
                 padding: 24px 20px;
                 width: auto;
@@ -353,27 +344,93 @@
             }
         }
 
-        /* Extra small screens - stack nav below logo */
-        @media (max-width: 520px) {
-            .site-header {
-                height: auto;
-                flex-direction: column;
-                padding: 12px 16px;
-                gap: 8px;
-            }
+        /* Mobile hamburger menu */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            z-index: 1002;
+        }
 
-            body {
-                padding-top: 100px;
+        .nav-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background-color: #1c1e21;
+            margin: 5px 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            border-radius: 1px;
+        }
+
+        .nav-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .nav-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .nav-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* Mobile navigation overlay */
+        .nav-overlay {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            background-color: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            padding: 20px 24px;
+        }
+
+        .mobile-nav .nav-link {
+            font-size: 1.1rem;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0;
+        }
+
+        .mobile-nav .nav-link:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-nav .nav-link:hover {
+            background-color: transparent;
+            color: var(--primary-color);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .nav-toggle {
+                display: block;
             }
 
             .site-nav {
-                flex-wrap: wrap;
-                justify-content: center;
+                display: none;
             }
 
-            .nav-link {
-                font-size: 0.8rem;
-                padding: 6px 10px;
+            .nav-overlay.active .mobile-nav {
+                display: flex;
             }
         }
 
@@ -454,7 +511,55 @@
             <a href="community.html" class="nav-link">Community Contribution</a>
             <a href="#awards" class="nav-link">Awards & Competitions</a>
         </nav>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
     </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="nav-overlay">
+        <nav class="mobile-nav">
+            <a href="#publications" class="nav-link">Publications</a>
+            <a href="publications.html" class="nav-link">All Pubs</a>
+            <a href="community.html" class="nav-link">Community</a>
+            <a href="#awards" class="nav-link">Awards</a>
+        </nav>
+    </div>
+
+    <script>
+        // Mobile navigation toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.querySelector('.nav-toggle');
+            const navOverlay = document.querySelector('.nav-overlay');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav .nav-link');
+
+            navToggle.addEventListener('click', function() {
+                navToggle.classList.toggle('active');
+                navOverlay.classList.toggle('active');
+                document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
+            });
+
+            // Close menu when clicking a link
+            mobileNavLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+
+            // Close menu when clicking overlay background
+            navOverlay.addEventListener('click', function(e) {
+                if (e.target === navOverlay) {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    </script>
 
     <div id="layout-content">
         <div class="top-section">
