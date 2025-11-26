@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Xiang An's Community Contribution - Open Source Projects">
+    <title>Community Contribution - Xiang An</title>
+    <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
+    <style>
+        :root {
+            --primary-color: #297be6;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --text-light: #6b7280;
+            --bg-page: #f3f4f6;
+            --bg-card: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            color: var(--text-dark);
+            background-color: var(--bg-page);
+            margin: 0;
+            padding: 100px 20px 40px 20px;
+            line-height: 1.6;
+        }
+
+        /* Site Header - Meta-style fixed navigation */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+
+        .header-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1c1e21;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .header-logo:hover {
+            color: var(--primary-color);
+        }
+
+        .site-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1c1e21;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #f0f2f5;
+            color: #1c1e21;
+        }
+
+        .nav-link:active {
+            background-color: #e4e6e9;
+        }
+
+        #layout-content {
+            margin: 0 auto;
+            max-width: 900px;
+            background-color: var(--bg-card);
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            margin: 0;
+            color: #111827;
+            letter-spacing: -0.025em;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            background: #f9fafb;
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .back-link::before {
+            content: "←";
+            margin-right: 8px;
+        }
+
+        .intro-text {
+            color: var(--text-gray);
+            margin-bottom: 32px;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .intro-text b {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .project-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 24px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: #d1d5db;
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 16px;
+        }
+
+        .project-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .project-stars {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            background-color: #eff6ff;
+            border-radius: 20px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .project-summary {
+            color: var(--text-gray);
+            font-size: 1rem;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .project-details {
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .project-details h4 {
+            color: #111827;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 16px 0 8px 0;
+        }
+
+        .project-details ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .project-details li {
+            margin-bottom: 6px;
+            color: var(--text-gray);
+        }
+
+        .project-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .project-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .project-link.primary {
+            color: #fff;
+            background-color: var(--primary-color);
+        }
+
+        .project-link.primary:hover {
+            background-color: #1d5fc4;
+        }
+
+        .project-link.secondary {
+            color: var(--text-dark);
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+        }
+
+        .project-link.secondary:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            body {
+                padding: 76px 0 0 0;
+                background-color: #fff;
+            }
+
+            .site-header {
+                padding: 0 16px;
+            }
+
+            .header-logo {
+                font-size: 1.1rem;
+            }
+
+            .site-nav {
+                gap: 4px;
+            }
+
+            .nav-link {
+                font-size: 0.75rem;
+                padding: 6px 8px;
+            }
+
+            #layout-content {
+                padding: 24px 20px;
+                width: auto;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .project-header {
+                flex-direction: column;
+            }
+
+            .project-card {
+                padding: 20px;
+            }
+        }
+
+        /* Extra small screens - stack nav below logo */
+        @media (max-width: 520px) {
+            .site-header {
+                height: auto;
+                flex-direction: column;
+                padding: 12px 16px;
+                gap: 8px;
+            }
+
+            body {
+                padding-top: 100px;
+            }
+
+            .site-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 6px 10px;
+            }
+        }
+
+        /* Print */
+        @media print {
+            .site-header {
+                display: none;
+            }
+
+            @page {
+                margin: 1cm 1cm;
+                size: auto;
+            }
+
+            body {
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+            }
+
+            #layout-content {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                max-width: none !important;
+                padding: 0;
+                border: none;
+                border-radius: 0;
+            }
+
+            .back-link {
+                display: none;
+            }
+
+            .project-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Site Header (Meta-style fixed navigation) -->
+    <header class="site-header">
+        <a href="index.html" class="header-logo">Xiang An</a>
+        <nav class="site-nav">
+            <a href="index.html#publications" class="nav-link">Selected Publications</a>
+            <a href="publications.html" class="nav-link">All Publications</a>
+            <a href="community.html" class="nav-link">Community Contribution</a>
+            <a href="index.html#awards" class="nav-link">Awards & Competitions</a>
+        </nav>
+    </header>
+
+    <div id="layout-content">
+        <div class="page-header">
+            <h1>Community Contribution</h1>
+            <a href="index.html" class="back-link">Back to Home</a>
+        </div>
+
+        <p class="intro-text">
+            I actively contribute to open-source projects in face recognition, representation learning, and multimodal large models. I am the <b>#2 contributor</b> to the <b>InsightFace</b> ecosystem (~27k⭐), and co-maintain several influential vision and multimodal repositories.
+        </p>
+
+        <!-- InsightFace -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">InsightFace · 2D & 3D Face Analysis Toolkit</h2>
+                <span class="project-stars">⭐ 27k+ Stars</span>
+            </div>
+            <p class="project-summary">
+                Major contributor (#2 by contributions) to the core InsightFace ecosystem for large-scale face recognition and analysis.
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>InsightFace is an open-source 2D & 3D deep face analysis library with more than 27k stars on GitHub. It provides state-of-the-art face recognition, detection, alignment, and analysis capabilities.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li>Author of <b>Glint360K</b>, the largest open-source face recognition training dataset</li>
+                    <li>Organizer of <b>ICCV 2021 Workshop</b> on masked face recognition challenge</li>
+                    <li>Author of <b>Partial FC</b>, enabling training 10 million identities on a single machine</li>
+                    <li>Implemented <b>arcface_torch</b>, an efficient distributed training framework</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>State-of-the-art face recognition models (ArcFace, CosFace, etc.)</li>
+                    <li>Support for large-scale training with millions of identities</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/deepinsight/insightface" class="project-link primary" target="_blank">View on GitHub</a>
+                <a href="https://arxiv.org/abs/2203.15565" class="project-link secondary" target="_blank">Partial FC Paper</a>
+            </div>
+        </div>
+
+        <!-- LLaVA-OneVision-1.5 -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">LLaVA-OneVision-1.5 · Multimodal Training Framework</h2>
+                <span class="project-stars">⭐ 600+ Stars</span>
+            </div>
+            <p class="project-summary">
+                Fully open framework for democratized multimodal training, advancing large multimodal models (LMMs).
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>LLaVA-OneVision-1.5 is a fully open framework designed to democratize multimodal training. It provides a comprehensive pipeline for training and evaluating large multimodal models.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li><b>Team Leader</b> of the project, leading the overall development and coordination</li>
+                    <li>Released <b>mid-training and instruct data</b> for community use</li>
+                    <li>Developed <b>offline sampling pack</b> for efficient training</li>
+                    <li>Implemented <b>RiceViT</b> with native resolution support</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>Fully open-source training framework for multimodal models</li>
+                    <li>Efficient training with mixed-precision and distributed training support</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" class="project-link primary" target="_blank">View on GitHub</a>
+                <a href="https://arxiv.org/abs/2509.23661" class="project-link secondary" target="_blank">Paper</a>
+            </div>
+        </div>
+
+        <!-- LLaVA-NeXT -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">LLaVA-NeXT · Next-Generation LMMs</h2>
+                <span class="project-stars">⭐ 4000+ Stars</span>
+            </div>
+            <p class="project-summary">
+                Contributed to the vision module of LLaVA-NeXT, enhancing its OCR capability, optimized the visual encoder and training pipeline for text-rich images.
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>LLaVA-NeXT is the next-generation large multimodal model that significantly improves upon the original LLaVA. It features enhanced visual understanding capabilities, especially for document and text-rich images.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li>Enhanced the <b>OCR capability</b> of the vision module for better text recognition in images</li>
+                    <li>Optimized the <b>visual encoder</b> for processing text-rich and document images</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>Enhanced visual understanding with higher resolution support</li>
+                    <li>Improved OCR and document understanding capabilities</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/LLaVA-VL/LLaVA-NeXT" class="project-link primary" target="_blank">View on GitHub</a>
+            </div>
+        </div>
+
+        <!-- UNICOM -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">UNICOM · Universal Representation for Image Retrieval</h2>
+                <span class="project-stars">⭐ 600+ Stars</span>
+            </div>
+            <p class="project-summary">
+                Author and maintainer of Unicom, a universal and compact representation learning framework for large-scale image retrieval.
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>UNICOM (Universal and Compact Representation Learning) is a framework I developed for learning universal image representations. It enables efficient and accurate image retrieval at scale.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li><b>Lead author and maintainer</b> of the entire project</li>
+                    <li>Designed the novel cluster discrimination approach for representation learning</li>
+                    <li>Developed the multi-label and region-based extensions (published at ECCV 2024 and ICCV 2025)</li>
+                    <li>Maintained pretrained models and provided comprehensive documentation</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>Universal image representations that transfer across domains</li>
+                    <li>State-of-the-art performance on image retrieval benchmarks</li>
+                </ul>
+                
+                <h4>Publications</h4>
+                <ul>
+                    <li><b>ICLR 2023:</b> Unicom: Universal and Compact Representation Learning for Image Retrieval</li>
+                    <li><b>ECCV 2024:</b> Multi-label Cluster Discrimination for Visual Representation Learning</li>
+                    <li><b>ICCV 2025 (Highlight):</b> Region-based Cluster Discrimination for Visual Representation Learning</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/deepglint/unicom" class="project-link primary" target="_blank">View on GitHub</a>
+                <a href="https://arxiv.org/abs/2304.05884" class="project-link secondary" target="_blank">ICLR 2023 Paper</a>
+                <a href="https://arxiv.org/abs/2407.17331" class="project-link secondary" target="_blank">ECCV 2024 Paper</a>
+            </div>
+        </div>
+
+        <!-- Urban Seg -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">Urban Seg · Remote Sensing Semantic Segmentation</h2>
+                <span class="project-stars">⭐ 460+ Stars</span>
+            </div>
+            <p class="project-summary">
+                A beginner-friendly repository for remote sensing semantic segmentation. It allows training with pre-trained models using just a single code file.
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>Urban Seg is an educational project I created to help beginners get started with semantic segmentation for remote sensing and satellite imagery. It emphasizes simplicity and ease of use.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li><b>Author and maintainer</b> of the entire project</li>
+                    <li>Designed the simple single-file training approach for accessibility</li>
+                    <li>Integrated popular pretrained models for transfer learning</li>
+                    <li>Created comprehensive tutorials and documentation</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>Single-file training script for quick start</li>
+                    <li>Beginner-friendly with clear documentation and examples</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/anxiangsir/urban_seg" class="project-link primary" target="_blank">View on GitHub</a>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center;">
+            <a href="index.html" class="back-link">Back to Home</a>
+        </div>
+    </div>
+</body>
+
+</html>
