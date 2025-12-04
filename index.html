@@ -1264,18 +1264,24 @@
                 });
             });
 
-            // Add parallax effect on scroll
+            // Add parallax effect on scroll with throttling
             let lastScrollTop = 0;
+            let ticking = false;
+            
             window.addEventListener('scroll', function() {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const particles = document.querySelectorAll('.particle');
+                lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
                 
-                particles.forEach((particle, index) => {
-                    const speed = (index + 1) * 0.05;
-                    particle.style.transform = `translateY(${scrollTop * speed}px)`;
-                });
-
-                lastScrollTop = scrollTop;
+                if (!ticking) {
+                    window.requestAnimationFrame(function() {
+                        const particles = document.querySelectorAll('.particle');
+                        particles.forEach((particle, index) => {
+                            const speed = (index + 1) * 0.05;
+                            particle.style.transform = `translateY(${lastScrollTop * speed}px)`;
+                        });
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
             }, false);
         });
     </script>
