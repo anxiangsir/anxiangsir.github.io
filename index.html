@@ -213,7 +213,6 @@
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             animation: slideInRight 0.8s ease-out 0.3s both, glow 3s ease-in-out infinite;
             position: relative;
-            cursor: pointer;
         }
 
         .profile-pic::before {
@@ -1602,17 +1601,27 @@
             
             let mouseX = 0, mouseY = 0;
             let spotlightX = 0, spotlightY = 0;
+            let isMouseMoving = false;
+            let mouseMoveTimeout;
             
             document.addEventListener('mousemove', (e) => {
                 mouseX = e.clientX;
                 mouseY = e.clientY;
+                isMouseMoving = true;
+                
+                clearTimeout(mouseMoveTimeout);
+                mouseMoveTimeout = setTimeout(() => {
+                    isMouseMoving = false;
+                }, 100);
             });
             
             function animateSpotlight() {
-                spotlightX += (mouseX - spotlightX) * 0.1;
-                spotlightY += (mouseY - spotlightY) * 0.1;
-                spotlight.style.left = spotlightX + 'px';
-                spotlight.style.top = spotlightY + 'px';
+                if (isMouseMoving || Math.abs(mouseX - spotlightX) > 1 || Math.abs(mouseY - spotlightY) > 1) {
+                    spotlightX += (mouseX - spotlightX) * 0.1;
+                    spotlightY += (mouseY - spotlightY) * 0.1;
+                    spotlight.style.left = spotlightX + 'px';
+                    spotlight.style.top = spotlightY + 'px';
+                }
                 requestAnimationFrame(animateSpotlight);
             }
             animateSpotlight();
@@ -1702,7 +1711,7 @@
             background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
             pointer-events: none;
             transform: translate(-50%, -50%);
-            z-index: 9999;
+            z-index: 100;
             mix-blend-mode: screen;
             transition: opacity 0.3s ease;
         }

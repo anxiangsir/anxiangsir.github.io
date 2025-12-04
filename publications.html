@@ -801,8 +801,8 @@
     <script>
         // Enhanced interactions for publications page
         document.addEventListener('DOMContentLoaded', function() {
-            // Magnetic effect on buttons
-            const badges = document.querySelectorAll('.pub-link, .pub-venue, .back-link');
+            // Magnetic effect on buttons and venue badges
+            const badges = document.querySelectorAll('.pub-venue, .back-link');
             badges.forEach(el => {
                 el.addEventListener('mousemove', function(e) {
                     const rect = el.getBoundingClientRect();
@@ -816,8 +816,8 @@
                 });
             });
 
-            // 3D tilt effect on publication cards
-            const publications = document.querySelectorAll('.publication-item');
+            // 3D tilt effect on publication items
+            const publications = document.querySelectorAll('.pub-item');
             publications.forEach(pub => {
                 pub.addEventListener('mousemove', function(e) {
                     const rect = pub.getBoundingClientRect();
@@ -849,7 +849,7 @@
                 rootMargin: '0px 0px -50px 0px'
             });
 
-            document.querySelectorAll('.publication-item').forEach(el => {
+            document.querySelectorAll('.pub-item').forEach(el => {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(20px)';
                 el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
