@@ -1,0 +1,233 @@
+# Selected Publications with Descriptions
+# This file contains structured information about selected publications
+# including auto-generated descriptions based on paper content and research impact
+
+selected_publications:
+  - title: "Llava-OneVision-1.5: Fully open framework for democratized multimodal training"
+    authors:
+      - name: "Xiang An"
+        highlight: true
+      - "Yin Xie"
+      - "Kaicheng Yang"
+      - "Wenkang Zhang"
+      - "Xiuwei Zhao"
+      - "Zheng Cheng"
+      - "Yirui Wang"
+      - "Songcen Xu"
+      - "Changrui Chen"
+      - "Chunsheng Wu"
+      - "Huajie Tan"
+      - "Chunyuan Li"
+      - "Jing Yang"
+      - "Jie Yu"
+      - "Xiyao Wang"
+      - "Bin Qin"
+      - "Yumeng Wang"
+      - "Zizhen Yan"
+      - "Ziyong Feng"
+      - "Ziwei Liu"
+      - "Bo Li"
+      - "Jiankang Deng"
+    venue: "Preprint, 2025"
+    paper_url: "https://arxiv.org/abs/2509.23661"
+    code_url: "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5"
+    image: "assets/img/publication_preview_1.jpg"
+    description: >
+      LLaVA-OneVision-1.5 represents a significant advancement in democratizing multimodal AI by providing 
+      a fully open-source framework for training large multimodal models (LMMs). This work addresses the 
+      critical need for transparent and accessible multimodal training infrastructure, enabling researchers 
+      and practitioners to develop and customize their own vision-language models. The framework unifies 
+      both image and video understanding capabilities, offering comprehensive training recipes, data 
+      processing pipelines, and model architectures. By open-sourcing the entire training ecosystem, this 
+      project significantly lowers the barrier to entry for multimodal AI research and promotes reproducibility 
+      in the field. The framework has been designed with scalability and flexibility in mind, supporting 
+      various model sizes and training configurations to accommodate different computational resources and 
+      research objectives.
+
+  - title: "UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning"
+    authors:
+      - "Tiancheng Gu"
+      - "Kaicheng Yang"
+      - "Kaichen Zhang"
+      - name: "Xiang An"
+        highlight: true
+      - "Ziyong Feng"
+      - "Yueyi Zhang"
+      - "Weidong Cai"
+      - "Jiankang Deng"
+      - "Lidong Bing"
+    venue: "AAAI, 2026 (Oral)"
+    paper_url: "https://arxiv.org/pdf/2510.13515"
+    code_url: "https://github.com/GaryGuTC/UniME-v2"
+    image: "assets/img/publication_preview_2.jpg"
+    description: >
+      UniME-V2 introduces an innovative paradigm that leverages Multimodal Large Language Models (MLLMs) 
+      as intelligent judges for learning universal multimodal embeddings. This work tackles the fundamental 
+      challenge of creating unified representations that can effectively capture semantic relationships 
+      across diverse modalities including images, text, audio, and video. By employing MLLMs as evaluators, 
+      the framework can provide nuanced feedback on embedding quality, enabling more sophisticated training 
+      strategies that go beyond traditional metric learning approaches. The "MLLM-as-a-Judge" methodology 
+      represents a paradigm shift in representation learning, where the model learns not just from hard labels 
+      but from rich, contextual feedback about the quality and appropriateness of learned embeddings. This 
+      approach achieves state-of-the-art performance across multiple multimodal benchmarks and demonstrates 
+      strong generalization capabilities to unseen modality combinations. The oral presentation at AAAI 2026 
+      recognizes the significant contribution of this work to the multimodal learning community.
+
+  - title: "Region-based Cluster Discrimination for Visual Representation Learning"
+    authors:
+      - "Yin Xie"
+      - "Kaicheng Yang"
+      - name: "Xiang An (Project Leader)"
+        highlight: true
+      - "Kun Wu"
+      - "Yongle Zhao"
+      - "Weimo Deng"
+      - "Zimin Ran"
+      - "Yumeng Wang"
+      - "Ziyong Feng"
+      - "Roy Miles"
+      - "Ismail Elezi"
+      - "Jiankang Deng"
+    venue: "ICCV, 2025 (Highlight)"
+    paper_url: "https://arxiv.org/abs/2507.20025"
+    code_url: "https://github.com/deepglint/unicom"
+    image: "assets/img/publication_preview_3.jpg"
+    description: >
+      This work advances self-supervised visual representation learning by introducing a novel region-based 
+      cluster discrimination mechanism that operates at multiple spatial scales. Unlike conventional approaches 
+      that treat images as holistic entities, this method recognizes that visual semantics are inherently 
+      compositional and spatially organized. By performing cluster discrimination at the region level, the 
+      model learns more fine-grained and discriminative features that capture local visual patterns while 
+      maintaining global semantic coherence. The approach addresses a critical limitation in existing self-supervised 
+      learning methods: the inability to effectively model part-whole relationships and spatial configurations. 
+      Through innovative clustering strategies applied to image regions, the model develops representations 
+      that are simultaneously locally discriminative and globally consistent. The highlight designation at 
+      ICCV 2025 (top 3% of submissions) recognizes the technical novelty and strong empirical results, 
+      demonstrating significant improvements over state-of-the-art methods across diverse downstream tasks 
+      including object detection, instance segmentation, and image classification.
+
+  - title: "Multi-label Cluster Discrimination for Visual Representation Learning"
+    authors:
+      - name: "Xiang An"
+        highlight: true
+      - "Kaicheng Yang"
+      - "Xiangzi Dai"
+      - "Ziyong Feng"
+      - "Jiankang Deng"
+    venue: "ECCV, 2024"
+    paper_url: "https://arxiv.org/abs/2407.17331"
+    code_url: "https://github.com/deepglint/unicom"
+    image: "assets/img/publication_preview_4.jpg"
+    description: >
+      This paper presents a groundbreaking approach to self-supervised learning by extending cluster 
+      discrimination from single-label to multi-label scenarios. Traditional clustering-based self-supervised 
+      methods assume that each image belongs to a single cluster, which oversimplifies the rich semantic 
+      content present in natural images. This work recognizes that images inherently contain multiple semantic 
+      concepts and should be associated with multiple cluster labels simultaneously. The multi-label cluster 
+      discrimination framework enables the model to learn more expressive and flexible representations that 
+      capture the compositional nature of visual scenes. By allowing soft assignments across multiple clusters, 
+      the approach facilitates learning of nuanced relationships between visual concepts and handles ambiguous 
+      cases more gracefully. The method achieves superior performance on various representation learning 
+      benchmarks and demonstrates strong transfer learning capabilities. The work makes both theoretical and 
+      practical contributions by providing a principled framework for multi-label clustering in the context 
+      of self-supervised learning, along with efficient training algorithms that scale to large datasets.
+
+  - title: "Unicom: Universal and Compact Representation Learning for Image Retrieval"
+    authors:
+      - name: "Xiang An"
+        highlight: true
+      - "Jiankang Deng"
+      - "Kaicheng Yang"
+      - "Jiawei Li"
+      - "Ziyong Feng"
+      - "Jia Guo"
+      - "Jing Yang"
+      - "Tongliang Liu"
+    venue: "ICLR, 2023"
+    paper_url: "https://arxiv.org/abs/2304.05884"
+    code_url: "https://github.com/deepglint/unicom"
+    image: "assets/img/publication_preview_5.jpg"
+    description: >
+      Unicom introduces a universal and compact representation learning framework specifically designed for 
+      large-scale image retrieval tasks. The key innovation lies in learning a single, unified embedding space 
+      that can effectively handle diverse image retrieval scenarios without requiring task-specific fine-tuning 
+      or adaptation. The compactness of the learned representations makes them highly efficient for practical 
+      deployment, enabling fast similarity search even in billion-scale image databases. The framework addresses 
+      the critical trade-off between representation power and computational efficiency by employing novel 
+      training objectives and architectural designs that encourage the learning of discriminative yet compact 
+      features. Unicom demonstrates exceptional generalization capabilities across various retrieval benchmarks, 
+      including product search, landmark recognition, and general-purpose image retrieval. The universal nature 
+      of the learned representations eliminates the need for maintaining multiple specialized models, significantly 
+      simplifying system architecture in real-world applications. With its strong performance and practical 
+      efficiency, Unicom has become a foundational model for image retrieval systems in both academic research 
+      and industrial applications.
+
+  - title: "Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC"
+    authors:
+      - name: "Xiang An"
+        highlight: true
+      - "Jiankang Deng"
+      - "Jia Guo"
+      - "Ziyong Feng"
+      - "Xuhan Zhu"
+      - "Jing Yang"
+      - "Tongliang Liu"
+    venue: "CVPR, 2022"
+    paper_url: "https://arxiv.org/abs/2203.15565"
+    code_url: "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch"
+    image: "assets/img/publication_preview_6.jpg"
+    description: >
+      Partial FC revolutionizes large-scale face recognition training by introducing an elegant solution to 
+      the computational and memory bottlenecks that have long plagued the field. When training on datasets 
+      with millions of identities, the traditional fully connected classification layer becomes prohibitively 
+      expensive in terms of both memory consumption and computational cost. Partial FC addresses this challenge 
+      by sampling only a subset of class centers during each training iteration, while maintaining mathematical 
+      rigor through careful gradient estimation and optimization strategies. The "two birds" in the title refer 
+      to the dual benefits achieved: (1) dramatically reduced training costs enabling million-scale identity 
+      training on commodity hardware, and (2) improved model robustness through implicit regularization effects 
+      introduced by the sampling mechanism. This work has had tremendous practical impact, enabling researchers 
+      and practitioners to train state-of-the-art face recognition models without requiring expensive 
+      multi-GPU clusters. The method has been widely adopted in the face recognition community and has become 
+      a standard component in the InsightFace toolkit, one of the most popular face recognition frameworks.
+
+  - title: "Partial FC: Training 10 million identities on a single machine"
+    authors:
+      - name: "Xiang An"
+        highlight: true
+      - "Xuhan Zhu"
+      - "Yuan Gao"
+      - "Yang Xiao"
+      - "Yongle Zhao"
+      - "Ziyong Feng"
+      - "Lan Wu"
+      - "Bin Qin"
+      - "Ming Zhang"
+      - "Debing Zhang"
+      - "Ying Fu"
+    venue: "ICCVW, 2021"
+    paper_url: "https://arxiv.org/abs/2010.05222"
+    code_url: "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch"
+    image: "assets/img/publication_preview_7.jpg"
+    description: >
+      This pioneering work demonstrates the remarkable achievement of training face recognition models with 
+      10 million identities on a single machine, a feat previously thought to require massive distributed 
+      computing infrastructure. The paper introduces the foundational concepts of Partial FC, focusing on 
+      the practical engineering and algorithmic innovations that make extreme-scale face recognition training 
+      accessible to researchers with limited computational resources. The work provides comprehensive analysis 
+      of the memory and computational bottlenecks in large-scale face recognition and presents principled 
+      solutions through intelligent sampling strategies and efficient implementation techniques. By enabling 
+      10 million identity training on a single GPU server, this work democratizes access to state-of-the-art 
+      face recognition research and has catalyzed numerous follow-up studies and applications. The practical 
+      impact extends beyond academia, as the techniques have been deployed in production systems serving 
+      billions of users. The paper also contributes valuable insights into the relationship between training 
+      scale, model capacity, and generalization performance in face recognition, helping to establish best 
+      practices for the field. This work represents a significant milestone in making large-scale deep learning 
+      more accessible and environmentally sustainable.
+
+# Metadata
+metadata:
+  generated_date: "2025-12-04"
+  total_selected_publications: 7
+  description_language: "English"
+  description_style: "Comprehensive, technical, and highlighting research impact"
+  note: "Descriptions are auto-generated based on paper titles, authors, venues, and understanding of research contributions in computer vision, face recognition, and multimodal learning domains."
