@@ -106,19 +106,30 @@ publications.forEach(pub => {
 
 If using Jekyll or similar static site generators:
 
-```yaml
----
-# In _config.yml or front matter
-publications: {% include publications.yaml %}
----
+1. Place the YAML file in the `_data` directory:
+```
+_data/publications.yaml
 ```
 
-Then in your template:
+2. Access the data in your template:
 ```html
 {% for pub in site.data.publications.selected_publications %}
 <div class="publication">
     <h3>{{ pub.title }}</h3>
-    <p class="authors">{{ pub.authors | join: ", " }}</p>
+    <p class="authors">
+        {% for author in pub.authors %}
+            {% if author.name %}
+                {% if author.highlight %}
+                    <strong>{{ author.name }}</strong>
+                {% else %}
+                    {{ author.name }}
+                {% endif %}
+            {% else %}
+                {{ author }}
+            {% endif %}
+            {% unless forloop.last %}, {% endunless %}
+        {% endfor %}
+    </p>
     <p class="venue">{{ pub.venue }}</p>
     <p class="description">{{ pub.description }}</p>
     <a href="{{ pub.paper_url }}">Paper</a>

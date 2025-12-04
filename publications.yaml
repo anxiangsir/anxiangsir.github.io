@@ -28,7 +28,7 @@ selected_publications:
       - "Ziwei Liu"
       - "Bo Li"
       - "Jiankang Deng"
-    venue: "Preprint, 2025"
+    venue: "arXiv Preprint, 2025"
     paper_url: "https://arxiv.org/abs/2509.23661"
     code_url: "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5"
     image: "assets/img/publication_preview_1.jpg"
