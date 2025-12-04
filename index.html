@@ -211,8 +211,17 @@
             flex-shrink: 0;
             box-shadow: 0 12px 32px rgba(102, 126, 234, 0.35), 0 0 0 8px rgba(102, 126, 234, 0.1);
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            animation: slideInRight 0.8s ease-out 0.3s both, glow 3s ease-in-out infinite;
+            animation: slideInRight 0.8s ease-out 0.3s both, glow 3s ease-in-out infinite, profileFloat 6s ease-in-out infinite;
             position: relative;
+        }
+        
+        @keyframes profileFloat {
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+            }
+            50% {
+                transform: translateY(-15px) scale(1.02);
+            }
         }
 
         .profile-pic::before {
@@ -919,6 +928,284 @@
         }
 
 
+        /* Floating particles background */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: floatParticle linear infinite;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) translateX(var(--float-x)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Scroll progress indicator */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            z-index: 10000;
+            transition: width 0.1s ease;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Animated background shapes */
+        .bg-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.08;
+            filter: blur(60px);
+        }
+
+        .shape-1 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            top: -200px;
+            right: -200px;
+            animation: floatShape1 20s ease-in-out infinite;
+        }
+
+        .shape-2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            bottom: -150px;
+            left: -150px;
+            animation: floatShape2 18s ease-in-out infinite;
+        }
+
+        .shape-3 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            top: 50%;
+            left: 50%;
+            animation: floatShape3 22s ease-in-out infinite;
+        }
+
+        .shape-4 {
+            width: 450px;
+            height: 450px;
+            background: linear-gradient(135deg, #fa709a, #fee140);
+            top: 30%;
+            right: 10%;
+            animation: floatShape4 16s ease-in-out infinite;
+        }
+
+        @keyframes floatShape1 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(50px, 100px) rotate(90deg); }
+            50% { transform: translate(100px, 50px) rotate(180deg); }
+            75% { transform: translate(50px, -50px) rotate(270deg); }
+        }
+
+        @keyframes floatShape2 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(-80px, -80px) rotate(120deg) scale(1.1); }
+            66% { transform: translate(80px, -100px) rotate(240deg) scale(0.9); }
+        }
+
+        @keyframes floatShape3 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            50% { transform: translate(calc(-50% + 150px), calc(-50% - 100px)) rotate(180deg); }
+        }
+
+        @keyframes floatShape4 {
+            0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            25% { transform: translate(-100px, 50px) scale(1.15) rotate(90deg); }
+            50% { transform: translate(-50px, 100px) scale(0.95) rotate(180deg); }
+            75% { transform: translate(50px, -50px) scale(1.05) rotate(270deg); }
+        }
+
+        /* Enhanced section reveal animations */
+        .section-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .section-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Glowing text effect for headings */
+        h2.glow-on-hover {
+            transition: all 0.5s ease;
+        }
+
+        h2.glow-on-hover:hover {
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.6),
+                         0 0 40px rgba(102, 126, 234, 0.4),
+                         0 0 60px rgba(118, 75, 162, 0.3);
+        }
+
+        /* Typewriter effect container */
+        .typewriter-text {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid #667eea;
+            animation: typewriter 3s steps(30) 1s forwards, blink 0.75s step-end infinite;
+        }
+
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+
+        /* Parallax layering */
+        .parallax-layer {
+            transition: transform 0.3s ease-out;
+        }
+
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.8);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .back-to-top:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #f093fb 100%);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6), 0 0 40px rgba(102, 126, 234, 0.3);
+            transform: translateY(-5px) scale(1.1);
+        }
+
+        .back-to-top:active {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .back-to-top svg {
+            animation: bounceUpDown 2s ease-in-out infinite;
+        }
+
+        @keyframes bounceUpDown {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Enhanced shimmer effect for badges */
+        .badge-link {
+            background-size: 200% auto;
+            animation: badgeShimmer 3s linear infinite;
+        }
+
+        @keyframes badgeShimmer {
+            0% {
+                background-position: 0% center;
+            }
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .badge-link:hover {
+            animation: none;
+        }
+
+        /* Neon glow effect for interactive elements */
+        @keyframes neonGlow {
+            0%, 100% {
+                filter: drop-shadow(0 0 5px rgba(102, 126, 234, 0.5));
+            }
+            50% {
+                filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.8)) drop-shadow(0 0 30px rgba(118, 75, 162, 0.6));
+            }
+        }
+
+        .profile-pic:hover {
+            animation: neonGlow 2s ease-in-out infinite;
+        }
+
+        /* Hide particles and shapes on mobile for performance */
+        @media (max-width: 768px) {
+            .particles-container,
+            .bg-shapes {
+                display: none;
+            }
+            
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
         /*
            ========================================
            打印专用样式 (优化宽度与分页)
@@ -1037,6 +1324,20 @@
             });
         });
     </script>
+
+    <!-- Floating particles background -->
+    <div class="particles-container" id="particles-container"></div>
+    
+    <!-- Scroll progress indicator -->
+    <div class="scroll-progress" id="scroll-progress"></div>
+    
+    <!-- Animated background shapes -->
+    <div class="bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div class="shape shape-4"></div>
+    </div>
 
     <div id="layout-content">
         <div class="top-section">
@@ -1277,6 +1578,13 @@
         </ul>
 
     </div>
+    
+    <!-- Back to top button with animation -->
+    <button id="back-to-top" class="back-to-top" aria-label="Back to top" title="Back to top">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
 
     <!-- Floating particles background animation -->
     <div class="particles-container" aria-hidden="true">
@@ -1697,8 +2005,242 @@
                     }
                 });
             }
+
+            // Create floating particles
+            function createParticles() {
+                const container = document.getElementById('particles-container');
+                if (!container || window.innerWidth <= 768) return; // Skip on mobile
+                
+                const particleCount = 30;
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.setProperty('--float-x', (Math.random() - 0.5) * 200 + 'px');
+                    particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                    particle.style.animationDelay = Math.random() * 5 + 's';
+                    particle.style.width = particle.style.height = (Math.random() * 4 + 2) + 'px';
+                    container.appendChild(particle);
+                }
+            }
+            createParticles();
+
+            // Scroll progress indicator
+            function updateScrollProgress() {
+                const scrollProgress = document.getElementById('scroll-progress');
+                if (!scrollProgress) return;
+                
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrollPercent = (scrollTop / docHeight) * 100;
+                scrollProgress.style.width = scrollPercent + '%';
+            }
+            window.addEventListener('scroll', updateScrollProgress);
+
+            // Intersection Observer for section reveal animations
+            const revealObserverOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                        revealObserver.unobserve(entry.target);
+                    }
+                });
+            }, revealObserverOptions);
+
+            // Add section-reveal class and observe
+            document.querySelectorAll('h2, .publication-entry, .awards-list li').forEach(el => {
+                if (!el.style.animation) { // Don't override existing animations
+                    el.classList.add('section-reveal');
+                    revealObserver.observe(el);
+                }
+            });
+
+            // Add glow effect to headings
+            document.querySelectorAll('h2').forEach(h2 => {
+                h2.classList.add('glow-on-hover');
+            });
+
+            // Parallax effect on scroll for multiple layers
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                
+                // Parallax for shapes
+                const shapes = document.querySelectorAll('.shape');
+                shapes.forEach((shape, index) => {
+                    const speed = 0.05 * (index + 1);
+                    shape.style.transform += ` translateY(${scrolled * speed}px)`;
+                });
+            });
+
+            // Add sparkle effect on mouse click
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) return; // Skip on mobile
+                
+                for (let i = 0; i < 6; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.style.position = 'fixed';
+                    sparkle.style.left = e.clientX + 'px';
+                    sparkle.style.top = e.clientY + 'px';
+                    sparkle.style.width = '4px';
+                    sparkle.style.height = '4px';
+                    sparkle.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                    sparkle.style.borderRadius = '50%';
+                    sparkle.style.pointerEvents = 'none';
+                    sparkle.style.zIndex = '9999';
+                    sparkle.style.animation = `sparkleAnimation 0.8s ease-out`;
+                    
+                    const angle = (Math.PI * 2 * i) / 6;
+                    const distance = 30 + Math.random() * 30;
+                    sparkle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                    sparkle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                    
+                    document.body.appendChild(sparkle);
+                    setTimeout(() => sparkle.remove(), 800);
+                }
+            });
+
+            // Smooth scroll enhancement
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href !== '#' && href !== '#publications' && href !== '#awards' && href !== '#about') return;
+                    
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+
+            // Back to top button functionality
+            const backToTopButton = document.getElementById('back-to-top');
+            if (backToTopButton) {
+                window.addEventListener('scroll', function() {
+                    if (window.pageYOffset > 300) {
+                        backToTopButton.classList.add('visible');
+                    } else {
+                        backToTopButton.classList.remove('visible');
+                    }
+                });
+
+                backToTopButton.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+
+            // Add random twinkling stars effect
+            function createTwinkleEffect() {
+                if (window.innerWidth <= 768) return;
+                
+                setInterval(() => {
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    const star = document.createElement('div');
+                    star.style.position = 'fixed';
+                    star.style.left = x + 'px';
+                    star.style.top = y + 'px';
+                    star.style.width = '2px';
+                    star.style.height = '2px';
+                    star.style.background = 'white';
+                    star.style.borderRadius = '50%';
+                    star.style.pointerEvents = 'none';
+                    star.style.zIndex = '1';
+                    star.style.animation = 'twinkle 1.5s ease-out';
+                    document.body.appendChild(star);
+                    setTimeout(() => star.remove(), 1500);
+                }, 2000);
+            }
+            createTwinkleEffect();
+
+            // Add rainbow trail effect on hover for specific elements
+            const interactiveElements = document.querySelectorAll('.pub-title, h2');
+            interactiveElements.forEach(el => {
+                el.addEventListener('mouseenter', function() {
+                    this.style.transition = 'all 0.3s ease';
+                });
+            });
+
+            // Pulsating effect on awards icons
+            const emojis = document.querySelectorAll('.awards-list .emoji');
+            emojis.forEach((emoji, index) => {
+                setTimeout(() => {
+                    emoji.style.animation = 'pulse 2s ease-in-out infinite';
+                    emoji.style.animationDelay = (index * 0.2) + 's';
+                }, 1000);
+            });
+
+            // Add gradient shift to main container on hover
+            const layoutContent = document.getElementById('layout-content');
+            if (layoutContent) {
+                layoutContent.addEventListener('mouseenter', function() {
+                    this.style.borderImage = 'linear-gradient(135deg, #667eea, #764ba2, #f093fb, #667eea) 1';
+                    this.style.borderImageSlice = '1';
+                });
+            }
         });
     </script>
+    
+    <style>
+        @keyframes sparkleAnimation {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1);
+                box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8),
+                            0 0 20px 4px rgba(102, 126, 234, 0.6);
+            }
+        }
+        
+        /* Enhanced hover effects for publication entries */
+        .publication-entry:hover {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 1) 0%, 
+                rgba(240, 244, 255, 1) 50%,
+                rgba(255, 240, 245, 1) 100%);
+        }
+        
+        /* Animated underline for links */
+        .contact-info a {
+            position: relative;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .contact-info a:hover {
+            animation: rainbowShift 2s linear infinite;
+        }
+        
+        @keyframes rainbowShift {
+            0% { background-position: 0% center; }
+            100% { background-position: 300% center; }
+        }
+    </style>
 
     <!-- Add advanced animation styles -->
     <style>
