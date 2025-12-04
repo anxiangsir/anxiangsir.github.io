@@ -295,10 +295,9 @@
             left: 0;
             width: 0;
             height: 4px;
-            background: linear-gradient(90deg, rgba(102, 126, 234, 0.5), rgba(118, 75, 162, 0.5), rgba(240, 147, 251, 0.5));
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.4), rgba(240, 147, 251, 0.4));
             border-radius: 2px;
             transition: width 0.6s ease;
-            filter: blur(8px);
         }
 
         h2:hover::after {
@@ -499,20 +498,22 @@
         }
 
         /* Secondary badge button style (for View Repo etc) */
-        .badge-link[style*="background-color: transparent"],
         .badge-secondary {
-            background: transparent !important;
-            border: 2px solid #667eea !important;
-            color: #667eea !important;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15) !important;
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
         }
 
-        .badge-link[style*="background-color: transparent"]:hover,
+        .badge-secondary::before {
+            display: none;
+        }
+
         .badge-secondary:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            color: #fff !important;
-            border-color: transparent !important;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5) !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
         }
 
         /* 高亮作者名 */
@@ -1115,7 +1116,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                             <a href="https://github.com/deepinsight/insightface" class="badge-link" target="_blank">⭐ 27k+ Stars</a>
-                            <a href="https://github.com/deepinsight/insightface" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                            <a href="https://github.com/deepinsight/insightface" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
@@ -1130,7 +1131,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                              <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" class="badge-link" target="_blank">⭐ 600+ Stars</a>
-                             <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                             <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
@@ -1145,7 +1146,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                              <a href="https://github.com/LLaVA-VL/LLaVA-NeXT" class="badge-link" target="_blank">⭐ 4000+ Stars</a>
-                             <a href="https://github.com/LLaVA-VL/LLaVA-NeXT" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                             <a href="https://github.com/LLaVA-VL/LLaVA-NeXT" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
@@ -1160,7 +1161,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                              <a href="https://github.com/deepglint/unicom" class="badge-link" target="_blank">⭐ 600+ Stars</a>
-                             <a href="https://github.com/deepglint/unicom" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                             <a href="https://github.com/deepglint/unicom" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
@@ -1175,7 +1176,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                              <a href="https://github.com/anxiangsir/urban_seg" class="badge-link" target="_blank">⭐ 460+ Stars</a>
-                             <a href="https://github.com/anxiangsir/urban_seg" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                             <a href="https://github.com/anxiangsir/urban_seg" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
