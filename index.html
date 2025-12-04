@@ -114,6 +114,33 @@
             }
         }
 
+        @keyframes rotate3D {
+            0% {
+                transform: perspective(1000px) rotateY(0deg);
+            }
+            100% {
+                transform: perspective(1000px) rotateY(360deg);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% center;
+            }
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        @keyframes floatSlow {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
         /* 主容器：简洁学术风格 with entrance animation */
         #layout-content {
             margin: 0 auto;
@@ -202,9 +229,37 @@
             transition: opacity 0.5s ease;
         }
 
+        .profile-pic::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            transform: translate(-50%, -50%) scale(1.2);
+            opacity: 0;
+            animation: ripplePulse 2s ease-out infinite;
+        }
+
+        @keyframes ripplePulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.6);
+                opacity: 0;
+            }
+        }
+
         .profile-pic:hover {
             transform: translateY(-10px) scale(1.08) rotate(3deg);
-            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.5), 0 0 0 12px rgba(102, 126, 234, 0.15);
+            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.5), 
+                        0 0 0 12px rgba(102, 126, 234, 0.15),
+                        0 0 60px rgba(102, 126, 234, 0.3);
+            animation-play-state: paused;
         }
 
         .profile-pic:hover::before {
@@ -480,6 +535,18 @@
             transition: width 0.6s, height 0.6s;
         }
 
+        .badge-link::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
         .badge-link:hover::before {
             width: 300px;
             height: 300px;
@@ -488,7 +555,12 @@
         .badge-link:hover {
             background: linear-gradient(135deg, #764ba2 0%, #f093fb 100%);
             transform: translateY(-3px) scale(1.08);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5),
+                        0 0 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .badge-link:active {
+            transform: translateY(-1px) scale(1.05);
         }
 
         /* Secondary badge button style (for View Repo etc) */
@@ -664,6 +736,19 @@
             transition: width 0.3s ease;
         }
 
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
         .nav-link:hover {
             background-color: var(--primary-alpha-10);
             color: var(--primary-color);
@@ -672,6 +757,10 @@
 
         .nav-link:hover::before {
             width: 80%;
+        }
+
+        .nav-link:hover::after {
+            opacity: 1;
         }
 
         .nav-link:active {
@@ -1203,6 +1292,18 @@
         <div class="particle"></div>
     </div>
 
+    <!-- Animated grid background -->
+    <div class="grid-background" aria-hidden="true"></div>
+
+    <!-- Floating geometric shapes -->
+    <div class="geometric-shapes" aria-hidden="true">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div class="shape shape-4"></div>
+        <div class="shape shape-5"></div>
+    </div>
+
     <style>
         /* Floating particles */
         .particles-container {
@@ -1315,6 +1416,125 @@
                 display: none;
             }
         }
+
+        /* Animated grid background */
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(102, 126, 234, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(102, 126, 234, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        /* Floating geometric shapes */
+        .geometric-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.08;
+            filter: blur(2px);
+        }
+
+        .shape-1 {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            top: 10%;
+            left: 5%;
+            animation: morphShape 15s ease-in-out infinite, floatSlow 8s ease-in-out infinite;
+        }
+
+        .shape-2 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            border-radius: 50%;
+            top: 60%;
+            right: 10%;
+            animation: morphShape 18s ease-in-out infinite 2s, floatSlow 10s ease-in-out infinite;
+        }
+
+        .shape-3 {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            border-radius: 20% 80% 80% 20% / 20% 20% 80% 80%;
+            bottom: 15%;
+            left: 15%;
+            animation: morphShape 20s ease-in-out infinite 4s, floatSlow 12s ease-in-out infinite;
+        }
+
+        .shape-4 {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            top: 40%;
+            right: 25%;
+            animation: morphShape 22s ease-in-out infinite 1s, floatSlow 9s ease-in-out infinite;
+        }
+
+        .shape-5 {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #f5576c, #764ba2);
+            border-radius: 40% 60% 60% 40% / 40% 50% 50% 60%;
+            top: 25%;
+            left: 35%;
+            animation: morphShape 16s ease-in-out infinite 3s, floatSlow 11s ease-in-out infinite;
+        }
+
+        @keyframes morphShape {
+            0%, 100% {
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+                transform: rotate(0deg) scale(1);
+            }
+            25% {
+                border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+                transform: rotate(90deg) scale(1.1);
+            }
+            50% {
+                border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+                transform: rotate(180deg) scale(0.9);
+            }
+            75% {
+                border-radius: 30% 70% 30% 70% / 70% 30% 70% 30%;
+                transform: rotate(270deg) scale(1.05);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-background,
+            .geometric-shapes {
+                display: none;
+            }
+        }
     </style>
 
     <script>
@@ -1373,8 +1593,266 @@
                     ticking = true;
                 }
             }, false);
+
+            // Advanced mouse-following spotlight effect
+            const spotlight = document.createElement('div');
+            spotlight.className = 'cursor-spotlight';
+            document.body.appendChild(spotlight);
+            
+            let mouseX = 0, mouseY = 0;
+            let spotlightX = 0, spotlightY = 0;
+            let isMouseMoving = false;
+            let mouseMoveTimeout;
+            
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                isMouseMoving = true;
+                
+                clearTimeout(mouseMoveTimeout);
+                mouseMoveTimeout = setTimeout(() => {
+                    isMouseMoving = false;
+                }, 100);
+            });
+            
+            function animateSpotlight() {
+                if (isMouseMoving || Math.abs(mouseX - spotlightX) > 1 || Math.abs(mouseY - spotlightY) > 1) {
+                    spotlightX += (mouseX - spotlightX) * 0.1;
+                    spotlightY += (mouseY - spotlightY) * 0.1;
+                    spotlight.style.left = spotlightX + 'px';
+                    spotlight.style.top = spotlightY + 'px';
+                }
+                requestAnimationFrame(animateSpotlight);
+            }
+            animateSpotlight();
+
+            // Magnetic effect on buttons
+            const magneticElements = document.querySelectorAll('.badge-link, .pub-venue');
+            magneticElements.forEach(el => {
+                el.addEventListener('mousemove', function(e) {
+                    const rect = el.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    el.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px) scale(1.08)`;
+                });
+                
+                el.addEventListener('mouseleave', function() {
+                    el.style.transform = '';
+                });
+            });
+
+            // 3D tilt effect on cards
+            const cards = document.querySelectorAll('.publication-entry');
+            cards.forEach(card => {
+                card.addEventListener('mousemove', function(e) {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = (y - centerY) / 20;
+                    const rotateY = (centerX - x) / 20;
+                    
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(1.02)`;
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    card.style.transform = '';
+                });
+            });
+
+            // Ripple effect on click
+            document.querySelectorAll('.badge-link, .nav-link').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    const rect = el.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    el.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Animated skill badge on hover
+            const badges = document.querySelectorAll('.badge-link');
+            badges.forEach(badge => {
+                badge.addEventListener('mouseenter', function() {
+                    this.style.animation = 'bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                });
+                badge.addEventListener('animationend', function() {
+                    this.style.animation = '';
+                });
+            });
+
+            // Parallax effect on profile picture
+            const profilePic = document.querySelector('.profile-pic');
+            if (profilePic) {
+                window.addEventListener('scroll', function() {
+                    const scrolled = window.pageYOffset;
+                    if (scrolled < 500) {
+                        profilePic.style.transform = `translateY(${scrolled * 0.3}px) rotate(${scrolled * 0.05}deg)`;
+                    }
+                });
+            }
         });
     </script>
+
+    <!-- Add advanced animation styles -->
+    <style>
+        /* Cursor spotlight effect */
+        .cursor-spotlight {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            mix-blend-mode: screen;
+            transition: opacity 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .cursor-spotlight {
+                display: none;
+            }
+        }
+
+        /* Ripple effect animation */
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            width: 20px;
+            height: 20px;
+            transform: translate(-50%, -50%);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: translate(-50%, -50%) scale(10);
+                opacity: 0;
+            }
+        }
+
+        /* Bounce animation */
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.9);
+            }
+            50% {
+                transform: scale(1.12);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Enhanced button effects */
+        .badge-link {
+            position: relative;
+            overflow: visible;
+        }
+
+        /* Smooth transitions for all interactive elements */
+        .publication-entry,
+        .awards-list li {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        box-shadow 0.3s ease,
+                        border-color 0.3s ease;
+            will-change: transform;
+        }
+
+        /* Glassmorphism enhancement */
+        #layout-content {
+            backdrop-filter: blur(30px) saturate(180%);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        /* Animated gradient text for special elements */
+        @keyframes textShimmer {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .pub-title:hover {
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: textShimmer 3s ease infinite;
+        }
+
+        /* Enhanced floating animation for particles */
+        @keyframes floatComplex {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(30px, -30px) rotate(90deg);
+            }
+            50% {
+                transform: translate(0, -60px) rotate(180deg);
+            }
+            75% {
+                transform: translate(-30px, -30px) rotate(270deg);
+            }
+        }
+
+        /* Pulsating glow effect */
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.3),
+                            0 0 40px rgba(102, 126, 234, 0.2),
+                            0 0 60px rgba(102, 126, 234, 0.1);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(102, 126, 234, 0.5),
+                            0 0 60px rgba(102, 126, 234, 0.3),
+                            0 0 90px rgba(102, 126, 234, 0.2);
+            }
+        }
+
+        /* Apply pulse glow to main container */
+        #layout-content:hover {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        /* Stagger animation for list items */
+        .pub-list li {
+            animation: fadeInStagger 0.8s ease-out backwards;
+        }
+
+        .pub-list li:nth-child(1) { animation-delay: 0.1s; }
+        .pub-list li:nth-child(2) { animation-delay: 0.2s; }
+        .pub-list li:nth-child(3) { animation-delay: 0.3s; }
+        .pub-list li:nth-child(4) { animation-delay: 0.4s; }
+        .pub-list li:nth-child(5) { animation-delay: 0.5s; }
+        .pub-list li:nth-child(6) { animation-delay: 0.6s; }
+        .pub-list li:nth-child(7) { animation-delay: 0.7s; }
+
+        @keyframes fadeInStagger {
+            from {
+                opacity: 0;
+                transform: translateX(-50px) rotateY(-20deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) rotateY(0);
+            }
+        }
+    </style>
 </body>
 
 </html>
