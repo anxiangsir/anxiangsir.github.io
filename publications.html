@@ -9,83 +9,278 @@
     <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
     <style>
         :root {
-            --primary-color: #297be6;
-            --text-dark: #1f2937;
-            --text-gray: #4b5563;
-            --text-light: #6b7280;
-            --bg-page: #f3f4f6;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #6366f1;
+            --accent-color: #8b5cf6;
+            --text-dark: #1e293b;
+            --text-gray: #475569;
+            --text-light: #64748b;
             --bg-card: #ffffff;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.15), 0 10px 20px -8px rgba(0, 0, 0, 0.1);
+            --primary-alpha-10: rgba(59, 130, 246, 0.1);
+            --primary-alpha-15: rgba(59, 130, 246, 0.15);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--text-dark);
-            background-color: var(--bg-page);
+            background: linear-gradient(-45deg, #fdfbfb, #ebedee, #e6f0ff, #f0e7ff, #fff1f0);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
             margin: 0;
-            padding: 40px 20px;
-            line-height: 1.6;
+            padding: 80px 20px 40px 20px;
+            line-height: 1.7;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Site Header - 保留导航栏样式 */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.98);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            box-sizing: border-box;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-logo {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-decoration: none;
+        }
+
+        .header-logo:hover {
+            color: var(--primary-color);
+        }
+
+        .site-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-gray);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background-color: var(--primary-alpha-10);
+            color: var(--primary-color);
+        }
+
+        .nav-link:active {
+            background-color: var(--primary-alpha-15);
+        }
+
+        /* Mobile hamburger menu */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            z-index: 1002;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background-color: #1f2937;
+            margin: 5px 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .nav-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .nav-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .nav-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* Mobile navigation overlay */
+        .nav-overlay {
+            display: none;
+            position: fixed;
+            top: 52px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 52px);
+            background-color: rgba(255, 255, 255, 0.98);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            padding: 20px 24px;
+        }
+
+        .mobile-nav .nav-link {
+            font-size: 1rem;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0;
+        }
+
+        .mobile-nav .nav-link:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-nav .nav-link:hover {
+            background-color: transparent;
+            color: var(--primary-color);
         }
 
         #layout-content {
             margin: 0 auto;
-            max-width: 900px;
-            background-color: var(--bg-card);
-            padding: 48px;
-            border-radius: 16px;
-            box-shadow: var(--shadow-lg);
+            max-width: 850px;
+            background-color: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 50px 60px;
+            box-shadow: var(--shadow-xl), 0 0 40px rgba(59, 130, 246, 0.08);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            animation: fadeInUp 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #layout-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 20px 20px 0 0;
         }
 
         .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 32px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid;
+            border-image: linear-gradient(90deg, #667eea, #764ba2) 1;
         }
 
         .page-header h1 {
-            font-size: 2rem;
+            font-size: 2.25rem;
             margin: 0;
-            color: #111827;
-            letter-spacing: -0.025em;
+            color: var(--text-dark);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .back-link {
             display: inline-flex;
             align-items: center;
-            background: #f9fafb;
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 10px 20px;
             font-size: 0.9em;
-            color: var(--text-gray);
+            font-weight: 600;
+            color: #667eea;
             text-decoration: none;
-            transition: all 0.2s;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
         }
 
         .back-link:hover {
-            background: #eff6ff;
-            border-color: var(--primary-color);
-            color: var(--primary-color);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: transparent;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: var(--shadow-md);
         }
 
         .back-link::before {
             content: "←";
-            margin-right: 8px;
+            margin-right: 6px;
         }
 
         h2 {
-            font-size: 1.5rem;
-            color: #111827;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 12px;
-            margin-top: 40px;
-            margin-bottom: 20px;
+            font-size: 1.7rem;
+            color: var(--text-dark);
+            border-bottom: none;
+            padding-bottom: 16px;
+            margin-top: 56px;
+            margin-bottom: 32px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 2px;
         }
 
         h2:first-of-type {
@@ -99,69 +294,144 @@
         }
 
         .pub-item {
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border-color);
+            padding: 22px 28px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pub-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 0;
+            background: linear-gradient(180deg, #667eea, #764ba2, #f093fb);
+            transition: height 0.4s ease;
+        }
+
+        .pub-item:hover {
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
+            transform: translateX(10px) scale(1.02);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(240, 244, 255, 1) 100%);
+        }
+
+        .pub-item:hover::before {
+            height: 100%;
         }
 
         .pub-item:last-child {
-            border-bottom: none;
+            margin-bottom: 0;
         }
 
         .pub-title {
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 600;
-            color: #111827;
+            color: var(--text-dark);
             margin-bottom: 6px;
             line-height: 1.4;
         }
 
         .pub-authors {
             color: var(--text-light);
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             margin-bottom: 6px;
+            line-height: 1.5;
         }
 
         .pub-venue {
-            color: var(--primary-color);
+            color: var(--secondary-color);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            display: inline-block;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+            padding: 5px 12px;
+            border-radius: 4px;
+            border: 1px solid #d4e1ff;
         }
 
         .me-highlight {
             color: var(--primary-color);
             font-weight: 600;
-            text-decoration: underline;
-            text-underline-offset: 2px;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .me-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(to right, var(--primary-color), transparent);
+            opacity: 0.5;
         }
 
         /* Mobile */
         @media (max-width: 768px) {
-            #layout-content {
-                padding: 24px 20px;
-                width: auto;
-                margin: 0;
-                border-radius: 0;
-                box-shadow: none;
+            body {
+                padding: 68px 0 0 0;
+                background-color: #fff;
             }
 
-            body {
-                padding: 0;
-                background-color: #fff;
+            .site-header {
+                padding: 0 16px;
+                height: 48px;
+            }
+
+            .header-logo {
+                font-size: 1rem;
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            .site-nav {
+                display: none;
+            }
+
+            .nav-overlay.active .mobile-nav {
+                display: flex;
+            }
+
+            #layout-content {
+                padding: 24px 16px;
+                width: auto;
+                margin: 0;
             }
 
             .page-header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 16px;
+                gap: 12px;
             }
 
             .page-header h1 {
                 font-size: 1.5rem;
             }
+
+            h2 {
+                font-size: 1.2rem;
+                margin-top: 28px;
+            }
         }
 
         /* Print */
         @media print {
+            .site-header {
+                display: none;
+            }
+
             @page {
                 margin: 1cm 1cm;
                 size: auto;
@@ -174,13 +444,11 @@
             }
 
             #layout-content {
-                box-shadow: none;
                 margin: 0;
                 width: 100%;
                 max-width: none !important;
                 padding: 0;
                 border: none;
-                border-radius: 0;
             }
 
             .back-link {
@@ -201,6 +469,65 @@
 </head>
 
 <body>
+
+    <!-- Site Header (Meta-style fixed navigation) -->
+    <header class="site-header">
+        <nav class="site-nav">
+            <a href="index.html#publications" class="nav-link">Selected Publications</a>
+            <a href="publications.html" class="nav-link">All Publications</a>
+            <a href="community.html" class="nav-link">Community Contribution</a>
+            <a href="index.html#awards" class="nav-link">Awards & Competitions</a>
+        </nav>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="nav-overlay">
+        <nav class="mobile-nav">
+            <a href="index.html#publications" class="nav-link">Publications</a>
+            <a href="publications.html" class="nav-link">All Pubs</a>
+            <a href="community.html" class="nav-link">Community</a>
+            <a href="index.html#awards" class="nav-link">Awards</a>
+        </nav>
+    </div>
+
+    <script>
+        // Mobile navigation toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.querySelector('.nav-toggle');
+            const navOverlay = document.querySelector('.nav-overlay');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav .nav-link');
+
+            navToggle.addEventListener('click', function() {
+                navToggle.classList.toggle('active');
+                navOverlay.classList.toggle('active');
+                document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
+            });
+
+            // Close menu when clicking a link
+            mobileNavLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+
+            // Close menu when clicking overlay background
+            navOverlay.addEventListener('click', function(e) {
+                if (e.target === navOverlay) {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    </script>
+
     <div id="layout-content">
         <div class="page-header">
             <h1>Publication Full List</h1>
@@ -211,12 +538,12 @@
         <ul class="pub-list">
             <li class="pub-item">
                 <div class="pub-title">UniViT: Unifying Image and Video Understanding in One Vision Encoder</div>
-                <div class="pub-authors">Feilong Tang, <span class="me-highlight">Xiang An</span>, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Xingyu Zhou, Zimin Ran, Imran Razzak</div>
+                <div class="pub-authors">Feilong Tang, <span class="me-highlight">Xiang An</span>, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Xingyu Zhou, Zimin Ran, Imran Razzak, Ziyong Feng, Behzad Bozorgtabar, Jiankang Deng, Zongyuan Ge</div>
                 <div class="pub-venue">NeurIPS 2025</div>
             </li>
             <li class="pub-item">
                 <div class="pub-title">Llava-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training</div>
-                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu</div>
+                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu, Huajie Tan, Chunyuan Li, Jing Yang, Jie Yu, Xiyao Wang, Bin Qin, Yumeng Wang, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng</div>
                 <div class="pub-venue">arXiv 2025</div>
             </li>
             <li class="pub-item">
@@ -226,14 +553,10 @@
             </li>
             <li class="pub-item">
                 <div class="pub-title">Region-based Cluster Discrimination for Visual Representation Learning</div>
-                <div class="pub-authors">Yin Xie, Kaicheng Yang, <span class="me-highlight">Xiang An</span>, Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng</div>
+                <div class="pub-authors">Yin Xie, Kaicheng Yang, <span class="me-highlight">Xiang An (Project Leader)</span>, Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng</div>
                 <div class="pub-venue">ICCV 2025 (Highlight)</div>
             </li>
-            <li class="pub-item">
-                <div class="pub-title">High-Fidelity Facial Albedo Estimation via Texture Quantization</div>
-                <div class="pub-authors">Zimin Ran, Xingyu Ren, <span class="me-highlight">Xiang An</span>, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jia Guo, Linchao Zhu, Jiankang Deng</div>
-                <div class="pub-venue">ICCV 2025</div>
-            </li>
+
             <li class="pub-item">
                 <div class="pub-title">RealSyn: An Effective and Scalable Multimodal Interleaved Document Transformation Paradigm</div>
                 <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, Chaoyi Zhang, Yin Xie, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng</div>
@@ -278,11 +601,7 @@
                 <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng</div>
                 <div class="pub-venue">EMNLP 2024</div>
             </li>
-            <li class="pub-item">
-                <div class="pub-title">VAR-CLIP: Text-to-Image Generator with Visual Auto-Regressive Modeling</div>
-                <div class="pub-authors">Qian Zhang, Xiangzi Dai, Ninghua Yang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Xingyu Ren</div>
-                <div class="pub-venue">arXiv 2024</div>
-            </li>
+
             <li class="pub-item">
                 <div class="pub-title">CLIP-CID: Efficient CLIP Distillation via Cluster-Instance Discrimination</div>
                 <div class="pub-authors">Kaicheng Yang, Tiancheng Gu, <span class="me-highlight">Xiang An</span>, Haiqiang Jiang, Xiangzi Dai, Ziyong Feng, Weidong Cai, Jiankang Deng</div>

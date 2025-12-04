@@ -9,35 +9,135 @@
     <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
     <style>
         :root {
-            --primary-color: #297be6;
-            --text-dark: #1f2937;
-            --text-gray: #4b5563;
-            --text-light: #6b7280;
-            --bg-page: #f3f4f6;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #6366f1;
+            --accent-color: #8b5cf6;
+            --text-dark: #1e293b;
+            --text-gray: #475569;
+            --text-light: #64748b;
             --bg-card: #ffffff;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.15), 0 10px 20px -8px rgba(0, 0, 0, 0.1);
+            --primary-alpha-10: rgba(59, 130, 246, 0.1);
+            --primary-alpha-15: rgba(59, 130, 246, 0.15);
         }
 
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Animated gradient background */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--text-dark);
-            background-color: var(--bg-page);
+            background: linear-gradient(-45deg, #fdfbfb, #ebedee, #e6f0ff, #f0e7ff, #fff1f0);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
             margin: 0;
-            padding: 40px 20px;
-            line-height: 1.6;
+            padding: 80px 20px 40px 20px;
+            line-height: 1.7;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
 
-        /* 主容器：增加纸张质感 */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Fade-in animation for elements */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(59, 130, 246, 0.4), 0 0 10px rgba(59, 130, 246, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 10px rgba(59, 130, 246, 0.6), 0 0 20px rgba(59, 130, 246, 0.5);
+            }
+        }
+
+        /* 主容器：简洁学术风格 with entrance animation */
         #layout-content {
             margin: 0 auto;
-            max-width: 900px;
-            background-color: var(--bg-card);
-            padding: 48px;
-            border-radius: 16px;
-            box-shadow: var(--shadow-lg);
+            max-width: 850px;
+            background-color: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 50px 60px;
+            box-shadow: var(--shadow-xl), 0 0 40px rgba(59, 130, 246, 0.08);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            animation: fadeInUp 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #layout-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            border-radius: 20px 20px 0 0;
         }
 
         /* 头部区域 */
@@ -45,19 +145,27 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 40px;
+            margin-bottom: 24px;
             gap: 24px;
+            animation: fadeIn 1s ease-out 0.2s both;
         }
 
         .profile-info h1 {
-            font-size: 2.5rem;
-            margin: 0 0 8px 0;
-            color: #111827;
-            letter-spacing: -0.025em;
+            font-size: 2.75rem;
+            margin: 0 0 16px 0;
+            color: var(--text-dark);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: slideInLeft 0.8s ease-out 0.3s both;
         }
 
         .profile-info h3 {
-            font-weight: 500;
+            font-weight: 400;
             color: var(--text-gray);
             margin: 0 0 16px 0;
             display: flex;
@@ -66,68 +174,136 @@
         }
 
         .profile-pic {
-            width: 180px;
-            height: 180px;
+            width: 170px;
+            height: 170px;
             border-radius: 50%;
             object-fit: cover;
-            box-shadow: var(--shadow-md);
-            border: 4px solid #fff;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 4px solid transparent;
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, #667eea, #764ba2, #f093fb) border-box;
             flex-shrink: 0;
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.35), 0 0 0 8px rgba(102, 126, 234, 0.1);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: slideInRight 0.8s ease-out 0.3s both, glow 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        .profile-pic::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
 
         .profile-pic:hover {
-            transform: scale(1.02) rotate(2deg);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-10px) scale(1.08) rotate(3deg);
+            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.5), 0 0 0 12px rgba(102, 126, 234, 0.15);
         }
 
-        /* 联系方式框优化 */
-        .contact-box {
+        .profile-pic:hover::before {
+            opacity: 1;
+        }
+
+        /* 联系信息区域 */
+        .contact-info {
             display: flex;
+            align-items: center;
             flex-wrap: wrap;
             gap: 12px;
             margin-top: 16px;
+            font-size: 0.95rem;
+            color: var(--text-light);
         }
 
-        .contact-link {
-            display: inline-flex;
-            align-items: center;
-            background: #f9fafb;
-            border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            color: var(--text-gray);
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .contact-link:hover {
-            background: #eff6ff;
-            border-color: var(--primary-color);
+        .contact-info a {
             color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            padding: 2px 4px;
         }
 
-        .contact-link img {
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
-            opacity: 0.8;
+        .contact-info a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.3s ease;
+        }
+
+        .contact-info a:hover {
+            color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .contact-info a:hover::before {
+            width: 100%;
+        }
+
+        .contact-separator {
+            color: var(--text-light);
+            margin: 0 4px;
         }
 
         /* 标题样式 */
         h2 {
-            font-size: 1.5rem;
-            color: #111827;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 12px;
-            margin-top: 48px;
-            margin-bottom: 24px;
+            font-size: 1.9rem;
+            color: var(--text-dark);
+            border-bottom: 3px solid transparent;
+            padding-bottom: 16px;
+            margin-top: 60px;
+            margin-bottom: 36px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            position: relative;
+            animation: fadeInUp 0.6s ease-out both;
+            display: inline-block;
+        }
+
+        h2::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 2px;
+            animation: slideInLeft 0.8s ease-out both;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.4), rgba(240, 147, 251, 0.4));
+            border-radius: 2px;
+            transition: width 0.6s ease;
+        }
+
+        h2:hover::after {
+            width: 100%;
         }
 
         p {
             color: var(--text-gray);
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            letter-spacing: 0.01em;
         }
 
         b {
@@ -144,31 +320,69 @@
             gap: 20px;
         }
 
-        /* 卡片样式优化 */
+        /* 卡片样式：简洁学术风格 */
         .publication-entry {
             display: flex;
-            padding: 20px;
+            padding: 28px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.95) 100%);
+            backdrop-filter: blur(10px);
             border-radius: 12px;
-            background: #fff;
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--shadow-md);
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+            position: relative;
+            overflow: hidden;
         }
 
+        .publication-entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 0;
+            background: linear-gradient(180deg, #667eea, #764ba2, #f093fb);
+            transition: height 0.4s ease;
+        }
+
+        .publication-entry:nth-child(1) { animation-delay: 0.1s; }
+        .publication-entry:nth-child(2) { animation-delay: 0.2s; }
+        .publication-entry:nth-child(3) { animation-delay: 0.3s; }
+        .publication-entry:nth-child(4) { animation-delay: 0.4s; }
+        .publication-entry:nth-child(5) { animation-delay: 0.5s; }
+        .publication-entry:nth-child(6) { animation-delay: 0.6s; }
+        .publication-entry:nth-child(7) { animation-delay: 0.7s; }
+
         .publication-entry:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: #d1d5db;
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 16px 40px rgba(102, 126, 234, 0.25), 0 0 30px rgba(102, 126, 234, 0.1);
+            transform: translateY(-8px) scale(1.02);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(240, 244, 255, 1) 100%);
+        }
+
+        .publication-entry:hover::before {
+            height: 100%;
         }
 
         .publication-entry img {
-            width: 180px;
-            height: 100px;
-            border-radius: 8px;
-            margin-right: 20px;
+            width: 160px;
+            height: 90px;
+            margin-right: 24px;
             object-fit: cover;
-            background-color: #f3f4f6; /* 图片加载前的占位色 */
-            border: 1px solid #f3f4f6;
+            background-color: #f9fafb;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             flex-shrink: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .publication-entry:hover img {
+            transform: scale(1.08) rotate(2deg);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+            border-color: var(--primary-color);
         }
 
         .pub-content {
@@ -176,30 +390,61 @@
         }
 
         .pub-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 6px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
             display: block;
-            line-height: 1.4;
+            line-height: 1.5;
+            letter-spacing: -0.01em;
         }
 
         .pub-authors {
             color: var(--text-light);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             margin-bottom: 6px;
             display: block;
+            line-height: 1.5;
         }
 
         .pub-venue {
-            color: #000;
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
+            color: #764ba2;
+            font-weight: 700;
+            font-size: 0.875rem;
             display: inline-block;
+            background: linear-gradient(135deg, #f3e7ff 0%, #e8e0ff 100%);
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid #d4c5ff;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
         }
 
-        /* 胶囊按钮样式 [Paper] [Code] */
+        .pub-venue::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .pub-venue:hover::before {
+            left: 100%;
+        }
+
+        .pub-venue:hover {
+            transform: scale(1.12) translateY(-2px);
+            box-shadow: 0 6px 16px rgba(118, 75, 162, 0.4);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* 链接按钮样式 [Paper] [Code] */
         .link-badges {
             display: flex;
             gap: 8px;
@@ -209,87 +454,252 @@
         .badge-link {
             display: inline-flex;
             align-items: center;
-            padding: 4px 10px;
-            font-size: 0.8rem;
+            padding: 8px 16px;
+            font-size: 0.875rem;
             font-weight: 600;
-            color: var(--primary-color);
-            background-color: #eff6ff;
-            border-radius: 6px;
+            color: #fff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             text-decoration: none;
-            transition: background-color 0.2s;
+            border-radius: 8px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge-link::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .badge-link:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .badge-link:hover {
-            background-color: #dbeafe;
-            text-decoration: none;
+            background: linear-gradient(135deg, #764ba2 0%, #f093fb 100%);
+            transform: translateY(-3px) scale(1.08);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Secondary badge button style (for View Repo etc) */
+        .badge-secondary {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+        }
+
+        .badge-secondary::before {
+            display: none;
+        }
+
+        .badge-secondary:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
         }
 
         /* 高亮作者名 */
         .me-highlight {
-            color: var(--primary-color);
-            font-weight: 600;
-            text-decoration: underline;
-            text-underline-offset: 2px;
+            color: #667eea;
+            font-weight: 700;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .me-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            opacity: 0.6;
         }
 
         /* 奖项列表 */
         .awards-list li {
-            padding: 8px 0;
+            padding: 20px 24px;
             display: flex;
             align-items: center;
             color: var(--text-dark);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            margin-bottom: 14px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--shadow-md);
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .awards-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 0;
+            background: linear-gradient(180deg, #667eea, #764ba2, #f093fb);
+            transition: height 0.4s ease;
+        }
+
+        .awards-list li:nth-child(1) { animation-delay: 0.1s; }
+        .awards-list li:nth-child(2) { animation-delay: 0.2s; }
+        .awards-list li:nth-child(3) { animation-delay: 0.3s; }
+        .awards-list li:nth-child(4) { animation-delay: 0.4s; }
+        .awards-list li:nth-child(5) { animation-delay: 0.5s; }
+        .awards-list li:nth-child(6) { animation-delay: 0.6s; }
+
+        .awards-list li:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
+            transform: translateX(10px) scale(1.02);
+            background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
+        }
+
+        .awards-list li:hover::before {
+            height: 100%;
+        }
+
+        .awards-list li:last-child {
+            margin-bottom: 0;
         }
 
         .awards-list .emoji {
-            margin-right: 12px;
-            font-size: 1.2em;
+            margin-right: 20px;
+            font-size: 1.6em;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: inline-block;
         }
 
-        /* Navigation styles */
+        .awards-list li:hover .emoji {
+            transform: scale(1.4) rotate(360deg);
+        }
+
+        /* Site Header - 保留导航栏样式 */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            box-sizing: border-box;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            animation: slideInDown 0.6s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-logo {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-decoration: none;
+        }
+
+        .header-logo:hover {
+            color: var(--primary-color);
+        }
+
         .site-nav {
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
             gap: 8px;
-            margin-bottom: 32px;
-            padding: 16px;
-            background: #f9fafb;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
         }
 
         .nav-link {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 16px;
             font-size: 0.9rem;
             font-weight: 500;
             color: var(--text-gray);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
             text-decoration: none;
-            transition: all 0.2s ease;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transform: translateX(-50%);
+            transition: width 0.3s ease;
         }
 
         .nav-link:hover {
-            background: #eff6ff;
-            border-color: var(--primary-color);
+            background-color: var(--primary-alpha-10);
             color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .nav-link:hover::before {
+            width: 80%;
+        }
+
+        .nav-link:active {
+            background-color: var(--primary-alpha-15);
         }
 
         /* 移动端适配 */
         @media (max-width: 768px) {
+            body {
+                padding: 76px 16px 24px 16px;
+                background: #ffffff;
+            }
+
+            .site-header {
+                padding: 0 20px;
+                height: 56px;
+            }
+
+            .header-logo {
+                font-size: 1rem;
+            }
+
             #layout-content {
-                padding: 24px 20px;
+                padding: 32px 24px;
                 width: auto;
                 margin: 0;
                 border-radius: 0;
                 box-shadow: none;
-            }
-
-            body {
-                padding: 0;
-                background-color: #fff;
             }
 
             .top-section {
@@ -302,25 +712,26 @@
                 max-width: 100% !important;
             }
 
+            .profile-info h1 {
+                font-size: 2rem;
+            }
+
             .profile-info h3 {
                 justify-content: center;
             }
 
-            .contact-box {
+            .contact-info {
                 justify-content: center;
             }
 
-            .site-nav {
-                justify-content: center;
-            }
-
-            .nav-link {
-                font-size: 0.8rem;
-                padding: 6px 12px;
+            h2 {
+                font-size: 1.5rem;
+                margin-top: 40px;
             }
 
             .publication-entry {
                 flex-direction: column;
+                padding: 20px;
             }
 
             .publication-entry img {
@@ -331,6 +742,93 @@
             }
         }
 
+        /* Mobile hamburger menu */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            z-index: 1002;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background-color: #1f2937;
+            margin: 5px 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .nav-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .nav-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .nav-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* Mobile navigation overlay */
+        .nav-overlay {
+            display: none;
+            position: fixed;
+            top: 48px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 48px);
+            background-color: rgba(255, 255, 255, 0.98);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            padding: 20px 24px;
+        }
+
+        .mobile-nav .nav-link {
+            font-size: 1rem;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0;
+        }
+
+        .mobile-nav .nav-link:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-nav .nav-link:hover {
+            background-color: transparent;
+            color: var(--primary-color);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .nav-toggle {
+                display: block;
+            }
+
+            .site-nav {
+                display: none;
+            }
+
+            .nav-overlay.active .mobile-nav {
+                display: flex;
+            }
+        }
+
 
         /*
            ========================================
@@ -338,9 +836,14 @@
            ========================================
         */
         @media print {
+            /* Hide the fixed header when printing */
+            .site-header {
+                display: none;
+            }
+
             /* 1. 设置打印页面的边距 */
             @page {
-                margin: 1cm 1cm; /* 上下1cm，左右1cm */
+                margin: 1cm 1cm;
                 size: auto;
             }
 
@@ -349,23 +852,20 @@
                 background-color: #fff;
                 padding: 0;
                 margin: 0;
-                -webkit-print-color-adjust: exact; /* 尽可能保留背景色（如需要） */
             }
 
-            /* 3. 重置主容器的样式：去掉最大宽度限制、阴影、边框和内边距 */
+            /* 3. 重置主容器的样式 */
             #layout-content {
-                box-shadow: none;
                 margin: 0;
                 width: 100%;
-                max-width: none !important; /* 强制覆盖 900px 限制 */
-                padding: 0;                 /* 移除容器内边距，让内容更宽 */
+                max-width: none !important;
+                padding: 0;
                 border: none;
-                border-radius: 0;
             }
 
-            /* 4. 字体微调（可选，防止打印字体过大） */
+            /* 4. 字体微调 */
             .profile-info h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
 
             /* 5. 核心分页控制：防止元素内部断页 */
@@ -382,11 +882,8 @@
             h2 {
                 break-after: avoid;
                 page-break-after: avoid;
-                margin-top: 20px; /* 打印时稍微减少顶部间距 */
+                margin-top: 20px;
             }
-
-            /* 6. 隐藏不需要打印的元素（可选，如果需要的话） */
-            /* .no-print { display: none; } */
         }
 
     </style>
@@ -394,35 +891,80 @@
 
 <body>
 
+    <!-- Site Header (Meta-style fixed navigation) -->
+    <header class="site-header">
+        <nav class="site-nav">
+            <a href="#publications" class="nav-link">Selected Publications</a>
+            <a href="publications.html" class="nav-link">All Publications</a>
+            <a href="community.html" class="nav-link">Community Contribution</a>
+            <a href="#awards" class="nav-link">Awards & Competitions</a>
+        </nav>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="nav-overlay">
+        <nav class="mobile-nav">
+            <a href="#publications" class="nav-link">Publications</a>
+            <a href="publications.html" class="nav-link">All Pubs</a>
+            <a href="community.html" class="nav-link">Community</a>
+            <a href="#awards" class="nav-link">Awards</a>
+        </nav>
+    </div>
+
+    <script>
+        // Mobile navigation toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.querySelector('.nav-toggle');
+            const navOverlay = document.querySelector('.nav-overlay');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav .nav-link');
+
+            navToggle.addEventListener('click', function() {
+                navToggle.classList.toggle('active');
+                navOverlay.classList.toggle('active');
+                document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
+            });
+
+            // Close menu when clicking a link
+            mobileNavLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+
+            // Close menu when clicking overlay background
+            navOverlay.addEventListener('click', function(e) {
+                if (e.target === navOverlay) {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    </script>
+
     <div id="layout-content">
         <div class="top-section">
             <div class="profile-info" style="max-width: 70%;">
-                <h1>Xiang An (安翔)</h1>
-                <h3><span class="emoji">🎓</span> Algorithm Engineer</h3>
-                <div class="contact-box">
-                    <a href="mailto:anxiangsir@outlook.com" class="contact-link">
-                        <img src="assets/img/envelope.png" alt="Email">Email
-                    </a>
-                    <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank" class="contact-link">
-                        <img src="assets/img/google.png" alt="Google Scholar">Scholar
-                    </a>
-                    <a href="https://github.com/anxiangsir" target="_blank" class="contact-link">
-                        <img src="assets/img/github.png" alt="GitHub">GitHub
-                    </a>
+                <h1>Xiang An</h1>
+                <div class="contact-info">
+                    <a href="mailto:anxiangsir@outlook.com" title="anxiangsir@outlook.com">Mail</a>
+                    <span class="contact-separator">·</span>
+                    <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a>
+                    <span class="contact-separator">·</span>
+                    <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>
                 </div>
             </div>
             <div>
                 <img class="profile-pic" src="assets/img/profile_pic.jpg" alt="Xiang An">
             </div>
         </div>
-
-        <!-- Navigation -->
-        <nav class="site-nav">
-            <a href="#publications" class="nav-link">Selected Publications</a>
-            <a href="publications.html" class="nav-link">(Full List)</a>
-            <a href="#community" class="nav-link">Community Contribution</a>
-            <a href="#awards" class="nav-link">Awards & Competitions</a>
-        </nav>
 
         <h2 id="about">About Me</h2>
         <p>
@@ -432,7 +974,7 @@
             Currently, our team is building the <b>next-generation Vision Transformer (ViT)</b> to address some of the most urgent needs in modern MLLMs.
         </p>
 
-        <h2 id="publications">Selected Publications <a href="publications.html" style="font-size: 0.7em; font-weight: 500; color: var(--primary-color); margin-left: 12px; text-decoration: none;">(Full List)</a></h2>
+        <h2 id="publications">Selected Publications</h2>
         <ul class="pub-list">
             <li>
                 <div class="publication-entry">
@@ -441,12 +983,12 @@
                     <div class="pub-content">
                         <span class="pub-title">Llava-OneVision-1.5: Fully open framework for democratized multimodal training</span>
                         <span class="pub-authors">
-                            <span class="me-highlight">Xiang An</span>, Yin Xie, Kaicheng Yang, Wenkang Zhang, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng
+                            <span class="me-highlight">Xiang An</span>, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu, Huajie Tan, Chunyuan Li, Jing Yang, Jie Yu, Xiyao Wang, Bin Qin, Yumeng Wang, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng
                         </span>
-                        <span class="pub-venue">Preprint, 2025</span>
                         <div class="link-badges">
                             <a href="https://arxiv.org/abs/2509.23661" class="badge-link">Paper</a>
                             <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" class="badge-link">Code</a>
+                            <span class="pub-venue">Preprint, 2025</span>
                         </div>
                     </div>
                 </div>
@@ -460,10 +1002,10 @@
                         <span class="pub-authors">
                             Tiancheng Gu, Kaicheng Yang, Kaichen Zhang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Yueyi Zhang, Weidong Cai, Jiankang Deng, Lidong Bing
                         </span>
-                        <span class="pub-venue">AAAI, 2026 (Oral)</span>
                         <div class="link-badges">
                             <a href="https://arxiv.org/pdf/2510.13515" class="badge-link">Paper</a>
                             <a href="https://github.com/GaryGuTC/UniME-v2" class="badge-link">Code</a>
+                            <span class="pub-venue">AAAI, 2026 (Oral)</span>
                         </div>
                     </div>
                 </div>
@@ -477,10 +1019,10 @@
                         <span class="pub-authors">
                             Yin Xie, Kaicheng Yang, <span class="me-highlight">Xiang An (Project Leader)</span>, Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng
                         </span>
-                        <span class="pub-venue">ICCV, 2025 (Highlight)</span>
                         <div class="link-badges">
                             <a href="https://arxiv.org/abs/2507.20025" class="badge-link">Paper</a>
                             <a href="https://github.com/deepglint/unicom" class="badge-link">Code</a>
+                            <span class="pub-venue">ICCV, 2025 (Highlight)</span>
                         </div>
                     </div>
                 </div>
@@ -494,10 +1036,10 @@
                         <span class="pub-authors">
                             <span class="me-highlight">Xiang An</span>, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jiankang Deng
                         </span>
-                        <span class="pub-venue">ECCV, 2024</span>
                         <div class="link-badges">
                             <a href="https://arxiv.org/abs/2407.17331" class="badge-link">Paper</a>
                             <a href="https://github.com/deepglint/unicom" class="badge-link">Code</a>
+                            <span class="pub-venue">ECCV, 2024</span>
                         </div>
                     </div>
                 </div>
@@ -511,10 +1053,10 @@
                         <span class="pub-authors">
                              <span class="me-highlight">Xiang An</span>, Jiankang Deng, Kaicheng Yang, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu
                         </span>
-                        <span class="pub-venue">ICLR, 2023</span>
                         <div class="link-badges">
                             <a href="https://arxiv.org/abs/2304.05884" class="badge-link">Paper</a>
                             <a href="https://github.com/deepglint/unicom" class="badge-link">Code</a>
+                            <span class="pub-venue">ICLR, 2023</span>
                         </div>
                     </div>
                 </div>
@@ -528,10 +1070,10 @@
                         <span class="pub-authors">
                             <span class="me-highlight">Xiang An</span>, Jiankang Deng, Jia Guo, Ziyong Feng, Xuhan Zhu, Jing Yang, Tongliang Liu
                         </span>
-                        <span class="pub-venue">CVPR, 2022</span>
                         <div class="link-badges">
                             <a href="https://arxiv.org/abs/2203.15565" class="badge-link">Paper</a>
                             <a href="https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch" class="badge-link">Code</a>
+                            <span class="pub-venue">CVPR, 2022</span>
                         </div>
                     </div>
                 </div>
@@ -545,10 +1087,10 @@
                         <span class="pub-authors">
                             <span class="me-highlight">Xiang An</span>, Xuhan Zhu, Yuan Gao, Yang Xiao, Yongle Zhao, Ziyong Feng, Lan Wu, Bin Qin, Ming Zhang, Debing Zhang, Ying Fu
                         </span>
-                        <span class="pub-venue">ICCVW, 2021</span>
                         <div class="link-badges">
                             <a href="https://arxiv.org/abs/2010.05222" class="badge-link">Paper</a>
                             <a href="https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch" class="badge-link">Code</a>
+                            <span class="pub-venue">ICCVW, 2021</span>
                         </div>
                     </div>
                 </div>
@@ -568,7 +1110,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                             <a href="https://github.com/deepinsight/insightface" class="badge-link" target="_blank">⭐ 27k+ Stars</a>
-                            <a href="https://github.com/deepinsight/insightface" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                            <a href="https://github.com/deepinsight/insightface" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
@@ -583,7 +1125,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                              <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" class="badge-link" target="_blank">⭐ 600+ Stars</a>
-                             <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                             <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
@@ -598,7 +1140,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                              <a href="https://github.com/LLaVA-VL/LLaVA-NeXT" class="badge-link" target="_blank">⭐ 4000+ Stars</a>
-                             <a href="https://github.com/LLaVA-VL/LLaVA-NeXT" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                             <a href="https://github.com/LLaVA-VL/LLaVA-NeXT" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
@@ -613,7 +1155,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                              <a href="https://github.com/deepglint/unicom" class="badge-link" target="_blank">⭐ 600+ Stars</a>
-                             <a href="https://github.com/deepglint/unicom" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                             <a href="https://github.com/deepglint/unicom" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
@@ -628,7 +1170,7 @@
                         </span>
                         <div class="link-badges" style="margin-top: 8px;">
                              <a href="https://github.com/anxiangsir/urban_seg" class="badge-link" target="_blank">⭐ 460+ Stars</a>
-                             <a href="https://github.com/anxiangsir/urban_seg" class="badge-link" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">View Repo</a>
+                             <a href="https://github.com/anxiangsir/urban_seg" class="badge-link badge-secondary">View Repo</a>
                         </div>
                     </div>
                 </div>
@@ -646,6 +1188,193 @@
         </ul>
 
     </div>
+
+    <!-- Floating particles background animation -->
+    <div class="particles-container" aria-hidden="true">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <style>
+        /* Floating particles */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(99, 102, 241, 0.1) 50%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .particle:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            left: 10%;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .particle:nth-child(2) {
+            width: 60px;
+            height: 60px;
+            left: 20%;
+            animation: float 25s infinite ease-in-out 2s;
+        }
+
+        .particle:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            left: 35%;
+            animation: float 30s infinite ease-in-out 4s;
+        }
+
+        .particle:nth-child(4) {
+            width: 70px;
+            height: 70px;
+            left: 50%;
+            animation: float 22s infinite ease-in-out 1s;
+        }
+
+        .particle:nth-child(5) {
+            width: 90px;
+            height: 90px;
+            left: 65%;
+            animation: float 28s infinite ease-in-out 3s;
+        }
+
+        .particle:nth-child(6) {
+            width: 50px;
+            height: 50px;
+            left: 75%;
+            animation: float 24s infinite ease-in-out 5s;
+        }
+
+        .particle:nth-child(7) {
+            width: 110px;
+            height: 110px;
+            left: 85%;
+            animation: float 26s infinite ease-in-out 2.5s;
+        }
+
+        .particle:nth-child(8) {
+            width: 65px;
+            height: 65px;
+            left: 15%;
+            animation: float 23s infinite ease-in-out 4.5s;
+        }
+
+        .particle:nth-child(9) {
+            width: 75px;
+            height: 75px;
+            left: 45%;
+            animation: float 27s infinite ease-in-out 1.5s;
+        }
+
+        .particle:nth-child(10) {
+            width: 85px;
+            height: 85px;
+            left: 90%;
+            animation: float 29s infinite ease-in-out 3.5s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) translateX(0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(50vh) translateX(100px) scale(1.2);
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.5;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .particles-container {
+                display: none;
+            }
+        }
+    </style>
+
+    <script>
+        // Intersection Observer for scroll animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all elements that should animate on scroll
+            const animatedElements = document.querySelectorAll('h2, .publication-entry, .awards-list li, p');
+            animatedElements.forEach(el => {
+                observer.observe(el);
+            });
+
+            // Add smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Add parallax effect on scroll with throttling
+            let lastScrollTop = 0;
+            let ticking = false;
+            
+            window.addEventListener('scroll', function() {
+                lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (!ticking) {
+                    window.requestAnimationFrame(function() {
+                        const particles = document.querySelectorAll('.particle');
+                        particles.forEach((particle, index) => {
+                            const speed = (index + 1) * 0.05;
+                            particle.style.transform = `translateY(${lastScrollTop * speed}px)`;
+                        });
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }, false);
+        });
+    </script>
 </body>
 
 </html>

@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Xiang An's Community Contribution - Open Source Projects">
+    <title>Community Contribution - Xiang An</title>
+    <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #6366f1;
+            --accent-color: #8b5cf6;
+            --text-dark: #1e293b;
+            --text-gray: #475569;
+            --text-light: #64748b;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.15), 0 10px 20px -8px rgba(0, 0, 0, 0.1);
+            --primary-alpha-10: rgba(59, 130, 246, 0.1);
+            --primary-alpha-15: rgba(59, 130, 246, 0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-dark);
+            background: linear-gradient(-45deg, #fdfbfb, #ebedee, #e6f0ff, #f0e7ff, #fff1f0);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            margin: 0;
+            padding: 80px 20px 40px 20px;
+            line-height: 1.7;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Site Header - 保留导航栏样式 */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.98);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            box-sizing: border-box;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-logo {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-decoration: none;
+        }
+
+        .header-logo:hover {
+            color: var(--primary-color);
+        }
+
+        .site-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-gray);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background-color: var(--primary-alpha-10);
+            color: var(--primary-color);
+        }
+
+        .nav-link:active {
+            background-color: var(--primary-alpha-15);
+        }
+
+        /* Mobile hamburger menu */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            z-index: 1002;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background-color: #1f2937;
+            margin: 5px 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .nav-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .nav-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .nav-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* Mobile navigation overlay */
+        .nav-overlay {
+            display: none;
+            position: fixed;
+            top: 52px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 52px);
+            background-color: rgba(255, 255, 255, 0.98);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            padding: 20px 24px;
+        }
+
+        .mobile-nav .nav-link {
+            font-size: 1rem;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0;
+        }
+
+        .mobile-nav .nav-link:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-nav .nav-link:hover {
+            background-color: transparent;
+            color: var(--primary-color);
+        }
+
+        #layout-content {
+            margin: 0 auto;
+            max-width: 850px;
+            background-color: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 50px 60px;
+            box-shadow: var(--shadow-xl), 0 0 40px rgba(59, 130, 246, 0.08);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            animation: fadeInUp 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #layout-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid;
+            border-image: linear-gradient(90deg, #667eea, #764ba2) 1;
+        }
+
+        .page-header h1 {
+            font-size: 2.25rem;
+            margin: 0;
+            color: var(--text-dark);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #667eea;
+            text-decoration: none;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+        }
+
+        .back-link:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: transparent;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .back-link::before {
+            content: "←";
+            margin-right: 6px;
+        }
+
+        .intro-text {
+            color: var(--text-gray);
+            margin-bottom: 36px;
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+        .intro-text b {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .project-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 36px;
+            margin-bottom: 28px;
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 0;
+            background: linear-gradient(180deg, #667eea, #764ba2, #f093fb);
+            transition: height 0.4s ease;
+        }
+
+        .project-card:hover {
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 16px 40px rgba(102, 126, 234, 0.25), 0 0 30px rgba(102, 126, 234, 0.1);
+            transform: translateY(-8px) scale(1.02);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(240, 244, 255, 1) 100%);
+        }
+
+        .project-card:hover::before {
+            height: 100%;
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 16px;
+        }
+
+        .project-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .project-stars {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            white-space: nowrap;
+            flex-shrink: 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            }
+            50% {
+                box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.3);
+            }
+        }
+
+        .project-stars:hover {
+            transform: scale(1.1) rotate(-2deg);
+        }
+
+        .project-summary {
+            color: var(--text-gray);
+            font-size: 1rem;
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+
+        .project-details {
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+
+        .project-details h4 {
+            color: var(--text-dark);
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 16px 0 8px 0;
+        }
+
+        .project-details ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .project-details li {
+            margin-bottom: 6px;
+            color: var(--text-gray);
+        }
+
+        .project-details a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .project-details a:hover {
+            text-decoration: underline;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .project-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .project-link.primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .project-link.primary:hover {
+            background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .project-link.secondary {
+            color: var(--text-dark);
+            background-color: transparent;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .project-link.secondary:hover {
+            background-color: var(--primary-alpha-10);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            body {
+                padding: 68px 0 0 0;
+                background-color: #fff;
+            }
+
+            .site-header {
+                padding: 0 16px;
+                height: 48px;
+            }
+
+            .header-logo {
+                font-size: 1rem;
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            .site-nav {
+                display: none;
+            }
+
+            .nav-overlay.active .mobile-nav {
+                display: flex;
+            }
+
+            #layout-content {
+                padding: 24px 16px;
+                width: auto;
+                margin: 0;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .project-header {
+                flex-direction: column;
+            }
+
+            .project-card {
+                padding: 20px;
+            }
+
+            .project-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Print */
+        @media print {
+            .site-header {
+                display: none;
+            }
+
+            @page {
+                margin: 1cm 1cm;
+                size: auto;
+            }
+
+            body {
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+            }
+
+            #layout-content {
+                margin: 0;
+                width: 100%;
+                max-width: none !important;
+                padding: 0;
+                border: none;
+            }
+
+            .back-link {
+                display: none;
+            }
+
+            .project-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Site Header (Meta-style fixed navigation) -->
+    <header class="site-header">
+        <nav class="site-nav">
+            <a href="index.html#publications" class="nav-link">Selected Publications</a>
+            <a href="publications.html" class="nav-link">All Publications</a>
+            <a href="community.html" class="nav-link">Community Contribution</a>
+            <a href="index.html#awards" class="nav-link">Awards & Competitions</a>
+        </nav>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="nav-overlay">
+        <nav class="mobile-nav">
+            <a href="index.html#publications" class="nav-link">Publications</a>
+            <a href="publications.html" class="nav-link">All Pubs</a>
+            <a href="community.html" class="nav-link">Community</a>
+            <a href="index.html#awards" class="nav-link">Awards</a>
+        </nav>
+    </div>
+
+    <script>
+        // Mobile navigation toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.querySelector('.nav-toggle');
+            const navOverlay = document.querySelector('.nav-overlay');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav .nav-link');
+
+            navToggle.addEventListener('click', function() {
+                navToggle.classList.toggle('active');
+                navOverlay.classList.toggle('active');
+                document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
+            });
+
+            // Close menu when clicking a link
+            mobileNavLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+
+            // Close menu when clicking overlay background
+            navOverlay.addEventListener('click', function(e) {
+                if (e.target === navOverlay) {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    </script>
+
+    <div id="layout-content">
+        <div class="page-header">
+            <h1>Community Contribution</h1>
+            <a href="index.html" class="back-link">Back to Home</a>
+        </div>
+
+        <p class="intro-text">
+            I actively contribute to open-source projects in face recognition, representation learning, and multimodal large models. I am the <b>#2 contributor</b> to the <b>InsightFace</b> ecosystem (~27k⭐), and co-maintain several influential vision and multimodal repositories.
+        </p>
+
+        <!-- InsightFace -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">InsightFace · 2D & 3D Face Analysis Toolkit</h2>
+                <span class="project-stars">⭐ 27k+ Stars</span>
+            </div>
+            <p class="project-summary">
+                Major contributor (#2 by contributions) to the core InsightFace ecosystem for large-scale face recognition and analysis.
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>InsightFace is an open-source 2D & 3D deep face analysis library with more than 27k stars on GitHub. It provides state-of-the-art face recognition, detection, alignment, and analysis capabilities.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li>Author of <a href="https://github.com/deepinsight/insightface/tree/master/recognition/_datasets_" target="_blank"><b>Glint360K</b></a>, the largest open-source face recognition training dataset</li>
+                    <li>Organizer of <a href="https://github.com/deepinsight/insightface/tree/master/challenges/iccv21-mfr" target="_blank"><b>ICCV 2021 Workshop</b></a> on masked face recognition challenge</li>
+                    <li>Author of <a href="https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc" target="_blank"><b>Partial FC</b></a>, enabling training 10 million identities on a single machine</li>
+                    <li>Implemented <a href="https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch" target="_blank"><b>arcface_torch</b></a>, an efficient distributed training framework</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>State-of-the-art face recognition models (ArcFace, CosFace, etc.)</li>
+                    <li>Support for large-scale training with millions of identities</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/deepinsight/insightface" class="project-link primary" target="_blank">View on GitHub</a>
+                <a href="https://arxiv.org/abs/2203.15565" class="project-link secondary" target="_blank">Partial FC Paper</a>
+            </div>
+        </div>
+
+        <!-- LLaVA-OneVision-1.5 -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">LLaVA-OneVision-1.5 · Multimodal Training Framework</h2>
+                <span class="project-stars">⭐ 600+ Stars</span>
+            </div>
+            <p class="project-summary">
+                Fully open framework for democratized multimodal training, advancing large multimodal models (LMMs).
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>LLaVA-OneVision-1.5 is a fully open framework designed to democratize multimodal training. It provides a comprehensive pipeline for training and evaluating large multimodal models.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li><b>Team Leader</b> of the project, leading the overall development and coordination</li>
+                    <li>Released <a href="https://huggingface.co/collections/lmms-lab/llava-onevision-15-68d385fe73b50bd22de23713" target="_blank"><b>mid-training and instruct data</b></a> for community use</li>
+                    <li>Developed <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5/tree/main/examples_offline_packing" target="_blank"><b>offline sampling pack</b></a> for efficient training</li>
+                    <li>Implemented <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5/tree/main/aiak_training_llm/models/llavaov_1_5" target="_blank"><b>RiceViT</b></a> with native resolution support</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>Fully open-source training framework for multimodal models</li>
+                    <li>Efficient training with mixed-precision and distributed training support</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" class="project-link primary" target="_blank">View on GitHub</a>
+                <a href="https://arxiv.org/abs/2509.23661" class="project-link secondary" target="_blank">Paper</a>
+            </div>
+        </div>
+
+        <!-- LLaVA-NeXT -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">LLaVA-NeXT · Next-Generation LMMs</h2>
+                <span class="project-stars">⭐ 4000+ Stars</span>
+            </div>
+            <p class="project-summary">
+                Contributed to the vision module of LLaVA-NeXT, enhancing its OCR capability, optimized the visual encoder and training pipeline for text-rich images.
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>LLaVA-NeXT is the next-generation large multimodal model that significantly improves upon the original LLaVA. It features enhanced visual understanding capabilities, especially for document and text-rich images.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li>Enhanced the <b>OCR capability</b> of the vision module for better text recognition in images</li>
+                    <li>Optimized the <b>visual encoder</b> for processing text-rich and document images</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>Enhanced visual understanding with higher resolution support</li>
+                    <li>Improved OCR and document understanding capabilities</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/LLaVA-VL/LLaVA-NeXT" class="project-link primary" target="_blank">View on GitHub</a>
+            </div>
+        </div>
+
+        <!-- UNICOM -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">UNICOM · Universal Representation for Image Retrieval</h2>
+                <span class="project-stars">⭐ 600+ Stars</span>
+            </div>
+            <p class="project-summary">
+                Author and maintainer of Unicom, a universal and compact representation learning framework for large-scale image retrieval.
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>UNICOM (Universal and Compact Representation Learning) is a framework I developed for learning universal image representations. It enables efficient and accurate image retrieval at scale.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li><b>Lead author and maintainer</b> of the entire project</li>
+                    <li>Designed the novel cluster discrimination approach for representation learning</li>
+                    <li>Developed the multi-label and region-based extensions (published at ECCV 2024 and ICCV 2025)</li>
+                    <li>Maintained pretrained models and provided comprehensive documentation</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>Universal image representations that transfer across domains</li>
+                    <li>State-of-the-art performance on image retrieval benchmarks</li>
+                </ul>
+                
+                <h4>Publications</h4>
+                <ul>
+                    <li><b>ICLR 2023:</b> Unicom: Universal and Compact Representation Learning for Image Retrieval</li>
+                    <li><b>ECCV 2024:</b> Multi-label Cluster Discrimination for Visual Representation Learning</li>
+                    <li><b>ICCV 2025 (Highlight):</b> Region-based Cluster Discrimination for Visual Representation Learning</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/deepglint/unicom" class="project-link primary" target="_blank">View on GitHub</a>
+                <a href="https://arxiv.org/abs/2304.05884" class="project-link secondary" target="_blank">ICLR 2023 Paper</a>
+                <a href="https://arxiv.org/abs/2407.17331" class="project-link secondary" target="_blank">ECCV 2024 Paper</a>
+            </div>
+        </div>
+
+        <!-- Urban Seg -->
+        <div class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">Urban Seg · Remote Sensing Semantic Segmentation</h2>
+                <span class="project-stars">⭐ 460+ Stars</span>
+            </div>
+            <p class="project-summary">
+                A beginner-friendly repository for remote sensing semantic segmentation. It allows training with pre-trained models using just a single code file.
+            </p>
+            <div class="project-details">
+                <h4>Project Overview</h4>
+                <p>Urban Seg is an educational project I created to help beginners get started with semantic segmentation for remote sensing and satellite imagery. It emphasizes simplicity and ease of use.</p>
+                
+                <h4>My Contributions</h4>
+                <ul>
+                    <li><b>Author and maintainer</b> of the entire project</li>
+                    <li>Designed the simple single-file training approach for accessibility</li>
+                    <li>Integrated popular pretrained models for transfer learning</li>
+                    <li>Created comprehensive tutorials and documentation</li>
+                </ul>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li>Single-file training script for quick start</li>
+                    <li>Beginner-friendly with clear documentation and examples</li>
+                </ul>
+            </div>
+            <div class="project-links">
+                <a href="https://github.com/anxiangsir/urban_seg" class="project-link primary" target="_blank">View on GitHub</a>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center;">
+            <a href="index.html" class="back-link">Back to Home</a>
+        </div>
+    </div>
+</body>
+
+</html>
