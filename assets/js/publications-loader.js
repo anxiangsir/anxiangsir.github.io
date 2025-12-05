@@ -153,9 +153,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.querySelector('#publications')) {
         // Index page - load selected publications
         loadSelectedPublications();
-    } else if (document.querySelector('.page-header h1') && 
-               document.querySelector('.page-header h1').textContent.includes('Publication Full List')) {
-        // Publications page - load all publications
-        loadAllPublications();
+    } else {
+        // Check for publications page
+        const pageHeader = document.querySelector('.page-header h1');
+        if (pageHeader && pageHeader.textContent.includes('Publication Full List')) {
+            // Publications page - load all publications
+            loadAllPublications();
+        }
     }
 });
