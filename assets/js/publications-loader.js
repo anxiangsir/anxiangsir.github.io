@@ -29,14 +29,25 @@ function highlightAuthor(authorsText) {
 // Render selected publications for index.html
 async function loadSelectedPublications() {
     const data = await loadYAML('_data/selected_publications.yaml');
-    if (!data || !data.publications) {
-        console.error('Failed to load selected publications');
-        return;
-    }
-
+    
     const pubList = document.querySelector('#publications + .pub-list');
     if (!pubList) {
         console.error('Publications list element not found');
+        return;
+    }
+
+    if (!data || !data.publications) {
+        console.error('Failed to load selected publications');
+        pubList.innerHTML = `
+            <li style="text-align: center; padding: 40px; background: #fff3cd; border-color: #ffc107;">
+                <div style="color: #856404;">
+                    <strong>⚠️ Failed to load selected publications</strong>
+                    <div style="margin-top: 8px; font-size: 0.9rem;">
+                        Could not load publications from YAML file. Please check the console for details.
+                    </div>
+                </div>
+            </li>
+        `;
         return;
     }
 
@@ -44,8 +55,10 @@ async function loadSelectedPublications() {
     pubList.innerHTML = '';
 
     // Render each publication
-    data.publications.forEach(pub => {
+    data.publications.forEach((pub, index) => {
         const li = document.createElement('li');
+        // Add animation delay for stagger effect
+        li.style.animationDelay = `${index * 0.1}s`;
         
         const pubEntry = document.createElement('div');
         pubEntry.className = 'publication-entry';
@@ -84,6 +97,8 @@ async function loadSelectedPublications() {
             paperLink.href = pub.paper_url;
             paperLink.className = 'badge-link';
             paperLink.textContent = 'Paper';
+            paperLink.target = '_blank';
+            paperLink.rel = 'noopener noreferrer';
             linkBadges.appendChild(paperLink);
         }
 
@@ -92,6 +107,8 @@ async function loadSelectedPublications() {
             codeLink.href = pub.code_url;
             codeLink.className = 'badge-link';
             codeLink.textContent = 'Code';
+            codeLink.target = '_blank';
+            codeLink.rel = 'noopener noreferrer';
             linkBadges.appendChild(codeLink);
         }
 
@@ -105,19 +122,32 @@ async function loadSelectedPublications() {
         li.appendChild(pubEntry);
         pubList.appendChild(li);
     });
+
+    console.log(`Successfully loaded ${data.publications.length} selected publications from YAML`);
 }
 
 // Render all publications for publications.html
 async function loadAllPublications() {
     const data = await loadYAML('_data/publications.yaml');
-    if (!data || !data.publications) {
-        console.error('Failed to load all publications');
-        return;
-    }
-
+    
     const pubList = document.querySelector('.pub-list');
     if (!pubList) {
         console.error('Publications list element not found');
+        return;
+    }
+
+    if (!data || !data.publications) {
+        console.error('Failed to load all publications');
+        pubList.innerHTML = `
+            <li class="pub-item" style="text-align: center; padding: 40px; background: #fff3cd; border-color: #ffc107;">
+                <div style="color: #856404;">
+                    <strong>⚠️ Failed to load publications</strong>
+                    <div style="margin-top: 8px; font-size: 0.9rem;">
+                        Could not load publications from YAML file. Please check the console for details.
+                    </div>
+                </div>
+            </li>
+        `;
         return;
     }
 
@@ -125,9 +155,11 @@ async function loadAllPublications() {
     pubList.innerHTML = '';
 
     // Render each publication
-    data.publications.forEach(pub => {
+    data.publications.forEach((pub, index) => {
         const li = document.createElement('li');
         li.className = 'pub-item';
+        // Add animation delay for stagger effect
+        li.style.animationDelay = `${index * 0.05}s`;
 
         const title = document.createElement('div');
         title.className = 'pub-title';
@@ -146,6 +178,8 @@ async function loadAllPublications() {
 
         pubList.appendChild(li);
     });
+
+    console.log(`Successfully loaded ${data.publications.length} publications from YAML`);
 }
 
 // Auto-initialize based on page
