@@ -1,6 +1,6 @@
 publications:
   - title: "ViCToR: Improving Visual Comprehension via Token Reconstruction for Pretraining LMMs"
-    authors: "Yin Xie*, Kaicheng Yang*, Peirou Liang*, Xiang An, Yongle Zhao, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng"
+    authors: "Yin Xie, Kaicheng Yang, Peirou Liang, Xiang An, Yongle Zhao, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng"
     venue: "AAAI 2026"
 
   - title: "UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning"
@@ -13,7 +13,7 @@ publications:
 
   - title: "Llava-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training"
     authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu, Huajie Tan, Chunyuan Li, Jing Yang, Jie Yu, Xiyao Wang, Bin Qin, Yumeng Wang, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng"
-    venue: "arXiv 2025"
+    venue: "preprint 2025"
 
   - title: "Region-based Cluster Discrimination for Visual Representation Learning"
     authors: "Yin Xie, Kaicheng Yang, Xiang An (Project Leader), Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng"
@@ -37,11 +37,11 @@ publications:
 
   - title: "StreamAgent: Towards Anticipatory Agents for Streaming Video Understanding"
     authors: "Haolin Yang, Feilong Tang, Linxiao Zhao, Xiang An, Ming Hu, Huifa Li, Xinlin Zhuang, Boqian Wang, Yifan Lu, Xiaofeng Zhang"
-    venue: "arXiv 2025"
+    venue: "preprint 2025"
 
   - title: "ProCLIP: Progressive Vision-Language Alignment via LLM-based Embedder"
     authors: "Xiaoxing Hu, Kaicheng Yang, Ziyong Feng, Qi Ming, Zonghao Guo, Xiang An, Junchi Yan, Xue Yang"
-    venue: "arXiv 2025"
+    venue: "preprint 2025"
 
   - title: "RWKV-CLIP: A Robust Vision-Language Representation Learner"
     authors: "Tiancheng Gu, Kaicheng Yang, Xiang An, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng"
@@ -57,7 +57,7 @@ publications:
 
   - title: "IDAdapter: Learning Mixed Features for Tuning-Free Personalization of Text-to-Image Models"
     authors: "Siying Cui, Jia Guo, Xiang An, Jiankang Deng, Yongle Zhao, Xinyu Wei, Ziyong Feng"
-    venue: "CVPR 2024 Workshop"
+    venue: "CVPRW 2024"
 
   - title: "ORID: Organ-Regional Information Driven Framework for Radiology Report Generation"
     authors: "Tiancheng Gu, Kaicheng Yang, Xiang An, Ziyong Feng, Dongnan Liu, Weidong Cai"
@@ -74,10 +74,6 @@ publications:
   - title: "Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC"
     authors: "Xiang An, Jiankang Deng, Jia Guo, Ziyong Feng, Xuhan Zhu, Jing Yang, Tongliang Liu"
     venue: "CVPR 2022"
-
-  - title: "InsightFace: 2D and 3D Face Analysis Project"
-    authors: "Jiankang Deng, Jia Guo, Xiang An, Jack Yu"
-    venue: "GitHub 2022"
 
   - title: "Partial FC: Training 10 Million Identities on a Single Machine"
     authors: "Xiang An, Xuhan Zhu, Yuan Gao, Yang Xiao, Yongle Zhao, Ziyong Feng, Lan Wu, Bin Qin, Ming Zhang, Debing Zhang, Ying Fu"
