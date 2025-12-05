@@ -1,15 +1,14 @@
 /**
- * Publications Loader - Loads publications from YAML files and renders them
+ * Publications Loader - Loads publications from JSON files and renders them
  */
 
-// Load YAML data from file
-async function loadYAML(url) {
+// Load JSON data from file
+async function loadJSON(url) {
     try {
         const response = await fetch(url);
-        const text = await response.text();
-        return jsyaml.load(text);
+        return await response.json();
     } catch (error) {
-        console.error('Error loading YAML:', error);
+        console.error('Error loading JSON:', error);
         return null;
     }
 }
@@ -25,7 +24,7 @@ function highlightAuthor(authorsText) {
 
 // Render selected publications for index.html
 async function loadSelectedPublications() {
-    const data = await loadYAML('_data/selected_publications.yaml');
+    const data = await loadJSON('_data/selected_publications.json');
     if (!data || !data.publications) {
         console.error('Failed to load selected publications');
         return;
@@ -106,7 +105,7 @@ async function loadSelectedPublications() {
 
 // Render all publications for publications.html
 async function loadAllPublications() {
-    const data = await loadYAML('_data/publications.yaml');
+    const data = await loadJSON('_data/publications.json');
     if (!data || !data.publications) {
         console.error('Failed to load all publications');
         return;
