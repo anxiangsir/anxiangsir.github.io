@@ -13,7 +13,7 @@ publications:
 
   - title: "Llava-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training"
     authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu, Huajie Tan, Chunyuan Li, Jing Yang, Jie Yu, Xiyao Wang, Bin Qin, Yumeng Wang, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng"
-    venue: "preprint 2025"
+    venue: "Preprint 2025"
 
   - title: "Region-based Cluster Discrimination for Visual Representation Learning"
     authors: "Yin Xie, Kaicheng Yang, Xiang An (Project Leader), Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng"
@@ -37,11 +37,11 @@ publications:
 
   - title: "StreamAgent: Towards Anticipatory Agents for Streaming Video Understanding"
     authors: "Haolin Yang, Feilong Tang, Linxiao Zhao, Xiang An, Ming Hu, Huifa Li, Xinlin Zhuang, Boqian Wang, Yifan Lu, Xiaofeng Zhang"
-    venue: "preprint 2025"
+    venue: "Preprint 2025"
 
   - title: "ProCLIP: Progressive Vision-Language Alignment via LLM-based Embedder"
     authors: "Xiaoxing Hu, Kaicheng Yang, Ziyong Feng, Qi Ming, Zonghao Guo, Xiang An, Junchi Yan, Xue Yang"
-    venue: "preprint 2025"
+    venue: "Preprint 2025"
 
   - title: "RWKV-CLIP: A Robust Vision-Language Representation Learner"
     authors: "Tiancheng Gu, Kaicheng Yang, Xiang An, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng"
