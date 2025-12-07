@@ -1,5 +1,5 @@
 publications:
-  - title: "Llava-OneVision-1.5: Fully open framework for democratized multimodal training"
+  - title: "LLaVA-OneVision-1.5: Fully open framework for democratized multimodal training"
     authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu, Huajie Tan, Chunyuan Li, Jing Yang, Jie Yu, Xiyao Wang, Bin Qin, Yumeng Wang, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng"
     venue: "Preprint, 2025"
     paper_url: "https://arxiv.org/abs/2509.23661"
