@@ -12,11 +12,14 @@ const GITHUB_REPOS = [
     { owner: 'anxiangsir', repo: 'urban_seg', selector: '.stars-urban-seg' }
 ];
 
+// Rate limiting configuration
+const RATE_LIMIT_DELAY_MS = 200;
+
 /**
  * Format star count with comma separators
  */
 function formatStarCount(count) {
-    return count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return count.toLocaleString('en-US');
 }
 
 /**
@@ -28,7 +31,7 @@ async function fetchStarCount(owner, repo) {
         
         // Check rate limit headers
         const remaining = response.headers.get('X-RateLimit-Remaining');
-        if (remaining === '0') {
+        if (remaining !== null && parseInt(remaining, 10) === 0) {
             console.warn('GitHub API rate limit exceeded');
             return null;
         }
@@ -60,12 +63,12 @@ function updateStarCount(selector, count) {
  * Load all star counts with staggered requests to avoid rate limiting
  */
 async function loadAllStarCounts() {
-    // Fetch star counts with a small delay between requests to avoid rate limiting
+    // Fetch star counts with a delay between requests to avoid rate limiting
     for (const { owner, repo, selector } of GITHUB_REPOS) {
         const count = await fetchStarCount(owner, repo);
         updateStarCount(selector, count);
-        // Small delay between requests (200ms) to be respectful of API limits
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Delay between requests to be respectful of API limits
+        await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY_MS));
     }
 }
 
