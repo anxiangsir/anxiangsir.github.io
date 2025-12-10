@@ -20,11 +20,19 @@ function formatStarCount(count) {
 }
 
 /**
- * Fetch star count from GitHub API
+ * Fetch star count from GitHub API with rate limit handling
  */
 async function fetchStarCount(owner, repo) {
     try {
         const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+        
+        // Check rate limit headers
+        const remaining = response.headers.get('X-RateLimit-Remaining');
+        if (remaining === '0') {
+            console.warn('GitHub API rate limit exceeded');
+            return null;
+        }
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -49,16 +57,16 @@ function updateStarCount(selector, count) {
 }
 
 /**
- * Load all star counts
+ * Load all star counts with staggered requests to avoid rate limiting
  */
 async function loadAllStarCounts() {
-    // Fetch all star counts in parallel
-    const promises = GITHUB_REPOS.map(async ({ owner, repo, selector }) => {
+    // Fetch star counts with a small delay between requests to avoid rate limiting
+    for (const { owner, repo, selector } of GITHUB_REPOS) {
         const count = await fetchStarCount(owner, repo);
         updateStarCount(selector, count);
-    });
-
-    await Promise.all(promises);
+        // Small delay between requests (200ms) to be respectful of API limits
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
 }
 
 // Initialize when DOM is ready
