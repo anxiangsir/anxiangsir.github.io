@@ -12,7 +12,7 @@ publications:
     venue: "NeurIPS 2025"
 
   - title: "LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training"
-    authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu, Huajie Tan, Chunyuan Li, Jing Yang, Jie Yu, Xiyao Wang, Bin Qin, Yumeng Wang, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng"
+    authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al."
     venue: "Preprint 2025"
 
   - title: "Region-based Cluster Discrimination for Visual Representation Learning"
