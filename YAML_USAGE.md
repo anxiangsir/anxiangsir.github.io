@@ -14,7 +14,7 @@ The system consists of three main components:
 
 ### `_data/publications.yaml`
 
-Contains the full list of all publications displayed on `publications.html`.
+Contains the full list of all publications displayed on `publications.html`. This is the **single source of truth** for all publication details. Selected publications also get their full details from this file.
 
 **Structure:**
 ```yaml
@@ -22,18 +22,7 @@ publications:
   - title: "Paper Title"
     authors: "Author1, Author2, Xiang An, Author3"
     venue: "Conference/Journal Year"
-```
-
-### `_data/selected_publications.yaml`
-
-Contains featured publications displayed on the homepage (`index.html`).
-
-**Structure:**
-```yaml
-publications:
-  - title: "Paper Title"
-    authors: "Author1, Author2, Xiang An, Author3"
-    venue: "Conference, Year"
+    # Optional fields for selected publications:
     paper_url: "https://arxiv.org/abs/..."
     code_url: "https://github.com/..."
     preview_image: "assets/img/publication_preview_N.jpg"
@@ -41,6 +30,21 @@ publications:
       Multi-line summary of the paper.
       Can span multiple lines.
 ```
+
+### `_data/selected_publications.yaml`
+
+Contains only the **titles** of publications to be featured on the homepage (`index.html`). The full publication details are automatically looked up from `publications.yaml`.
+
+**Structure:**
+```yaml
+# Selected publications are looked up from publications.yaml by title
+selected_publications:
+  - "Paper Title 1"
+  - "Paper Title 2"
+  - "Paper Title 3"
+```
+
+**Note:** The title must exactly match the title in `publications.yaml`.
 
 ## How to Add a New Publication
 
@@ -59,8 +63,7 @@ publications:
 
 ### For Selected Publications (Homepage)
 
-1. Open `_data/selected_publications.yaml`
-2. Add a new entry with additional metadata:
+1. First, add the publication to `_data/publications.yaml` with all details:
 
 ```yaml
   - title: "Your New Paper Title"
@@ -74,10 +77,23 @@ publications:
       Explain the main idea and impact.
 ```
 
+2. Then, add just the title to `_data/selected_publications.yaml`:
+
+```yaml
+selected_publications:
+  - "Your New Paper Title"  # Add this line
+  - "Existing Paper 1"
+  - "Existing Paper 2"
+```
+
 3. If you have a preview image, place it in `assets/img/` directory
 4. Commit and push
 
 ## Features
+
+### Single Source of Truth
+
+All publication details are stored in `publications.yaml`. The `selected_publications.yaml` file only contains titles, which are used to look up the full details from `publications.yaml`. This eliminates data redundancy and makes maintenance easier.
 
 ### Automatic Author Highlighting
 
@@ -85,7 +101,7 @@ The system automatically highlights "Xiang An" in the author list with special s
 
 ### External Link Support
 
-For selected publications, the system automatically adds "Paper" and "Code" badges if URLs are provided in the YAML.
+For selected publications, the system automatically adds "Paper" and "Code" badges if URLs are provided in `publications.yaml`.
 
 ### Loading States
 
@@ -104,6 +120,7 @@ The custom YAML parser (`yaml-parser.js`) supports:
 - Multi-line values (using `|` syntax)
 - Nested structures
 - Comments (lines starting with `#` are ignored)
+- Simple list items (for selected_publications)
 
 ### Error Handling
 
@@ -112,6 +129,7 @@ The loader includes comprehensive error handling:
 - Parse errors in YAML syntax
 - Missing or invalid data structures
 - Missing DOM elements
+- Warnings for selected publications not found in publications.yaml
 
 All errors are logged to the console and displayed to users when appropriate.
 
@@ -141,7 +159,7 @@ The code has been scanned with CodeQL and no security vulnerabilities were found
 
 ## Examples
 
-### Minimal Publication Entry
+### Minimal Publication Entry (for all publications list)
 
 ```yaml
   - title: "Simple Paper"
@@ -149,7 +167,7 @@ The code has been scanned with CodeQL and no security vulnerabilities were found
     venue: "Conference 2025"
 ```
 
-### Full Publication Entry with All Fields
+### Full Publication Entry (for selected publications)
 
 ```yaml
   - title: "Comprehensive Research Paper"
@@ -164,6 +182,15 @@ The code has been scanned with CodeQL and no security vulnerabilities were found
       It has practical applications in real-world scenarios.
 ```
 
+### Selected Publications List
+
+```yaml
+# Selected publications are looked up from publications.yaml by title
+selected_publications:
+  - "Comprehensive Research Paper"
+  - "Another Featured Paper"
+```
+
 ## Troubleshooting
 
 ### Publications Not Appearing
@@ -172,6 +199,12 @@ The code has been scanned with CodeQL and no security vulnerabilities were found
 2. Verify YAML syntax is correct (proper indentation, quotes, etc.)
 3. Ensure file paths are correct
 4. Check that JavaScript files are loading properly
+
+### Selected Publication Not Found
+
+If a selected publication doesn't appear:
+1. Check that the title in `selected_publications.yaml` exactly matches the title in `publications.yaml`
+2. Look for console warnings about publications not found
 
 ### YAML Syntax Errors
 

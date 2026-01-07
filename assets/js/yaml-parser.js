@@ -5,18 +5,42 @@
 
 function parseYAML(yamlText) {
     const lines = yamlText.split('\n');
-    const result = { publications: [] };
+    const result = {};
     let currentPub = null;
     let currentKey = null;
     let multilineValue = [];
     let inMultiline = false;
+    let parsingSelectedList = false;
     
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmed = line.trim();
         
-        // Skip empty lines and root key
-        if (!trimmed || trimmed === 'publications:') {
+        // Skip empty lines and comments
+        if (!trimmed || trimmed.startsWith('#')) {
+            continue;
+        }
+        
+        // Check for selected_publications: (simple list of titles)
+        if (trimmed === 'selected_publications:') {
+            result.selected_publications = [];
+            parsingSelectedList = true;
+            continue;
+        }
+        
+        // Parse simple list items for selected_publications
+        if (parsingSelectedList && line.match(/^  - /)) {
+            const match = line.match(/^  - "?(.+?)"?$/);
+            if (match) {
+                result.selected_publications.push(match[1].replace(/^["']|["']$/g, ''));
+            }
+            continue;
+        }
+        
+        // Check for publications: (full publication data)
+        if (trimmed === 'publications:') {
+            result.publications = [];
+            parsingSelectedList = false;
             continue;
         }
         
@@ -78,7 +102,9 @@ function parseYAML(yamlText) {
         if (inMultiline && currentKey) {
             currentPub[currentKey] = multilineValue.join('\n').trim();
         }
-        result.publications.push(currentPub);
+        if (result.publications) {
+            result.publications.push(currentPub);
+        }
     }
     
     return result;
