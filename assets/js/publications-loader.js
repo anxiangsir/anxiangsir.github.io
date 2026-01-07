@@ -28,7 +28,11 @@ function highlightAuthor(authorsText) {
 
 // Render selected publications for index.html
 async function loadSelectedPublications() {
-    const data = await loadYAML('_data/selected_publications.yaml');
+    // Load both files: selected_publications.yaml (titles only) and publications.yaml (full data)
+    const [selectedData, allData] = await Promise.all([
+        loadYAML('_data/selected_publications.yaml'),
+        loadYAML('_data/publications.yaml')
+    ]);
     
     const pubList = document.querySelector('#publications + .pub-list');
     if (!pubList) {
@@ -36,14 +40,14 @@ async function loadSelectedPublications() {
         return;
     }
 
-    if (!data || !data.publications) {
-        console.error('Failed to load selected publications');
+    if (!selectedData || !selectedData.selected_publications || !allData || !allData.publications) {
+        console.error('Failed to load publications data');
         pubList.innerHTML = `
             <li style="text-align: center; padding: 40px; background: #fff3cd; border-color: #ffc107;">
                 <div style="color: #856404;">
                     <strong>⚠️ Failed to load selected publications</strong>
                     <div style="margin-top: 8px; font-size: 0.9rem;">
-                        Could not load publications from YAML file. Please check the console for details.
+                        Could not load publications from YAML files. Please check the console for details.
                     </div>
                 </div>
             </li>
@@ -51,11 +55,24 @@ async function loadSelectedPublications() {
         return;
     }
 
+    // Create a map of publications by title for fast lookup
+    const publicationsMap = new Map();
+    allData.publications.forEach(pub => {
+        publicationsMap.set(pub.title, pub);
+    });
+
     // Clear existing content
     pubList.innerHTML = '';
 
-    // Render each publication
-    data.publications.forEach((pub, index) => {
+    // Render each selected publication by looking up from publications.yaml
+    selectedData.selected_publications.forEach((title, index) => {
+        const pub = publicationsMap.get(title);
+        
+        if (!pub) {
+            console.warn(`Publication not found: "${title}"`);
+            return;
+        }
+
         const li = document.createElement('li');
         // Add animation delay for stagger effect
         li.style.animationDelay = `${index * 0.1}s`;
@@ -77,10 +94,10 @@ async function loadSelectedPublications() {
         pubContent.className = 'pub-content';
 
         // Title
-        const title = document.createElement('span');
-        title.className = 'pub-title';
-        title.textContent = pub.title;
-        pubContent.appendChild(title);
+        const titleEl = document.createElement('span');
+        titleEl.className = 'pub-title';
+        titleEl.textContent = pub.title;
+        pubContent.appendChild(titleEl);
 
         // Authors
         const authors = document.createElement('span');
@@ -123,7 +140,7 @@ async function loadSelectedPublications() {
         pubList.appendChild(li);
     });
 
-    console.log(`Successfully loaded ${data.publications.length} selected publications from YAML`);
+    console.log(`Successfully loaded ${selectedData.selected_publications.length} selected publications from YAML`);
 }
 
 // Render all publications for publications.html
