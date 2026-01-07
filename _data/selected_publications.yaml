@@ -1,6 +1,6 @@
 publications:
   - title: "LLaVA-OneVision-1.5: Fully open framework for democratized multimodal training"
-    authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al."
+    authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Changrui Chen, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al."
     venue: "Preprint, 2025"
     paper_url: "https://arxiv.org/abs/2509.23661"
     code_url: "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5"
@@ -18,7 +18,7 @@ publications:
       UniME-V2 introduces an innovative approach to multimodal embedding learning by leveraging Multimodal Large Language Models (MLLMs) as judges to evaluate and guide the learning process. This work addresses the fundamental challenge of learning universal embeddings that can effectively represent diverse multimodal data including images, text, and their combinations. The key innovation is using MLLMs to assess the quality of embeddings through various evaluation criteria, enabling more nuanced and context-aware learning. This "MLLM-as-a-Judge" paradigm allows the embedding model to learn from rich feedback signals that go beyond simple similarity metrics. The framework achieves superior performance across multiple multimodal benchmarks, demonstrating the effectiveness of using advanced language models to guide representation learning. UniME-V2's approach opens new directions for developing more robust and generalizable multimodal embeddings that can better capture semantic relationships across different modalities.
 
   - title: "Region-based Cluster Discrimination for Visual Representation Learning"
-    authors: "Yin Xie, Kaicheng Yang, Xiang An (Project Leader), Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng"
+    authors: "Yin Xie, Kaicheng Yang, Xiang An (Project Leader), Kun Wu, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng, et al."
     venue: "ICCV, 2025 (Highlight)"
     paper_url: "https://arxiv.org/abs/2507.20025"
     code_url: "https://github.com/deepglint/unicom"
