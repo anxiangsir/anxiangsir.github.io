@@ -9,29 +9,27 @@
     <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
     <style>
         :root {
-            --primary-color: #3b82f6;
-            --primary-hover: #2563eb;
-            --secondary-color: #6366f1;
-            --accent-color: #8b5cf6;
-            --text-dark: #1e293b;
-            --text-gray: #475569;
-            --text-light: #64748b;
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --text-light: #6b7280;
             --bg-card: #ffffff;
-            --border-color: #e2e8f0;
-            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
-            --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.15), 0 10px 20px -8px rgba(0, 0, 0, 0.1);
-            --primary-alpha-10: rgba(59, 130, 246, 0.1);
-            --primary-alpha-15: rgba(59, 130, 246, 0.15);
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --primary-alpha-10: rgba(37, 99, 235, 0.1);
+            --primary-alpha-15: rgba(37, 99, 235, 0.15);
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--text-dark);
-            background: linear-gradient(-45deg, #fdfbfb, #ebedee, #e6f0ff, #f0e7ff, #fff1f0);
-            background-size: 400% 400%;
-            animation: gradientShift 20s ease infinite;
+            background: #f8fafc;
             margin: 0;
             padding: 80px 20px 40px 20px;
             line-height: 1.7;
@@ -40,37 +38,18 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Site Header - 保留导航栏样式 */
+        /* Site Header - clean academic style */
         .site-header {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 60px;
-            background-color: rgba(255, 255, 255, 0.98);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            background: #ffffff;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 40px;
+            padding: 0 max(40px, calc((100% - 1200px) / 2));
             box-sizing: border-box;
             z-index: 1000;
             border-bottom: 1px solid var(--border-color);
@@ -78,10 +57,11 @@
         }
 
         .header-logo {
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 1.25rem;
+            font-weight: 700;
             color: var(--text-dark);
             text-decoration: none;
+            transition: color 0.2s ease;
         }
 
         .header-logo:hover {
@@ -91,7 +71,7 @@
         .site-nav {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         .nav-link {
@@ -101,16 +81,18 @@
             text-decoration: none;
             padding: 8px 16px;
             border-radius: 6px;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         .nav-link:hover {
-            background-color: var(--primary-alpha-10);
+            background-color: #f3f4f6;
             color: var(--primary-color);
         }
 
-        .nav-link:active {
-            background-color: var(--primary-alpha-15);
+        .nav-link.active {
+            background-color: var(--primary-alpha-10);
+            color: var(--primary-color);
+            font-weight: 600;
         }
 
         /* Mobile hamburger menu */
@@ -148,10 +130,10 @@
         .nav-overlay {
             display: none;
             position: fixed;
-            top: 52px;
+            top: 60px;
             left: 0;
             width: 100%;
-            height: calc(100vh - 52px);
+            height: calc(100vh - 60px);
             background-color: rgba(255, 255, 255, 0.98);
             z-index: 999;
             opacity: 0;
@@ -188,15 +170,12 @@
         #layout-content {
             margin: 0 auto;
             max-width: 850px;
-            background-color: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
+            background-color: #ffffff;
             padding: 50px 60px;
-            box-shadow: var(--shadow-xl), 0 0 40px rgba(59, 130, 246, 0.08);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            animation: fadeInUp 0.8s ease-out;
+            box-shadow: var(--shadow-lg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
             position: relative;
-            overflow: hidden;
         }
 
         #layout-content::before {
@@ -205,9 +184,9 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
-            border-radius: 20px 20px 0 0;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 12px 12px 0 0;
         }
 
         .page-header {
@@ -216,42 +195,33 @@
             align-items: center;
             margin-bottom: 40px;
             padding-bottom: 20px;
-            border-bottom: 3px solid;
-            border-image: linear-gradient(90deg, #667eea, #764ba2) 1;
+            border-bottom: 2px solid var(--primary-color);
         }
 
         .page-header h1 {
-            font-size: 2.25rem;
+            font-size: 2rem;
             margin: 0;
             color: var(--text-dark);
             font-weight: 700;
             letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .back-link {
             display: inline-flex;
             align-items: center;
-            padding: 10px 20px;
+            padding: 8px 16px;
             font-size: 0.9em;
             font-weight: 600;
-            color: #667eea;
+            color: var(--primary-color);
             text-decoration: none;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+            border: 1px solid var(--primary-color);
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
 
         .back-link:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-color);
             color: #fff;
-            border-color: transparent;
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: var(--shadow-md);
         }
 
         .back-link::before {
@@ -260,27 +230,13 @@
         }
 
         h2 {
-            font-size: 1.7rem;
+            font-size: 1.5rem;
             color: var(--text-dark);
-            border-bottom: none;
-            padding-bottom: 16px;
-            margin-top: 56px;
-            margin-bottom: 32px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 12px;
+            margin-top: 48px;
+            margin-bottom: 28px;
             font-weight: 700;
-            letter-spacing: -0.03em;
-            position: relative;
-            display: inline-block;
-        }
-
-        h2::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            border-radius: 2px;
         }
 
         h2:first-of-type {
@@ -294,38 +250,18 @@
         }
 
         .pub-item {
-            padding: 22px 28px;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 12px;
-            margin-bottom: 18px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.95) 100%);
-            backdrop-filter: blur(10px);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: var(--shadow-md);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .pub-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 0;
-            background: linear-gradient(180deg, #667eea, #764ba2, #f093fb);
-            transition: height 0.4s ease;
+            padding: 20px 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            background: #ffffff;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         .pub-item:hover {
-            border-color: rgba(102, 126, 234, 0.3);
-            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
-            transform: translateX(10px) scale(1.02);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(240, 244, 255, 1) 100%);
-        }
-
-        .pub-item:hover::before {
-            height: 100%;
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-md);
         }
 
         .pub-item:last-child {
@@ -348,44 +284,30 @@
         }
 
         .pub-venue {
-            color: var(--secondary-color);
+            color: var(--primary-color);
             font-weight: 600;
             font-size: 0.85rem;
             display: inline-block;
-            background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
-            padding: 5px 12px;
+            background: var(--primary-alpha-10);
+            padding: 4px 10px;
             border-radius: 4px;
-            border: 1px solid #d4e1ff;
         }
 
         .me-highlight {
             color: var(--primary-color);
             font-weight: 600;
             text-decoration: none;
-            position: relative;
-        }
-
-        .me-highlight::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(to right, var(--primary-color), transparent);
-            opacity: 0.5;
         }
 
         /* Mobile */
         @media (max-width: 768px) {
             body {
-                padding: 68px 0 0 0;
-                background-color: #fff;
+                padding: 70px 16px 24px 16px;
             }
 
             .site-header {
                 padding: 0 16px;
-                height: 48px;
+                height: 56px;
             }
 
             .header-logo {
@@ -405,7 +327,7 @@
             }
 
             #layout-content {
-                padding: 24px 16px;
+                padding: 24px 20px;
                 width: auto;
                 margin: 0;
             }
@@ -470,13 +392,14 @@
 
 <body>
 
-    <!-- Site Header (Meta-style fixed navigation) -->
+    <!-- Site Header -->
     <header class="site-header">
+        <a href="index.html" class="header-logo">安翔 · Xiang An</a>
         <nav class="site-nav">
-            <a href="index.html#publications" class="nav-link">Selected Publications</a>
-            <a href="publications.html" class="nav-link">All Publications</a>
-            <a href="community.html" class="nav-link">Community Contribution</a>
-            <a href="index.html#awards" class="nav-link">Awards & Competitions</a>
+            <a href="index.html#publications" class="nav-link">📚 Selected Publications</a>
+            <a href="publications.html" class="nav-link active">📖 All Publications</a>
+            <a href="community.html" class="nav-link">🌟 Open Source</a>
+            <a href="index.html#awards" class="nav-link">🏆 Awards</a>
         </nav>
         <button class="nav-toggle" aria-label="Toggle navigation">
             <span></span>
@@ -488,10 +411,10 @@
     <!-- Mobile Navigation Overlay -->
     <div class="nav-overlay">
         <nav class="mobile-nav">
-            <a href="index.html#publications" class="nav-link">Publications</a>
-            <a href="publications.html" class="nav-link">All Pubs</a>
-            <a href="community.html" class="nav-link">Community</a>
-            <a href="index.html#awards" class="nav-link">Awards</a>
+            <a href="index.html#publications" class="nav-link">📚 Selected Publications</a>
+            <a href="publications.html" class="nav-link active">📖 All Publications</a>
+            <a href="community.html" class="nav-link">🌟 Open Source</a>
+            <a href="index.html#awards" class="nav-link">🏆 Awards</a>
         </nav>
     </div>
 
@@ -508,7 +431,6 @@
                 document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
             });
 
-            // Close menu when clicking a link
             mobileNavLinks.forEach(function(link) {
                 link.addEventListener('click', function() {
                     navToggle.classList.remove('active');
@@ -517,7 +439,6 @@
                 });
             });
 
-            // Close menu when clicking overlay background
             navOverlay.addEventListener('click', function(e) {
                 if (e.target === navOverlay) {
                     navToggle.classList.remove('active');
@@ -534,157 +455,32 @@
             <a href="index.html" class="back-link">Back to Home</a>
         </div>
 
-        <h2>2025</h2>
         <ul class="pub-list">
-            <li class="pub-item">
-                <div class="pub-title">UniViT: Unifying Image and Video Understanding in One Vision Encoder</div>
-                <div class="pub-authors">Feilong Tang, <span class="me-highlight">Xiang An</span>, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Xingyu Zhou, Zimin Ran, Imran Razzak, Ziyong Feng, Behzad Bozorgtabar, Jiankang Deng, Zongyuan Ge</div>
-                <div class="pub-venue">NeurIPS 2025</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">Llava-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training</div>
-                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu, Huajie Tan, Chunyuan Li, Jing Yang, Jie Yu, Xiyao Wang, Bin Qin, Yumeng Wang, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng</div>
-                <div class="pub-venue">arXiv 2025</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning</div>
-                <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, Kaichen Zhang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Yueyi Zhang, Weidong Cai, Jiankang Deng, Lidong Bing</div>
-                <div class="pub-venue">AAAI 2026 (Oral)</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">Region-based Cluster Discrimination for Visual Representation Learning</div>
-                <div class="pub-authors">Yin Xie, Kaicheng Yang, <span class="me-highlight">Xiang An (Project Leader)</span>, Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng</div>
-                <div class="pub-venue">ICCV 2025 (Highlight)</div>
-            </li>
-
-            <li class="pub-item">
-                <div class="pub-title">RealSyn: An Effective and Scalable Multimodal Interleaved Document Transformation Paradigm</div>
-                <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, Chaoyi Zhang, Yin Xie, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng</div>
-                <div class="pub-venue">ACM MM 2025</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">ForCenNet: Foreground-Centric Network for Document Image Rectification</div>
-                <div class="pub-authors">Peng Cai, Qiang Li, Kaicheng Yang, Dong Guo, Jia Li, Nan Zhou, <span class="me-highlight">Xiang An</span>, Ninghua Yang, Jiankang Deng</div>
-                <div class="pub-venue">ICCV 2025</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">HUST: High-Fidelity Unbiased Skin Tone Estimation via Texture Quantization</div>
-                <div class="pub-authors">Zimin Ran, Xingyu Ren, <span class="me-highlight">Xiang An</span>, Kaicheng Yang, Ziyong Feng, Jing Yang, Rolandos Alexandros Potamias, Linchao Zhu, Jiankang Deng</div>
-                <div class="pub-venue">ICCV 2025</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">Gradient-Attention Guided Dual-Masking Synergetic Framework for Robust Text-based Person Retrieval</div>
-                <div class="pub-authors">Tianlu Zheng, Yifan Zhang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Kaicheng Yang, Qichuan Ding</div>
-                <div class="pub-venue">EMNLP 2025</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">StreamAgent: Towards Anticipatory Agents for Streaming Video Understanding</div>
-                <div class="pub-authors">Haolin Yang, Feilong Tang, Linxiao Zhao, <span class="me-highlight">Xiang An</span>, Ming Hu, Huifa Li, Xinlin Zhuang, Boqian Wang, Yifan Lu, Xiaofeng Zhang</div>
-                <div class="pub-venue">arXiv 2025</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">ProCLIP: Progressive Vision-Language Alignment via LLM-based Embedder</div>
-                <div class="pub-authors">Xiaoxing Hu, Kaicheng Yang, Ziyong Feng, Qi Ming, Zonghao Guo, <span class="me-highlight">Xiang An</span>, Junchi Yan, Xue Yang</div>
-                <div class="pub-venue">arXiv 2025</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">PaCo-FR: Patch-Pixel Aligned End-to-End Codebook Learning for Facial Representation Pre-training</div>
-                <div class="pub-authors">Yin Xie, Zhichao Chen, Xiaoze Yu, Yongle Zhao, <span class="me-highlight">Xiang An</span>, Kaicheng Yang, Zimin Ran, Jia Guo, Ziyong Feng, Jiankang Deng</div>
-                <div class="pub-venue">arXiv 2025</div>
+            <!-- Publications will be loaded dynamically from YAML -->
+            <li class="pub-item" style="text-align: center; padding: 40px;">
+                <div style="font-size: 1.1rem; color: var(--text-gray);">
+                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--primary-color); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+                    <div>Loading publications from YAML...</div>
+                </div>
             </li>
         </ul>
-
-        <h2>2024</h2>
-        <ul class="pub-list">
-            <li class="pub-item">
-                <div class="pub-title">RWKV-CLIP: A Robust Vision-Language Representation Learner</div>
-                <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng</div>
-                <div class="pub-venue">EMNLP 2024</div>
-            </li>
-
-            <li class="pub-item">
-                <div class="pub-title">CLIP-CID: Efficient CLIP Distillation via Cluster-Instance Discrimination</div>
-                <div class="pub-authors">Kaicheng Yang, Tiancheng Gu, <span class="me-highlight">Xiang An</span>, Haiqiang Jiang, Xiangzi Dai, Ziyong Feng, Weidong Cai, Jiankang Deng</div>
-                <div class="pub-venue">AAAI 2024</div>
-            </li>
-
-            <li class="pub-item">
-                <div class="pub-title">Multi-label Cluster Discrimination for Visual Representation Learning</div>
-                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jiankang Deng</div>
-                <div class="pub-venue">ECCV 2024</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">IDAdapter: Learning Mixed Features for Tuning-Free Personalization of Text-to-Image Models</div>
-                <div class="pub-authors">Siying Cui, Jia Guo, <span class="me-highlight">Xiang An</span>, Jiankang Deng, Yongle Zhao, Xinyu Wei, Ziyong Feng</div>
-                <div class="pub-venue">CVPR 2024 Workshop</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">Plug-and-Play Grounding of Reasoning in Multimodal Large Language Models</div>
-                <div class="pub-authors">Jiaxing Chen, Yuxuan Liu, Dehu Li, <span class="me-highlight">Xiang An</span>, Weimo Deng, Ziyong Feng, Yongle Zhao, Yin Xie</div>
-                <div class="pub-venue">arXiv 2024</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">ORID: Organ-Regional Information Driven Framework for Radiology Report Generation</div>
-                <div class="pub-authors">Tiancheng Gu, Kaicheng Yang, <span class="me-highlight">Xiang An</span>, Ziyong Feng, Dongnan Liu, Weidong Cai</div>
-                <div class="pub-venue">WACV 2025</div>
-            </li>
-        </ul>
-
-        <h2>2023</h2>
-        <ul class="pub-list">
-            <li class="pub-item">
-                <div class="pub-title">Unicom: Universal and Compact Representation Learning for Image Retrieval</div>
-                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Jiankang Deng, Kaicheng Yang, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu</div>
-                <div class="pub-venue">ICLR 2023</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">ALIP: Adaptive Language-Image Pre-training with Synthetic Caption</div>
-                <div class="pub-authors">Kaicheng Yang, Jiankang Deng, <span class="me-highlight">Xiang An</span>, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu</div>
-                <div class="pub-venue">ICCV 2023</div>
-            </li>
-        </ul>
-
-        <h2>2022</h2>
-        <ul class="pub-list">
-            <li class="pub-item">
-                <div class="pub-title">Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC</div>
-                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Jiankang Deng, Jia Guo, Ziyong Feng, Xuhan Zhu, Jing Yang, Tongliang Liu</div>
-                <div class="pub-venue">CVPR 2022</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">InsightFace: 2D and 3D Face Analysis Project</div>
-                <div class="pub-authors">Jiankang Deng, Jia Guo, <span class="me-highlight">Xiang An</span>, Jack Yu</div>
-                <div class="pub-venue">GitHub 2022</div>
-            </li>
-        </ul>
-
-        <h2>2021</h2>
-        <ul class="pub-list">
-            <li class="pub-item">
-                <div class="pub-title">Partial FC: Training 10 Million Identities on a Single Machine</div>
-                <div class="pub-authors"><span class="me-highlight">Xiang An</span>, Xuhan Zhu, Yuan Gao, Yang Xiao, Yongle Zhao, Ziyong Feng, Lan Wu, Bin Qin, Ming Zhang, Debing Zhang</div>
-                <div class="pub-venue">ICCVW 2021</div>
-            </li>
-            <li class="pub-item">
-                <div class="pub-title">Masked Face Recognition Challenge: The InsightFace Track Report</div>
-                <div class="pub-authors">Jiankang Deng, Jia Guo, <span class="me-highlight">Xiang An</span>, Zheng Zhu, Stefanos Zafeiriou</div>
-                <div class="pub-venue">ICCVW 2021</div>
-            </li>
-        </ul>
-
-        <h2>2020</h2>
-        <ul class="pub-list">
-            <li class="pub-item">
-                <div class="pub-title">InsightFace: 2D and 3D Face Analysis Project</div>
-                <div class="pub-authors">Jia Guo, Jiankang Deng, <span class="me-highlight">Xiang An</span>, Jack Yu</div>
-                <div class="pub-venue">GitHub 2020</div>
-            </li>
-        </ul>
+        
+        <style>
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
 
         <div style="margin-top: 40px; text-align: center;">
             <a href="index.html" class="back-link">Back to Home</a>
         </div>
     </div>
+
+    <!-- Load custom YAML parser -->
+    <script src="assets/js/yaml-parser.js"></script>
+    
+    <!-- Load publications from YAML -->
+    <script src="assets/js/publications-loader.js"></script>
 </body>
 
 </html>

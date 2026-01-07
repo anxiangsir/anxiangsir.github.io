@@ -1,0 +1,9 @@
+# Selected publications are looked up from publications.yaml by title
+selected_publications:
+  - "LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training"
+  - "UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning"
+  - "Region-based Cluster Discrimination for Visual Representation Learning"
+  - "Multi-label Cluster Discrimination for Visual Representation Learning"
+  - "Unicom: Universal and Compact Representation Learning for Image Retrieval"
+  - "Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC"
+  - "Partial FC: Training 10 Million Identities on a Single Machine"
