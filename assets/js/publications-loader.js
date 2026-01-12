@@ -34,7 +34,11 @@ async function loadSelectedPublications() {
         loadYAML('_data/publications.yaml')
     ]);
     
-    const pubList = document.querySelector('#publications + .pub-list');
+    // Try to find the publication list in different structures
+    let pubList = document.querySelector('#publications + .pub-list');
+    if (!pubList) {
+        pubList = document.querySelector('#publications .pub-list');
+    }
     if (!pubList) {
         console.error('Publications list element not found');
         return;
