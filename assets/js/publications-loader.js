@@ -34,15 +34,24 @@ async function loadSelectedPublications() {
         loadYAML('_data/publications.yaml')
     ]);
     
-    const pubContainer = document.querySelector('#publications-container');
-    if (!pubContainer) {
-        console.error('Publications container element not found');
+    const pubList = document.querySelector('#publications + .pub-list');
+    if (!pubList) {
+        console.error('Publications list element not found');
         return;
     }
 
     if (!selectedData || !selectedData.selected_publications || !allData || !allData.publications) {
         console.error('Failed to load publications data');
-        pubContainer.innerHTML = `<p style="color: #856404;">⚠️ Failed to load selected publications</p>`;
+        pubList.innerHTML = `
+            <li style="text-align: center; padding: 40px; background: #fff3cd; border-color: #ffc107;">
+                <div style="color: #856404;">
+                    <strong>⚠️ Failed to load selected publications</strong>
+                    <div style="margin-top: 8px; font-size: 0.9rem;">
+                        Could not load publications from YAML files. Please check the console for details.
+                    </div>
+                </div>
+            </li>
+        `;
         return;
     }
 
@@ -53,7 +62,7 @@ async function loadSelectedPublications() {
     });
 
     // Clear existing content
-    pubContainer.innerHTML = '';
+    pubList.innerHTML = '';
 
     // Render each selected publication by looking up from publications.yaml
     selectedData.selected_publications.forEach((title, index) => {
@@ -64,50 +73,71 @@ async function loadSelectedPublications() {
             return;
         }
 
-        const pubBlock = document.createElement('div');
-        pubBlock.className = 'pub-block';
+        const li = document.createElement('li');
+        // Add animation delay for stagger effect
+        li.style.animationDelay = `${index * 0.1}s`;
+        
+        const pubEntry = document.createElement('div');
+        pubEntry.className = 'publication-entry';
+
+        // Add preview image if available
+        if (pub.preview_image) {
+            const img = document.createElement('img');
+            img.src = pub.preview_image;
+            img.alt = 'Paper Preview';
+            img.onerror = function() { this.style.display = 'none'; };
+            pubEntry.appendChild(img);
+        }
+
+        // Create content div
+        const pubContent = document.createElement('div');
+        pubContent.className = 'pub-content';
 
         // Title
-        const titleEl = document.createElement('h3');
+        const titleEl = document.createElement('span');
+        titleEl.className = 'pub-title';
         titleEl.textContent = pub.title;
-        pubBlock.appendChild(titleEl);
+        pubContent.appendChild(titleEl);
 
         // Authors
-        const authors = document.createElement('div');
-        authors.className = 'authors';
+        const authors = document.createElement('span');
+        authors.className = 'pub-authors';
         authors.innerHTML = highlightAuthor(pub.authors);
-        pubBlock.appendChild(authors);
+        pubContent.appendChild(authors);
 
-        // Venue
-        const venue = document.createElement('div');
-        venue.className = 'venue';
-        venue.textContent = pub.venue;
-        pubBlock.appendChild(venue);
-
-        // Links
-        const linksDiv = document.createElement('div');
-        linksDiv.style.marginTop = '10px';
+        // Links and venue
+        const linkBadges = document.createElement('div');
+        linkBadges.className = 'link-badges';
 
         if (pub.paper_url) {
             const paperLink = document.createElement('a');
             paperLink.href = pub.paper_url;
-            paperLink.textContent = '[Paper]';
+            paperLink.className = 'badge-link';
+            paperLink.textContent = 'Paper';
             paperLink.target = '_blank';
             paperLink.rel = 'noopener noreferrer';
-            linksDiv.appendChild(paperLink);
+            linkBadges.appendChild(paperLink);
         }
 
         if (pub.code_url) {
             const codeLink = document.createElement('a');
             codeLink.href = pub.code_url;
-            codeLink.textContent = '[Code]';
+            codeLink.className = 'badge-link';
+            codeLink.textContent = 'Code';
             codeLink.target = '_blank';
             codeLink.rel = 'noopener noreferrer';
-            linksDiv.appendChild(codeLink);
+            linkBadges.appendChild(codeLink);
         }
 
-        pubBlock.appendChild(linksDiv);
-        pubContainer.appendChild(pubBlock);
+        const venue = document.createElement('span');
+        venue.className = 'pub-venue';
+        venue.textContent = pub.venue;
+        linkBadges.appendChild(venue);
+
+        pubContent.appendChild(linkBadges);
+        pubEntry.appendChild(pubContent);
+        li.appendChild(pubEntry);
+        pubList.appendChild(li);
     });
 
     console.log(`Successfully loaded ${selectedData.selected_publications.length} selected publications from YAML`);
@@ -171,8 +201,8 @@ async function loadAllPublications() {
 
 // Auto-initialize based on page
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on the index page
-    if (document.querySelector('#publications-container')) {
+    // Check if we're on the index page or publications page
+    if (document.querySelector('#publications')) {
         // Index page - load selected publications
         loadSelectedPublications();
     } else {
