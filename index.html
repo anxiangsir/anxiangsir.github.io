@@ -242,40 +242,25 @@
             border-radius: 4px;
         }
 
-        /* 链接按钮样式 [Paper] [Code] */
+        /* 链接样式 [Paper] [Code] - 文字+下划线 */
         .link-badges {
             display: flex;
-            gap: 8px;
+            gap: 16px;
             margin-top: 4px;
+            align-items: center;
         }
 
         .badge-link {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 14px;
+            display: inline;
             font-size: 0.875rem;
-            font-weight: 600;
-            color: #fff;
-            background: var(--primary-color);
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background-color 0.2s ease;
+            font-weight: 500;
+            color: var(--primary-color);
+            text-decoration: underline;
+            transition: color 0.2s ease;
         }
 
         .badge-link:hover {
-            background: var(--primary-hover);
-        }
-
-        /* Secondary badge button style (for View Repo etc) */
-        .badge-secondary {
-            background: transparent;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .badge-secondary:hover {
-            background: var(--primary-color);
-            color: #fff;
+            color: var(--primary-hover);
         }
 
         /* 高亮作者名 */
@@ -285,23 +270,18 @@
             text-decoration: none;
         }
 
-        /* 奖项列表 */
+        /* 奖项列表 - 文字+下划线 */
         .awards-list li {
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
+            padding: 8px 0;
+            display: block;
             color: var(--text-dark);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 12px;
-            background: #ffffff;
-            transition: box-shadow 0.2s ease, border-color 0.2s ease;
-            box-shadow: var(--shadow-sm);
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.2s ease;
         }
 
         .awards-list li:hover {
-            border-color: var(--primary-color);
-            box-shadow: var(--shadow-md);
+            border-bottom-color: var(--primary-color);
         }
 
         .awards-list li:last-child {
@@ -309,8 +289,8 @@
         }
 
         .awards-list .emoji {
-            margin-right: 16px;
-            font-size: 1.4em;
+            margin-right: 8px;
+            font-size: 1em;
         }
 
         /* Site Header - clean academic style */
