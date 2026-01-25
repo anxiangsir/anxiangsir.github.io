@@ -1,199 +1,705 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="安翔's Personal Homepage">
-    <title>安翔 - Xiang An</title>
+    <meta name="description" content="安翔's home page">
+    <title>安翔's Homepage</title>
     <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --text-light: #6b7280;
+            --bg-card: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --primary-alpha-10: rgba(37, 99, 235, 0.1);
+            --primary-alpha-15: rgba(37, 99, 235, 0.15);
         }
 
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Clean academic background */
         body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-dark);
+            background: #f8fafc;
+            margin: 0;
+            padding: 90px 20px 40px 20px;
+            line-height: 1.7;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 900px;
+        /* Simple fade-in animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* 主容器：简洁学术风格 */
+        #layout-content {
             margin: 0 auto;
-            padding: 20px;
+            max-width: 850px;
+            background-color: #ffffff;
+            padding: 50px 60px;
+            box-shadow: var(--shadow-lg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.5s ease-out;
+            position: relative;
         }
 
-        /* Header Block */
-        .header-block {
-            background: #fff;
-            padding: 40px;
-            margin-bottom: 20px;
-            text-align: center;
+        #layout-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 12px 12px 0 0;
         }
 
-        .profile-image {
-            width: 150px;
-            height: 150px;
-            border-radius: 0;
-            margin-bottom: 20px;
+        /* 头部区域 */
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            gap: 24px;
         }
 
-        h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
+        .profile-info h1 {
+            font-size: 2.75rem;
+            margin: 0 0 16px 0;
+            color: var(--text-dark);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
         }
 
-        .contact-links {
-            margin-top: 15px;
+        .profile-info h3 {
+            font-weight: 400;
+            color: var(--text-gray);
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .contact-links a {
-            color: #0066cc;
+        .profile-pic {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            flex-shrink: 0;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .profile-pic:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* 联系信息区域 */
+        .contact-info {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        .contact-info a {
+            color: var(--primary-color);
             text-decoration: none;
-            margin: 0 10px;
+            transition: color 0.2s ease;
         }
 
-        .contact-links a:hover {
+        .contact-info a:hover {
+            color: var(--primary-hover);
             text-decoration: underline;
         }
 
-        /* Content Block */
-        .content-block {
-            background: #fff;
-            padding: 30px 40px;
+        .contact-separator {
+            color: var(--text-light);
+            margin: 0 4px;
+        }
+
+        /* 标题样式 */
+        h2 {
+            font-size: 1.9rem;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 12px;
+            margin-top: 60px;
+            margin-bottom: 36px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        p {
+            color: var(--text-gray);
             margin-bottom: 20px;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            letter-spacing: 0.01em;
         }
 
-        .content-block h2 {
-            font-size: 24px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 5px;
+        b {
+            color: var(--text-dark);
+            font-weight: 600;
         }
 
-        .content-block p {
-            margin-bottom: 15px;
+        /* 列表样式 */
+        .pub-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        /* Publication Block */
-        .pub-block {
-            background: #f9f9f9;
-            padding: 20px;
-            margin-bottom: 15px;
+        /* 卡片样式：简洁学术风格 */
+        .publication-entry {
+            display: flex;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            border-radius: 8px;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            box-shadow: var(--shadow-sm);
         }
 
-        .pub-block h3 {
-            font-size: 16px;
+        .publication-entry:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .publication-entry img {
+            width: 160px;
+            height: 90px;
+            margin-right: 24px;
+            object-fit: cover;
+            background-color: #f9fafb;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .pub-content {
+            flex: 1;
+        }
+
+        .pub-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-dark);
             margin-bottom: 8px;
+            display: block;
+            line-height: 1.5;
+            letter-spacing: -0.01em;
         }
 
-        .pub-block .authors {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 5px;
+        .pub-authors {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            display: block;
+            line-height: 1.5;
         }
 
-        .pub-block .venue {
-            font-size: 14px;
-            font-weight: bold;
-            color: #0066cc;
+        .pub-venue {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: inline-block;
+            background: var(--primary-alpha-10);
+            padding: 4px 12px;
+            border-radius: 4px;
         }
 
-        .pub-block a {
-            color: #0066cc;
+        /* 链接按钮样式 [Paper] [Code] */
+        .link-badges {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .badge-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #fff;
+            background: var(--primary-color);
             text-decoration: none;
-            font-size: 13px;
-            margin-right: 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
         }
 
-        .pub-block a:hover {
-            text-decoration: underline;
+        .badge-link:hover {
+            background: var(--primary-hover);
         }
 
-        /* Highlight author name */
+        /* Secondary badge button style (for View Repo etc) */
+        .badge-secondary {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .badge-secondary:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        /* 高亮作者名 */
         .me-highlight {
-            color: #0066cc;
-            font-weight: bold;
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
         }
 
-        /* Award Block */
-        .award-item {
-            background: #f9f9f9;
-            padding: 15px 20px;
-            margin-bottom: 10px;
+        /* 奖项列表 */
+        .awards-list li {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: #ffffff;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .awards-list li:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .awards-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .awards-list .emoji {
+            margin-right: 16px;
+            font-size: 1.4em;
+        }
+
+        /* Site Header - clean academic style */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 max(40px, calc((100% - 1200px) / 2));
+            box-sizing: border-box;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .header-logo:hover {
+            color: var(--primary-color);
+        }
+
+        .site-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-link {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-gray);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #f3f4f6;
+            color: var(--primary-color);
+        }
+
+        /* Active state for current page */
+        .nav-link.active {
+            background-color: var(--primary-alpha-10);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 70px 16px 24px 16px;
+            }
+
+            .site-header {
+                padding: 0 16px;
+                height: 56px;
+            }
+
+            .header-logo {
+                font-size: 1.1rem;
+            }
+
+            #layout-content {
+                padding: 24px 20px;
+                width: auto;
+                margin: 0;
+                border-radius: 8px;
+            }
+
+            .top-section {
+                flex-direction: column-reverse;
+                align-items: center;
+                text-align: center;
+            }
+
+            .profile-info {
+                max-width: 100% !important;
+            }
+
+            .profile-info h1 {
+                font-size: 2rem;
+            }
+
+            .profile-info h3 {
+                justify-content: center;
+            }
+
+            .contact-info {
+                justify-content: center;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+                margin-top: 40px;
+            }
+
+            .publication-entry {
+                flex-direction: column;
+                padding: 16px;
+            }
+
+            .publication-entry img {
+                width: 100%;
+                height: auto;
+                margin-right: 0;
+                margin-bottom: 16px;
+            }
+        }
+
+        /* Mobile hamburger menu */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            z-index: 1002;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background-color: #1f2937;
+            margin: 5px 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .nav-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .nav-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .nav-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* Mobile navigation overlay */
+        .nav-overlay {
+            display: none;
+            position: fixed;
+            top: 48px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 48px);
+            background-color: rgba(255, 255, 255, 0.98);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            padding: 20px 24px;
+        }
+
+        .mobile-nav .nav-link {
+            font-size: 1rem;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0;
+        }
+
+        .mobile-nav .nav-link:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-nav .nav-link:hover {
+            background-color: transparent;
+            color: var(--primary-color);
         }
 
         /* Mobile responsive */
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+            .nav-toggle {
+                display: block;
             }
 
-            .header-block,
-            .content-block {
-                padding: 20px;
+            .site-nav {
+                display: none;
             }
 
-            h1 {
-                font-size: 24px;
-            }
-
-            .profile-image {
-                width: 120px;
-                height: 120px;
+            .nav-overlay.active .mobile-nav {
+                display: flex;
             }
         }
+
+        /*
+           ========================================
+           打印专用样式 (优化宽度与分页)
+           ========================================
+        */
+        @media print {
+            /* Hide the fixed header when printing */
+            .site-header {
+                display: none;
+            }
+
+            /* 1. 设置打印页面的边距 */
+            @page {
+                margin: 1cm 1cm;
+                size: auto;
+            }
+
+            /* 2. 重置 Body 的边距和内边距，确保利用全部宽度 */
+            body {
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+            }
+
+            /* 3. 重置主容器的样式 */
+            #layout-content {
+                margin: 0;
+                width: 100%;
+                max-width: none !important;
+                padding: 0;
+                border: none;
+            }
+
+            /* 4. 字体微调 */
+            .profile-info h1 {
+                font-size: 1.8rem;
+            }
+
+            /* 5. 核心分页控制：防止元素内部断页 */
+            .publication-entry,
+            .top-section,
+            h2,
+            .contact-box,
+            li {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            /* 防止标题与下方内容分离 */
+            h2 {
+                break-after: avoid;
+                page-break-after: avoid;
+                margin-top: 20px;
+            }
+        }
+
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <!-- Header Block -->
-        <div class="header-block">
-            <img src="assets/img/profile_pic.jpg" alt="Xiang An" class="profile-image">
-            <h1>安翔 · Xiang An</h1>
-            <div class="contact-links">
-                <a href="mailto:anxiangsir@outlook.com">Email</a>
-                <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a>
-                <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>
-            </div>
-        </div>
 
-        <!-- About Block -->
-        <div class="content-block">
-            <h2>About</h2>
-            <p>
-                I am a <strong>Research Scientist</strong> and <strong>Team Lead</strong> of the Multimodal Large Model Group at <strong>GlintLab</strong>, focusing on computer vision and multimodal large models.
-            </p>
-            <p>
-                Currently, our team is building the <strong>next-generation Vision Transformer (ViT)</strong> to address some of the most urgent needs in modern MLLMs.
-            </p>
-        </div>
+    <!-- Site Header (Meta-style fixed navigation) -->
+    <header class="site-header">
+        <a href="index.html" class="header-logo">安翔 · Xiang An</a>
+        <nav class="site-nav">
+            <a href="#publications" class="nav-link">📚 Selected Publications</a>
+            <a href="publications.html" class="nav-link">📖 All Publications</a>
+            <a href="community.html" class="nav-link">🌟 Open Source</a>
+            <a href="#awards" class="nav-link">🏆 Awards</a>
+        </nav>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
 
-        <!-- Publications Block -->
-        <div class="content-block">
-            <h2>Selected Publications</h2>
-            <div id="publications-container">
-                <p>Loading publications...</p>
-            </div>
-        </div>
-
-        <!-- Awards Block -->
-        <div class="content-block">
-            <h2>Awards</h2>
-            <div class="award-item">ICCV 2025 Outstanding Reviewer</div>
-            <div class="award-item">CVPR 2024 Outstanding Reviewer</div>
-            <div class="award-item">Ranked 1st in NIST FRVT Competition, Visa Track 1:1</div>
-            <div class="award-item">2024 中国年度力量人物提名</div>
-            <div class="award-item">Ranked 1st in the graduate entrance examination (major)</div>
-            <div class="award-item">First Place in Vehicle Re-Identification, PRCV 2019</div>
-        </div>
+    <!-- Mobile Navigation Overlay -->
+    <div class="nav-overlay">
+        <nav class="mobile-nav">
+            <a href="#publications" class="nav-link">📚 Selected Publications</a>
+            <a href="publications.html" class="nav-link">📖 All Publications</a>
+            <a href="community.html" class="nav-link">🌟 Open Source</a>
+            <a href="#awards" class="nav-link">🏆 Awards</a>
+        </nav>
     </div>
 
-    <!-- Load YAML parser and publications -->
+    <script>
+        // Mobile navigation toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.querySelector('.nav-toggle');
+            const navOverlay = document.querySelector('.nav-overlay');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav .nav-link');
+
+            navToggle.addEventListener('click', function() {
+                navToggle.classList.toggle('active');
+                navOverlay.classList.toggle('active');
+                document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
+            });
+
+            // Close menu when clicking a link
+            mobileNavLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+
+            // Close menu when clicking overlay background
+            navOverlay.addEventListener('click', function(e) {
+                if (e.target === navOverlay) {
+                    navToggle.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    </script>
+
+    <div id="layout-content">
+        <div class="top-section">
+            <div class="profile-info" style="max-width: 70%;">
+                <h1>Xiang An</h1>
+                <div class="contact-info">
+                    <a href="mailto:anxiangsir@outlook.com" title="anxiangsir@outlook.com">Mail</a>
+                    <span class="contact-separator">·</span>
+                    <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a>
+                    <span class="contact-separator">·</span>
+                    <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>
+                </div>
+            </div>
+            <div>
+                <img class="profile-pic" src="assets/img/profile_pic.jpg" alt="Xiang An">
+            </div>
+        </div>
+
+        <h2 id="about">About Me</h2>
+        <p>
+            I am an <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, focusing on computer vision and multimodal large models.
+        </p>
+        <p>
+            Currently, our team is building the <b>next-generation Vision Transformer (ViT)</b> to address some of the most urgent needs in modern MLLMs.
+        </p>
+
+        <h2 id="publications">Selected Publications</h2>
+        <ul class="pub-list">
+            <!-- Selected publications will be loaded dynamically from YAML -->
+            <li style="text-align: center; padding: 60px 40px;">
+                <div style="font-size: 1.1rem; color: var(--text-gray);">
+                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--primary-color); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+                    <div>Loading selected publications from YAML...</div>
+                </div>
+            </li>
+        </ul>
+        
+        <style>
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
+
+
+        <h2 id="awards">Awards & Competitions</h2>
+        <ul class="awards-list" style="list-style-type: none; padding-left: 0;">
+            <li><span class="emoji">🏅</span> <b>ICCV 2025 Outstanding Reviewer</b></li>
+            <li><span class="emoji">🏅</span> <b>CVPR 2024 Outstanding Reviewer</b></li>
+            <li><span class="emoji">🏆</span> <b>Randed 1st in NIST FRVT Competition, Visa Track 1:1</b></li>
+            <li><span class="emoji">🏆</span> <b>2024 中国年度力量人物提名</b></li>
+            <li><span class="emoji">🏆</span> <b>Ranked 1st in the graduate entrance examination (major)</b></li>
+            <li><span class="emoji">🏆</span> <b>First Place in Vehicle Re-Identification, PRCV 2019</b></li>
+        </ul>
+
+    </div>
+
+    <!-- Load custom YAML parser -->
     <script src="assets/js/yaml-parser.js"></script>
+    
+    <!-- Load publications from YAML -->
     <script src="assets/js/publications-loader.js"></script>
 </body>
+
 </html>
