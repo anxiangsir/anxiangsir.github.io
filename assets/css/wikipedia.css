@@ -937,7 +937,7 @@ body.wiki-simple {
         padding: 0;
     }
     .wiki-nav {
-        display: none !important;
+        display: none;  /* Hide navigation in print */
     }
 }
 
@@ -1168,5 +1168,6 @@ body.wiki-simple {
    Simple layout adjustments with nav
    ========================================================================== */
 body.wiki-simple .wiki-simple-container {
+    /* Adjust min-height accounting for nav bar (~53px) and footer (~80px) */
     min-height: calc(100vh - 53px - 80px);
 }
