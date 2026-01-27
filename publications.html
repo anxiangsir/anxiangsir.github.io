@@ -1,480 +1,168 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Xiang An's Full Publication List">
-    <title>Publications - Xiang An</title>
+    <meta name="description" content="Xiang An's Full Publication List - Wikipedia">
+    <title>Publications - Xiang An - Wikipedia</title>
     <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --secondary-color: #1e40af;
-            --accent-color: #3b82f6;
-            --text-dark: #1f2937;
-            --text-gray: #4b5563;
-            --text-light: #6b7280;
-            --bg-card: #ffffff;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            --primary-alpha-10: rgba(37, 99, 235, 0.1);
-            --primary-alpha-15: rgba(37, 99, 235, 0.15);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: var(--text-dark);
-            background: #f8fafc;
-            margin: 0;
-            padding: 80px 20px 40px 20px;
-            line-height: 1.7;
-            font-weight: 400;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        /* Site Header - clean academic style */
-        .site-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: #ffffff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 max(40px, calc((100% - 1200px) / 2));
-            box-sizing: border-box;
-            z-index: 1000;
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .header-logo {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .header-logo:hover {
-            color: var(--primary-color);
-        }
-
-        .site-nav {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .nav-link {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-gray);
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .nav-link:hover {
-            background-color: #f3f4f6;
-            color: var(--primary-color);
-        }
-
-        .nav-link.active {
-            background-color: var(--primary-alpha-10);
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        /* Mobile hamburger menu */
-        .nav-toggle {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            z-index: 1002;
-        }
-
-        .nav-toggle span {
-            display: block;
-            width: 22px;
-            height: 2px;
-            background-color: #1f2937;
-            margin: 5px 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-
-        .nav-toggle.active span:nth-child(1) {
-            transform: rotate(45deg) translate(5px, 5px);
-        }
-
-        .nav-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .nav-toggle.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(5px, -5px);
-        }
-
-        /* Mobile navigation overlay */
-        .nav-overlay {
-            display: none;
-            position: fixed;
-            top: 60px;
-            left: 0;
-            width: 100%;
-            height: calc(100vh - 60px);
-            background-color: rgba(255, 255, 255, 0.98);
-            z-index: 999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .nav-overlay.active {
-            display: block;
-            opacity: 1;
-        }
-
-        .mobile-nav {
-            display: none;
-            flex-direction: column;
-            padding: 20px 24px;
-        }
-
-        .mobile-nav .nav-link {
-            font-size: 1rem;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border-color);
-            border-radius: 0;
-        }
-
-        .mobile-nav .nav-link:last-child {
-            border-bottom: none;
-        }
-
-        .mobile-nav .nav-link:hover {
-            background-color: transparent;
-            color: var(--primary-color);
-        }
-
-        #layout-content {
-            margin: 0 auto;
-            max-width: 850px;
-            background-color: #ffffff;
-            padding: 50px 60px;
-            box-shadow: var(--shadow-lg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            position: relative;
-        }
-
-        #layout-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--primary-color);
-            border-radius: 12px 12px 0 0;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--primary-color);
-        }
-
-        .page-header h1 {
-            font-size: 2rem;
-            margin: 0;
-            color: var(--text-dark);
-            font-weight: 700;
-            letter-spacing: -0.03em;
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 16px;
-            font-size: 0.9em;
-            font-weight: 600;
-            color: var(--primary-color);
-            text-decoration: none;
-            border: 1px solid var(--primary-color);
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .back-link:hover {
-            background: var(--primary-color);
-            color: #fff;
-        }
-
-        .back-link::before {
-            content: "←";
-            margin-right: 6px;
-        }
-
-        h2 {
-            font-size: 1.5rem;
-            color: var(--text-dark);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 12px;
-            margin-top: 48px;
-            margin-bottom: 28px;
-            font-weight: 700;
-        }
-
-        h2:first-of-type {
-            margin-top: 0;
-        }
-
-        .pub-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .pub-item {
-            padding: 20px 24px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 16px;
-            background: #ffffff;
-            transition: box-shadow 0.2s ease, border-color 0.2s ease;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .pub-item:hover {
-            border-color: var(--primary-color);
-            box-shadow: var(--shadow-md);
-        }
-
-        .pub-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .pub-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 6px;
-            line-height: 1.4;
-        }
-
-        .pub-authors {
-            color: var(--text-light);
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-            line-height: 1.5;
-        }
-
-        .pub-venue {
-            color: var(--primary-color);
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: inline-block;
-            background: var(--primary-alpha-10);
-            padding: 4px 10px;
-            border-radius: 4px;
-        }
-
-        .me-highlight {
-            color: var(--primary-color);
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        /* Mobile */
-        @media (max-width: 768px) {
-            body {
-                padding: 70px 16px 24px 16px;
-            }
-
-            .site-header {
-                padding: 0 16px;
-                height: 56px;
-            }
-
-            .header-logo {
-                font-size: 1rem;
-            }
-
-            .nav-toggle {
-                display: block;
-            }
-
-            .site-nav {
-                display: none;
-            }
-
-            .nav-overlay.active .mobile-nav {
-                display: flex;
-            }
-
-            #layout-content {
-                padding: 24px 20px;
-                width: auto;
-                margin: 0;
-            }
-
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-
-            .page-header h1 {
-                font-size: 1.5rem;
-            }
-
-            h2 {
-                font-size: 1.2rem;
-                margin-top: 28px;
-            }
-        }
-
-        /* Print */
-        @media print {
-            .site-header {
-                display: none;
-            }
-
-            @page {
-                margin: 1cm 1cm;
-                size: auto;
-            }
-
-            body {
-                background-color: #fff;
-                padding: 0;
-                margin: 0;
-            }
-
-            #layout-content {
-                margin: 0;
-                width: 100%;
-                max-width: none !important;
-                padding: 0;
-                border: none;
-            }
-
-            .back-link {
-                display: none;
-            }
-
-            .pub-item {
-                break-inside: avoid;
-                page-break-inside: avoid;
-            }
-
-            h2 {
-                break-after: avoid;
-                page-break-after: avoid;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/wikipedia.css">
 </head>
 
 <body>
-
-    <!-- Site Header -->
-    <header class="site-header">
-        <a href="index.html" class="header-logo">安翔 · Xiang An</a>
-        <nav class="site-nav">
-            <a href="index.html#publications" class="nav-link">📚 Selected Publications</a>
-            <a href="publications.html" class="nav-link active">📖 All Publications</a>
-            <a href="community.html" class="nav-link">🌟 Open Source</a>
-            <a href="index.html#awards" class="nav-link">🏆 Awards</a>
-        </nav>
-        <button class="nav-toggle" aria-label="Toggle navigation">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+    <!-- Wikipedia Header -->
+    <header class="wiki-header">
+        <div class="wiki-header-inner">
+            <div class="wiki-logo">
+                <a href="index.html">
+                    <div class="wiki-logo-icon">W</div>
+                    <div class="wiki-logo-text">
+                        <span class="wiki-logo-title">Wikipedia</span>
+                        <span class="wiki-logo-tagline">The Free Encyclopedia</span>
+                    </div>
+                </a>
+            </div>
+            <div class="wiki-search">
+                <input type="text" placeholder="Search Wikipedia" disabled>
+                <button type="button" disabled>🔍</button>
+            </div>
+            <nav class="wiki-personal-tools">
+                <a href="index.html">Main page</a>
+                <a href="publications.html">Publications</a>
+                <a href="community.html">Open Source</a>
+            </nav>
+            <button class="wiki-menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
     </header>
 
-    <!-- Mobile Navigation Overlay -->
-    <div class="nav-overlay">
-        <nav class="mobile-nav">
-            <a href="index.html#publications" class="nav-link">📚 Selected Publications</a>
-            <a href="publications.html" class="nav-link active">📖 All Publications</a>
-            <a href="community.html" class="nav-link">🌟 Open Source</a>
-            <a href="index.html#awards" class="nav-link">🏆 Awards</a>
+    <!-- Mobile Menu Overlay -->
+    <div class="wiki-mobile-menu">
+        <nav class="wiki-mobile-nav">
+            <div class="wiki-mobile-nav-section">
+                <div class="wiki-mobile-nav-title">Navigation</div>
+                <a href="index.html">Main page</a>
+                <a href="index.html#about">About</a>
+                <a href="index.html#publications">Selected Publications</a>
+                <a href="publications.html">All Publications</a>
+                <a href="community.html">Open Source</a>
+                <a href="index.html#awards">Awards</a>
+            </div>
         </nav>
     </div>
 
+    <div class="wiki-container">
+        <!-- Wikipedia Sidebar -->
+        <nav class="wiki-sidebar">
+            <div class="wiki-sidebar-section">
+                <div class="wiki-sidebar-heading">Navigation</div>
+                <ul>
+                    <li><a href="index.html">Main page</a></li>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#publications">Selected Publications</a></li>
+                    <li><a href="publications.html">All Publications</a></li>
+                    <li><a href="community.html">Open Source</a></li>
+                    <li><a href="index.html#awards">Awards</a></li>
+                </ul>
+            </div>
+            <div class="wiki-sidebar-section">
+                <div class="wiki-sidebar-heading">External Links</div>
+                <ul>
+                    <li><a href="mailto:anxiangsir@outlook.com">Email</a></li>
+                    <li><a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a></li>
+                    <li><a href="https://github.com/anxiangsir" target="_blank">GitHub</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="wiki-content">
+            <article class="wiki-article">
+                <!-- Article Title -->
+                <h1 id="firstHeading" class="wiki-page-title">Publications</h1>
+                
+                <div class="wiki-article-body">
+                    <p>This is a complete list of publications by <a href="index.html">Xiang An</a>. For a curated selection of notable works, see <a href="index.html#publications">Selected Publications</a>.</p>
+
+                    <!-- Table of Contents -->
+                    <div class="wiki-toc" id="toc">
+                        <div class="wiki-toc-title">Contents</div>
+                        <ul>
+                            <li><a href="#full-list"><span class="tocnumber">1</span> <span class="toctext">Full Publication List</span></a></li>
+                            <li><a href="#see-also"><span class="tocnumber">2</span> <span class="toctext">See also</span></a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Publications Section -->
+                    <h2 id="full-list"><span class="mw-headline">Full Publication List</span></h2>
+                    
+                    <ul class="wiki-publications-full-list">
+                        <!-- Publications will be loaded dynamically from YAML -->
+                        <li class="wiki-loading">
+                            <span class="wiki-loading-spinner"></span>
+                            Loading publications...
+                        </li>
+                    </ul>
+
+                    <!-- See Also Section -->
+                    <h2 id="see-also"><span class="mw-headline">See also</span></h2>
+                    <ul class="wiki-list">
+                        <li><a href="index.html">Xiang An</a> – Main page</li>
+                        <li><a href="index.html#publications">Selected Publications</a> – Notable works</li>
+                        <li><a href="community.html">Open Source Contributions</a> – GitHub projects</li>
+                        <li><a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar Profile</a> – Citations and metrics</li>
+                    </ul>
+                </div>
+            </article>
+        </main>
+    </div>
+
+    <!-- Wikipedia Footer -->
+    <footer class="wiki-footer">
+        <div class="wiki-footer-inner">
+            <p>This page is a personal website styled after Wikipedia. Content © Xiang An.</p>
+            <p>Last modified: <span id="last-modified">2025</span></p>
+        </div>
+    </footer>
+
     <script>
-        // Mobile navigation toggle
+        // Mobile menu toggle
         document.addEventListener('DOMContentLoaded', function() {
-            const navToggle = document.querySelector('.nav-toggle');
-            const navOverlay = document.querySelector('.nav-overlay');
-            const mobileNavLinks = document.querySelectorAll('.mobile-nav .nav-link');
+            const menuToggle = document.querySelector('.wiki-menu-toggle');
+            const mobileMenu = document.querySelector('.wiki-mobile-menu');
+            const mobileLinks = document.querySelectorAll('.wiki-mobile-nav a');
 
-            navToggle.addEventListener('click', function() {
-                navToggle.classList.toggle('active');
-                navOverlay.classList.toggle('active');
-                document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
-            });
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    menuToggle.classList.toggle('active');
+                    mobileMenu.classList.toggle('active');
+                    document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+                });
+            }
 
-            mobileNavLinks.forEach(function(link) {
+            mobileLinks.forEach(function(link) {
                 link.addEventListener('click', function() {
-                    navToggle.classList.remove('active');
-                    navOverlay.classList.remove('active');
+                    menuToggle.classList.remove('active');
+                    mobileMenu.classList.remove('active');
                     document.body.style.overflow = '';
                 });
             });
 
-            navOverlay.addEventListener('click', function(e) {
-                if (e.target === navOverlay) {
-                    navToggle.classList.remove('active');
-                    navOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            });
+            // Update last modified date
+            const lastModified = document.getElementById('last-modified');
+            if (lastModified) {
+                lastModified.textContent = new Date().toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+            }
         });
     </script>
-
-    <div id="layout-content">
-        <div class="page-header">
-            <h1>Publication Full List</h1>
-            <a href="index.html" class="back-link">Back to Home</a>
-        </div>
-
-        <ul class="pub-list">
-            <!-- Publications will be loaded dynamically from YAML -->
-            <li class="pub-item" style="text-align: center; padding: 40px;">
-                <div style="font-size: 1.1rem; color: var(--text-gray);">
-                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--primary-color); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
-                    <div>Loading publications from YAML...</div>
-                </div>
-            </li>
-        </ul>
-        
-        <style>
-            @keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-        </style>
-
-        <div style="margin-top: 40px; text-align: center;">
-            <a href="index.html" class="back-link">Back to Home</a>
-        </div>
-    </div>
 
     <!-- Load custom YAML parser -->
     <script src="assets/js/yaml-parser.js"></script>
