@@ -1,10 +1,11 @@
 /**
  * Wikipedia-style CSS
  * Mimics the classic Wikipedia desktop and mobile layout
+ * Enhanced with modern visual improvements
  */
 
 /* ==========================================================================
-   CSS Variables - Wikipedia Color Scheme
+   CSS Variables - Wikipedia Color Scheme (Enhanced)
    ========================================================================== */
 :root {
     /* Wikipedia colors */
@@ -25,6 +26,12 @@
     --wiki-infobox-header: #b0c4de;
     --wiki-toc-bg: #f8f9fa;
     --wiki-toc-border: #a2a9b1;
+    /* Enhanced colors */
+    --wiki-accent: #36c;
+    --wiki-accent-light: #eef4ff;
+    --wiki-gold: #c8a415;
+    --wiki-green: #14866d;
+    --wiki-shadow: rgba(0, 0, 0, 0.08);
 }
 
 /* ==========================================================================
@@ -929,4 +936,237 @@ body.wiki-simple {
         max-width: none;
         padding: 0;
     }
+    .wiki-nav {
+        display: none !important;
+    }
+}
+
+/* ==========================================================================
+   Navigation Bar (Enhanced)
+   ========================================================================== */
+.wiki-nav {
+    background-color: var(--wiki-content-bg);
+    border-bottom: 1px solid var(--wiki-border-light);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px var(--wiki-shadow);
+}
+
+.wiki-nav-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 12px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wiki-nav-brand {
+    font-family: 'Linux Libertine', 'Georgia', 'Times New Roman', serif;
+    font-size: 18px;
+    font-weight: normal;
+    color: var(--wiki-text);
+    text-decoration: none;
+}
+
+.wiki-nav-brand:hover {
+    text-decoration: none;
+    color: var(--wiki-blue);
+}
+
+.wiki-nav-links {
+    display: flex;
+    gap: 24px;
+}
+
+.wiki-nav-links a {
+    color: var(--wiki-text-light);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.wiki-nav-links a:hover {
+    color: var(--wiki-blue);
+    text-decoration: none;
+}
+
+.wiki-nav-links a.active {
+    color: var(--wiki-blue);
+    border-bottom-color: var(--wiki-blue);
+}
+
+/* Mobile nav */
+@media (max-width: 768px) {
+    .wiki-nav-inner {
+        padding: 10px 20px;
+    }
+    
+    .wiki-nav-brand {
+        font-size: 16px;
+    }
+    
+    .wiki-nav-links {
+        gap: 16px;
+    }
+    
+    .wiki-nav-links a {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .wiki-nav-inner {
+        padding: 8px 16px;
+    }
+    
+    .wiki-nav-links {
+        gap: 12px;
+    }
+}
+
+/* ==========================================================================
+   Page Title Enhancement
+   ========================================================================== */
+.wiki-title-chinese {
+    font-size: 0.75em;
+    color: var(--wiki-text-light);
+    font-weight: normal;
+}
+
+/* ==========================================================================
+   Enhanced Infobox
+   ========================================================================== */
+.wiki-infobox-caption {
+    font-size: 12px;
+    color: var(--wiki-text-light);
+    margin-top: 6px;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   Stats Box (for Publications and Open Source pages)
+   ========================================================================== */
+.wiki-stats-box {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 20px 0;
+    margin: 16px 0;
+    background: linear-gradient(to right, var(--wiki-accent-light), var(--wiki-toc-bg));
+    border-radius: 6px;
+    border: 1px solid var(--wiki-border-light);
+}
+
+.wiki-stats-item {
+    text-align: center;
+}
+
+.wiki-stats-number {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--wiki-accent);
+    line-height: 1.2;
+}
+
+.wiki-stats-label {
+    display: block;
+    font-size: 12px;
+    color: var(--wiki-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+    .wiki-stats-box {
+        gap: 20px;
+        padding: 16px 10px;
+    }
+    
+    .wiki-stats-number {
+        font-size: 22px;
+    }
+    
+    .wiki-stats-label {
+        font-size: 10px;
+    }
+}
+
+/* ==========================================================================
+   Project Cards (Enhanced for Open Source section)
+   ========================================================================== */
+.wiki-project-card {
+    background-color: var(--wiki-toc-bg);
+    border: 1px solid var(--wiki-border-light);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 12px 0;
+    transition: box-shadow 0.2s ease;
+}
+
+.wiki-project-card:hover {
+    box-shadow: 0 2px 8px var(--wiki-shadow);
+}
+
+.wiki-project-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.wiki-project-card h3 a {
+    color: var(--wiki-blue);
+}
+
+.wiki-project-card p {
+    margin: 0;
+    color: var(--wiki-text);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.wiki-stars {
+    font-size: 13px;
+    color: var(--wiki-gold);
+    font-weight: normal;
+}
+
+.wiki-see-more {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+/* ==========================================================================
+   Footer Enhancement
+   ========================================================================== */
+.wiki-footer-links {
+    margin-bottom: 8px;
+}
+
+.wiki-footer-links a {
+    color: var(--wiki-text-light);
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.wiki-footer-links a:hover {
+    color: var(--wiki-blue);
+    text-decoration: underline;
+}
+
+.wiki-footer-sep {
+    color: var(--wiki-border);
+    margin: 0 8px;
+}
+
+/* ==========================================================================
+   Simple layout adjustments with nav
+   ========================================================================== */
+body.wiki-simple .wiki-simple-container {
+    min-height: calc(100vh - 53px - 80px);
 }
