@@ -544,10 +544,6 @@ abbr[title] {
     font-weight: bold;
 }
 
-.wiki-pub-list .pub-title a {
-    color: var(--wiki-blue);
-}
-
 .wiki-pub-list .pub-authors {
     color: var(--wiki-text-light);
     font-size: 13px;
