@@ -894,6 +894,188 @@ body.wiki-simple {
     margin-top: 0;
 }
 
+/* ==========================================================================
+   Apple-style Navigation
+   ========================================================================== */
+.apple-nav {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.apple-nav-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 22px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.apple-nav-logo {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1d1d1f;
+    text-decoration: none;
+    letter-spacing: -0.022em;
+}
+
+.apple-nav-logo:hover {
+    color: var(--wiki-blue);
+    text-decoration: none;
+}
+
+.apple-nav-links {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 28px;
+}
+
+.apple-nav-links li {
+    margin: 0;
+}
+
+.apple-nav-links a {
+    font-size: 14px;
+    color: #1d1d1f;
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.apple-nav-links a:hover {
+    opacity: 1;
+    text-decoration: none;
+}
+
+/* Mobile menu toggle button */
+.apple-nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    position: relative;
+}
+
+.apple-nav-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background-color: #1d1d1f;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.3s ease;
+}
+
+.apple-nav-toggle span:nth-child(1) {
+    top: 14px;
+}
+
+.apple-nav-toggle span:nth-child(2) {
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.apple-nav-toggle span:nth-child(3) {
+    bottom: 14px;
+}
+
+.apple-nav-toggle.active span:nth-child(1) {
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.apple-nav-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.apple-nav-toggle.active span:nth-child(3) {
+    bottom: 50%;
+    transform: translate(-50%, 50%) rotate(-45deg);
+}
+
+/* Mobile menu */
+.apple-mobile-menu {
+    display: none;
+    position: fixed;
+    top: 48px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    z-index: 999;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.apple-mobile-menu.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.apple-mobile-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.apple-mobile-menu li {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.apple-mobile-menu a {
+    display: block;
+    padding: 16px 0;
+    font-size: 17px;
+    color: #1d1d1f;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.apple-mobile-menu a:hover {
+    color: var(--wiki-blue);
+    text-decoration: none;
+}
+
+/* Mobile responsive for navigation */
+@media (max-width: 768px) {
+    .apple-nav-links {
+        display: none;
+    }
+    
+    .apple-nav-toggle {
+        display: block;
+    }
+    
+    .apple-mobile-menu {
+        display: block;
+    }
+    
+    .apple-nav-inner {
+        padding: 0 16px;
+    }
+}
+
+/* Adjust container for nav */
+body.wiki-simple .wiki-simple-container {
+    padding-top: 20px;
+}
+
 /* Mobile responsive for simple layout */
 @media (max-width: 768px) {
     .wiki-simple-container {

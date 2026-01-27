@@ -11,6 +11,36 @@
 </head>
 
 <body class="wiki-simple">
+    <!-- Apple-style Navigation -->
+    <nav class="apple-nav">
+        <div class="apple-nav-inner">
+            <button class="apple-nav-toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="index.html" class="apple-nav-logo">Xiang An</a>
+            <ul class="apple-nav-links">
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#publications">Publications</a></li>
+                <li><a href="index.html#awards">Awards</a></li>
+                <li><a href="index.html#open-source">Open Source</a></li>
+                <li><a href="community.html">Contributions</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="apple-mobile-menu">
+        <ul>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#publications">Publications</a></li>
+            <li><a href="index.html#awards">Awards</a></li>
+            <li><a href="index.html#open-source">Open Source</a></li>
+            <li><a href="community.html">Contributions</a></li>
+        </ul>
+    </div>
+
     <div class="wiki-simple-container">
         <article class="wiki-article">
             <!-- Article Title -->
@@ -18,19 +48,6 @@
             
             <div class="wiki-article-body">
                 <p><a href="index.html">Xiang An</a> actively contributes to open-source projects in face recognition, representation learning, and multimodal large models. He is the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐), and co-maintains several influential vision and multimodal repositories.</p>
-
-                <!-- Table of Contents -->
-                <div class="wiki-toc" id="toc">
-                    <div class="wiki-toc-title">Contents</div>
-                    <ul>
-                        <li><a href="#insightface"><span class="tocnumber">1</span> <span class="toctext">InsightFace</span></a></li>
-                        <li><a href="#llava-onevision"><span class="tocnumber">2</span> <span class="toctext">LLaVA-OneVision-1.5</span></a></li>
-                        <li><a href="#llava-next"><span class="tocnumber">3</span> <span class="toctext">LLaVA-NeXT</span></a></li>
-                        <li><a href="#unicom"><span class="tocnumber">4</span> <span class="toctext">UNICOM</span></a></li>
-                        <li><a href="#urban-seg"><span class="tocnumber">5</span> <span class="toctext">Urban Seg</span></a></li>
-                        <li><a href="#see-also"><span class="tocnumber">6</span> <span class="toctext">See also</span></a></li>
-                    </ul>
-                </div>
 
                 <!-- InsightFace Section -->
                 <h2 id="insightface"><span class="mw-headline">InsightFace</span></h2>
@@ -145,19 +162,8 @@
         </div>
     </footer>
 
-    <script>
-        // Update last modified date
-        document.addEventListener('DOMContentLoaded', function() {
-            const lastModified = document.getElementById('last-modified');
-            if (lastModified) {
-                lastModified.textContent = new Date().toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-            }
-        });
-    </script>
+    <!-- Navigation script -->
+    <script src="assets/js/navigation.js"></script>
 
     <!-- GitHub Stars Dynamic Loader -->
     <script src="assets/js/github-stars.js"></script>
