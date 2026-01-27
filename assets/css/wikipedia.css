@@ -541,7 +541,7 @@ abbr[title] {
 }
 
 .wiki-pub-list .pub-title {
-    font-weight: normal;
+    font-weight: bold;
 }
 
 .wiki-pub-list .pub-title a {
@@ -692,7 +692,7 @@ abbr[title] {
 }
 
 .wiki-pub-title-text {
-    font-weight: normal;
+    font-weight: bold;
 }
 
 .wiki-pub-authors-text {
