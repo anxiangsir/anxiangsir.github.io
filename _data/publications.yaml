@@ -17,7 +17,7 @@ publications:
     venue: "NeurIPS 2025"
 
   - title: "LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training"
-    authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al."
+    authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al."
     venue: "Preprint, 2025"
     paper_url: "https://arxiv.org/abs/2509.23661"
     code_url: "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5"
@@ -26,7 +26,7 @@ publications:
       LLaVA-OneVision-1.5 is a fully open-source multimodal training framework that democratizes the development of large multimodal models (LMMs). This work represents a significant step towards making state-of-the-art multimodal AI accessible to the broader research community. The framework provides comprehensive tools and pipelines for training, fine-tuning, and deploying multimodal models that can understand both visual and textual information. By open-sourcing the complete training infrastructure, data processing pipelines, and model weights, LLaVA-OneVision-1.5 enables researchers and practitioners to build upon cutting-edge multimodal AI without requiring massive computational resources or proprietary datasets. The framework supports various vision-language tasks including image captioning, visual question answering, and multimodal reasoning, making it a versatile platform for advancing multimodal AI research.
 
   - title: "Region-based Cluster Discrimination for Visual Representation Learning"
-    authors: "Yin Xie, Kaicheng Yang, Xiang An (Project Leader), Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng"
+    authors: "Yin Xie, Kaicheng Yang, Xiang An (Project Leader), Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Jiankang Deng"
     venue: "ICCV, 2025 (Highlight)"
     paper_url: "https://arxiv.org/abs/2507.20025"
     code_url: "https://github.com/deepglint/unicom"
