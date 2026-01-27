@@ -80,19 +80,10 @@ async function loadSelectedPublications() {
         const li = document.createElement('li');
         
         // Wikipedia-style publication entry
-        // Title
+        // Title (plain text, bold - no hyperlink since [Paper] link is below)
         const titleSpan = document.createElement('span');
         titleSpan.className = 'pub-title';
-        if (pub.paper_url) {
-            const titleLink = document.createElement('a');
-            titleLink.href = pub.paper_url;
-            titleLink.target = '_blank';
-            titleLink.rel = 'noopener noreferrer';
-            titleLink.textContent = pub.title;
-            titleSpan.appendChild(titleLink);
-        } else {
-            titleSpan.textContent = pub.title;
-        }
+        titleSpan.textContent = pub.title;
         li.appendChild(titleSpan);
         
         // Line break
@@ -181,19 +172,10 @@ async function loadAllPublications() {
     data.publications.forEach((pub, index) => {
         const li = document.createElement('li');
 
-        // Title
+        // Title (plain text, bold - no hyperlink since [Paper] link is below)
         const titleSpan = document.createElement('span');
         titleSpan.className = 'wiki-pub-title-text';
-        if (pub.paper_url) {
-            const titleLink = document.createElement('a');
-            titleLink.href = pub.paper_url;
-            titleLink.target = '_blank';
-            titleLink.rel = 'noopener noreferrer';
-            titleLink.textContent = pub.title;
-            titleSpan.appendChild(titleLink);
-        } else {
-            titleSpan.textContent = pub.title;
-        }
+        titleSpan.textContent = pub.title;
         li.appendChild(titleSpan);
         
         // Line break
