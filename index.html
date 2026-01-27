@@ -11,39 +11,46 @@
 </head>
 
 <body class="wiki-simple">
+    <!-- Apple-style Navigation -->
+    <nav class="apple-nav">
+        <div class="apple-nav-inner">
+            <button class="apple-nav-toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="index.html" class="apple-nav-logo">Xiang An</a>
+            <ul class="apple-nav-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#publications">Publications</a></li>
+                <li><a href="#awards">Awards</a></li>
+                <li><a href="#open-source">Open Source</a></li>
+                <li><a href="community.html">Contributions</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="apple-mobile-menu">
+        <ul>
+            <li><a href="#about">About</a></li>
+            <li><a href="#publications">Publications</a></li>
+            <li><a href="#awards">Awards</a></li>
+            <li><a href="#open-source">Open Source</a></li>
+            <li><a href="community.html">Contributions</a></li>
+        </ul>
+    </div>
+
     <div class="wiki-simple-container">
         <article class="wiki-article">
             <!-- Article Title -->
             <h1 id="firstHeading" class="wiki-page-title">Xiang An</h1>
             
             <div class="wiki-article-body">
-                <!-- Infobox -->
-                <table class="wiki-infobox">
-                    <tbody>
-                        <tr>
-                            <td colspan="2" class="wiki-infobox-image">
-                                <img src="assets/img/profile_pic.jpg" alt="Xiang An">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
                 <!-- Lead Section -->
                 <p><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <a href="https://github.com/deepglint" target="_blank">GlintLab</a>. He specializes in <a href="#publications">computer vision</a> and multimodal large models.</p>
                 
                 <p>His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐).</p>
-
-                <!-- Table of Contents -->
-                <div class="wiki-toc" id="toc">
-                    <div class="wiki-toc-title">Contents</div>
-                    <ul>
-                        <li><a href="#about"><span class="tocnumber">1</span> <span class="toctext">About</span></a></li>
-                        <li><a href="#publications"><span class="tocnumber">2</span> <span class="toctext">Selected Publications</span></a></li>
-                        <li><a href="#awards"><span class="tocnumber">3</span> <span class="toctext">Awards & Competitions</span></a></li>
-                        <li><a href="#open-source"><span class="tocnumber">4</span> <span class="toctext">Open Source</span></a></li>
-                        <li><a href="#external-links"><span class="tocnumber">5</span> <span class="toctext">External Links</span></a></li>
-                    </ul>
-                </div>
 
                 <!-- About Section -->
                 <h2 id="about"><span class="mw-headline">About</span></h2>
@@ -103,19 +110,8 @@
         </div>
     </footer>
 
-    <script>
-        // Update last modified date
-        document.addEventListener('DOMContentLoaded', function() {
-            const lastModified = document.getElementById('last-modified');
-            if (lastModified) {
-                lastModified.textContent = new Date().toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-            }
-        });
-    </script>
+    <!-- Navigation script -->
+    <script src="assets/js/navigation.js"></script>
 
     <!-- Load custom YAML parser -->
     <script src="assets/js/yaml-parser.js"></script>
