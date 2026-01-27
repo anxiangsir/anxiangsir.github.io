@@ -4,242 +4,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Xiang An's Open Source Contributions - Wikipedia">
-    <title>Open Source Contributions - Xiang An - Wikipedia</title>
+    <meta name="description" content="Xiang An - Open Source Contributions">
+    <title>Open Source - Xiang An</title>
     <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
     <link rel="stylesheet" href="assets/css/wikipedia.css">
 </head>
 
-<body>
-    <!-- Wikipedia Header -->
-    <header class="wiki-header">
-        <div class="wiki-header-inner">
-            <div class="wiki-logo">
-                <a href="index.html">
-                    <div class="wiki-logo-icon">W</div>
-                    <div class="wiki-logo-text">
-                        <span class="wiki-logo-title">Wikipedia</span>
-                        <span class="wiki-logo-tagline">The Free Encyclopedia</span>
-                    </div>
-                </a>
-            </div>
-            <div class="wiki-search">
-                <input type="text" placeholder="Search Wikipedia" disabled>
-                <button type="button" disabled>🔍</button>
-            </div>
-            <nav class="wiki-personal-tools">
-                <a href="index.html">Main page</a>
-                <a href="publications.html">Publications</a>
-                <a href="community.html">Open Source</a>
-            </nav>
-            <button class="wiki-menu-toggle" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </header>
+<body class="wiki-simple">
+    <div class="wiki-simple-container">
+        <article class="wiki-article">
+            <!-- Article Title -->
+            <h1 id="firstHeading" class="wiki-page-title">Open Source Contributions</h1>
+            
+            <div class="wiki-article-body">
+                <p><a href="index.html">Xiang An</a> actively contributes to open-source projects in face recognition, representation learning, and multimodal large models. He is the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐), and co-maintains several influential vision and multimodal repositories.</p>
 
-    <!-- Mobile Menu Overlay -->
-    <div class="wiki-mobile-menu">
-        <nav class="wiki-mobile-nav">
-            <div class="wiki-mobile-nav-section">
-                <div class="wiki-mobile-nav-title">Navigation</div>
-                <a href="index.html">Main page</a>
-                <a href="index.html#about">About</a>
-                <a href="index.html#publications">Selected Publications</a>
-                <a href="publications.html">All Publications</a>
-                <a href="community.html">Open Source</a>
-                <a href="index.html#awards">Awards</a>
-            </div>
-        </nav>
-    </div>
-
-    <div class="wiki-container">
-        <!-- Wikipedia Sidebar -->
-        <nav class="wiki-sidebar">
-            <div class="wiki-sidebar-section">
-                <div class="wiki-sidebar-heading">Navigation</div>
-                <ul>
-                    <li><a href="index.html">Main page</a></li>
-                    <li><a href="index.html#about">About</a></li>
-                    <li><a href="index.html#publications">Selected Publications</a></li>
-                    <li><a href="publications.html">All Publications</a></li>
-                    <li><a href="community.html">Open Source</a></li>
-                    <li><a href="index.html#awards">Awards</a></li>
-                </ul>
-            </div>
-            <div class="wiki-sidebar-section">
-                <div class="wiki-sidebar-heading">External Links</div>
-                <ul>
-                    <li><a href="mailto:anxiangsir@outlook.com">Email</a></li>
-                    <li><a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a></li>
-                    <li><a href="https://github.com/anxiangsir" target="_blank">GitHub</a></li>
-                </ul>
-            </div>
-        </nav>
-
-        <!-- Main Content Area -->
-        <main class="wiki-content">
-            <article class="wiki-article">
-                <!-- Article Title -->
-                <h1 id="firstHeading" class="wiki-page-title">Open Source Contributions</h1>
-                
-                <div class="wiki-article-body">
-                    <p><a href="index.html">Xiang An</a> actively contributes to open-source projects in <a href="https://en.wikipedia.org/wiki/Face_recognition" target="_blank">face recognition</a>, representation learning, and multimodal large models. He is the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐), and co-maintains several influential vision and multimodal repositories.</p>
-
-                    <!-- Table of Contents -->
-                    <div class="wiki-toc" id="toc">
-                        <div class="wiki-toc-title">Contents</div>
-                        <ul>
-                            <li><a href="#insightface"><span class="tocnumber">1</span> <span class="toctext">InsightFace</span></a></li>
-                            <li><a href="#llava-onevision"><span class="tocnumber">2</span> <span class="toctext">LLaVA-OneVision-1.5</span></a></li>
-                            <li><a href="#llava-next"><span class="tocnumber">3</span> <span class="toctext">LLaVA-NeXT</span></a></li>
-                            <li><a href="#unicom"><span class="tocnumber">4</span> <span class="toctext">UNICOM</span></a></li>
-                            <li><a href="#urban-seg"><span class="tocnumber">5</span> <span class="toctext">Urban Seg</span></a></li>
-                            <li><a href="#see-also"><span class="tocnumber">6</span> <span class="toctext">See also</span></a></li>
-                        </ul>
-                    </div>
-
-                    <!-- InsightFace Section -->
-                    <h2 id="insightface"><span class="mw-headline">InsightFace</span></h2>
-                    <p><b>InsightFace</b> is an open-source 2D & 3D deep face analysis library with more than 27,000 stars on <a href="https://github.com/deepinsight/insightface" target="_blank">GitHub</a>. It provides state-of-the-art face recognition, detection, alignment, and analysis capabilities.</p>
-                    
-                    <h3>Contributions</h3>
-                    <ul class="wiki-list">
-                        <li>Author of <a href="https://github.com/deepinsight/insightface/tree/master/recognition/_datasets_" target="_blank"><b>Glint360K</b></a>, the largest open-source face recognition training dataset</li>
-                        <li>Organizer of <a href="https://github.com/deepinsight/insightface/tree/master/challenges/iccv21-mfr" target="_blank"><b>ICCV 2021 Workshop</b></a> on masked face recognition challenge</li>
-                        <li>Author of <a href="https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc" target="_blank"><b>Partial FC</b></a>, enabling training 10 million identities on a single machine</li>
-                        <li>Implemented <a href="https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch" target="_blank"><b>arcface_torch</b></a>, an efficient distributed training framework</li>
-                    </ul>
-                    
-                    <h3>External links</h3>
-                    <ul class="wiki-list">
-                        <li><a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace on GitHub</a> <span class="wiki-project-stars">(⭐ 27,271)</span></li>
-                        <li><a href="https://arxiv.org/abs/2203.15565" target="_blank">Partial FC Paper</a></li>
-                    </ul>
-
-                    <!-- LLaVA-OneVision-1.5 Section -->
-                    <h2 id="llava-onevision"><span class="mw-headline">LLaVA-OneVision-1.5</span></h2>
-                    <p><b>LLaVA-OneVision-1.5</b> is a fully open framework designed to democratize multimodal training. It provides a comprehensive pipeline for training and evaluating large multimodal models.</p>
-                    
-                    <h3>Contributions</h3>
-                    <ul class="wiki-list">
-                        <li><b>Team Leader</b> of the project, leading the overall development and coordination</li>
-                        <li>Released <a href="https://huggingface.co/collections/lmms-lab/llava-onevision-15-68d385fe73b50bd22de23713" target="_blank"><b>mid-training and instruct data</b></a> for community use</li>
-                        <li>Developed <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5/tree/main/examples_offline_packing" target="_blank"><b>offline sampling pack</b></a> for efficient training</li>
-                        <li>Implemented <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5/tree/main/aiak_training_llm/models/llavaov_1_5" target="_blank"><b>RiceViT</b></a> with native resolution support</li>
-                    </ul>
-                    
-                    <h3>External links</h3>
-                    <ul class="wiki-list">
-                        <li><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">LLaVA-OneVision-1.5 on GitHub</a> <span class="wiki-project-stars">(⭐ 651)</span></li>
-                        <li><a href="https://arxiv.org/abs/2509.23661" target="_blank">Paper</a></li>
-                    </ul>
-
-                    <!-- LLaVA-NeXT Section -->
-                    <h2 id="llava-next"><span class="mw-headline">LLaVA-NeXT</span></h2>
-                    <p><b>LLaVA-NeXT</b> is the next-generation large multimodal model that significantly improves upon the original LLaVA. It features enhanced visual understanding capabilities, especially for document and text-rich images.</p>
-                    
-                    <h3>Contributions</h3>
-                    <ul class="wiki-list">
-                        <li>Enhanced the <b>OCR capability</b> of the vision module for better text recognition in images</li>
-                        <li>Optimized the <b>visual encoder</b> for processing text-rich and document images</li>
-                    </ul>
-                    
-                    <h3>External links</h3>
-                    <ul class="wiki-list">
-                        <li><a href="https://github.com/LLaVA-VL/LLaVA-NeXT" target="_blank">LLaVA-NeXT on GitHub</a> <span class="wiki-project-stars">(⭐ 4,444)</span></li>
-                    </ul>
-
-                    <!-- UNICOM Section -->
-                    <h2 id="unicom"><span class="mw-headline">UNICOM</span></h2>
-                    <p><b>UNICOM</b> (Universal and Compact Representation Learning) is a framework developed by Xiang An for learning universal image representations. It enables efficient and accurate image retrieval at scale.</p>
-                    
-                    <h3>Contributions</h3>
-                    <ul class="wiki-list">
-                        <li><b>Lead author and maintainer</b> of the entire project</li>
-                        <li>Designed the novel cluster discrimination approach for representation learning</li>
-                        <li>Developed the multi-label and region-based extensions (published at ECCV 2024 and ICCV 2025)</li>
-                        <li>Maintained pretrained models and provided comprehensive documentation</li>
-                    </ul>
-                    
-                    <h3>Publications</h3>
-                    <ul class="wiki-list">
-                        <li><b>ICLR 2023:</b> Unicom: Universal and Compact Representation Learning for Image Retrieval</li>
-                        <li><b>ECCV 2024:</b> Multi-label Cluster Discrimination for Visual Representation Learning</li>
-                        <li><b>ICCV 2025 (Highlight):</b> Region-based Cluster Discrimination for Visual Representation Learning</li>
-                    </ul>
-                    
-                    <h3>External links</h3>
-                    <ul class="wiki-list">
-                        <li><a href="https://github.com/deepglint/unicom" target="_blank">UNICOM on GitHub</a> <span class="wiki-project-stars">(⭐ 699)</span></li>
-                        <li><a href="https://arxiv.org/abs/2304.05884" target="_blank">ICLR 2023 Paper</a></li>
-                        <li><a href="https://arxiv.org/abs/2407.17331" target="_blank">ECCV 2024 Paper</a></li>
-                    </ul>
-
-                    <!-- Urban Seg Section -->
-                    <h2 id="urban-seg"><span class="mw-headline">Urban Seg</span></h2>
-                    <p><b>Urban Seg</b> is an educational project created by Xiang An to help beginners get started with semantic segmentation for remote sensing and satellite imagery. It emphasizes simplicity and ease of use.</p>
-                    
-                    <h3>Contributions</h3>
-                    <ul class="wiki-list">
-                        <li><b>Author and maintainer</b> of the entire project</li>
-                        <li>Designed the simple single-file training approach for accessibility</li>
-                        <li>Integrated popular pretrained models for transfer learning</li>
-                        <li>Created comprehensive tutorials and documentation</li>
-                    </ul>
-                    
-                    <h3>External links</h3>
-                    <ul class="wiki-list">
-                        <li><a href="https://github.com/anxiangsir/urban_seg" target="_blank">Urban Seg on GitHub</a> <span class="wiki-project-stars">(⭐ 465)</span></li>
-                    </ul>
-
-                    <!-- See Also Section -->
-                    <h2 id="see-also"><span class="mw-headline">See also</span></h2>
-                    <ul class="wiki-list">
-                        <li><a href="index.html">Xiang An</a> – Main page</li>
-                        <li><a href="publications.html">Publications</a> – Full publication list</li>
-                        <li><a href="index.html#awards">Awards</a> – Awards and competitions</li>
-                        <li><a href="https://github.com/anxiangsir" target="_blank">GitHub Profile</a></li>
+                <!-- Table of Contents -->
+                <div class="wiki-toc" id="toc">
+                    <div class="wiki-toc-title">Contents</div>
+                    <ul>
+                        <li><a href="#insightface"><span class="tocnumber">1</span> <span class="toctext">InsightFace</span></a></li>
+                        <li><a href="#llava-onevision"><span class="tocnumber">2</span> <span class="toctext">LLaVA-OneVision-1.5</span></a></li>
+                        <li><a href="#llava-next"><span class="tocnumber">3</span> <span class="toctext">LLaVA-NeXT</span></a></li>
+                        <li><a href="#unicom"><span class="tocnumber">4</span> <span class="toctext">UNICOM</span></a></li>
+                        <li><a href="#urban-seg"><span class="tocnumber">5</span> <span class="toctext">Urban Seg</span></a></li>
+                        <li><a href="#see-also"><span class="tocnumber">6</span> <span class="toctext">See also</span></a></li>
                     </ul>
                 </div>
-            </article>
-        </main>
+
+                <!-- InsightFace Section -->
+                <h2 id="insightface"><span class="mw-headline">InsightFace</span></h2>
+                <p><b>InsightFace</b> is an open-source 2D & 3D deep face analysis library with more than 27,000 stars on <a href="https://github.com/deepinsight/insightface" target="_blank">GitHub</a>. It provides state-of-the-art face recognition, detection, alignment, and analysis capabilities.</p>
+                
+                <h3>Contributions</h3>
+                <ul class="wiki-list">
+                    <li>Author of <a href="https://github.com/deepinsight/insightface/tree/master/recognition/_datasets_" target="_blank"><b>Glint360K</b></a>, the largest open-source face recognition training dataset</li>
+                    <li>Organizer of <a href="https://github.com/deepinsight/insightface/tree/master/challenges/iccv21-mfr" target="_blank"><b>ICCV 2021 Workshop</b></a> on masked face recognition challenge</li>
+                    <li>Author of <a href="https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc" target="_blank"><b>Partial FC</b></a>, enabling training 10 million identities on a single machine</li>
+                    <li>Implemented <a href="https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch" target="_blank"><b>arcface_torch</b></a>, an efficient distributed training framework</li>
+                </ul>
+                
+                <h3>External links</h3>
+                <ul class="wiki-list">
+                    <li><a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace on GitHub</a> (⭐ 27,271)</li>
+                    <li><a href="https://arxiv.org/abs/2203.15565" target="_blank">Partial FC Paper</a></li>
+                </ul>
+
+                <!-- LLaVA-OneVision-1.5 Section -->
+                <h2 id="llava-onevision"><span class="mw-headline">LLaVA-OneVision-1.5</span></h2>
+                <p><b>LLaVA-OneVision-1.5</b> is a fully open framework designed to democratize multimodal training. It provides a comprehensive pipeline for training and evaluating large multimodal models.</p>
+                
+                <h3>Contributions</h3>
+                <ul class="wiki-list">
+                    <li><b>Team Leader</b> of the project, leading the overall development and coordination</li>
+                    <li>Released <a href="https://huggingface.co/collections/lmms-lab/llava-onevision-15-68d385fe73b50bd22de23713" target="_blank"><b>mid-training and instruct data</b></a> for community use</li>
+                    <li>Developed <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5/tree/main/examples_offline_packing" target="_blank"><b>offline sampling pack</b></a> for efficient training</li>
+                    <li>Implemented <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5/tree/main/aiak_training_llm/models/llavaov_1_5" target="_blank"><b>RiceViT</b></a> with native resolution support</li>
+                </ul>
+                
+                <h3>External links</h3>
+                <ul class="wiki-list">
+                    <li><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">LLaVA-OneVision-1.5 on GitHub</a> (⭐ 651)</li>
+                    <li><a href="https://arxiv.org/abs/2509.23661" target="_blank">Paper</a></li>
+                </ul>
+
+                <!-- LLaVA-NeXT Section -->
+                <h2 id="llava-next"><span class="mw-headline">LLaVA-NeXT</span></h2>
+                <p><b>LLaVA-NeXT</b> is the next-generation large multimodal model that significantly improves upon the original LLaVA. It features enhanced visual understanding capabilities, especially for document and text-rich images.</p>
+                
+                <h3>Contributions</h3>
+                <ul class="wiki-list">
+                    <li>Enhanced the <b>OCR capability</b> of the vision module for better text recognition in images</li>
+                    <li>Optimized the <b>visual encoder</b> for processing text-rich and document images</li>
+                </ul>
+                
+                <h3>External links</h3>
+                <ul class="wiki-list">
+                    <li><a href="https://github.com/LLaVA-VL/LLaVA-NeXT" target="_blank">LLaVA-NeXT on GitHub</a> (⭐ 4,444)</li>
+                </ul>
+
+                <!-- UNICOM Section -->
+                <h2 id="unicom"><span class="mw-headline">UNICOM</span></h2>
+                <p><b>UNICOM</b> (Universal and Compact Representation Learning) is a framework developed by Xiang An for learning universal image representations. It enables efficient and accurate image retrieval at scale.</p>
+                
+                <h3>Contributions</h3>
+                <ul class="wiki-list">
+                    <li><b>Lead author and maintainer</b> of the entire project</li>
+                    <li>Designed the novel cluster discrimination approach for representation learning</li>
+                    <li>Developed the multi-label and region-based extensions (published at ECCV 2024 and ICCV 2025)</li>
+                    <li>Maintained pretrained models and provided comprehensive documentation</li>
+                </ul>
+                
+                <h3>Publications</h3>
+                <ul class="wiki-list">
+                    <li><b>ICLR 2023:</b> Unicom: Universal and Compact Representation Learning for Image Retrieval</li>
+                    <li><b>ECCV 2024:</b> Multi-label Cluster Discrimination for Visual Representation Learning</li>
+                    <li><b>ICCV 2025 (Highlight):</b> Region-based Cluster Discrimination for Visual Representation Learning</li>
+                </ul>
+                
+                <h3>External links</h3>
+                <ul class="wiki-list">
+                    <li><a href="https://github.com/deepglint/unicom" target="_blank">UNICOM on GitHub</a> (⭐ 699)</li>
+                    <li><a href="https://arxiv.org/abs/2304.05884" target="_blank">ICLR 2023 Paper</a></li>
+                    <li><a href="https://arxiv.org/abs/2407.17331" target="_blank">ECCV 2024 Paper</a></li>
+                </ul>
+
+                <!-- Urban Seg Section -->
+                <h2 id="urban-seg"><span class="mw-headline">Urban Seg</span></h2>
+                <p><b>Urban Seg</b> is an educational project created by Xiang An to help beginners get started with semantic segmentation for remote sensing and satellite imagery. It emphasizes simplicity and ease of use.</p>
+                
+                <h3>Contributions</h3>
+                <ul class="wiki-list">
+                    <li><b>Author and maintainer</b> of the entire project</li>
+                    <li>Designed the simple single-file training approach for accessibility</li>
+                    <li>Integrated popular pretrained models for transfer learning</li>
+                    <li>Created comprehensive tutorials and documentation</li>
+                </ul>
+                
+                <h3>External links</h3>
+                <ul class="wiki-list">
+                    <li><a href="https://github.com/anxiangsir/urban_seg" target="_blank">Urban Seg on GitHub</a> (⭐ 465)</li>
+                </ul>
+
+                <!-- See Also Section -->
+                <h2 id="see-also"><span class="mw-headline">See also</span></h2>
+                <ul class="wiki-list">
+                    <li><a href="index.html">Xiang An</a> – Main page</li>
+                    <li><a href="publications.html">Publications</a> – Full publication list</li>
+                    <li><a href="index.html#awards">Awards</a> – Awards and competitions</li>
+                    <li><a href="https://github.com/anxiangsir" target="_blank">GitHub Profile</a></li>
+                </ul>
+            </div>
+        </article>
     </div>
 
-    <!-- Wikipedia Footer -->
+    <!-- Footer -->
     <footer class="wiki-footer">
         <div class="wiki-footer-inner">
-            <p>This page is a personal website styled after Wikipedia. Content © Xiang An.</p>
-            <p>Last modified: <span id="last-modified">2025</span></p>
+            <p>© Xiang An. Last modified: <span id="last-modified">2025</span></p>
         </div>
     </footer>
 
     <script>
-        // Mobile menu toggle
+        // Update last modified date
         document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.querySelector('.wiki-menu-toggle');
-            const mobileMenu = document.querySelector('.wiki-mobile-menu');
-            const mobileLinks = document.querySelectorAll('.wiki-mobile-nav a');
-
-            if (menuToggle) {
-                menuToggle.addEventListener('click', function() {
-                    menuToggle.classList.toggle('active');
-                    mobileMenu.classList.toggle('active');
-                    document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
-                });
-            }
-
-            mobileLinks.forEach(function(link) {
-                link.addEventListener('click', function() {
-                    menuToggle.classList.remove('active');
-                    mobileMenu.classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-            });
-
-            // Update last modified date
             const lastModified = document.getElementById('last-modified');
             if (lastModified) {
                 lastModified.textContent = new Date().toLocaleDateString('en-US', { 

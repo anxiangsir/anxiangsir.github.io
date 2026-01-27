@@ -865,3 +865,68 @@ abbr[title] {
         font-size: 10pt;
     }
 }
+
+/* ==========================================================================
+   Simple Layout (no header/sidebar) - Personal Resume Style
+   ========================================================================== */
+body.wiki-simple {
+    background-color: var(--wiki-content-bg);
+}
+
+.wiki-simple-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 40px;
+    background-color: var(--wiki-content-bg);
+    min-height: calc(100vh - 60px);
+}
+
+.wiki-simple .wiki-article {
+    padding: 0;
+}
+
+.wiki-simple .wiki-page-title {
+    margin-bottom: 20px;
+    padding-top: 0;
+}
+
+.wiki-simple .wiki-infobox {
+    margin-top: 0;
+}
+
+/* Mobile responsive for simple layout */
+@media (max-width: 768px) {
+    .wiki-simple-container {
+        padding: 16px 20px;
+    }
+    
+    .wiki-simple .wiki-infobox {
+        float: none;
+        margin: 0 auto 20px auto;
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .wiki-simple .wiki-page-title {
+        font-size: 24px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .wiki-simple-container {
+        padding: 12px 16px;
+    }
+    
+    .wiki-simple .wiki-page-title {
+        font-size: 22px;
+    }
+}
+
+/* Print styles for simple layout */
+@media print {
+    .wiki-simple-container {
+        max-width: none;
+        padding: 0;
+    }
+}
