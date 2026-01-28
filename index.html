@@ -1,119 +1,548 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Xiang An - Research Scientist, Team Lead">
-    <title>Xiang An</title>
-    <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
-    <link rel="stylesheet" href="assets/css/wikipedia.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Xiang An - Personal Homepage</title>
+  <meta name="description" content="Xiang An - Research Scientist and Team Lead at GlintLab">
+  <link rel="shortcut icon" href="assets/img/profile_pic.jpg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #202122;
+      background: #f8f9fa;
+    }
+
+    /* Header */
+    .wiki-header {
+      background: #fff;
+      border-bottom: 1px solid #a2a9b1;
+      padding: 0.5em 0;
+    }
+    .wiki-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .wiki-logo {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #202122;
+      text-decoration: none;
+    }
+    .wiki-nav a {
+      color: #0645ad;
+      text-decoration: none;
+      margin-left: 1.5em;
+      font-size: 0.9em;
+    }
+    .wiki-nav a:hover { text-decoration: underline; }
+
+    /* Main layout */
+    .wiki-wrapper {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      min-height: calc(100vh - 100px);
+    }
+
+    /* Left sidebar - TOC */
+    .wiki-sidebar {
+      width: 176px;
+      flex-shrink: 0;
+      background: #f8f9fa;
+      border-right: 1px solid #a2a9b1;
+      padding: 0.75em;
+    }
+    .wiki-sidebar-title {
+      font-weight: bold;
+      padding-bottom: 0.5em;
+      border-bottom: 1px solid #c8ccd1;
+      margin-bottom: 0.5em;
+    }
+    .wiki-sidebar ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .wiki-sidebar li {
+      margin: 0.3em 0;
+    }
+    .wiki-sidebar a {
+      color: #0645ad;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+    .wiki-sidebar a:hover { text-decoration: underline; }
+
+    /* Content area */
+    .wiki-content {
+      flex: 1;
+      background: #fff;
+      border-left: 1px solid #a2a9b1;
+      border-right: 1px solid #a2a9b1;
+      padding: 1.5em 2em;
+      min-width: 0;
+    }
+
+    /* Page title */
+    .wiki-title {
+      font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
+      font-size: 1.8em;
+      font-weight: normal;
+      border-bottom: 1px solid #a2a9b1;
+      padding-bottom: 0.2em;
+      margin-bottom: 0.5em;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: normal;
+      color: #000;
+      margin-top: 1em;
+      margin-bottom: 0.25em;
+    }
+    h2 {
+      font-size: 1.5em;
+      border-bottom: 1px solid #a2a9b1;
+      padding-bottom: 0.2em;
+    }
+    h3 { font-size: 1.2em; }
+    h4 { font-size: 1.1em; font-weight: bold; }
+    h5 { font-size: 1em; font-weight: bold; }
+
+    p { margin: 0.5em 0; }
+
+    a { color: #0645ad; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:visited { color: #0b0080; }
+
+    ul, ol { margin: 0.3em 0 0.3em 1.6em; }
+    li { margin: 0.2em 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid #a2a9b1;
+      margin: 1em 0;
+    }
+
+    blockquote {
+      border-left: 3px solid #c8ccd1;
+      padding-left: 1em;
+      margin: 1em 0;
+      color: #54595d;
+    }
+
+    code {
+      font-family: monospace;
+      background: #f8f9fa;
+      padding: 1px 4px;
+      border: 1px solid #eaecf0;
+    }
+    pre {
+      background: #f8f9fa;
+      border: 1px solid #eaecf0;
+      padding: 1em;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+
+    /* Right sidebar - Infobox */
+    .wiki-infobox-container {
+      width: 260px;
+      flex-shrink: 0;
+      padding: 0.75em;
+      background: #f8f9fa;
+    }
+    .infobox {
+      border: 1px solid #a2a9b1;
+      background: #f8f9fa;
+      font-size: 0.9em;
+      padding: 0.5em;
+      position: sticky;
+      top: 1em;
+    }
+    .infobox-title {
+      background: #eaecf0;
+      text-align: center;
+      font-weight: bold;
+      padding: 0.4em;
+      margin: -0.5em -0.5em 0.5em -0.5em;
+    }
+    .infobox img {
+      width: 100%;
+      border: 1px solid #c8ccd1;
+    }
+    .infobox-caption {
+      text-align: center;
+      font-size: 0.85em;
+      color: #54595d;
+      padding: 0.3em 0;
+    }
+    .infobox-row {
+      padding: 0.3em 0;
+      border-top: 1px solid #eaecf0;
+    }
+    .infobox-label {
+      font-weight: bold;
+    }
+
+    .infobox-row a {
+      word-break: break-all;
+    }
+    .infobox-row i {
+      width: 1.2em;
+      text-align: center;
+    }
+
+    /* Publications */
+    .publications { margin-top: 0.5em; }
+    .publications ol.bibliography {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .publications ol.bibliography li {
+      margin-bottom: 0.8em !important;
+      padding-bottom: 0.6em !important;
+      padding-top: 0.6em !important;
+      margin-top: 0 !important;
+      border-bottom: 1px solid #eaecf0;
+    }
+    .publications ol.bibliography li:last-child {
+      border-bottom: none;
+    }
+    .publications ol.bibliography li .pub-entry .hidden {
+      display: none;
+    }
+    .pub-entry {
+      line-height: 1.4;
+    }
+    .pub-entry .periodical,
+    .pub-entry .additional,
+    .pub-entry .author {
+      margin: 0.2em 0 0;
+      line-height: 1.3;
+    }
+    .pub-entry .pub-number {
+      display: none;
+    }
+    .pub-entry .title {
+      font-weight: bold;
+    }
+    .pub-entry .title a {
+      color: #0645ad;
+    }
+    .pub-entry .periodical {
+      display: block;
+      color: #54595d;
+      font-size: 0.9em;
+    }
+    .pub-entry .periodical .genre-tag {
+      display: inline-block;
+      padding: 0.12em 0.45em;
+      border: 1px solid #c8ccd1;
+      border-radius: 3px;
+      background: #f8f9fa;
+      color: #54595d;
+      font-size: 0.85em;
+      font-style: normal;
+      line-height: 1.2;
+      margin: 0.15em 0.4em 0 0;
+      max-width: 100%;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .pub-entry .periodical .genre-tag-secondary {
+      border-color: #eaecf0;
+      background: #fff;
+    }
+    .pub-entry .periodical .genre-tag a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .pub-entry .periodical .genre-tag a:hover {
+      text-decoration: underline;
+    }
+    .pub-entry .additional {
+      display: block;
+      color: #5c4a1a;
+      background: #fff8e1;
+      border-left: 3px solid #d4a017;
+      padding: 0.25em 0.5em;
+      border-radius: 2px;
+      font-weight: normal;
+    }
+    .pub-entry .author {
+      display: block;
+      color: #54595d;
+      font-size: 0.9em;
+    }
+    .pub-entry .links {
+      font-size: 0.85em;
+      margin-left: 0.5em;
+    }
+    .pub-entry .links a {
+      margin-right: 0.3em;
+    }
+    .pub-entry .hidden {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.2s ease;
+      background: #f8f9fa;
+      border: 1px solid #eaecf0;
+      margin-top: 0.5em;
+      font-size: 0.9em;
+    }
+    .pub-entry .hidden.open {
+      max-height: 30em;
+      padding: 0.5em;
+    }
+
+    /* Footer */
+    .wiki-footer {
+      text-align: center;
+      padding: 1em;
+      font-size: 0.85em;
+      color: #54595d;
+      border-top: 1px solid #a2a9b1;
+      background: #f8f9fa;
+    }
+
+    /* Hide TOC in content when sidebar exists */
+    .toc { display: none; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .wiki-wrapper {
+        flex-direction: column;
+      }
+      .wiki-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #a2a9b1;
+      }
+      .wiki-infobox-container {
+        width: 100%;
+        order: -1;
+      }
+      .wiki-content {
+        border-left: none;
+        border-right: none;
+        padding: 1em;
+      }
+    }
+  </style>
 </head>
-
-<body class="wiki-simple">
-    <!-- Apple-style Navigation -->
-    <nav class="apple-nav">
-        <div class="apple-nav-inner">
-            <button class="apple-nav-toggle" aria-label="Menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <a href="index.html" class="apple-nav-logo">Xiang An</a>
-            <ul class="apple-nav-links">
-                <li><a href="#publications">Publications</a></li>
-                <li><a href="#awards">Awards</a></li>
-                <li><a href="#open-source">Open Source</a></li>
-            </ul>
-        </div>
-    </nav>
-
-    <!-- Mobile Menu -->
-    <div class="apple-mobile-menu">
-        <ul>
-            <li><a href="#publications">Publications</a></li>
-            <li><a href="#awards">Awards</a></li>
-            <li><a href="#open-source">Open Source</a></li>
-        </ul>
+<body>
+  <header class="wiki-header">
+    <div class="wiki-header-inner">
+      <a href="/" class="wiki-logo">Personal Homepage</a>
+      <nav class="wiki-nav">
+        <a href="#publications">Publications</a>
+        <a href="#awards">Awards</a>
+        <a href="#open-source">Open Source</a>
+      </nav>
     </div>
+  </header>
 
-    <div class="wiki-simple-container">
-        <article class="wiki-article">
-            <div class="wiki-article-body">
-                <!-- Lead Section -->
-                <p><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, specializing in <a href="#publications">computer vision</a> and multimodal large models. His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐).</p>
+  <div class="wiki-wrapper">
+    <aside class="wiki-sidebar">
+      <div class="wiki-sidebar-title">Contents</div>
+      <ul>
+        <li><a href="#">(Top)</a></li>
+        <li><a href="#publications">Publications</a></li>
+        <li><a href="#awards">Awards</a></li>
+        <li><a href="#open-source">Open Source</a></li>
+        <li><a href="#external-links">External Links</a></li>
+      </ul>
+    </aside>
 
-                <!-- Publications Section -->
-                <h2 id="publications"><span class="mw-headline">Selected Publications</span></h2>
-                <p>The following is a selection of notable publications. For a complete list, see <a href="publications.html">All Publications</a>.</p>
-                
-                <ul class="wiki-pub-list" id="pub-list">
-                    <!-- Publications will be loaded dynamically from YAML -->
-                    <li class="wiki-loading">
-                        <span class="wiki-loading-spinner"></span>
-                        Loading publications...
-                    </li>
-                </ul>
+    <main class="wiki-content">
+      <h1 class="wiki-title">Xiang An</h1>
 
-                <!-- Awards Section -->
-                <h2 id="awards"><span class="mw-headline">Awards & Competitions</span></h2>
-                <ul class="wiki-list">
-                    <li><b>ICCV 2025 Outstanding Reviewer</b></li>
-                    <li><b>CVPR 2024 Outstanding Reviewer</b></li>
-                    <li><b>Ranked 1st in NIST FRVT Competition, Visa Track 1:1</b></li>
-                    <li><b>2024 中国年度力量人物提名</b></li>
-                    <li><b>Ranked 1st in the graduate entrance examination (major)</b></li>
-                    <li><b>First Place in Vehicle Re-Identification, PRCV 2019</b></li>
-                </ul>
+<p><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, specializing in computer vision and multimodal large models. His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐).</p>
 
-                <!-- Open Source Section -->
-                <h2 id="open-source"><span class="mw-headline">Open Source</span></h2>
-                
-                <h3 id="insightface"><a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> <span class="stars-insightface"></span></h3>
-                <p>#2 contributor to the open-source 2D & 3D deep face analysis library with more than 27,000 stars on GitHub. Author of Glint360K (the largest open-source face recognition training dataset) and Partial FC (enabling training 10 million identities on a single machine). Also organized the ICCV 2021 Workshop on masked face recognition challenge.</p>
-                
-                <h3 id="llava-onevision"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">LLaVA-OneVision-1.5</a> <span class="stars-llava-onevision"></span></h3>
-                <p>Team Leader of this fully open framework designed to democratize multimodal training. Released mid-training and instruct data for community use, and developed offline sampling pack for efficient training. Implemented RiceViT with native resolution support.</p>
-                
-                <h3 id="unicom"><a href="https://github.com/deepglint/unicom" target="_blank">UNICOM</a> <span class="stars-unicom"></span></h3>
-                <p>Lead author and maintainer of Universal and Compact Representation Learning framework for universal image representations. Designed the novel cluster discrimination approach for representation learning. Developed the multi-label and region-based extensions (published at ECCV 2024 and ICCV 2025 (Highlight)).</p>
-                
-                <h3 id="llava-next"><a href="https://github.com/LLaVA-VL/LLaVA-NeXT" target="_blank">LLaVA-NeXT</a> <span class="stars-llava-next"></span></h3>
-                <p>Vision module contributor to the next-generation large multimodal model. Enhanced the OCR capability of the vision module for better text recognition in images. Optimized the visual encoder for processing text-rich and document images.</p>
-                
-                <h3 id="urban-seg"><a href="https://github.com/anxiangsir/urban_seg" target="_blank">Urban Seg</a> <span class="stars-urban-seg"></span></h3>
-                <p>Author and maintainer of this educational project for semantic segmentation on remote sensing and satellite imagery. Designed a simple single-file training approach for accessibility and integrated popular pretrained models. Created comprehensive tutorials and documentation for beginners.</p>
+<h2 id="publications">Publications</h2>
 
-                <!-- External Links Section -->
-                <h2 id="external-links"><span class="mw-headline">External Links</span></h2>
-                <ul class="wiki-list">
-                    <li><a href="mailto:anxiangsir@outlook.com">Email: anxiangsir@outlook.com</a></li>
-                    <li><a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar Profile</a></li>
-                    <li><a href="https://github.com/anxiangsir" target="_blank">GitHub: anxiangsir</a></li>
-                    <li><a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace Project</a></li>
-                </ul>
-            </div>
-        </article>
-    </div>
+<p>The following is a selection of notable publications. For a complete list, see <a href="publications.html">All Publications</a>.</p>
 
-    <!-- Footer -->
-    <footer class="wiki-footer">
-        <div class="wiki-footer-inner">
-            <p>© Xiang An. Last modified: <span id="last-modified">2025</span></p>
+<div class="publications">
+<ol class="bibliography">
+<li><div class="pub-entry">
+    <span class="title"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5">LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training</a></span>
+    <span class="periodical"><span class="genre-tag">Preprint 2025</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://arxiv.org/abs/2509.23661" target="_blank">Paper</a></span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">Code</a></span>
+    </span>
+    <span class="additional">Team Leader of this fully open framework designed to democratize multimodal training. Released mid-training and instruct data for community use</span>
+    <span class="author">Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al.</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2507.20025">Region-based Cluster Discrimination for Visual Representation Learning</a></span>
+    <span class="periodical"><span class="genre-tag">ICCV 2025 (Highlight)</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepglint/unicom" target="_blank">Code</a></span>
+    </span>
+    <span class="additional">Novel approach to self-supervised learning by introducing region-based cluster discrimination. Led the project development</span>
+    <span class="author">Yin Xie, Kaicheng Yang, <u>Xiang An (Project Leader)</u>, Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Jiankang Deng</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2407.17331">Multi-label Cluster Discrimination for Visual Representation Learning</a></span>
+    <span class="periodical"><span class="genre-tag">ECCV 2024</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepglint/unicom" target="_blank">Code</a></span>
+    </span>
+    <span class="additional">Groundbreaking multi-label cluster discrimination framework for self-supervised visual representation learning</span>
+    <span class="author">Xiang An, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jiankang Deng</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2304.05884">Unicom: Universal and Compact Representation Learning for Image Retrieval</a></span>
+    <span class="periodical"><span class="genre-tag">ICLR 2023</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepglint/unicom" target="_blank">Code</a></span>
+    </span>
+    <span class="additional">Universal and compact representation learning framework for large-scale image retrieval. Foundation for scalable image retrieval systems</span>
+    <span class="author">Xiang An, Jiankang Deng, Kaicheng Yang, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a>Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC</a></span>
+    <span class="periodical"><span class="genre-tag">CVPR 2022</span>
+    </span>
+    <span class="additional">Enabling training of 10 million identities on a single machine through innovative Partial FC approach</span>
+    <span class="author">Xiang An, Jiankang Deng, Jia Guo, Ziyong Feng, Xuhan Zhu, Jing Yang, Tongliang Liu</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2510.13515">UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning</a></span>
+    <span class="periodical"><span class="genre-tag">AAAI 2026 (Oral)</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/GaryGuTC/UniME-v2" target="_blank">Code</a></span>
+    </span>
+    <span class="author">Tiancheng Gu, Kaicheng Yang, Kaichen Zhang, Xiang An, Ziyong Feng, Yueyi Zhang, Weidong Cai, Jiankang Deng, Lidong Bing</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a>UniViT: Unifying Image and Video Understanding in One Vision Encoder</a></span>
+    <span class="periodical"><span class="genre-tag">NeurIPS 2025</span>
+    </span>
+    <span class="author">Feilong Tang, Xiang An, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Ziyong Feng, Jiankang Deng, Zongyuan Ge, et al.</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a>ViCToR: Improving Visual Comprehension via Token Reconstruction for Pretraining LMMs</a></span>
+    <span class="periodical"><span class="genre-tag">AAAI 2026</span>
+    </span>
+    <span class="author">Yin Xie, Kaicheng Yang, Peirou Liang, Xiang An, Yongle Zhao, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng</span>
+</div>
+</li>
+</ol>
+</div>
+
+<h2 id="awards">Awards & Competitions</h2>
+
+<ul>
+  <li><b>ICCV 2025 Outstanding Reviewer</b></li>
+  <li><b>CVPR 2024 Outstanding Reviewer</b></li>
+  <li><b>Ranked 1st in NIST FRVT Competition, Visa Track 1:1</b></li>
+  <li><b>2024 中国年度力量人物提名</b></li>
+  <li><b>Ranked 1st in the graduate entrance examination (major)</b></li>
+  <li><b>First Place in Vehicle Re-Identification, PRCV 2019</b></li>
+</ul>
+
+<h2 id="open-source">Open Source</h2>
+
+<h3 id="insightface"><a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a></h3>
+<p>#2 contributor to the open-source 2D & 3D deep face analysis library with more than 27,000 stars on GitHub. Author of Glint360K (the largest open-source face recognition training dataset) and Partial FC (enabling training 10 million identities on a single machine). Also organized the ICCV 2021 Workshop on masked face recognition challenge.</p>
+
+<h3 id="llava-onevision"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">LLaVA-OneVision-1.5</a></h3>
+<p>Team Leader of this fully open framework designed to democratize multimodal training. Released mid-training and instruct data for community use, and developed offline sampling pack for efficient training. Implemented RiceViT with native resolution support.</p>
+
+<h3 id="unicom"><a href="https://github.com/deepglint/unicom" target="_blank">UNICOM</a></h3>
+<p>Lead author and maintainer of Universal and Compact Representation Learning framework for universal image representations. Designed the novel cluster discrimination approach for representation learning. Developed the multi-label and region-based extensions (published at ECCV 2024 and ICCV 2025 (Highlight)).</p>
+
+<h3 id="llava-next"><a href="https://github.com/LLaVA-VL/LLaVA-NeXT" target="_blank">LLaVA-NeXT</a></h3>
+<p>Vision module contributor to the next-generation large multimodal model. Enhanced the OCR capability of the vision module for better text recognition in images. Optimized the visual encoder for processing text-rich and document images.</p>
+
+<h3 id="urban-seg"><a href="https://github.com/anxiangsir/urban_seg" target="_blank">Urban Seg</a></h3>
+<p>Author and maintainer of this educational project for semantic segmentation on remote sensing and satellite imagery. Designed a simple single-file training approach for accessibility and integrated popular pretrained models. Created comprehensive tutorials and documentation for beginners.</p>
+
+<h2 id="external-links">External Links</h2>
+
+<ul>
+  <li><a href="mailto:anxiangsir@outlook.com"><i class="fas fa-envelope"></i> Email: anxiangsir@outlook.com</a></li>
+  <li><a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank"><i class="ai ai-google-scholar"></i> Google Scholar Profile</a></li>
+  <li><a href="https://github.com/anxiangsir" target="_blank"><i class="fab fa-github"></i> GitHub: anxiangsir</a></li>
+  <li><a href="https://github.com/deepinsight/insightface" target="_blank"><i class="fab fa-github"></i> InsightFace Project</a></li>
+</ul>
+
+<hr />
+
+<p><em>This page is styled after <a href="https://en.wikipedia.org/">Wikipedia</a>.</em></p>
+
+    </main>
+
+    <aside class="wiki-infobox-container">
+      <div class="infobox">
+        <div class="infobox-title">Xiang An</div>
+        
+        <img src="assets/img/profile_pic.jpg" alt="Xiang An">
+        <div class="infobox-caption">Research Scientist at GlintLab</div>
+        
+        <div class="infobox-row">
+          <span class="infobox-label">Organization</span><br>
+          GlintLab
         </div>
-    </footer>
+        <div class="infobox-row">
+          <span class="infobox-label">Position</span><br>
+          Research Scientist, Team Lead
+        </div>
+        <div class="infobox-row">
+          <span class="infobox-label">Field</span><br>
+          Computer Vision, Multimodal AI
+        </div>
+        <div class="infobox-row">
+          <span class="infobox-label">Notable Work</span><br>
+          InsightFace, UNICOM, LLaVA-OneVision
+        </div>
+        
+        <div class="infobox-row">
+          <span class="infobox-label">GitHub</span><br>
+          <a href="https://github.com/anxiangsir"><i class="fab fa-github"></i> anxiangsir</a>
+        </div>
+        
+        <div class="infobox-row">
+          <span class="infobox-label">Google Scholar</span><br>
+          <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en"><i class="ai ai-google-scholar"></i> Profile</a>
+        </div>
+        
+        <div class="infobox-row">
+          <span class="infobox-label">Email</span><br>
+          <a href="mailto:anxiangsir@outlook.com"><i class="fas fa-envelope"></i> Contact</a>
+        </div>
+      </div>
+    </aside>
+  </div>
 
-    <!-- Navigation script -->
-    <script src="assets/js/navigation.js"></script>
-
-    <!-- Load custom YAML parser -->
-    <script src="assets/js/yaml-parser.js"></script>
-    
-    <!-- Load publications from YAML -->
-    <script src="assets/js/publications-loader.js"></script>
-
-    <!-- Load GitHub star counts dynamically -->
-    <script src="assets/js/github-stars.js"></script>
+  <footer class="wiki-footer">
+    This page was last edited on January 28, 2025.
+  </footer>
 </body>
-
 </html>
