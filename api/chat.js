@@ -27,10 +27,10 @@ async function handleChatRequest(req, res) {
       });
     }
 
-    // Current implementation: Always return "升级中！"
-    const reply = UPGRADE_MESSAGE;
-    
+    // Current implementation: Always return the upgrade message
     // TODO: Uncomment the following code when ready to integrate OpenAI API
+    let reply = UPGRADE_MESSAGE;
+    
     /*
     if (!OPENAI_API_KEY) {
       return res.status(500).json({ 
@@ -72,7 +72,7 @@ async function handleChatRequest(req, res) {
       throw new Error('Invalid API response structure');
     }
 
-    const reply = data.choices[0].message.content;
+    reply = data.choices[0].message.content;
     */
 
     return res.status(200).json({ 
