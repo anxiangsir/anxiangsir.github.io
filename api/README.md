@@ -4,15 +4,27 @@
 
 Python Flask chat service powered by Alibaba Cloud DashScope (Qwen model).
 
-## Setup
+## Deployment
 
-### 1. Install Dependencies
+### Vercel (Recommended)
+
+Vercel automatically detects `api/chat.py` as a Python serverless function.
+
+1. Import the repository at [vercel.com/new](https://vercel.com/new).
+2. Add the `DASHSCOPE_API_KEY` environment variable in **Settings → Environment Variables**.
+3. Deploy — the `/api/chat` endpoint is available immediately.
+
+> **Important:** GitHub Actions **Repository secrets** are only available during CI/CD workflow runs. They are **not** passed to the Vercel runtime. You must set `DASHSCOPE_API_KEY` in **Vercel's** Environment Variables.
+
+### Local
+
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure API Key
+### Configure API Key
 
 Set the `DASHSCOPE_API_KEY` environment variable:
 
@@ -20,12 +32,11 @@ Set the `DASHSCOPE_API_KEY` environment variable:
 export DASHSCOPE_API_KEY="sk-xxx"
 ```
 
-For GitHub Actions, add `DASHSCOPE_API_KEY` as a **Repository secret**:
-- Go to **Settings → Secrets and variables → Actions → New repository secret**
-- Name: `DASHSCOPE_API_KEY`
-- Value: your API key from [阿里云百炼](https://help.aliyun.com/model-studio/getting-started/models)
+Get your API key from [阿里云百炼](https://help.aliyun.com/model-studio/getting-started/models).
 
-### 3. Run the Service
+For Vercel deployments, set `DASHSCOPE_API_KEY` in **Vercel → Settings → Environment Variables**.
+
+### Run the Service
 
 ```bash
 python api/chat.py
@@ -76,5 +87,5 @@ Update the `CHAT_API_URL` constant in `index.html` if your service runs on a dif
 ## Security
 
 - **Never** commit API keys to the repository.
-- Use environment variables or Repository secrets for `DASHSCOPE_API_KEY`.
+- Use Vercel Environment Variables or local environment variables for `DASHSCOPE_API_KEY`.
 - Consider adding rate limiting for production use.
