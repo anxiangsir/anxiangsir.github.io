@@ -1,9 +1,11 @@
 {
-  "version": 2,
-  "builds": [
+  "framework": null,
+  "headers": [
     {
-      "src": "api/chat.py",
-      "use": "@vercel/python"
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
     }
   ]
 }
