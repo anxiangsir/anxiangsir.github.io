@@ -82,7 +82,8 @@ PORT=8080 python api/chat.py
 ## Frontend Integration
 
 The `index.html` chat interface calls `POST /api/chat` automatically.
-Update the `CHAT_API_URL` constant in `index.html` if your service runs on a different host.
+When the page is served from GitHub Pages (`anxiangsir.github.io`), it calls the Vercel-hosted API cross-origin.
+Update the `VERCEL_ORIGIN` constant in `index.html` if your Vercel production URL changes.
 
 ## Security
 

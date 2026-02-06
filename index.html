@@ -781,8 +781,16 @@
   <!-- Chat functionality -->
   <script>
     (function() {
-      // Chat API endpoint - change this to your deployed Python service URL
-      const CHAT_API_URL = '/api/chat';
+      // Chat API endpoint — auto-detect environment
+      // On Vercel or localhost the API is co-located; on GitHub Pages we
+      // call the Vercel-hosted serverless function cross-origin.
+      // ⚠️  Update this URL if the Vercel project is renamed or redeployed
+      //     under a different domain (check Vercel Dashboard → Domains).
+      const VERCEL_ORIGIN = 'https://anxiangsir-github-anxiangsirs-projects.vercel.app';
+      const CHAT_API_URL = (window.location.hostname === 'localhost' ||
+                            window.location.hostname.includes('vercel.app'))
+        ? '/api/chat'
+        : VERCEL_ORIGIN + '/api/chat';
       
       const chatMessages = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
