@@ -571,7 +571,7 @@
     <div class="chat-messages" id="chatMessages">
       <div class="chat-message assistant">
         <div class="chat-message-label">Xiang An</div>
-        <div>你好！欢迎来到安翔的主页。我目前正在升级中,敬请期待！</div>
+        <div>你好！欢迎来到安翔的主页，有什么可以帮你的吗？</div>
       </div>
     </div>
     <div class="chat-input-container">
@@ -781,9 +781,8 @@
   <!-- Chat functionality -->
   <script>
     (function() {
-      // Constants
-      const UPGRADE_MESSAGE = '升级中！';
-      const SIMULATED_RESPONSE_DELAY_MS = 500;
+      // Chat API endpoint - change this to your deployed Python service URL
+      const CHAT_API_URL = '/api/chat';
       
       const chatMessages = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
@@ -808,7 +807,22 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
 
-      function sendMessage() {
+      async function callChatAPI(message) {
+        try {
+          const response = await fetch(CHAT_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+          });
+          const data = await response.json();
+          return data.reply || data.error || '抱歉，服务暂时不可用。';
+        } catch (error) {
+          console.error('Chat API error:', error);
+          return '抱歉，服务暂时不可用。';
+        }
+      }
+
+      async function sendMessage() {
         const message = chatInput.value.trim();
         if (!message) return;
         
@@ -816,17 +830,14 @@
         addMessage(message, true);
         chatInput.value = '';
         
-        // Disable button temporarily
+        // Disable button while waiting for response
         chatSendBtn.disabled = true;
         
-        // Simulate thinking delay
-        setTimeout(() => {
-          // TODO: Replace with actual OpenAI API call
-          // For now, always respond with UPGRADE_MESSAGE
-          addMessage(UPGRADE_MESSAGE, false);
-          chatSendBtn.disabled = false;
-          chatInput.focus();
-        }, SIMULATED_RESPONSE_DELAY_MS);
+        // Call the Python chat API
+        const reply = await callChatAPI(message);
+        addMessage(reply, false);
+        chatSendBtn.disabled = false;
+        chatInput.focus();
       }
 
       // Event listeners
@@ -836,24 +847,6 @@
           sendMessage();
         }
       });
-
-      // TODO: Future OpenAI API integration
-      // async function callOpenAI(message) {
-      //   try {
-      //     const response = await fetch('/api/chat', {
-      //       method: 'POST',
-      //       headers: {
-      //         'Content-Type': 'application/json',
-      //       },
-      //       body: JSON.stringify({ message: message })
-      //     });
-      //     const data = await response.json();
-      //     return data.reply;
-      //   } catch (error) {
-      //     console.error('Error calling OpenAI API:', error);
-      //     return '抱歉，服务暂时不可用。';
-      //   }
-      // }
     })();
   </script>
 </body>
