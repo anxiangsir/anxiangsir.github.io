@@ -36,7 +36,29 @@ def get_client():
 def chat():
     """Handle chat requests."""
     data = request.get_json(silent=True)
-    if not data or not isinstance(data.get("message"), str) or not data["message"].strip():
+    if not data:
+        return jsonify({"error": "无效的消息格式"}), 400
+
+    # Accept either 'messages' (conversation history) or 'message' (single string)
+    raw_messages = data.get("messages")
+    if isinstance(raw_messages, list) and raw_messages:
+        # Validate each entry has role and content strings
+        messages = []
+        for m in raw_messages:
+            if (
+                isinstance(m, dict)
+                and isinstance(m.get("role"), str)
+                and m["role"] in ("user", "assistant")
+                and isinstance(m.get("content"), str)
+                and m["content"].strip()
+            ):
+                messages.append({"role": m["role"], "content": m["content"].strip()})
+        if not messages:
+            return jsonify({"error": "无效的消息格式"}), 400
+    elif isinstance(data.get("message"), str) and data["message"].strip():
+        # Backward-compatible: single message string
+        messages = [{"role": "user", "content": data["message"].strip()}]
+    else:
         return jsonify({"error": "无效的消息格式"}), 400
 
     client = get_client()
@@ -46,10 +68,7 @@ def chat():
     try:
         completion = client.chat.completions.create(
             model=MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": data["message"].strip()},
-            ],
+            messages=[{"role": "system", "content": SYSTEM_PROMPT}] + messages,
         )
         reply = completion.choices[0].message.content
         return jsonify({"reply": reply})
