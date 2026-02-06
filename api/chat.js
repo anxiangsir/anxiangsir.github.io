@@ -7,7 +7,8 @@
  * TODO: Integrate with OpenAI API
  */
 
-// Environment configuration
+// Constants
+const UPGRADE_MESSAGE = '升级中！';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
@@ -27,14 +28,14 @@ async function handleChatRequest(req, res) {
     }
 
     // Current implementation: Always return "升级中！"
-    const reply = '升级中！';
+    const reply = UPGRADE_MESSAGE;
     
     // TODO: Uncomment the following code when ready to integrate OpenAI API
     /*
     if (!OPENAI_API_KEY) {
       return res.status(500).json({ 
         error: 'OpenAI API key not configured',
-        reply: '升级中！'
+        reply: UPGRADE_MESSAGE
       });
     }
 
@@ -79,7 +80,7 @@ async function handleChatRequest(req, res) {
     console.error('Chat API error:', error);
     return res.status(500).json({ 
       error: '服务器错误',
-      reply: '升级中！'
+      reply: UPGRADE_MESSAGE
     });
   }
 }

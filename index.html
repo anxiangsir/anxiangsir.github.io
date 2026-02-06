@@ -487,7 +487,7 @@
     <div class="chat-header">💬 Chat with AI</div>
     <div class="chat-messages" id="chatMessages">
       <div class="chat-message assistant">
-        <div class="chat-message-label">Assistant</div>
+        <div class="chat-message-label">助手</div>
         <div>你好！欢迎来到安翔的主页。我目前正在升级中，敬请期待！</div>
       </div>
     </div>
@@ -708,7 +708,7 @@
         
         const labelDiv = document.createElement('div');
         labelDiv.className = 'chat-message-label';
-        labelDiv.textContent = isUser ? '用户' : 'Assistant';
+        labelDiv.textContent = isUser ? '用户' : '助手';
         
         const contentDiv = document.createElement('div');
         contentDiv.textContent = text;
