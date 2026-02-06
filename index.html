@@ -488,7 +488,7 @@
     <div class="chat-messages" id="chatMessages">
       <div class="chat-message assistant">
         <div class="chat-message-label">助手</div>
-        <div>你好！欢迎来到安翔的主页。我目前正在升级中，敬请期待！</div>
+        <div>你好！欢迎来到安翔的主页。我目前正在升级中,敬请期待！</div>
       </div>
     </div>
     <div class="chat-input-container">
@@ -700,6 +700,7 @@
     (function() {
       // Constants
       const UPGRADE_MESSAGE = '升级中！';
+      const SIMULATED_RESPONSE_DELAY_MS = 500;
       
       const chatMessages = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
@@ -742,7 +743,7 @@
           addMessage(UPGRADE_MESSAGE, false);
           chatSendBtn.disabled = false;
           chatInput.focus();
-        }, 500);
+        }, SIMULATED_RESPONSE_DELAY_MS);
       }
 
       // Event listeners
