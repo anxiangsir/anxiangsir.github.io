@@ -13,7 +13,11 @@ from openai import OpenAI
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=[
+    "https://anxiangsir.github.io",
+    r"http://localhost:\d+",
+    r"http://127\.0\.0\.1:\d+",
+])
 
 DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY", "")
 BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
@@ -41,7 +45,9 @@ def chat():
 
     client = get_client()
     if client is None:
-        return jsonify({"error": "服务器错误", "reply": "抱歉，服务暂时不可用。"}), 500
+        return jsonify({
+            "error": "DASHSCOPE_API_KEY 环境变量未设置，请在 Vercel Settings → Environment Variables 中配置。",
+        }), 500
 
     try:
         completion = client.chat.completions.create(

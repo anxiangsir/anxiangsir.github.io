@@ -18,7 +18,7 @@ The `static.yml` workflow deploys the site to GitHub Pages. Because GitHub Pages
 
 ### Hybrid: GitHub Pages + Vercel API (Recommended)
 
-When the site is visited at `https://anxiangsir.github.io/`, the frontend automatically detects that it is **not** running on Vercel and redirects Chat API calls to the Vercel deployment (`https://anxiangsir-github-anxiangsirs-projects.vercel.app/api/chat`).
+When the site is visited at `https://anxiangsir.github.io/`, the frontend automatically detects that it is **not** running on Vercel and redirects Chat API calls to the Vercel deployment (`https://anxiangsir-github-io.vercel.app/api/chat`).
 
 This means:
 - **Static pages** are served by GitHub Pages at `anxiangsir.github.io`.

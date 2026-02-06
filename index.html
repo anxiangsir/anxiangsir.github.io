@@ -786,7 +786,7 @@
       // call the Vercel-hosted serverless function cross-origin.
       // ⚠️  Update this URL if the Vercel project is renamed or redeployed
       //     under a different domain (check Vercel Dashboard → Domains).
-      const VERCEL_ORIGIN = 'https://anxiangsir-github-anxiangsirs-projects.vercel.app';
+      const VERCEL_ORIGIN = 'https://anxiangsir-github-io.vercel.app';
       const CHAT_API_URL = (window.location.hostname === 'localhost' ||
                             window.location.hostname.includes('vercel.app'))
         ? '/api/chat'
@@ -822,11 +822,20 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: message })
           });
+          if (!response.ok) {
+            let errMsg = '';
+            try {
+              const errData = await response.json();
+              errMsg = errData.error || '';
+            } catch (_) { /* ignore parse error */ }
+            console.error('Chat API HTTP', response.status, errMsg);
+            return errMsg || ('抱歉，服务返回错误 (HTTP ' + response.status + ')。');
+          }
           const data = await response.json();
           return data.reply || '抱歉，服务暂时不可用。';
         } catch (error) {
           console.error('Chat API error:', error);
-          return '抱歉，服务暂时不可用。';
+          return '抱歉，无法连接到聊天服务。请检查网络或稍后再试。';
         }
       }
 
