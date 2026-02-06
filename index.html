@@ -796,6 +796,10 @@
       const chatInput = document.getElementById('chatInput');
       const chatSendBtn = document.getElementById('chatSendBtn');
 
+      // Maintain conversation history for context (capped to avoid excessive payloads)
+      const conversationHistory = [];
+      const MAX_HISTORY = 50;
+
       function addMessage(text, isUser) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${isUser ? 'user' : 'assistant'}`;
@@ -815,12 +819,12 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
 
-      async function callChatAPI(message) {
+      async function callChatAPI(messages) {
         try {
           const response = await fetch(CHAT_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ messages: messages })
           });
           const data = await response.json();
           return data.reply || '抱歉，服务暂时不可用。';
@@ -834,16 +838,21 @@
         const message = chatInput.value.trim();
         if (!message) return;
         
-        // Add user message
+        // Add user message to UI and history
         addMessage(message, true);
+        conversationHistory.push({ role: 'user', content: message });
         chatInput.value = '';
         
         // Disable button while waiting for response
         chatSendBtn.disabled = true;
         
-        // Call the Python chat API
-        const reply = await callChatAPI(message);
+        // Call the Python chat API with full conversation context
+        const reply = await callChatAPI(conversationHistory);
         addMessage(reply, false);
+        conversationHistory.push({ role: 'assistant', content: reply });
+        if (conversationHistory.length > MAX_HISTORY) {
+          conversationHistory.splice(0, conversationHistory.length - MAX_HISTORY);
+        }
         chatSendBtn.disabled = false;
         chatInput.focus();
       }
