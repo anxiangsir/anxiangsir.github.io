@@ -3,10 +3,14 @@ Chat API service using Alibaba Cloud DashScope (Qwen model).
 Reads the DASHSCOPE_API_KEY from environment variables (Repository secrets).
 """
 
+import logging
 import os
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
+
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
@@ -37,7 +41,7 @@ def chat():
 
     client = get_client()
     if client is None:
-        return jsonify({"error": "DASHSCOPE_API_KEY 未配置", "reply": "升级中！"}), 500
+        return jsonify({"error": "服务器错误", "reply": "抱歉，服务暂时不可用。"}), 500
 
     try:
         completion = client.chat.completions.create(
@@ -50,7 +54,7 @@ def chat():
         reply = completion.choices[0].message.content
         return jsonify({"reply": reply})
     except Exception as e:
-        print(f"错误信息：{e}")
+        logger.exception("Chat API error")
         return jsonify({"error": "服务器错误", "reply": "抱歉，服务暂时不可用。"}), 500
 
 

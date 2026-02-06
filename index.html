@@ -815,7 +815,7 @@
             body: JSON.stringify({ message: message })
           });
           const data = await response.json();
-          return data.reply || data.error || '抱歉，服务暂时不可用。';
+          return data.reply || '抱歉，服务暂时不可用。';
         } catch (error) {
           console.error('Chat API error:', error);
           return '抱歉，服务暂时不可用。';
