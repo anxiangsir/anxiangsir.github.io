@@ -16,6 +16,17 @@ The site includes a Python-based Chat API (`api/chat.py`) that requires a server
 
 The `static.yml` workflow deploys the site to GitHub Pages. Because GitHub Pages serves only static files, the Chat API (`/api/chat`) is **not available** under this deployment method.
 
+### Hybrid: GitHub Pages + Vercel API (Recommended)
+
+When the site is visited at `https://anxiangsir.github.io/`, the frontend automatically detects that it is **not** running on Vercel and redirects Chat API calls to the Vercel deployment (`https://anxiangsir-github-anxiangsirs-projects.vercel.app/api/chat`).
+
+This means:
+- **Static pages** are served by GitHub Pages at `anxiangsir.github.io`.
+- **Chat API** is served by Vercel's serverless function cross-origin.
+- CORS headers in `vercel.json` allow requests from `anxiangsir.github.io`.
+
+> **Tip:** If your Vercel production URL changes, update the `VERCEL_ORIGIN` constant in `index.html`.
+
 ## Local Development
 
 1. **Clone the Repository**
