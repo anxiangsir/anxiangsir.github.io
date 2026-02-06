@@ -54,7 +54,7 @@ function updateStarCount(selector, count) {
     const elements = document.querySelectorAll(selector);
     elements.forEach(element => {
         if (count !== null) {
-            element.textContent = `⭐ ${formatStarCount(count)} Stars`;
+            element.textContent = `(${formatStarCount(count)} ⭐)`;
         }
     });
 }

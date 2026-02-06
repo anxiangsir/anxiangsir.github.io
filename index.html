@@ -1,705 +1,860 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="安翔's home page">
-    <title>安翔's Homepage</title>
-    <link rel="icon" href="assets/img/profile_pic.jpg" type="image/jpg">
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --secondary-color: #1e40af;
-            --accent-color: #3b82f6;
-            --text-dark: #1f2937;
-            --text-gray: #4b5563;
-            --text-light: #6b7280;
-            --bg-card: #ffffff;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            --primary-alpha-10: rgba(37, 99, 235, 0.1);
-            --primary-alpha-15: rgba(37, 99, 235, 0.15);
-        }
-
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Clean academic background */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: var(--text-dark);
-            background: #f8fafc;
-            margin: 0;
-            padding: 90px 20px 40px 20px;
-            line-height: 1.7;
-            font-weight: 400;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
-        }
-
-        /* Simple fade-in animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* 主容器：简洁学术风格 */
-        #layout-content {
-            margin: 0 auto;
-            max-width: 850px;
-            background-color: #ffffff;
-            padding: 50px 60px;
-            box-shadow: var(--shadow-lg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            animation: fadeIn 0.5s ease-out;
-            position: relative;
-        }
-
-        #layout-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--primary-color);
-            border-radius: 12px 12px 0 0;
-        }
-
-        /* 头部区域 */
-        .top-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 24px;
-            gap: 24px;
-        }
-
-        .profile-info h1 {
-            font-size: 2.75rem;
-            margin: 0 0 16px 0;
-            color: var(--text-dark);
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
-        }
-
-        .profile-info h3 {
-            font-weight: 400;
-            color: var(--text-gray);
-            margin: 0 0 16px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .profile-pic {
-            width: 170px;
-            height: 170px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--primary-color);
-            flex-shrink: 0;
-            box-shadow: var(--shadow-md);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .profile-pic:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        /* 联系信息区域 */
-        .contact-info {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 16px;
-            font-size: 0.95rem;
-            color: var(--text-light);
-        }
-
-        .contact-info a {
-            color: var(--primary-color);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .contact-info a:hover {
-            color: var(--primary-hover);
-            text-decoration: underline;
-        }
-
-        .contact-separator {
-            color: var(--text-light);
-            margin: 0 4px;
-        }
-
-        /* 标题样式 */
-        h2 {
-            font-size: 1.9rem;
-            color: var(--text-dark);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 12px;
-            margin-top: 60px;
-            margin-bottom: 36px;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-        }
-
-        p {
-            color: var(--text-gray);
-            margin-bottom: 20px;
-            font-size: 1.05rem;
-            line-height: 1.8;
-            letter-spacing: 0.01em;
-        }
-
-        b {
-            color: var(--text-dark);
-            font-weight: 600;
-        }
-
-        /* 列表样式 */
-        .pub-list {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* 卡片样式：简洁学术风格 */
-        .publication-entry {
-            display: flex;
-            padding: 24px;
-            border: 1px solid var(--border-color);
-            background: #ffffff;
-            border-radius: 8px;
-            transition: box-shadow 0.2s ease, border-color 0.2s ease;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .publication-entry:hover {
-            border-color: var(--primary-color);
-            box-shadow: var(--shadow-md);
-        }
-
-        .publication-entry img {
-            width: 160px;
-            height: 90px;
-            margin-right: 24px;
-            object-fit: cover;
-            background-color: #f9fafb;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            flex-shrink: 0;
-        }
-
-        .pub-content {
-            flex: 1;
-        }
-
-        .pub-title {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 8px;
-            display: block;
-            line-height: 1.5;
-            letter-spacing: -0.01em;
-        }
-
-        .pub-authors {
-            color: var(--text-light);
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-            display: block;
-            line-height: 1.5;
-        }
-
-        .pub-venue {
-            color: var(--primary-color);
-            font-weight: 600;
-            font-size: 0.875rem;
-            display: inline-block;
-            background: var(--primary-alpha-10);
-            padding: 4px 12px;
-            border-radius: 4px;
-        }
-
-        /* 链接按钮样式 [Paper] [Code] */
-        .link-badges {
-            display: flex;
-            gap: 8px;
-            margin-top: 4px;
-        }
-
-        .badge-link {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 14px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #fff;
-            background: var(--primary-color);
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background-color 0.2s ease;
-        }
-
-        .badge-link:hover {
-            background: var(--primary-hover);
-        }
-
-        /* Secondary badge button style (for View Repo etc) */
-        .badge-secondary {
-            background: transparent;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .badge-secondary:hover {
-            background: var(--primary-color);
-            color: #fff;
-        }
-
-        /* 高亮作者名 */
-        .me-highlight {
-            color: var(--primary-color);
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        /* 奖项列表 */
-        .awards-list li {
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            color: var(--text-dark);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 12px;
-            background: #ffffff;
-            transition: box-shadow 0.2s ease, border-color 0.2s ease;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .awards-list li:hover {
-            border-color: var(--primary-color);
-            box-shadow: var(--shadow-md);
-        }
-
-        .awards-list li:last-child {
-            margin-bottom: 0;
-        }
-
-        .awards-list .emoji {
-            margin-right: 16px;
-            font-size: 1.4em;
-        }
-
-        /* Site Header - clean academic style */
-        .site-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: #ffffff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 max(40px, calc((100% - 1200px) / 2));
-            box-sizing: border-box;
-            z-index: 1000;
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .header-logo {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .header-logo:hover {
-            color: var(--primary-color);
-        }
-
-        .site-nav {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .nav-link {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-gray);
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .nav-link:hover {
-            background-color: #f3f4f6;
-            color: var(--primary-color);
-        }
-
-        /* Active state for current page */
-        .nav-link.active {
-            background-color: var(--primary-alpha-10);
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        /* 移动端适配 */
-        @media (max-width: 768px) {
-            body {
-                padding: 70px 16px 24px 16px;
-            }
-
-            .site-header {
-                padding: 0 16px;
-                height: 56px;
-            }
-
-            .header-logo {
-                font-size: 1.1rem;
-            }
-
-            #layout-content {
-                padding: 24px 20px;
-                width: auto;
-                margin: 0;
-                border-radius: 8px;
-            }
-
-            .top-section {
-                flex-direction: column-reverse;
-                align-items: center;
-                text-align: center;
-            }
-
-            .profile-info {
-                max-width: 100% !important;
-            }
-
-            .profile-info h1 {
-                font-size: 2rem;
-            }
-
-            .profile-info h3 {
-                justify-content: center;
-            }
-
-            .contact-info {
-                justify-content: center;
-            }
-
-            h2 {
-                font-size: 1.5rem;
-                margin-top: 40px;
-            }
-
-            .publication-entry {
-                flex-direction: column;
-                padding: 16px;
-            }
-
-            .publication-entry img {
-                width: 100%;
-                height: auto;
-                margin-right: 0;
-                margin-bottom: 16px;
-            }
-        }
-
-        /* Mobile hamburger menu */
-        .nav-toggle {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            z-index: 1002;
-        }
-
-        .nav-toggle span {
-            display: block;
-            width: 22px;
-            height: 2px;
-            background-color: #1f2937;
-            margin: 5px 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-
-        .nav-toggle.active span:nth-child(1) {
-            transform: rotate(45deg) translate(5px, 5px);
-        }
-
-        .nav-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .nav-toggle.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(5px, -5px);
-        }
-
-        /* Mobile navigation overlay */
-        .nav-overlay {
-            display: none;
-            position: fixed;
-            top: 48px;
-            left: 0;
-            width: 100%;
-            height: calc(100vh - 48px);
-            background-color: rgba(255, 255, 255, 0.98);
-            z-index: 999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .nav-overlay.active {
-            display: block;
-            opacity: 1;
-        }
-
-        .mobile-nav {
-            display: none;
-            flex-direction: column;
-            padding: 20px 24px;
-        }
-
-        .mobile-nav .nav-link {
-            font-size: 1rem;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border-color);
-            border-radius: 0;
-        }
-
-        .mobile-nav .nav-link:last-child {
-            border-bottom: none;
-        }
-
-        .mobile-nav .nav-link:hover {
-            background-color: transparent;
-            color: var(--primary-color);
-        }
-
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .nav-toggle {
-                display: block;
-            }
-
-            .site-nav {
-                display: none;
-            }
-
-            .nav-overlay.active .mobile-nav {
-                display: flex;
-            }
-        }
-
-        /*
-           ========================================
-           打印专用样式 (优化宽度与分页)
-           ========================================
-        */
-        @media print {
-            /* Hide the fixed header when printing */
-            .site-header {
-                display: none;
-            }
-
-            /* 1. 设置打印页面的边距 */
-            @page {
-                margin: 1cm 1cm;
-                size: auto;
-            }
-
-            /* 2. 重置 Body 的边距和内边距，确保利用全部宽度 */
-            body {
-                background-color: #fff;
-                padding: 0;
-                margin: 0;
-            }
-
-            /* 3. 重置主容器的样式 */
-            #layout-content {
-                margin: 0;
-                width: 100%;
-                max-width: none !important;
-                padding: 0;
-                border: none;
-            }
-
-            /* 4. 字体微调 */
-            .profile-info h1 {
-                font-size: 1.8rem;
-            }
-
-            /* 5. 核心分页控制：防止元素内部断页 */
-            .publication-entry,
-            .top-section,
-            h2,
-            .contact-box,
-            li {
-                break-inside: avoid;
-                page-break-inside: avoid;
-            }
-
-            /* 防止标题与下方内容分离 */
-            h2 {
-                break-after: avoid;
-                page-break-after: avoid;
-                margin-top: 20px;
-            }
-        }
-
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Xiang An - Personal Homepage</title>
+  <meta name="description" content="Xiang An - Research Scientist and Team Lead at GlintLab">
+  <link rel="shortcut icon" href="assets/img/profile_pic.jpg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #202122;
+      background: #f8f9fa;
+    }
+
+    /* Header */
+    .wiki-header {
+      background: #fff;
+      border-bottom: 1px solid #a2a9b1;
+      padding: 0.5em 0;
+    }
+    .wiki-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .wiki-logo {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #202122;
+      text-decoration: none;
+    }
+    .wiki-nav a {
+      color: #0645ad;
+      text-decoration: none;
+      margin-left: 1.5em;
+      font-size: 0.9em;
+    }
+    .wiki-nav a:hover { text-decoration: underline; }
+
+    /* Main layout */
+    .wiki-wrapper {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      min-height: calc(100vh - 100px);
+    }
+
+    /* Left sidebar - TOC */
+    .wiki-sidebar {
+      width: 176px;
+      flex-shrink: 0;
+      background: #f8f9fa;
+      border-right: 1px solid #a2a9b1;
+      padding: 0.75em;
+    }
+    .wiki-sidebar-title {
+      font-weight: bold;
+      padding-bottom: 0.5em;
+      border-bottom: 1px solid #c8ccd1;
+      margin-bottom: 0.5em;
+    }
+    .wiki-sidebar ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .wiki-sidebar li {
+      margin: 0.3em 0;
+    }
+    .wiki-sidebar a {
+      color: #0645ad;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+    .wiki-sidebar a:hover { text-decoration: underline; }
+
+    /* Content area */
+    .wiki-content {
+      flex: 1;
+      background: #fff;
+      border-left: 1px solid #a2a9b1;
+      border-right: 1px solid #a2a9b1;
+      padding: 1.5em 2em;
+      min-width: 0;
+    }
+
+    /* Page title */
+    .wiki-title {
+      font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
+      font-size: 1.8em;
+      font-weight: normal;
+      border-bottom: 1px solid #a2a9b1;
+      padding-bottom: 0.2em;
+      margin-bottom: 0.5em;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: normal;
+      color: #000;
+      margin-top: 1em;
+      margin-bottom: 0.25em;
+    }
+    h2 {
+      font-size: 1.5em;
+      border-bottom: 1px solid #a2a9b1;
+      padding-bottom: 0.2em;
+    }
+    h3 { font-size: 1.2em; }
+    h4 { font-size: 1.1em; font-weight: bold; }
+    h5 { font-size: 1em; font-weight: bold; }
+
+    p { margin: 0.5em 0; }
+
+    a { color: #0645ad; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:visited { color: #0b0080; }
+
+    ul, ol { margin: 0.3em 0 0.3em 1.6em; }
+    li { margin: 0.2em 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid #a2a9b1;
+      margin: 1em 0;
+    }
+
+    blockquote {
+      border-left: 3px solid #c8ccd1;
+      padding-left: 1em;
+      margin: 1em 0;
+      color: #54595d;
+    }
+
+    code {
+      font-family: monospace;
+      background: #f8f9fa;
+      padding: 1px 4px;
+      border: 1px solid #eaecf0;
+    }
+    pre {
+      background: #f8f9fa;
+      border: 1px solid #eaecf0;
+      padding: 1em;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+
+    /* Right sidebar - Infobox */
+    .wiki-infobox-container {
+      width: 260px;
+      flex-shrink: 0;
+      padding: 0.75em;
+      background: #f8f9fa;
+    }
+    .infobox {
+      border: 1px solid #a2a9b1;
+      background: #f8f9fa;
+      font-size: 0.9em;
+      padding: 0.5em;
+      position: sticky;
+      top: 1em;
+    }
+    .infobox-title {
+      background: #eaecf0;
+      text-align: center;
+      font-weight: bold;
+      padding: 0.4em;
+      margin: -0.5em -0.5em 0.5em -0.5em;
+    }
+    .infobox img {
+      width: 100%;
+      border: 1px solid #c8ccd1;
+    }
+    .infobox-caption {
+      text-align: center;
+      font-size: 0.85em;
+      color: #54595d;
+      padding: 0.3em 0;
+    }
+    .infobox-row {
+      padding: 0.3em 0;
+      border-top: 1px solid #eaecf0;
+    }
+    .infobox-label {
+      font-weight: bold;
+    }
+
+    .infobox-row a {
+      word-break: break-all;
+    }
+    .infobox-row i {
+      width: 1.2em;
+      text-align: center;
+    }
+
+    /* Publications */
+    .publications { margin-top: 0.5em; }
+    .publications ol.bibliography {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .publications ol.bibliography li {
+      margin-bottom: 0.8em !important;
+      padding-bottom: 0.6em !important;
+      padding-top: 0.6em !important;
+      margin-top: 0 !important;
+      border-bottom: 1px solid #eaecf0;
+    }
+    .publications ol.bibliography li:last-child {
+      border-bottom: none;
+    }
+    .publications ol.bibliography li .pub-entry .hidden {
+      display: none;
+    }
+    .pub-entry {
+      line-height: 1.4;
+    }
+    .pub-entry .periodical,
+    .pub-entry .additional,
+    .pub-entry .author {
+      margin: 0.2em 0 0;
+      line-height: 1.3;
+    }
+    .pub-entry .pub-number {
+      display: none;
+    }
+    .pub-entry .title {
+      font-weight: bold;
+    }
+    .pub-entry .title a {
+      color: #0645ad;
+    }
+    .pub-entry .periodical {
+      display: block;
+      color: #54595d;
+      font-size: 0.9em;
+    }
+    .pub-entry .periodical .genre-tag {
+      display: inline-block;
+      padding: 0.12em 0.45em;
+      border: 1px solid #c8ccd1;
+      border-radius: 3px;
+      background: #f8f9fa;
+      color: #54595d;
+      font-size: 0.85em;
+      font-style: normal;
+      line-height: 1.2;
+      margin: 0.15em 0.4em 0 0;
+      max-width: 100%;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .pub-entry .periodical .genre-tag-secondary {
+      border-color: #eaecf0;
+      background: #fff;
+    }
+    .pub-entry .periodical .genre-tag a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .pub-entry .periodical .genre-tag a:hover {
+      text-decoration: underline;
+    }
+    .pub-entry .additional {
+      display: block;
+      color: #5c4a1a;
+      background: #fff8e1;
+      border-left: 3px solid #d4a017;
+      padding: 0.25em 0.5em;
+      border-radius: 2px;
+      font-weight: normal;
+    }
+    .pub-entry .author {
+      display: block;
+      color: #54595d;
+      font-size: 0.9em;
+    }
+    .pub-entry .links {
+      font-size: 0.85em;
+      margin-left: 0.5em;
+    }
+    .pub-entry .links a {
+      margin-right: 0.3em;
+    }
+    .pub-entry .hidden {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.2s ease;
+      background: #f8f9fa;
+      border: 1px solid #eaecf0;
+      margin-top: 0.5em;
+      font-size: 0.9em;
+    }
+    .pub-entry .hidden.open {
+      max-height: 30em;
+      padding: 0.5em;
+    }
+
+    /* Chat Box */
+    .chat-section {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin-bottom: 2em;
+    }
+    .chat-container {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1.25em;
+      max-width: 750px;
+      margin: 0 auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .chat-header {
+      font-weight: 600;
+      font-size: 1.05em;
+      margin-bottom: 0.75em;
+      color: #202122;
+      padding-bottom: 0.75em;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    .chat-messages {
+      height: 250px;
+      overflow-y: auto;
+      padding: 0.75em;
+      margin-bottom: 0.75em;
+      background: #fafafa;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+    }
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-messages::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    .chat-message {
+      margin: 0.6em 0;
+      padding: 0.6em 0.9em;
+      border-radius: 6px;
+      line-height: 1.5;
+      animation: fadeIn 0.25s ease-out;
+      max-width: 85%;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chat-message.user {
+      background: #e3f2fd;
+      border-left: 3px solid #2196f3;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    .chat-message.assistant {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-left: 3px solid #4caf50;
+      margin-left: 0;
+      margin-right: auto;
+    }
+    .chat-message-label {
+      font-weight: 600;
+      font-size: 0.8em;
+      color: #666;
+      margin-bottom: 0.25em;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .chat-input-container {
+      display: flex;
+      gap: 0.5em;
+      align-items: stretch;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 0.7em 0.9em;
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.95em;
+      transition: all 0.2s ease;
+    }
+    .chat-input:focus {
+      outline: none;
+      border-color: #2196f3;
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+    .chat-send-btn {
+      padding: 0.7em 1.8em;
+      background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.95em;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+    }
+    .chat-send-btn:hover {
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+      box-shadow: 0 3px 6px rgba(33, 150, 243, 0.3);
+      transform: translateY(-1px);
+    }
+    .chat-send-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(33, 150, 243, 0.2);
+    }
+    .chat-send-btn:disabled {
+      background: #bdbdbd;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Footer */
+    .wiki-footer {
+      text-align: center;
+      padding: 1em;
+      font-size: 0.85em;
+      color: #54595d;
+      border-top: 1px solid #a2a9b1;
+      background: #f8f9fa;
+    }
+
+    /* Hide TOC in content when sidebar exists */
+    .toc { display: none; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .wiki-wrapper {
+        flex-direction: column;
+      }
+      .wiki-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #a2a9b1;
+      }
+      .wiki-infobox-container {
+        width: 100%;
+        order: -1;
+      }
+      .infobox {
+        max-width: 400px;
+        margin: 0 auto;
+      }
+      .infobox img {
+        max-width: 250px;
+        width: 100%;
+        margin: 0 auto;
+        display: block;
+      }
+      .wiki-content {
+        border-left: none;
+        border-right: none;
+        padding: 1em;
+      }
+      
+      /* Mobile chat optimizations */
+      .chat-container {
+        padding: 1em;
+        border-radius: 6px;
+      }
+      .chat-header {
+        font-size: 1em;
+        padding-bottom: 0.6em;
+        margin-bottom: 0.6em;
+      }
+      .chat-messages {
+        height: 200px;
+        padding: 0.6em;
+        margin-bottom: 0.6em;
+      }
+      .chat-message {
+        margin: 0.5em 0;
+        padding: 0.5em 0.7em;
+        font-size: 0.95em;
+        max-width: 90%;
+      }
+      .chat-message-label {
+        font-size: 0.75em;
+      }
+      .chat-input-container {
+        flex-direction: row;
+        gap: 0.4em;
+      }
+      .chat-input {
+        padding: 0.65em 0.75em;
+        font-size: 0.9em;
+        min-width: 0;
+      }
+      .chat-send-btn {
+        padding: 0.65em 1.2em;
+        font-size: 0.9em;
+        white-space: nowrap;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .chat-messages {
+        height: 180px;
+      }
+      .chat-message {
+        max-width: 95%;
+      }
+      .chat-input {
+        font-size: 16px; /* Prevent zoom on iOS */
+      }
+      .chat-send-btn {
+        padding: 0.65em 1em;
+      }
+    }
+  </style>
 </head>
-
 <body>
-
-    <!-- Site Header (Meta-style fixed navigation) -->
-    <header class="site-header">
-        <a href="index.html" class="header-logo">安翔 · Xiang An</a>
-        <nav class="site-nav">
-            <a href="#publications" class="nav-link">📚 Selected Publications</a>
-            <a href="publications.html" class="nav-link">📖 All Publications</a>
-            <a href="community.html" class="nav-link">🌟 Open Source</a>
-            <a href="#awards" class="nav-link">🏆 Awards</a>
-        </nav>
-        <button class="nav-toggle" aria-label="Toggle navigation">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-    </header>
-
-    <!-- Mobile Navigation Overlay -->
-    <div class="nav-overlay">
-        <nav class="mobile-nav">
-            <a href="#publications" class="nav-link">📚 Selected Publications</a>
-            <a href="publications.html" class="nav-link">📖 All Publications</a>
-            <a href="community.html" class="nav-link">🌟 Open Source</a>
-            <a href="#awards" class="nav-link">🏆 Awards</a>
-        </nav>
+  <header class="wiki-header">
+    <div class="wiki-header-inner">
+      <a href="/" class="wiki-logo">Personal Homepage</a>
+      <nav class="wiki-nav">
+      </nav>
     </div>
+  </header>
 
-    <script>
-        // Mobile navigation toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const navToggle = document.querySelector('.nav-toggle');
-            const navOverlay = document.querySelector('.nav-overlay');
-            const mobileNavLinks = document.querySelectorAll('.mobile-nav .nav-link');
+  <div class="wiki-wrapper">
+    <aside class="wiki-sidebar">
+      <div class="wiki-sidebar-title">Contents</div>
+      <ul>
+        <li><a href="#">(Top)</a></li>
+        <li><a href="#chat">Xiang An's AI Assistant</a></li>
+        <li><a href="#publications">Publications</a></li>
+        <li><a href="#awards">Awards</a></li>
+        <li><a href="#open-source">Open Source</a></li>
+        <li><a href="#external-links">External Links</a></li>
+      </ul>
+    </aside>
 
-            navToggle.addEventListener('click', function() {
-                navToggle.classList.toggle('active');
-                navOverlay.classList.toggle('active');
-                document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
-            });
+    <main class="wiki-content">
+      <h1 class="wiki-title">Xiang An</h1>
 
-            // Close menu when clicking a link
-            mobileNavLinks.forEach(function(link) {
-                link.addEventListener('click', function() {
-                    navToggle.classList.remove('active');
-                    navOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-            });
+<p><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, specializing in computer vision and multimodal large models. His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐). His research has accumulated <b>1,114+ citations</b> on <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a>, and his open-source projects have garnered a total of <b>34,177+ stars</b> on GitHub.</p>
 
-            // Close menu when clicking overlay background
-            navOverlay.addEventListener('click', function(e) {
-                if (e.target === navOverlay) {
-                    navToggle.classList.remove('active');
-                    navOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            });
-        });
-    </script>
+<h2 id="chat">Xiang An's AI Assistant</h2>
 
-    <div id="layout-content">
-        <div class="top-section">
-            <div class="profile-info" style="max-width: 70%;">
-                <h1>Xiang An</h1>
-                <div class="contact-info">
-                    <a href="mailto:anxiangsir@outlook.com" title="anxiangsir@outlook.com">Mail</a>
-                    <span class="contact-separator">·</span>
-                    <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a>
-                    <span class="contact-separator">·</span>
-                    <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>
-                </div>
-            </div>
-            <div>
-                <img class="profile-pic" src="assets/img/profile_pic.jpg" alt="Xiang An">
-            </div>
+<div class="chat-section">
+  <div class="chat-container">
+    <div class="chat-header">💬 Ask Xiang An any thing</div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-message assistant">
+        <div class="chat-message-label">助手</div>
+        <div>你好！欢迎来到安翔的主页。我目前正在升级中,敬请期待！</div>
+      </div>
+    </div>
+    <div class="chat-input-container">
+      <input type="text" id="chatInput" class="chat-input" placeholder="输入您的消息..." />
+      <button id="chatSendBtn" class="chat-send-btn">发送</button>
+    </div>
+  </div>
+</div>
+
+<h2 id="publications">Publications</h2>
+
+<p>The following is a selection of notable publications. For a complete list, see <a href="publications.html">All Publications</a>.</p>
+
+<div class="publications">
+<ol class="bibliography">
+<li><div class="pub-entry">
+    <span class="title"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5">LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training</a></span>
+    <span class="periodical"><span class="genre-tag">Preprint 2025</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://arxiv.org/abs/2509.23661" target="_blank">Paper</a></span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">Code</a></span>
+    </span>
+    <span class="additional">Fully open-source code, data, checkpoints and training logs; Provided a better open-source ViT; Proved the idea that simple scaling dense captions would improve overall multimodal tasks performance</span>
+    <span class="author"><b><u>Xiang An</u></b>, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al.</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2510.13515">UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning</a></span>
+    <span class="periodical"><span class="genre-tag">AAAI 2026 (Oral)</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/GaryGuTC/UniME-v2" target="_blank">Code</a></span>
+    </span>
+    <span class="author">Tiancheng Gu, Kaicheng Yang, Kaichen Zhang, <b><u>Xiang An</u></b>, Ziyong Feng, Yueyi Zhang, Weidong Cai, Jiankang Deng, Lidong Bing</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2507.20025">Region-based Cluster Discrimination for Visual Representation Learning</a></span>
+    <span class="periodical"><span class="genre-tag">ICCV 2025 (Highlight)</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepglint/unicom" target="_blank">Code</a></span>
+    </span>
+    <span class="additional">Novel approach to self-supervised learning by introducing region-based cluster discrimination.</span>
+    <span class="author">Yin Xie, Kaicheng Yang, <b><u>Xiang An (Project Leader)</u></b>, Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Jiankang Deng</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2407.17331">Multi-label Cluster Discrimination for Visual Representation Learning</a></span>
+    <span class="periodical"><span class="genre-tag">ECCV 2024</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepglint/unicom" target="_blank">Code</a></span>
+    </span>
+    <span class="additional">Multi-label cluster discrimination framework for self-supervised visual representation learning</span>
+    <span class="author"><b><u>Xiang An</u></b>, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jiankang Deng</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2304.05884">Unicom: Universal and Compact Representation Learning for Image Retrieval</a></span>
+    <span class="periodical"><span class="genre-tag">ICLR 2023</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepglint/unicom" target="_blank">Code</a></span>
+    </span>
+    <span class="additional">Universal and compact representation learning framework for large-scale image retrieval. Foundation for scalable image retrieval systems</span>
+    <span class="author"><b><u>Xiang An</u></b>, Jiankang Deng, Kaicheng Yang, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2203.15565">Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC</a></span>
+    <span class="periodical"><span class="genre-tag">CVPR 2022</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch" target="_blank">Code</a></span>
+    </span>
+    <span class="additional">Enabling training of 10 million identities on a single machine through innovative Partial FC approach</span>
+    <span class="author"><b><u>Xiang An</u></b>, Jiankang Deng, Jia Guo, Ziyong Feng, Xuhan Zhu, Jing Yang, Tongliang Liu</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://arxiv.org/abs/2010.05222">Partial FC: Training 10 Million Identities on a Single Machine</a></span>
+    <span class="periodical"><span class="genre-tag">ICCVW 2021</span>
+      <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch" target="_blank">Code</a></span>
+    </span>
+    <span class="author"><b><u>Xiang An</u></b>, Xuhan Zhu, Yuan Gao, Yang Xiao, Yongle Zhao, Ziyong Feng, Lan Wu, Bin Qin, Ming Zhang, Debing Zhang, Ying Fu</span>
+</div>
+</li>
+</ol>
+</div>
+
+<h2 id="awards">Awards & Competitions</h2>
+
+<ul>
+  <li><b>ICCV 2025 Outstanding Reviewer</b></li>
+  <li><b>CVPR 2024 Outstanding Reviewer</b></li>
+  <li><b>Ranked 1st in NIST FRVT Competition, Visa Track 1:1</b></li>
+  <li><b>2024 中国年度力量人物提名</b></li>
+  <li><b>Ranked 1st in the graduate entrance examination (major)</b></li>
+  <li><b>First Place in Vehicle Re-Identification, PRCV 2019</b></li>
+</ul>
+
+<h2 id="open-source">Open Source</h2>
+
+<div class="publications">
+<ol class="bibliography">
+<li><div class="pub-entry">
+    <span class="title"><a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> <span class="stars-insightface"></span></span>
+    <span class="periodical"><span class="genre-tag">Open Source Library</span></span>
+    <span class="author">#2 contributor to the open-source 2D & 3D deep face analysis library. Author of Glint360K (the largest open-source face recognition training dataset) and Partial FC (enabling training 10 million identities on a single machine). Also organized the ICCV 2021 Workshop on masked face recognition challenge.</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">LLaVA-OneVision-1.5</a> <span class="stars-llava-onevision"></span></span>
+    <span class="periodical"><span class="genre-tag">Multimodal LLM Framework</span></span>
+    <span class="author">Team Leader of this fully open framework designed to democratize multimodal training. Released mid-training and instruct data for community use, and developed offline sampling pack for efficient training. Implemented RiceViT with native resolution support.</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://github.com/deepglint/unicom" target="_blank">UNICOM</a> <span class="stars-unicom"></span></span>
+    <span class="periodical"><span class="genre-tag">Image Retrieval Framework</span></span>
+    <span class="author">Lead author and maintainer of Universal and Compact Representation Learning framework for universal image representations. Designed the novel cluster discrimination approach for representation learning. Developed the multi-label and region-based extensions (published at ECCV 2024 and ICCV 2025 (Highlight)).</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://github.com/LLaVA-VL/LLaVA-NeXT" target="_blank">LLaVA-NeXT</a> <span class="stars-llava-next"></span></span>
+    <span class="periodical"><span class="genre-tag">Large Multimodal Model</span></span>
+    <span class="author">Vision module contributor to the next-generation large multimodal model. Enhanced the OCR capability of the vision module for better text recognition in images. Optimized the visual encoder for processing text-rich and document images.</span>
+</div>
+</li>
+
+<li><div class="pub-entry">
+    <span class="title"><a href="https://github.com/anxiangsir/urban_seg" target="_blank">Urban Seg</a> <span class="stars-urban-seg"></span></span>
+    <span class="periodical"><span class="genre-tag">Educational Project</span></span>
+    <span class="author">Author and maintainer of this educational project for semantic segmentation on remote sensing and satellite imagery. Designed a simple single-file training approach for accessibility and integrated popular pretrained models. Created comprehensive tutorials and documentation for beginners.</span>
+</div>
+</li>
+</ol>
+</div>
+
+<h2 id="external-links">External Links</h2>
+
+<ul>
+  <li><a href="mailto:anxiangsir@outlook.com"><i class="fas fa-envelope"></i> Email: anxiangsir@outlook.com</a></li>
+  <li><a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank"><i class="ai ai-google-scholar"></i> Google Scholar Profile</a></li>
+  <li><a href="https://github.com/anxiangsir" target="_blank"><i class="fab fa-github"></i> GitHub: anxiangsir</a></li>
+  <li><a href="https://github.com/deepinsight/insightface" target="_blank"><i class="fab fa-github"></i> InsightFace Project</a></li>
+</ul>
+
+<hr />
+
+<p><em>This page is styled after <a href="https://en.wikipedia.org/">Wikipedia</a>.</em></p>
+
+    </main>
+
+    <aside class="wiki-infobox-container">
+      <div class="infobox">
+        <div class="infobox-title">Xiang An</div>
+
+        <img src="assets/img/profile_pic.jpg" alt="Xiang An">
+        <div class="infobox-row">
+          <span class="infobox-label">Position</span><br>
+          Research Scientist, Team Lead
+        </div>
+        <div class="infobox-row">
+          <span class="infobox-label">Field</span><br>
+          Computer Vision, Multimodal AI
+        </div>
+        <div class="infobox-row">
+          <span class="infobox-label">Notable Work</span><br>
+          InsightFace, UNICOM/MLCD, LLaVA-OneVision-1.5, OneVision-Encoder
         </div>
 
-        <h2 id="about">About Me</h2>
-        <p>
-            I am an <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, focusing on computer vision and multimodal large models.
-        </p>
-        <p>
-            Currently, our team is building the <b>next-generation Vision Transformer (ViT)</b> to address some of the most urgent needs in modern MLLMs.
-        </p>
+        <div class="infobox-row">
+          <span class="infobox-label">GitHub</span><br>
+          <a href="https://github.com/anxiangsir"><i class="fab fa-github"></i> anxiangsir</a>
+        </div>
 
-        <h2 id="publications">Selected Publications</h2>
-        <ul class="pub-list">
-            <!-- Selected publications will be loaded dynamically from YAML -->
-            <li style="text-align: center; padding: 60px 40px;">
-                <div style="font-size: 1.1rem; color: var(--text-gray);">
-                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--primary-color); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
-                    <div>Loading selected publications from YAML...</div>
-                </div>
-            </li>
-        </ul>
+        <div class="infobox-row">
+          <span class="infobox-label">Google Scholar</span><br>
+          <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en"><i class="ai ai-google-scholar"></i> Profile</a>
+        </div>
+
+        <div class="infobox-row">
+          <span class="infobox-label">Citations</span><br>
+          1,114+ (Google Scholar)
+        </div>
+
+        <div class="infobox-row">
+          <span class="infobox-label">GitHub Stars</span><br>
+          34,177+ total
+        </div>
+
+        <div class="infobox-row">
+          <span class="infobox-label">Email</span><br>
+          <a href="mailto:anxiangsir@outlook.com"><i class="fas fa-envelope"></i> Contact</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="wiki-footer">
+    This page was last edited on January 28, 2025.
+  </footer>
+
+  <!-- GitHub Stars Loader -->
+  <script src="assets/js/github-stars.js"></script>
+  
+  <!-- Chat functionality -->
+  <script>
+    (function() {
+      // Constants
+      const UPGRADE_MESSAGE = '升级中！';
+      const SIMULATED_RESPONSE_DELAY_MS = 500;
+      
+      const chatMessages = document.getElementById('chatMessages');
+      const chatInput = document.getElementById('chatInput');
+      const chatSendBtn = document.getElementById('chatSendBtn');
+
+      function addMessage(text, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${isUser ? 'user' : 'assistant'}`;
         
-        <style>
-            @keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-        </style>
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'chat-message-label';
+        labelDiv.textContent = isUser ? '用户' : '助手';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.textContent = text;
+        
+        messageDiv.appendChild(labelDiv);
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
 
+      function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+        
+        // Add user message
+        addMessage(message, true);
+        chatInput.value = '';
+        
+        // Disable button temporarily
+        chatSendBtn.disabled = true;
+        
+        // Simulate thinking delay
+        setTimeout(() => {
+          // TODO: Replace with actual OpenAI API call
+          // For now, always respond with UPGRADE_MESSAGE
+          addMessage(UPGRADE_MESSAGE, false);
+          chatSendBtn.disabled = false;
+          chatInput.focus();
+        }, SIMULATED_RESPONSE_DELAY_MS);
+      }
 
-        <h2 id="awards">Awards & Competitions</h2>
-        <ul class="awards-list" style="list-style-type: none; padding-left: 0;">
-            <li><span class="emoji">🏅</span> <b>ICCV 2025 Outstanding Reviewer</b></li>
-            <li><span class="emoji">🏅</span> <b>CVPR 2024 Outstanding Reviewer</b></li>
-            <li><span class="emoji">🏆</span> <b>Randed 1st in NIST FRVT Competition, Visa Track 1:1</b></li>
-            <li><span class="emoji">🏆</span> <b>2024 中国年度力量人物提名</b></li>
-            <li><span class="emoji">🏆</span> <b>Ranked 1st in the graduate entrance examination (major)</b></li>
-            <li><span class="emoji">🏆</span> <b>First Place in Vehicle Re-Identification, PRCV 2019</b></li>
-        </ul>
+      // Event listeners
+      chatSendBtn.addEventListener('click', sendMessage);
+      chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
 
-    </div>
-
-    <!-- Load custom YAML parser -->
-    <script src="assets/js/yaml-parser.js"></script>
-    
-    <!-- Load publications from YAML -->
-    <script src="assets/js/publications-loader.js"></script>
+      // TODO: Future OpenAI API integration
+      // async function callOpenAI(message) {
+      //   try {
+      //     const response = await fetch('/api/chat', {
+      //       method: 'POST',
+      //       headers: {
+      //         'Content-Type': 'application/json',
+      //       },
+      //       body: JSON.stringify({ message: message })
+      //     });
+      //     const data = await response.json();
+      //     return data.reply;
+      //   } catch (error) {
+      //     console.error('Error calling OpenAI API:', error);
+      //     return '抱歉，服务暂时不可用。';
+      //   }
+      // }
+    })();
+  </script>
 </body>
-
 </html>
