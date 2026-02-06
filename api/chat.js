@@ -68,6 +68,10 @@ async function handleChatRequest(req, res) {
       throw new Error(data.error.message || 'OpenAI API error');
     }
 
+    if (!data.choices?.[0]?.message?.content) {
+      throw new Error('Invalid API response structure');
+    }
+
     const reply = data.choices[0].message.content;
     */
 

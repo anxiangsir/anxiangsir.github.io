@@ -698,6 +698,9 @@
   <!-- Chat functionality -->
   <script>
     (function() {
+      // Constants
+      const UPGRADE_MESSAGE = '升级中！';
+      
       const chatMessages = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
       const chatSendBtn = document.getElementById('chatSendBtn');
@@ -735,8 +738,8 @@
         // Simulate thinking delay
         setTimeout(() => {
           // TODO: Replace with actual OpenAI API call
-          // For now, always respond with "升级中！"
-          addMessage('升级中！', false);
+          // For now, always respond with UPGRADE_MESSAGE
+          addMessage(UPGRADE_MESSAGE, false);
           chatSendBtn.disabled = false;
           chatInput.focus();
         }, 500);
