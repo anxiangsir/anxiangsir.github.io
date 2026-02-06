@@ -436,6 +436,41 @@
       box-shadow: none;
       transform: none;
     }
+    .chat-markdown { line-height: 1.6; }
+    .chat-markdown p { margin: 0.4em 0; }
+    .chat-markdown p:first-child { margin-top: 0; }
+    .chat-markdown p:last-child { margin-bottom: 0; }
+    .chat-markdown ul, .chat-markdown ol { margin: 0.4em 0; padding-left: 1.5em; }
+    .chat-markdown code {
+      background: #f0f0f0; padding: 0.15em 0.35em; border-radius: 3px;
+      font-size: 0.9em; font-family: 'SFMono-Regular', Consolas, monospace;
+    }
+    .chat-markdown pre {
+      background: #282c34; color: #abb2bf; padding: 0.75em 1em;
+      border-radius: 5px; overflow-x: auto; margin: 0.5em 0;
+    }
+    .chat-markdown pre code {
+      background: none; padding: 0; color: inherit; font-size: 0.85em;
+    }
+    .chat-markdown blockquote {
+      border-left: 3px solid #ddd; margin: 0.4em 0; padding: 0.2em 0.8em; color: #666;
+    }
+    .chat-markdown h1, .chat-markdown h2, .chat-markdown h3 {
+      margin: 0.5em 0 0.3em; line-height: 1.3;
+    }
+    .chat-markdown h1 { font-size: 1.2em; }
+    .chat-markdown h2 { font-size: 1.1em; }
+    .chat-markdown h3 { font-size: 1.05em; }
+    .chat-markdown table {
+      border-collapse: collapse; margin: 0.5em 0; width: 100%;
+    }
+    .chat-markdown th, .chat-markdown td {
+      border: 1px solid #ddd; padding: 0.35em 0.6em; text-align: left;
+    }
+    .chat-markdown th { background: #f5f5f5; font-weight: 600; }
+    .chat-markdown a { color: #2196f3; text-decoration: none; }
+    .chat-markdown a:hover { text-decoration: underline; }
+    .chat-markdown hr { border: none; border-top: 1px solid #e0e0e0; margin: 0.5em 0; }
 
     /* Footer */
     .wiki-footer {
@@ -778,6 +813,10 @@
   <!-- GitHub Stars Loader -->
   <script src="assets/js/github-stars.js"></script>
   
+  <!-- Markdown rendering for chat -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/14.1.3/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.7/purify.min.js"></script>
+
   <!-- Chat functionality -->
   <script>
     (function() {
@@ -809,7 +848,12 @@
         labelDiv.textContent = isUser ? 'USER' : 'Xiang An';
         
         const contentDiv = document.createElement('div');
-        contentDiv.textContent = text;
+        if (isUser) {
+          contentDiv.textContent = text;
+        } else {
+          contentDiv.className = 'chat-markdown';
+          contentDiv.innerHTML = DOMPurify.sanitize(marked.parse(text));
+        }
         
         messageDiv.appendChild(labelDiv);
         messageDiv.appendChild(contentDiv);
