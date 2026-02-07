@@ -1,14 +1,20 @@
 """
 Chat API service using Alibaba Cloud DashScope (Qwen model).
 Reads the DASHSCOPE_API_KEY from environment variables (Repository secrets).
+Includes lightweight RAG retrieval over local publications & GitHub projects.
 """
 
 import logging
 import os
+import sys
+
+# Ensure sibling modules in api/ are importable on Vercel
+sys.path.insert(0, os.path.dirname(__file__))
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
+import rag_utils
 
 logger = logging.getLogger(__name__)
 
@@ -128,10 +134,30 @@ def chat():
     if client is None:
         return jsonify({"error": "服务器错误", "reply": "抱歉，服务暂时不可用。"}), 500
 
+    # ── RAG retrieval: augment the prompt with relevant knowledge ──
+    last_user_msg = ""
+    for m in reversed(messages):
+        if m["role"] == "user":
+            last_user_msg = m["content"]
+            break
+
+    rag_context = ""
+    if last_user_msg:
+        results = rag_utils.search(last_user_msg, top_k=3)
+        rag_context = rag_utils.format_context(results)
+
+    system_content = SYSTEM_PROMPT
+    if rag_context:
+        system_content += (
+            "\n\n# Retrieved Context (RAG)\n"
+            "以下是根据用户提问从知识库中检索到的相关信息，请结合这些信息回答：\n\n"
+            + rag_context
+        )
+
     try:
         completion = client.chat.completions.create(
             model=MODEL,
-            messages=[{"role": "system", "content": SYSTEM_PROMPT}] + messages,
+            messages=[{"role": "system", "content": system_content}] + messages,
         )
         reply = completion.choices[0].message.content
         return jsonify({"reply": reply})

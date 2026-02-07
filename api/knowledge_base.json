@@ -1,0 +1,238 @@
+{
+  "documents": [
+    {
+      "id": "pub_victor",
+      "type": "publication",
+      "title": "ViCToR: Improving Visual Comprehension via Token Reconstruction for Pretraining LMMs",
+      "authors": "Yin Xie, Kaicheng Yang, Peirou Liang, Xiang An, Yongle Zhao, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng",
+      "venue": "AAAI 2026",
+      "year": 2026
+    },
+    {
+      "id": "pub_unime_v2",
+      "type": "publication",
+      "title": "UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning",
+      "authors": "Tiancheng Gu, Kaicheng Yang, Kaichen Zhang, Xiang An, Ziyong Feng, Yueyi Zhang, Weidong Cai, Jiankang Deng, Lidong Bing",
+      "venue": "AAAI 2026 (Oral)",
+      "year": 2026,
+      "paper_url": "https://arxiv.org/pdf/2510.13515",
+      "code_url": "https://github.com/GaryGuTC/UniME-v2",
+      "summary": "UniME-V2 introduces an innovative approach to multimodal embedding learning by leveraging Multimodal Large Language Models (MLLMs) as judges to evaluate and guide the learning process. This work addresses the fundamental challenge of learning universal embeddings that can effectively represent diverse multimodal data including images, text, and their combinations."
+    },
+    {
+      "id": "pub_univit",
+      "type": "publication",
+      "title": "UniViT: Unifying Image and Video Understanding in One Vision Encoder",
+      "authors": "Feilong Tang, Xiang An, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Ziyong Feng, Jiankang Deng, Zongyuan Ge, et al.",
+      "venue": "NeurIPS 2025",
+      "year": 2025
+    },
+    {
+      "id": "pub_llava_onevision_1_5",
+      "type": "publication",
+      "title": "LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training",
+      "authors": "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al.",
+      "venue": "Preprint, 2025",
+      "year": 2025,
+      "paper_url": "https://arxiv.org/abs/2509.23661",
+      "code_url": "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5",
+      "summary": "LLaVA-OneVision-1.5 is a fully open-source multimodal training framework that democratizes the development of large multimodal models (LMMs). The framework provides comprehensive tools and pipelines for training, fine-tuning, and deploying multimodal models that can understand both visual and textual information."
+    },
+    {
+      "id": "pub_region_cd",
+      "type": "publication",
+      "title": "Region-based Cluster Discrimination for Visual Representation Learning",
+      "authors": "Yin Xie, Kaicheng Yang, Xiang An (Project Leader), Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Jiankang Deng",
+      "venue": "ICCV 2025 (Highlight)",
+      "year": 2025,
+      "paper_url": "https://arxiv.org/abs/2507.20025",
+      "code_url": "https://github.com/deepglint/unicom",
+      "summary": "This ICCV 2025 Highlight paper presents a novel approach to self-supervised visual representation learning by introducing region-based cluster discrimination. The framework performs clustering at the region level rather than the global image level, enabling more discriminative local features while maintaining global semantic coherence."
+    },
+    {
+      "id": "pub_realsyn",
+      "type": "publication",
+      "title": "RealSyn: An Effective and Scalable Multimodal Interleaved Document Transformation Paradigm",
+      "authors": "Tiancheng Gu, Kaicheng Yang, Chaoyi Zhang, Yin Xie, Xiang An, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng",
+      "venue": "ACM MM 2025",
+      "year": 2025
+    },
+    {
+      "id": "pub_forcennet",
+      "type": "publication",
+      "title": "ForCenNet: Foreground-Centric Network for Document Image Rectification",
+      "authors": "Peng Cai, Qiang Li, Kaicheng Yang, Dong Guo, Jia Li, Nan Zhou, Xiang An, Ninghua Yang, Jiankang Deng",
+      "venue": "ICCV 2025",
+      "year": 2025
+    },
+    {
+      "id": "pub_hust",
+      "type": "publication",
+      "title": "HUST: High-Fidelity Unbiased Skin Tone Estimation via Texture Quantization",
+      "authors": "Zimin Ran, Xingyu Ren, Xiang An, Kaicheng Yang, Ziyong Feng, Jing Yang, Rolandos Alexandros Potamias, Linchao Zhu, Jiankang Deng",
+      "venue": "ICCV 2025",
+      "year": 2025
+    },
+    {
+      "id": "pub_gradient_attention",
+      "type": "publication",
+      "title": "Gradient-Attention Guided Dual-Masking Synergetic Framework for Robust Text-based Person Retrieval",
+      "authors": "Tianlu Zheng, Yifan Zhang, Xiang An, Ziyong Feng, Kaicheng Yang, Qichuan Ding",
+      "venue": "EMNLP 2025",
+      "year": 2025
+    },
+    {
+      "id": "pub_streamagent",
+      "type": "publication",
+      "title": "StreamAgent: Towards Anticipatory Agents for Streaming Video Understanding",
+      "authors": "Haolin Yang, Feilong Tang, Linxiao Zhao, Xiang An, Ming Hu, Huifa Li, Xinlin Zhuang, Boqian Wang, Yifan Lu, Xiaofeng Zhang",
+      "venue": "Preprint 2025",
+      "year": 2025
+    },
+    {
+      "id": "pub_proclip",
+      "type": "publication",
+      "title": "ProCLIP: Progressive Vision-Language Alignment via LLM-based Embedder",
+      "authors": "Xiaoxing Hu, Kaicheng Yang, Ziyong Feng, Qi Ming, Zonghao Guo, Xiang An, Junchi Yan, Xue Yang",
+      "venue": "Preprint 2025",
+      "year": 2025
+    },
+    {
+      "id": "pub_rwkv_clip",
+      "type": "publication",
+      "title": "RWKV-CLIP: A Robust Vision-Language Representation Learner",
+      "authors": "Tiancheng Gu, Kaicheng Yang, Xiang An, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng",
+      "venue": "EMNLP 2024",
+      "year": 2024
+    },
+    {
+      "id": "pub_clip_cid",
+      "type": "publication",
+      "title": "CLIP-CID: Efficient CLIP Distillation via Cluster-Instance Discrimination",
+      "authors": "Kaicheng Yang, Tiancheng Gu, Xiang An, Haiqiang Jiang, Xiangzi Dai, Ziyong Feng, Weidong Cai, Jiankang Deng",
+      "venue": "AAAI 2024",
+      "year": 2024
+    },
+    {
+      "id": "pub_mlcd",
+      "type": "publication",
+      "title": "Multi-label Cluster Discrimination for Visual Representation Learning",
+      "authors": "Xiang An, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jiankang Deng",
+      "venue": "ECCV 2024",
+      "year": 2024,
+      "paper_url": "https://arxiv.org/abs/2407.17331",
+      "code_url": "https://github.com/deepglint/unicom",
+      "summary": "This ECCV 2024 paper introduces a groundbreaking multi-label cluster discrimination framework for self-supervised visual representation learning. Traditional clustering-based methods assign each sample to a single cluster, which oversimplifies the complex semantic structure. Our approach allows each image to be associated with multiple cluster labels."
+    },
+    {
+      "id": "pub_idadapter",
+      "type": "publication",
+      "title": "IDAdapter: Learning Mixed Features for Tuning-Free Personalization of Text-to-Image Models",
+      "authors": "Siying Cui, Jia Guo, Xiang An, Jiankang Deng, Yongle Zhao, Xinyu Wei, Ziyong Feng",
+      "venue": "CVPRW 2024",
+      "year": 2024
+    },
+    {
+      "id": "pub_orid",
+      "type": "publication",
+      "title": "ORID: Organ-Regional Information Driven Framework for Radiology Report Generation",
+      "authors": "Tiancheng Gu, Kaicheng Yang, Xiang An, Ziyong Feng, Dongnan Liu, Weidong Cai",
+      "venue": "WACV 2025",
+      "year": 2025
+    },
+    {
+      "id": "pub_unicom",
+      "type": "publication",
+      "title": "Unicom: Universal and Compact Representation Learning for Image Retrieval",
+      "authors": "Xiang An, Jiankang Deng, Kaicheng Yang, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu",
+      "venue": "ICLR 2023",
+      "year": 2023,
+      "paper_url": "https://arxiv.org/abs/2304.05884",
+      "code_url": "https://github.com/deepglint/unicom",
+      "summary": "Unicom presents a universal and compact representation learning framework specifically designed for large-scale image retrieval applications. The framework introduces novel training strategies that enable a single model to achieve strong performance across multiple image retrieval benchmarks. Unicom achieves state-of-the-art results with significantly smaller model sizes."
+    },
+    {
+      "id": "pub_alip",
+      "type": "publication",
+      "title": "ALIP: Adaptive Language-Image Pre-training with Synthetic Caption",
+      "authors": "Kaicheng Yang, Jiankang Deng, Xiang An, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu",
+      "venue": "ICCV 2023",
+      "year": 2023
+    },
+    {
+      "id": "pub_partial_fc_cvpr",
+      "type": "publication",
+      "title": "Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC",
+      "authors": "Xiang An, Jiankang Deng, Jia Guo, Ziyong Feng, Xuhan Zhu, Jing Yang, Tongliang Liu",
+      "venue": "CVPR 2022",
+      "year": 2022,
+      "paper_url": "https://arxiv.org/abs/2203.15565",
+      "code_url": "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch",
+      "summary": "This CVPR 2022 paper introduces Partial FC, a revolutionary training method for large-scale face recognition that simultaneously improves both efficiency and robustness. It enables training on datasets with 10+ million identities on a single machine by randomly sampling a subset of identities in each training iteration."
+    },
+    {
+      "id": "pub_partial_fc_iccvw",
+      "type": "publication",
+      "title": "Partial FC: Training 10 Million Identities on a Single Machine",
+      "authors": "Xiang An, Xuhan Zhu, Yuan Gao, Yang Xiao, Yongle Zhao, Ziyong Feng, Lan Wu, Bin Qin, Ming Zhang, Debing Zhang, Ying Fu",
+      "venue": "ICCVW 2021",
+      "year": 2021,
+      "paper_url": "https://arxiv.org/abs/2010.05222",
+      "code_url": "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch",
+      "summary": "The original Partial FC method that revolutionizes large-scale face recognition training. It introduces dynamic sampling of class centers, reducing memory consumption from O(n) to O(k), enabling training on 10 million identities using a single machine with 8 GPUs."
+    },
+    {
+      "id": "pub_masked_face",
+      "type": "publication",
+      "title": "Masked Face Recognition Challenge: The InsightFace Track Report",
+      "authors": "Jiankang Deng, Jia Guo, Xiang An, Zheng Zhu, Stefanos Zafeiriou",
+      "venue": "ICCVW 2021",
+      "year": 2021
+    },
+    {
+      "id": "pub_insightface",
+      "type": "publication",
+      "title": "InsightFace: 2D and 3D Face Analysis Project",
+      "authors": "Jia Guo, Jiankang Deng, Xiang An, Jack Yu",
+      "venue": "GitHub 2020",
+      "year": 2020
+    },
+    {
+      "id": "project_insightface",
+      "type": "github_project",
+      "name": "InsightFace",
+      "url": "https://github.com/deepinsight/insightface",
+      "stars": "27k+",
+      "role": "2nd largest contributor",
+      "description": "State-of-the-art 2D and 3D face analysis toolbox. Xiang An proposed Partial FC for training 10M+ identities on a single machine and built Glint360K, the largest open-source face recognition training dataset.",
+      "keywords": ["face recognition", "face detection", "face alignment", "3D face", "partial fc", "glint360k", "insightface", "arcface"]
+    },
+    {
+      "id": "project_llava_onevision",
+      "type": "github_project",
+      "name": "LLaVA-OneVision-1.5",
+      "url": "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5",
+      "role": "Team Leader",
+      "description": "Fully open-source multimodal training framework that democratizes the development of large multimodal models. Provides better open-source ViT and validates that simple scaling of dense captions can improve overall multimodal task performance.",
+      "keywords": ["multimodal", "LLM", "vision transformer", "ViT", "LLaVA", "training framework", "open source", "MLLM"]
+    },
+    {
+      "id": "project_unicom",
+      "type": "github_project",
+      "name": "UNICOM / MLCD",
+      "url": "https://github.com/deepglint/unicom",
+      "role": "Project Leader and Main Author",
+      "description": "Universal image retrieval representation learning framework. Proposed region-based cluster discrimination method. Includes Unicom (ICLR 2023), Multi-label CD (ECCV 2024), and Region-based CD (ICCV 2025 Highlight).",
+      "keywords": ["image retrieval", "representation learning", "cluster discrimination", "self-supervised", "unicom", "MLCD", "contrastive learning"]
+    },
+    {
+      "id": "project_llava_next",
+      "type": "github_project",
+      "name": "LLaVA-NeXT",
+      "url": "https://github.com/LLaVA-VL/LLaVA-NeXT",
+      "role": "Vision Module Contributor",
+      "description": "Enhanced OCR capabilities and processing of rich text/document images in the LLaVA-NeXT multimodal model.",
+      "keywords": ["OCR", "document understanding", "multimodal", "LLaVA", "vision", "text recognition"]
+    }
+  ]
+}
