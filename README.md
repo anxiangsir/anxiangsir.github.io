@@ -7,6 +7,10 @@
 - 💾 **Conversation history storage** with Vercel Postgres database
 - 📊 Session management and chat history viewer
 
+## Quick Start
+
+Want to enable conversation history storage? See [QUICKSTART.md](QUICKSTART.md) (中文) for a 5-minute setup guide!
+
 ## Deployment
 
 ### Vercel (Recommended — supports Chat API)
