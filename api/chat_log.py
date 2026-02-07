@@ -4,8 +4,11 @@
 """
 
 import os
+import sys
 import logging
 from datetime import datetime
+
+sys.path.insert(0, os.path.dirname(__file__))
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
