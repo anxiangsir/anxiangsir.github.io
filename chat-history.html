@@ -399,9 +399,17 @@
             return div.innerHTML;
         }
 
-        // 页面加载时自动加载会话列表
+        // 页面加载时自动加载会话列表和URL参数中的会话
         window.addEventListener('load', () => {
             loadSessions();
+            
+            // 检查 URL 参数中是否有 sessionId
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionIdFromUrl = urlParams.get('sessionId');
+            if (sessionIdFromUrl) {
+                document.getElementById('sessionIdInput').value = sessionIdFromUrl;
+                loadChatHistory();
+            }
         });
     </script>
 </body>

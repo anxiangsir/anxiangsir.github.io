@@ -576,6 +576,7 @@
     <div class="wiki-header-inner">
       <a href="/" class="wiki-logo">Personal Homepage</a>
       <nav class="wiki-nav">
+        <a href="/chat-history.html" style="color: #667eea; font-weight: 500;">💾 Chat History</a>
       </nav>
     </div>
   </header>
@@ -839,6 +840,27 @@
       const conversationHistory = [];
       const MAX_HISTORY = 50;
 
+      // Generate or retrieve session ID for database persistence
+      let sessionId = localStorage.getItem('chatSessionId');
+      if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem('chatSessionId', sessionId);
+        console.log('生成新会话 ID:', sessionId);
+      } else {
+        console.log('使用现有会话 ID:', sessionId);
+      }
+
+      // Add session info display in chat header
+      const chatHeader = document.querySelector('.chat-header');
+      if (chatHeader) {
+        const sessionInfo = document.createElement('div');
+        sessionInfo.style.fontSize = '0.8rem';
+        sessionInfo.style.opacity = '0.7';
+        sessionInfo.style.marginTop = '5px';
+        sessionInfo.innerHTML = `会话ID: ${sessionId.substring(0, 8)}... <a href="/chat-history.html?sessionId=${sessionId}" style="color: white; text-decoration: underline;">查看历史</a>`;
+        chatHeader.appendChild(sessionInfo);
+      }
+
       function addMessage(text, isUser) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${isUser ? 'user' : 'assistant'}`;
@@ -868,7 +890,10 @@
           const response = await fetch(CHAT_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages: messages })
+            body: JSON.stringify({ 
+              messages: messages,
+              sessionId: sessionId  // Include sessionId for database persistence
+            })
           });
           const data = await response.json();
           return data.reply || '抱歉，服务暂时不可用。';
