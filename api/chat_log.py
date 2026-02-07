@@ -9,33 +9,12 @@ from datetime import datetime
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from db_utils import get_db_connection
 
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
-
-
-def get_db_connection():
-    """获取数据库连接"""
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
-    
-    database_url = os.getenv("POSTGRES_URL")
-    if not database_url:
-        return None
-    
-    try:
-        # Vercel Postgres URL 格式可能需要转换
-        # 如果是 postgres:// 开头，改为 postgresql://
-        if database_url.startswith("postgres://"):
-            database_url = database_url.replace("postgres://", "postgresql://", 1)
-        
-        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
-        return conn
-    except Exception as e:
-        logger.error(f"数据库连接失败: {e}")
-        return None
 
 
 @app.route("/api/chat-log", methods=["POST"])
