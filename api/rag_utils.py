@@ -107,9 +107,14 @@ def _tokenize(text):
         expanded.append(t)
         # If it's a Chinese token, also add English translations
         if re.fullmatch(r"[\u4e00-\u9fff]+", t):
-            for zh, en in _ZH_EN_MAP.items():
-                if zh in t:
-                    expanded.extend(en.split())
+            # Direct lookup first (O(1))
+            if t in _ZH_EN_MAP:
+                expanded.extend(_ZH_EN_MAP[t].split())
+            else:
+                # Substring matching for compound Chinese terms
+                for zh, en in _ZH_EN_MAP.items():
+                    if zh in t:
+                        expanded.extend(en.split())
     return expanded
 
 
@@ -156,9 +161,10 @@ def search(query, top_k=3, min_score=0.5):
     all_lengths = []
     df_map = Counter()
     for d in docs:
-        tokens = set(_TOKEN_RE.findall(d["_searchable"]))
-        all_lengths.append(len(_TOKEN_RE.findall(d["_searchable"])))
-        for t in tokens:
+        tokens = _TOKEN_RE.findall(d["_searchable"])
+        unique_tokens = set(tokens)
+        all_lengths.append(len(tokens))
+        for t in unique_tokens:
             df_map[t] += 1
     avg_dl = sum(all_lengths) / max(n_docs, 1)
 

@@ -135,11 +135,9 @@ def chat():
         return jsonify({"error": "服务器错误", "reply": "抱歉，服务暂时不可用。"}), 500
 
     # ── RAG retrieval: augment the prompt with relevant knowledge ──
-    last_user_msg = ""
-    for m in reversed(messages):
-        if m["role"] == "user":
-            last_user_msg = m["content"]
-            break
+    last_user_msg = next(
+        (m["content"] for m in reversed(messages) if m["role"] == "user"), ""
+    )
 
     rag_context = ""
     if last_user_msg:
