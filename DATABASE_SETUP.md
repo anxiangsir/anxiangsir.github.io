@@ -1,12 +1,14 @@
-# Vercel Postgres 数据库集成教程
+# Neon Postgres 数据库集成教程
 
-本文档详细介绍如何在 Vercel 项目中集成 Postgres 数据库（基于 Neon），用于自动保存用户与聊天机器人的对话记录。
+本文档详细介绍如何集成 [Neon](https://neon.tech/) Postgres 数据库，用于自动保存用户与聊天机器人的对话记录。
+
+> **推荐方案**：直接在 Neon 控制台创建数据库，然后将连接 URL 配置到 Vercel 环境变量中。也可以通过 Vercel Storage 集成（底层同样使用 Neon）。
 
 ## 目录
 
 1. [功能概述](#功能概述)
-2. [在 Vercel 控制台创建数据库](#在-vercel-控制台创建数据库)
-3. [关联数据库到项目](#关联数据库到项目)
+2. [方案一：直接使用 Neon（推荐）](#方案一直接使用-neon推荐)
+3. [方案二：通过 Vercel Storage 集成](#方案二通过-vercel-storage-集成)
 4. [初始化数据库表结构](#初始化数据库表结构)
 5. [环境变量说明](#环境变量说明)
 6. [本地开发配置](#本地开发配置)
@@ -18,7 +20,7 @@
 
 ## 功能概述
 
-本项目集成了 Vercel Postgres 数据库，实现以下功能：
+本项目使用 Neon Postgres 数据库，实现以下功能：
 
 - ✅ **自动保存对话**：用户与聊天机器人的每轮对话自动保存到远程数据库
 - ✅ **会话追踪**：通过 UUID 标识每个会话，支持对话历史查询
@@ -28,7 +30,37 @@
 
 ---
 
-## 在 Vercel 控制台创建数据库
+## 方案一：直接使用 Neon（推荐）
+
+### 步骤 1：注册并创建数据库
+
+1. 访问 [Neon Console](https://console.neon.tech/) 并注册/登录
+2. 点击 **New Project** 创建新项目
+3. **Project Name**：输入项目名称，例如 `chat-logs`
+4. **Region**：选择离您用户最近的地区（建议选择 `Asia Pacific (Singapore)`）
+5. 点击 **Create Project**
+
+### 步骤 2：获取连接 URL
+
+1. 项目创建后，在 **Dashboard** 页面找到 **Connection string**
+2. 复制完整的连接 URL，格式类似：
+   ```
+   postgresql://username:password@ep-xxx.region.neon.tech/dbname?sslmode=require
+   ```
+
+### 步骤 3：配置 Vercel 环境变量
+
+1. 进入 Vercel 项目设置：**Project Settings** → **Environment Variables**
+2. 添加环境变量：
+   - **Key**: `POSTGRES_URL`
+   - **Value**: 粘贴从 Neon 复制的连接 URL
+   - **Environments**: 选择 `Production`, `Preview`, `Development`
+3. 点击 **Save** 保存
+4. **重新部署** 项目使环境变量生效
+
+---
+
+## 方案二：通过 Vercel Storage 集成
 
 ### 步骤 1：登录 Vercel 控制台
 
@@ -46,11 +78,11 @@
 2. **Region**：选择离您用户最近的地区（建议选择 `Hong Kong (hkg1)` 或 `Singapore (sin1)`）
 3. 点击 **Create** 按钮
 
-创建完成后，Vercel 会自动生成一个基于 Neon 的 Postgres 数据库实例。
+创建完成后，Vercel 会自动生成一个 Neon Postgres 数据库实例。
 
 ---
 
-## 关联数据库到项目
+### 关联数据库到项目
 
 ### 自动关联（推荐）
 
@@ -133,7 +165,7 @@ psql $POSTGRES_URL < schema.sql
 
 ### 自动注入的环境变量
 
-Vercel 会在关联数据库后自动注入以下环境变量：
+通过 Vercel Storage 集成时，Vercel 会自动注入以下环境变量。直接使用 Neon 时，只需手动配置 `POSTGRES_URL` 即可：
 
 ```bash
 # 主要连接 URL（推荐使用）
@@ -483,12 +515,13 @@ SELECT * FROM chat_logs ORDER BY created_at DESC LIMIT 10;
 
 - `api/chat_log.py`：处理对话记录的保存和查询
 - `api/sessions.py`：处理会话列表查询
-- 使用 `psycopg2-binary` 连接 Vercel Postgres (Neon)
+- 使用 `psycopg2-binary` 连接 Neon Postgres
 - 静默失败：数据库不可用时返回成功响应，记录日志但不抛出错误
 
-### 数据库（Vercel Postgres / Neon）
+### 数据库（Neon Postgres）
 
-- 托管在 Neon 平台，通过 Vercel 集成
+- 托管在 [Neon](https://neon.tech/) 平台
+- 可直接在 Neon 控制台管理，也可通过 Vercel Storage 集成
 - 自动备份和高可用
 - 支持连接池（通过 `POSTGRES_PRISMA_URL`）
 
@@ -524,8 +557,8 @@ SELECT * FROM chat_logs ORDER BY created_at DESC LIMIT 10;
 
 ## 相关链接
 
-- [Vercel Postgres 官方文档](https://vercel.com/docs/storage/vercel-postgres)
 - [Neon 文档](https://neon.tech/docs)
+- [Vercel Postgres 官方文档](https://vercel.com/docs/storage/vercel-postgres)
 - [psycopg2 文档](https://www.psycopg.org/docs/)
 - [Vercel CLI 文档](https://vercel.com/docs/cli)
 

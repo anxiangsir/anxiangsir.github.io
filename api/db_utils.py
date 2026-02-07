@@ -24,7 +24,7 @@ def get_db_connection():
         return None
     
     try:
-        # Vercel Postgres URL 格式可能需要转换
+        # Neon Postgres URL 格式可能需要转换
         # 如果是 postgres:// 开头，改为 postgresql://
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
