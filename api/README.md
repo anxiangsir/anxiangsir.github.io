@@ -2,7 +2,27 @@
 
 ## Overview
 
-Python Flask chat service powered by Alibaba Cloud DashScope (Qwen model).
+Python Flask chat service powered by Alibaba Cloud DashScope (Qwen model), with integrated Vercel Postgres database for conversation logging.
+
+## API Endpoints
+
+### 1. POST /api/chat - Chat with AI Assistant
+
+Main chat endpoint that interacts with the Qwen model.
+
+### 2. POST /api/chat-log - Save Conversation Log
+
+Saves a conversation message to the database.
+
+### 3. GET /api/chat-log - Retrieve Conversation History
+
+Retrieves conversation history for a specific session.
+
+### 4. GET /api/sessions - List All Sessions
+
+Lists all conversation sessions with statistics.
+
+See [DATABASE_SETUP.md](../DATABASE_SETUP.md) for detailed API documentation.
 
 ## Deployment
 

@@ -831,6 +831,12 @@
         ? '/api/chat'
         : VERCEL_ORIGIN + '/api/chat';
       
+      // Chat log API for database storage
+      const CHAT_LOG_API_URL = (window.location.hostname === 'localhost' ||
+                                window.location.hostname.includes('vercel.app'))
+        ? '/api/chat-log'
+        : VERCEL_ORIGIN + '/api/chat-log';
+      
       const chatMessages = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
       const chatSendBtn = document.getElementById('chatSendBtn');
@@ -838,6 +844,21 @@
       // Maintain conversation history for context (capped to avoid excessive payloads)
       const conversationHistory = [];
       const MAX_HISTORY = 50;
+      
+      // Generate session ID for this conversation (UUID v4)
+      let sessionId = null;
+      try {
+        // 尝试从 localStorage 读取现有 sessionId
+        sessionId = localStorage.getItem('chatSessionId');
+        if (!sessionId) {
+          // 生成新的 UUID
+          sessionId = crypto.randomUUID();
+          localStorage.setItem('chatSessionId', sessionId);
+        }
+      } catch (e) {
+        // 如果不支持 crypto.randomUUID 或 localStorage，使用简单的随机 ID
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      }
 
       function addMessage(text, isUser) {
         const messageDiv = document.createElement('div');
@@ -861,6 +882,26 @@
         
         // Scroll to bottom
         chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+      
+      // 静默保存对话到数据库
+      async function saveChatLog(role, content) {
+        try {
+          await fetch(CHAT_LOG_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              role: role,
+              content: content,
+              user_agent: navigator.userAgent
+            })
+          });
+          // 静默成功，不做任何处理
+        } catch (error) {
+          // 静默失败，不影响聊天体验
+          console.debug('Chat log save skipped:', error.message);
+        }
       }
 
       async function callChatAPI(messages) {
@@ -887,6 +928,9 @@
         conversationHistory.push({ role: 'user', content: message });
         chatInput.value = '';
         
+        // 静默保存用户消息到数据库
+        saveChatLog('user', message);
+        
         // Disable button while waiting for response
         chatSendBtn.disabled = true;
         
@@ -897,6 +941,10 @@
         if (conversationHistory.length > MAX_HISTORY) {
           conversationHistory.splice(0, conversationHistory.length - MAX_HISTORY);
         }
+        
+        // 静默保存助手回复到数据库
+        saveChatLog('assistant', reply);
+        
         chatSendBtn.disabled = false;
         chatInput.focus();
       }
