@@ -4,20 +4,20 @@
 
 - 📱 Responsive personal homepage with research profile
 - 🤖 AI-powered chat assistant using Alibaba Cloud DashScope (Qwen model)
-- 💾 Automatic conversation logging to Vercel Postgres database
+- 💾 Automatic conversation logging to Neon Postgres database
 - 🔄 Hybrid deployment: GitHub Pages (static) + Vercel (API + Database)
 
 ## Deployment
 
 ### Vercel (Recommended — supports Chat API + Database)
 
-The site includes a Python-based Chat API (`api/chat.py`) and database logging features that require a serverless runtime and Postgres database. [Vercel](https://vercel.com/) is recommended because it serves both the static pages, Python API endpoints, and integrates with Vercel Postgres.
+The site includes a Python-based Chat API (`api/chat.py`) and database logging features that require a serverless runtime and Postgres database. [Vercel](https://vercel.com/) is recommended because it serves both the static pages and Python API endpoints, while [Neon](https://neon.tech/) provides the serverless Postgres database.
 
 1. **Import the repository** at [vercel.com/new](https://vercel.com/new).
 2. **Add the environment variable** `DASHSCOPE_API_KEY` in **Settings → Environment Variables** with your API key from [阿里云百炼](https://help.aliyun.com/model-studio/getting-started/models).
-3. **Create and connect Postgres database** (optional, for conversation logging):
-   - Go to **Storage** → **Create Database** → Select **Postgres**
-   - Connect the database to your project
+3. **Create and connect Neon Postgres database** (optional, for conversation logging):
+   - Create a database at [Neon Console](https://console.neon.tech/) (recommended) or via Vercel Storage
+   - Add the `POSTGRES_URL` environment variable in **Settings → Environment Variables**
    - Follow the setup guide in [DATABASE_SETUP.md](DATABASE_SETUP.md)
 4. **Deploy** — Vercel automatically serves static files and the Python serverless functions.
 
@@ -77,4 +77,4 @@ This means:
 
 ## Database Setup
 
-For setting up conversation logging with Vercel Postgres, see [DATABASE_SETUP.md](DATABASE_SETUP.md).
+For setting up conversation logging with Neon Postgres, see [DATABASE_SETUP.md](DATABASE_SETUP.md).

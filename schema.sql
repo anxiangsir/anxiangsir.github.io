@@ -1,4 +1,4 @@
--- Vercel Postgres (Neon) 数据库 Schema
+-- Neon Postgres 数据库 Schema
 -- 用于存储聊天机器人对话记录
 
 -- 创建对话日志表
