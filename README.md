@@ -1,5 +1,12 @@
 # [Xiang An's Personal Homepage](https://anxiangsir.github.io/)
 
+## Features
+
+- 🎨 Beautiful personal homepage with research highlights
+- 💬 AI-powered chat assistant using Alibaba Cloud DashScope
+- 💾 **Conversation history storage** with Vercel Postgres database
+- 📊 Session management and chat history viewer
+
 ## Deployment
 
 ### Vercel (Recommended — supports Chat API)
@@ -7,8 +14,12 @@
 The site includes a Python-based Chat API (`api/chat.py`) that requires a serverless runtime. [Vercel](https://vercel.com/) is recommended because it serves both the static pages and the Python API endpoint.
 
 1. **Import the repository** at [vercel.com/new](https://vercel.com/new).
-2. **Add the environment variable** `DASHSCOPE_API_KEY` in **Settings → Environment Variables** with your API key from [阿里云百炼](https://help.aliyun.com/model-studio/getting-started/models).
-3. **Deploy** — Vercel automatically serves static files and the `/api/chat` Python serverless function.
+2. **Add environment variables** in **Settings → Environment Variables**:
+   - `DASHSCOPE_API_KEY`: Your API key from [阿里云百炼](https://help.aliyun.com/model-studio/getting-started/models)
+   - `POSTGRES_URL`: (Optional) Auto-injected when you connect Vercel Postgres database
+3. **Deploy** — Vercel automatically serves static files and Python serverless functions.
+
+> **💾 Database Setup:** To enable conversation history storage, see the detailed guide in [DATABASE_SETUP.md](DATABASE_SETUP.md) (中文教程).
 
 > **Note:** GitHub Actions **Repository secrets** are only available during CI/CD workflow runs. They are **not** injected into the runtime environment of static sites or serverless functions. Use Vercel Environment Variables instead.
 
@@ -41,6 +52,7 @@ This means:
    ```bash
    pip install -r requirements.txt
    export DASHSCOPE_API_KEY="sk-xxx"
+   # Optional: export POSTGRES_URL="postgresql://..." for database features
    python api/chat.py
    ```
 
@@ -63,3 +75,14 @@ This means:
 4. **Access the Website**
 
    Open http://localhost:8000 in your browser to view the website.
+
+## API Endpoints
+
+The project includes several API endpoints:
+
+- **POST /api/chat** — Chat with AI assistant (optionally saves to database if `sessionId` provided)
+- **POST /api/chat_history** — Manually save a conversation record
+- **GET /api/chat_history?sessionId=xxx** — Retrieve conversation history for a session
+- **GET /api/sessions** — List all conversation sessions
+
+For detailed API documentation and database setup instructions, see [DATABASE_SETUP.md](DATABASE_SETUP.md) (中文).

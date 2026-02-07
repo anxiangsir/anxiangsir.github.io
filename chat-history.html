@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对话历史 - Xiang An</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .controls h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .sessions-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .sessions-panel h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .session-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .session-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .session-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .session-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-color: #667eea;
+        }
+
+        .session-id {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .session-info {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .chat-history {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+
+        .chat-history h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: 40px;
+        }
+
+        .message.assistant {
+            background: #f8f9fa;
+            color: #333;
+            margin-right: 40px;
+        }
+
+        .message-role {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .message-content {
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #c33;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .message.user {
+                margin-left: 20px;
+            }
+
+            .message.assistant {
+                margin-right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💬 对话历史</h1>
+        
+        <div class="controls">
+            <h2>🔍 查询对话记录</h2>
+            <div class="input-group">
+                <input type="text" id="sessionIdInput" placeholder="输入会话 ID (UUID 格式)">
+                <button onclick="loadChatHistory()">加载记录</button>
+                <button onclick="generateNewSession()">生成新会话</button>
+            </div>
+        </div>
+
+        <div class="sessions-panel">
+            <h2>📋 所有会话</h2>
+            <div id="sessionsList" class="session-list">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <div class="chat-history">
+            <h2>📝 对话内容</h2>
+            <div id="chatMessages">
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    <p>请选择一个会话或输入会话 ID 查看对话记录</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检测当前环境并设置 API URL
+        const hostname = window.location.hostname;
+        let API_BASE_URL;
+
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            // 本地开发环境
+            API_BASE_URL = '';
+        } else if (hostname.includes('vercel.app')) {
+            // Vercel 部署环境
+            API_BASE_URL = '';
+        } else {
+            // GitHub Pages 或其他环境，使用 Vercel URL
+            API_BASE_URL = 'https://anxiangsir-github-io.vercel.app';
+        }
+
+        let currentSessionId = null;
+
+        // 生成新的 UUID 会话 ID
+        function generateNewSession() {
+            const newSessionId = crypto.randomUUID();
+            document.getElementById('sessionIdInput').value = newSessionId;
+            alert('新会话 ID 已生成！\n\n' + newSessionId + '\n\n您可以使用此 ID 开始新的对话。');
+        }
+
+        // 加载所有会话列表
+        async function loadSessions() {
+            const sessionsList = document.getElementById('sessionsList');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/sessions`);
+                const data = await response.json();
+                
+                if (data.success && data.sessions.length > 0) {
+                    sessionsList.innerHTML = data.sessions.map(session => `
+                        <div class="session-item" onclick="selectSession('${session.sessionId}')">
+                            <div class="session-id">📌 ${session.sessionId.substring(0, 13)}...</div>
+                            <div class="session-info">
+                                💬 ${session.messageCount} 条消息 · 
+                                🕒 ${new Date(session.lastMessageAt).toLocaleString('zh-CN')}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    sessionsList.innerHTML = '<div class="empty-state"><p>暂无会话记录</p></div>';
+                }
+            } catch (error) {
+                console.error('加载会话列表失败:', error);
+                sessionsList.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 选择会话
+        function selectSession(sessionId) {
+            document.getElementById('sessionIdInput').value = sessionId;
+            loadChatHistory();
+            
+            // 更新激活状态
+            document.querySelectorAll('.session-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.session-item').classList.add('active');
+        }
+
+        // 加载对话历史
+        async function loadChatHistory() {
+            const sessionId = document.getElementById('sessionIdInput').value.trim();
+            const chatMessages = document.getElementById('chatMessages');
+            
+            if (!sessionId) {
+                alert('请输入会话 ID');
+                return;
+            }
+
+            // 验证 UUID 格式
+            const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!uuidPattern.test(sessionId)) {
+                alert('会话 ID 格式不正确，请输入有效的 UUID');
+                return;
+            }
+
+            currentSessionId = sessionId;
+            chatMessages.innerHTML = '<div class="loading">加载中...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/chat_history?sessionId=${sessionId}`);
+                const data = await response.json();
+
+                if (data.success && data.messages.length > 0) {
+                    chatMessages.innerHTML = data.messages.map(msg => `
+                        <div class="message ${msg.role}">
+                            <div class="message-role">${msg.role === 'user' ? '👤 USER' : '🤖 Xiang An'}</div>
+                            <div class="message-content">${escapeHtml(msg.content)}</div>
+                            <div class="message-time">🕒 ${new Date(msg.createdAt).toLocaleString('zh-CN')}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    chatMessages.innerHTML = `
+                        <div class="empty-state">
+                            <p>该会话暂无对话记录</p>
+                            <p style="font-size: 0.9rem; margin-top: 10px; color: #999;">会话 ID: ${sessionId}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('加载对话历史失败:', error);
+                chatMessages.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // HTML 转义函数，防止 XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 页面加载时自动加载会话列表
+        window.addEventListener('load', () => {
+            loadSessions();
+        });
+    </script>
+</body>
+</html>

@@ -16,6 +16,7 @@ app = Flask(__name__)
 CORS(app)
 
 DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY", "")
+POSTGRES_URL = os.getenv("POSTGRES_URL", "")
 BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 MODEL = "qwen-flash"
 
@@ -95,12 +96,57 @@ def get_client():
     return OpenAI(api_key=DASHSCOPE_API_KEY, base_url=BASE_URL)
 
 
+def get_db_connection():
+    """创建并返回数据库连接（如果配置了 POSTGRES_URL）"""
+    if not POSTGRES_URL:
+        return None
+    
+    try:
+        import psycopg2
+        conn = psycopg2.connect(POSTGRES_URL)
+        return conn
+    except Exception as e:
+        logger.exception("数据库连接失败")
+        return None
+
+
+def save_message_to_db(session_id, role, content):
+    """保存一条消息到数据库（如果数据库可用）"""
+    if not session_id:
+        return
+    
+    conn = get_db_connection()
+    if conn is None:
+        logger.warning("数据库不可用，跳过保存对话记录")
+        return
+    
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO conversations (session_id, role, content)
+            VALUES (%s, %s, %s)
+            """,
+            (session_id, role, content)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        logger.exception("保存对话记录失败")
+        if conn:
+            conn.close()
+
+
 @app.route("/api/chat", methods=["POST"])
 def chat():
     """Handle chat requests."""
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "无效的消息格式"}), 400
+
+    # 获取可选的 sessionId 参数（用于保存对话记录）
+    session_id = data.get("sessionId")
 
     # Accept either 'messages' (conversation history) or 'message' (single string)
     raw_messages = data.get("messages")
@@ -129,11 +175,28 @@ def chat():
         return jsonify({"error": "服务器错误", "reply": "抱歉，服务暂时不可用。"}), 500
 
     try:
+        # 如果提供了 sessionId，保存用户消息到数据库
+        if session_id and messages:
+            # 保存最后一条用户消息
+            last_user_message = None
+            for msg in reversed(messages):
+                if msg["role"] == "user":
+                    last_user_message = msg
+                    break
+            
+            if last_user_message:
+                save_message_to_db(session_id, "user", last_user_message["content"])
+        
         completion = client.chat.completions.create(
             model=MODEL,
             messages=[{"role": "system", "content": SYSTEM_PROMPT}] + messages,
         )
         reply = completion.choices[0].message.content
+        
+        # 如果提供了 sessionId，保存助手回复到数据库
+        if session_id:
+            save_message_to_db(session_id, "assistant", reply)
+        
         return jsonify({"reply": reply})
     except Exception as e:
         logger.exception("Chat API error")
