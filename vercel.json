@@ -1,5 +1,11 @@
 {
   "framework": null,
+  "rewrites": [
+    {
+      "source": "/api/chat-log",
+      "destination": "/api/chat_log"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
