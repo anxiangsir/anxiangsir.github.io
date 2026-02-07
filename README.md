@@ -75,6 +75,10 @@ This means:
 
    Open http://localhost:8000 in your browser to view the website.
 
+## RAG System
+
+The chat assistant uses a lightweight RAG (Retrieval-Augmented Generation) system to retrieve relevant publications and GitHub projects from a local knowledge base before calling the LLM, enabling more accurate and detailed answers. For a detailed explanation of the architecture, BM25 scoring algorithm, and cross-language support, see [RAG_DESIGN.md](RAG_DESIGN.md).
+
 ## Database Setup
 
 For setting up conversation logging with Neon Postgres, see [DATABASE_SETUP.md](DATABASE_SETUP.md).
