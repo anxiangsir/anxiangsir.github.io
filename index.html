@@ -356,6 +356,43 @@
     .chat-messages::-webkit-scrollbar-thumb:hover {
       background: #a8a8a8;
     }
+    /* Fullscreen chat mode */
+    .chat-fullscreen-toggle {
+      float: right;
+      background: none;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+      padding: 0.15em 0.5em;
+      color: #54595d;
+      transition: all 0.2s ease;
+    }
+    .chat-fullscreen-toggle:hover {
+      background: #f0f0f0;
+      color: #202122;
+    }
+    .chat-container.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      border-radius: 0;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      padding: 1em 1.5em;
+      box-sizing: border-box;
+    }
+    .chat-container.fullscreen .chat-messages {
+      flex: 1;
+      height: auto;
+    }
+    .chat-container.fullscreen .chat-input-container {
+      flex-shrink: 0;
+    }
     .chat-message {
       margin: 0.6em 0;
       padding: 0.6em 0.9em;
@@ -602,7 +639,7 @@
 
 <div class="chat-section">
   <div class="chat-container">
-    <div class="chat-header">💬 Chat <span style="font-size:0.75em;opacity:0.7;margin-left:6px;">RAG-enhanced</span></div>
+    <div class="chat-header">💬 Chat <span style="font-size:0.75em;opacity:0.7;margin-left:6px;">RAG-enhanced</span><button id="chatFullscreenToggle" class="chat-fullscreen-toggle" title="全屏/退出全屏">⛶</button></div>
     <div class="chat-messages" id="chatMessages">
       <div class="chat-message assistant">
         <div class="chat-message-label">Xiang An</div>
@@ -840,6 +877,38 @@
       const chatMessages = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
       const chatSendBtn = document.getElementById('chatSendBtn');
+      const chatContainer = document.querySelector('.chat-container');
+      const chatFullscreenToggle = document.getElementById('chatFullscreenToggle');
+
+      // Fullscreen toggle functionality
+      let isFullscreen = false;
+      let hasAutoFullscreened = false;
+
+      function setChatFullscreen(enter) {
+        isFullscreen = enter;
+        if (enter) {
+          chatContainer.classList.add('fullscreen');
+          chatFullscreenToggle.textContent = '✕';
+          chatFullscreenToggle.title = '退出全屏';
+          document.body.style.overflow = 'hidden';
+        } else {
+          chatContainer.classList.remove('fullscreen');
+          chatFullscreenToggle.textContent = '⛶';
+          chatFullscreenToggle.title = '全屏';
+          document.body.style.overflow = '';
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      chatFullscreenToggle.addEventListener('click', function() {
+        setChatFullscreen(!isFullscreen);
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isFullscreen) {
+          setChatFullscreen(false);
+        }
+      });
 
       // Maintain conversation history for context (capped to avoid excessive payloads)
       const conversationHistory = [];
@@ -922,6 +991,12 @@
       async function sendMessage() {
         const message = chatInput.value.trim();
         if (!message) return;
+        
+        // Auto-enter fullscreen on first message
+        if (!hasAutoFullscreened) {
+          hasAutoFullscreened = true;
+          setChatFullscreen(true);
+        }
         
         // Add user message to UI and history
         addMessage(message, true);
