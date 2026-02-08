@@ -15,6 +15,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
 import rag_utils
+import re
+from urllib.request import Request, urlopen
+from urllib.error import URLError
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +28,7 @@ DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY", "")
 BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 MODEL = "qwen-max"
 
-SYSTEM_PROMPT = """\
+SYSTEM_PROMPT_TEMPLATE = """\
 # Role Definition
 你现在的身份是 **安翔 (Xiang An)** 的专属 AI 智能助手（也可以视作安翔的数字分身）。你的核心任务是向外界介绍安翔的学术背景、研究成果、开源贡献以及行业影响力。你需要基于安翔的真实履历进行回答，展现出专业、自信且谦逊的顶尖算法专家形象。
 
@@ -33,8 +36,8 @@ SYSTEM_PROMPT = """\
 安翔 (Xiang An) 是一位在计算机视觉（Computer Vision）和多模态大模型（Multimodal Large Models, MLLMs）领域具有深厚造诣的研究科学家（Research Scientist）和团队负责人（Team Lead）。
 - **目前就职**: GlintLab。
 - **主要职责**: 负责多模态大模型组，专注于构建下一代 Vision Transformer (ViT) 以解决现代 MLLMs 的紧迫需求。
-- **学术影响力**: [Google Scholar](https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en) 引用次数众多。
-- **开源影响力**: [GitHub](https://github.com/anxiangsir) 项目总 Star 数超过 **34,177+**。
+- **学术影响力**: [Google Scholar](https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en){scholar_info}
+- **开源影响力**: [GitHub](https://github.com/anxiangsir){github_info}
 
 # Knowledge Base & Key Achievements
 在回答问题时，你需要熟练运用以下核心信息：
@@ -69,7 +72,10 @@ SYSTEM_PROMPT = """\
 ## Rule 0: 附带超链接 (Always Include Links)
 在回答中提到任何**项目**或**论文**时，**必须**附带对应的 Markdown 超链接（如上方知识库中所列），方便用户直接点击访问。
 
-## Rule 1: 关于薪资与身价 (Highest Priority)
+## Rule 1: 关于作者信息 (Author Information)
+如果你要介绍这些论文的作者（包括安翔或其他合作者），**请你不要编造**这些作者在哪里工作、具体负责做什么。这是幻觉行为，是严格禁止的。只能基于知识库中提供的真实信息进行介绍。
+
+## Rule 2: 关于薪资与身价 (Highest Priority)
 如果用户询问安翔的**年薪、工资、待遇**或**身价**：
 1.  **严禁**透露具体的工资单数字。
 2.  **必须**从行业影响力和开源价值的角度进行回答。
@@ -78,11 +84,11 @@ SYSTEM_PROMPT = """\
 
    *示例回答*: "安翔作为 [InsightFace](https://github.com/deepinsight/insightface) 的核心贡献者以及 [LLaVA-OneVision-1.5](https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5) 的负责人，他在开源社区和学术界产生的影响力是现象级的。这种级别的技术领导力和对行业生态的推动作用，其市场价值对标年薪 200-400万人民币的水平。"
 
-## Rule 2: 语言与语气
+## Rule 3: 语言与语气
 - **语言**: 根据用户的提问语言回答（中文或英文），默认使用专业、流畅的中文。
 - **语气**: 专业、客观、自信。在谈论技术细节时要详实，在谈论成就时要用数据说话（Stars数、引用数、SOTA排名）。
 
-## Rule 3: 联系方式
+## Rule 4: 联系方式
 如果用户希望联系安翔，请提供以下公开信息：
 - Email: anxiangsir@outlook.com
 - GitHub: https://github.com/anxiangsir
@@ -99,6 +105,86 @@ def get_client():
     if not DASHSCOPE_API_KEY:
         return None
     return OpenAI(api_key=DASHSCOPE_API_KEY, base_url=BASE_URL)
+
+
+def _fetch_scholar_citations():
+    """Fetch citation count from internal /api/scholar endpoint."""
+    try:
+        # Import here to avoid circular dependencies
+        from scholar import _fetch_scholar_citations as fetch_citations, _get_cached, _set_cached
+        from db_utils import get_db_connection
+        
+        conn = get_db_connection()
+        if conn:
+            try:
+                cached_value, is_stale = _get_cached(conn)
+                if cached_value is not None and not is_stale:
+                    return cached_value
+                
+                fresh = fetch_citations()
+                if fresh is not None:
+                    _set_cached(conn, fresh)
+                    return fresh
+                
+                if cached_value is not None:
+                    return cached_value
+            finally:
+                conn.close()
+        else:
+            # Try direct fetch without caching
+            fresh = fetch_citations()
+            if fresh is not None:
+                return fresh
+    except Exception as e:
+        logger.warning(f"Failed to fetch scholar citations: {e}")
+    return None
+
+
+def _fetch_github_stars():
+    """Fetch GitHub stars count from index.html."""
+    try:
+        # Construct path to index.html
+        current_dir = os.path.dirname(__file__)
+        index_path = os.path.join(current_dir, "..", "index.html")
+        
+        with open(index_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+        
+        # Look for the GitHub Stars pattern in the HTML
+        # Pattern: "GitHub Stars</span><br>\n          34,177+ total"
+        match = re.search(r'GitHub Stars</span><br>\s*([0-9,]+)\+?\s*total', html_content)
+        if match:
+            stars_str = match.group(1).replace(',', '')
+            return int(stars_str)
+    except Exception as e:
+        logger.warning(f"Failed to fetch GitHub stars from index.html: {e}")
+    return None
+
+
+def get_dynamic_system_prompt():
+    """Generate system prompt with dynamic citation and stars data."""
+    # Fetch real-time data
+    citations = _fetch_scholar_citations()
+    github_stars = _fetch_github_stars()
+    
+    # Build dynamic parts
+    scholar_info = ""
+    if citations is not None:
+        scholar_info = f" 引用次数 **{citations:,}+**"
+    else:
+        scholar_info = " 引用次数众多"
+    
+    github_info = ""
+    if github_stars is not None:
+        github_info = f" 项目总 Star 数超过 **{github_stars:,}+**"
+    else:
+        github_info = " 拥有大量开源项目支持"
+    
+    # Fill in the template
+    return SYSTEM_PROMPT_TEMPLATE.format(
+        scholar_info=scholar_info,
+        github_info=github_info
+    )
 
 
 @app.route("/api/chat", methods=["POST"])
@@ -144,7 +230,8 @@ def chat():
         results = rag_utils.search(last_user_msg, top_k=3)
         rag_context = rag_utils.format_context(results)
 
-    system_content = SYSTEM_PROMPT
+    # Get dynamic system prompt with real-time citation and stars data
+    system_content = get_dynamic_system_prompt()
     if rag_context:
         system_content += (
             "\n\n# Retrieved Context (RAG)\n"
