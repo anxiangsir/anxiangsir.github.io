@@ -633,7 +633,7 @@
     <main class="wiki-content">
       <h1 class="wiki-title">Xiang An</h1>
 
-<p><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, specializing in computer vision and multimodal large models. His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐). His research has accumulated <b><span id="scholar-citations-bio">1,114+</span> citations</b> on <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a>, and his open-source projects have garnered a total of <b>34,177+ stars</b> on GitHub.</p>
+<p><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, specializing in computer vision and multimodal large models. His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐).<span id="scholar-citations-bio-wrapper" style="display:none"> His research has accumulated <b><span id="scholar-citations-bio"></span> citations</b> on <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a>.</span> His open-source projects have garnered a total of <b>34,177+ stars</b> on GitHub.</p>
 
 <h2 id="chat">Ask Xiang An anything</h2>
 
@@ -834,7 +834,7 @@
 
         <div class="infobox-row">
           <span class="infobox-label">Citations</span><br>
-          <span id="scholar-citations">1,114+</span> (Google Scholar)
+          <span id="scholar-citations"></span><span id="scholar-citations-suffix" style="display:none"> (Google Scholar)</span>
         </div>
 
         <div class="infobox-row">
@@ -875,9 +875,13 @@
             const el2 = document.getElementById('scholar-citations-bio');
             if (el1) el1.textContent = formatted;
             if (el2) el2.textContent = formatted;
+            const bioWrapper = document.getElementById('scholar-citations-bio-wrapper');
+            if (bioWrapper) bioWrapper.style.display = '';
+            const suffix = document.getElementById('scholar-citations-suffix');
+            if (suffix) suffix.style.display = '';
           }
         })
-        .catch(() => { /* keep static fallback */ });
+        .catch(err => { console.warn('Scholar API unavailable:', err); });
     })();
   </script>
   
