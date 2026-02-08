@@ -108,33 +108,10 @@ def get_client():
 
 
 def _fetch_scholar_citations():
-    """Fetch citation count from internal /api/scholar endpoint."""
+    """Fetch citation count using the scholar module's public API."""
     try:
-        # Import here to avoid circular dependencies
-        from scholar import _fetch_scholar_citations as fetch_citations, _get_cached, _set_cached
-        from db_utils import get_db_connection
-        
-        conn = get_db_connection()
-        if conn:
-            try:
-                cached_value, is_stale = _get_cached(conn)
-                if cached_value is not None and not is_stale:
-                    return cached_value
-                
-                fresh = fetch_citations()
-                if fresh is not None:
-                    _set_cached(conn, fresh)
-                    return fresh
-                
-                if cached_value is not None:
-                    return cached_value
-            finally:
-                conn.close()
-        else:
-            # Try direct fetch without caching
-            fresh = fetch_citations()
-            if fresh is not None:
-                return fresh
+        from scholar import get_scholar_citations_cached
+        return get_scholar_citations_cached()
     except Exception as e:
         logger.warning(f"Failed to fetch scholar citations: {e}")
     return None
@@ -143,9 +120,14 @@ def _fetch_scholar_citations():
 def _fetch_github_stars():
     """Fetch GitHub stars count from index.html."""
     try:
-        # Construct path to index.html
-        current_dir = os.path.dirname(__file__)
+        # Construct path to index.html - using a more robust approach
+        current_dir = os.path.dirname(os.path.abspath(__file__))
         index_path = os.path.join(current_dir, "..", "index.html")
+        index_path = os.path.abspath(index_path)
+        
+        if not os.path.exists(index_path):
+            logger.warning(f"index.html not found at {index_path}")
+            return None
         
         with open(index_path, "r", encoding="utf-8") as f:
             html_content = f.read()
@@ -167,7 +149,7 @@ def get_dynamic_system_prompt():
     citations = _fetch_scholar_citations()
     github_stars = _fetch_github_stars()
     
-    # Build dynamic parts
+    # Build dynamic parts - note: template expects these to include leading space
     scholar_info = ""
     if citations is not None:
         scholar_info = f" 引用次数 **{citations:,}+**"
