@@ -356,6 +356,43 @@
     .chat-messages::-webkit-scrollbar-thumb:hover {
       background: #a8a8a8;
     }
+    /* Fullscreen chat mode */
+    .chat-fullscreen-toggle {
+      float: right;
+      background: none;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+      padding: 0.15em 0.5em;
+      color: #54595d;
+      transition: all 0.2s ease;
+    }
+    .chat-fullscreen-toggle:hover {
+      background: #f0f0f0;
+      color: #202122;
+    }
+    .chat-container.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      border-radius: 0;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      padding: 1em 1.5em;
+      box-sizing: border-box;
+    }
+    .chat-container.fullscreen .chat-messages {
+      flex: 1;
+      height: auto;
+    }
+    .chat-container.fullscreen .chat-input-container {
+      flex-shrink: 0;
+    }
     .chat-message {
       margin: 0.6em 0;
       padding: 0.6em 0.9em;
@@ -436,6 +473,41 @@
       box-shadow: none;
       transform: none;
     }
+    .chat-markdown { line-height: 1.6; }
+    .chat-markdown p { margin: 0.4em 0; }
+    .chat-markdown p:first-child { margin-top: 0; }
+    .chat-markdown p:last-child { margin-bottom: 0; }
+    .chat-markdown ul, .chat-markdown ol { margin: 0.4em 0; padding-left: 1.5em; }
+    .chat-markdown code {
+      background: #f0f0f0; padding: 0.15em 0.35em; border-radius: 3px;
+      font-size: 0.9em; font-family: 'SFMono-Regular', Consolas, monospace;
+    }
+    .chat-markdown pre {
+      background: #282c34; color: #abb2bf; padding: 0.75em 1em;
+      border-radius: 5px; overflow-x: auto; margin: 0.5em 0;
+    }
+    .chat-markdown pre code {
+      background: none; padding: 0; color: inherit; font-size: 0.85em;
+    }
+    .chat-markdown blockquote {
+      border-left: 3px solid #ddd; margin: 0.4em 0; padding: 0.2em 0.8em; color: #666;
+    }
+    .chat-markdown h1, .chat-markdown h2, .chat-markdown h3 {
+      margin: 0.5em 0 0.3em; line-height: 1.3;
+    }
+    .chat-markdown h1 { font-size: 1.2em; }
+    .chat-markdown h2 { font-size: 1.1em; }
+    .chat-markdown h3 { font-size: 1.05em; }
+    .chat-markdown table {
+      border-collapse: collapse; margin: 0.5em 0; width: 100%;
+    }
+    .chat-markdown th, .chat-markdown td {
+      border: 1px solid #ddd; padding: 0.35em 0.6em; text-align: left;
+    }
+    .chat-markdown th { background: #f5f5f5; font-weight: 600; }
+    .chat-markdown a { color: #2196f3; text-decoration: none; }
+    .chat-markdown a:hover { text-decoration: underline; }
+    .chat-markdown hr { border: none; border-top: 1px solid #e0e0e0; margin: 0.5em 0; }
 
     /* Footer */
     .wiki-footer {
@@ -550,7 +622,7 @@
       <div class="wiki-sidebar-title">Contents</div>
       <ul>
         <li><a href="#">(Top)</a></li>
-        <li><a href="#chat">Xiang An's AI Assistant</a></li>
+        <li><a href="#chat">Ask Xiang An anything</a></li>
         <li><a href="#publications">Publications</a></li>
         <li><a href="#awards">Awards</a></li>
         <li><a href="#open-source">Open Source</a></li>
@@ -563,15 +635,15 @@
 
 <p><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, specializing in computer vision and multimodal large models. His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐). His research has accumulated <b>1,114+ citations</b> on <a href="https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en" target="_blank">Google Scholar</a>, and his open-source projects have garnered a total of <b>34,177+ stars</b> on GitHub.</p>
 
-<h2 id="chat">Xiang An's AI Assistant</h2>
+<h2 id="chat">Ask Xiang An anything</h2>
 
 <div class="chat-section">
   <div class="chat-container">
-    <div class="chat-header">💬 Ask Xiang An any thing</div>
+    <div class="chat-header">💬 Chat <span style="font-size:0.75em;opacity:0.7;margin-left:6px;">RAG-enhanced</span><button id="chatFullscreenToggle" class="chat-fullscreen-toggle" title="全屏/退出全屏" aria-label="Toggle fullscreen mode">⛶</button></div>
     <div class="chat-messages" id="chatMessages">
       <div class="chat-message assistant">
-        <div class="chat-message-label">助手</div>
-        <div>你好！欢迎来到安翔的主页。我目前正在升级中,敬请期待！</div>
+        <div class="chat-message-label">Xiang An</div>
+        <div>你好！欢迎来到安翔的主页，有什么可以帮你的吗？</div>
       </div>
     </div>
     <div class="chat-input-container">
@@ -778,16 +850,84 @@
   <!-- GitHub Stars Loader -->
   <script src="assets/js/github-stars.js"></script>
   
+  <!-- Markdown rendering for chat -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/14.1.3/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.7/purify.min.js"></script>
+
   <!-- Chat functionality -->
   <script>
     (function() {
-      // Constants
-      const UPGRADE_MESSAGE = '升级中！';
-      const SIMULATED_RESPONSE_DELAY_MS = 500;
+      // Chat API endpoint — auto-detect environment
+      // On Vercel or localhost the API is co-located; on GitHub Pages we
+      // call the Vercel-hosted serverless function cross-origin.
+      // ⚠️  Update this URL if the Vercel project is renamed or redeployed
+      //     under a different domain (check Vercel Dashboard → Domains).
+      const VERCEL_ORIGIN = 'https://anxiangsir-github-io.vercel.app';
+      const CHAT_API_URL = (window.location.hostname === 'localhost' ||
+                            window.location.hostname.includes('vercel.app'))
+        ? '/api/chat'
+        : VERCEL_ORIGIN + '/api/chat';
+      
+      // Chat log API for database storage
+      const CHAT_LOG_API_URL = (window.location.hostname === 'localhost' ||
+                                window.location.hostname.includes('vercel.app'))
+        ? '/api/chat-log'
+        : VERCEL_ORIGIN + '/api/chat-log';
       
       const chatMessages = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
       const chatSendBtn = document.getElementById('chatSendBtn');
+      const chatContainer = document.querySelector('.chat-container');
+      const chatFullscreenToggle = document.getElementById('chatFullscreenToggle');
+
+      // Fullscreen toggle functionality
+      let isFullscreen = false;
+      let hasAutoFullscreened = false;
+
+      function setChatFullscreen(enter) {
+        isFullscreen = enter;
+        if (enter) {
+          chatContainer.classList.add('fullscreen');
+          chatFullscreenToggle.textContent = '✕';
+          chatFullscreenToggle.title = '退出全屏';
+          document.body.style.overflow = 'hidden';
+        } else {
+          chatContainer.classList.remove('fullscreen');
+          chatFullscreenToggle.textContent = '⛶';
+          chatFullscreenToggle.title = '全屏';
+          document.body.style.overflow = '';
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      chatFullscreenToggle.addEventListener('click', function() {
+        setChatFullscreen(!isFullscreen);
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isFullscreen) {
+          setChatFullscreen(false);
+        }
+      });
+
+      // Maintain conversation history for context (capped to avoid excessive payloads)
+      const conversationHistory = [];
+      const MAX_HISTORY = 50;
+      
+      // Generate session ID for this conversation (UUID v4)
+      let sessionId = null;
+      try {
+        // 尝试从 localStorage 读取现有 sessionId
+        sessionId = localStorage.getItem('chatSessionId');
+        if (!sessionId) {
+          // 生成新的 UUID
+          sessionId = crypto.randomUUID();
+          localStorage.setItem('chatSessionId', sessionId);
+        }
+      } catch (e) {
+        // 如果不支持 crypto.randomUUID 或 localStorage，使用简单的随机 ID
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      }
 
       function addMessage(text, isUser) {
         const messageDiv = document.createElement('div');
@@ -795,10 +935,15 @@
         
         const labelDiv = document.createElement('div');
         labelDiv.className = 'chat-message-label';
-        labelDiv.textContent = isUser ? '用户' : '助手';
+        labelDiv.textContent = isUser ? 'USER' : 'Xiang An';
         
         const contentDiv = document.createElement('div');
-        contentDiv.textContent = text;
+        if (isUser) {
+          contentDiv.textContent = text;
+        } else {
+          contentDiv.className = 'chat-markdown';
+          contentDiv.innerHTML = DOMPurify.sanitize(marked.parse(text));
+        }
         
         messageDiv.appendChild(labelDiv);
         messageDiv.appendChild(contentDiv);
@@ -807,26 +952,76 @@
         // Scroll to bottom
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
+      
+      // 静默保存对话到数据库
+      async function saveChatLog(role, content) {
+        try {
+          await fetch(CHAT_LOG_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              role: role,
+              content: content,
+              user_agent: navigator.userAgent
+            })
+          });
+          // 静默成功，不做任何处理
+        } catch (error) {
+          // 静默失败，不影响聊天体验
+          console.debug('Chat log save skipped:', error.message);
+        }
+      }
 
-      function sendMessage() {
+      async function callChatAPI(messages) {
+        try {
+          const response = await fetch(CHAT_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: messages })
+          });
+          const data = await response.json();
+          return data.reply || '抱歉，服务暂时不可用。';
+        } catch (error) {
+          console.error('Chat API error:', error);
+          return '抱歉，服务暂时不可用。';
+        }
+      }
+
+      async function sendMessage() {
         const message = chatInput.value.trim();
         if (!message) return;
         
-        // Add user message
+        // Auto-enter fullscreen on first message
+        if (!hasAutoFullscreened) {
+          hasAutoFullscreened = true;
+          setChatFullscreen(true);
+        }
+        
+        // Add user message to UI and history
         addMessage(message, true);
+        conversationHistory.push({ role: 'user', content: message });
         chatInput.value = '';
         
-        // Disable button temporarily
+        // 静默保存用户消息到数据库
+        saveChatLog('user', message);
+        
+        // Disable button while waiting for response
         chatSendBtn.disabled = true;
         
-        // Simulate thinking delay
-        setTimeout(() => {
-          // TODO: Replace with actual OpenAI API call
-          // For now, always respond with UPGRADE_MESSAGE
-          addMessage(UPGRADE_MESSAGE, false);
-          chatSendBtn.disabled = false;
-          chatInput.focus();
-        }, SIMULATED_RESPONSE_DELAY_MS);
+        // Call the Python chat API with full conversation context
+        const reply = await callChatAPI(conversationHistory);
+        addMessage(reply, false);
+        conversationHistory.push({ role: 'assistant', content: reply });
+        if (conversationHistory.length > MAX_HISTORY) {
+          conversationHistory.splice(0, conversationHistory.length - MAX_HISTORY);
+        }
+        
+        // 静默保存助手回复到数据库
+        saveChatLog('assistant', reply);
+        
+        chatSendBtn.disabled = false;
+        chatInput.focus();
       }
 
       // Event listeners
@@ -836,24 +1031,6 @@
           sendMessage();
         }
       });
-
-      // TODO: Future OpenAI API integration
-      // async function callOpenAI(message) {
-      //   try {
-      //     const response = await fetch('/api/chat', {
-      //       method: 'POST',
-      //       headers: {
-      //         'Content-Type': 'application/json',
-      //       },
-      //       body: JSON.stringify({ message: message })
-      //     });
-      //     const data = await response.json();
-      //     return data.reply;
-      //   } catch (error) {
-      //     console.error('Error calling OpenAI API:', error);
-      //     return '抱歉，服务暂时不可用。';
-      //   }
-      // }
     })();
   </script>
 </body>

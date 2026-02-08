@@ -1,154 +1,112 @@
 # Chat API Documentation
 
-## Current Status
-The chat API is currently in upgrade mode (升级中), returning a static response for all messages.
+## Overview
 
-## Future OpenAI Integration
+Python Flask chat service powered by Alibaba Cloud DashScope (Qwen model), with integrated Vercel Postgres database for conversation logging.
 
-### Setup Instructions
+## API Endpoints
 
-1. **Get OpenAI API Key**
-   - Sign up at https://platform.openai.com/
-   - Generate an API key from the API keys section
+### 1. POST /api/chat - Chat with AI Assistant
 
-2. **Configure Environment Variable**
-   ```bash
-   export OPENAI_API_KEY="your-api-key-here"
-   ```
+Main chat endpoint that interacts with the Qwen model.
 
-3. **Deploy Options**
+### 2. POST /api/chat-log - Save Conversation Log
 
-   #### Option A: Vercel Deployment
-   ```bash
-   # Install Vercel CLI
-   npm install -g vercel
-   
-   # Add environment variable in Vercel dashboard or CLI
-   vercel env add OPENAI_API_KEY
-   
-   # Deploy
-   vercel
-   ```
+Saves a conversation message to the database.
 
-   #### Option B: Netlify Deployment
-   ```bash
-   # Install Netlify CLI
-   npm install -g netlify-cli
-   
-   # Add environment variable
-   netlify env:set OPENAI_API_KEY "your-api-key-here"
-   
-   # Deploy
-   netlify deploy --prod
-   ```
+### 3. GET /api/chat-log - Retrieve Conversation History
 
-   #### Option C: Express.js Server
-   ```javascript
-   const express = require('express');
-   const { handleChatRequest } = require('./api/chat');
-   
-   const app = express();
-   app.use(express.json());
-   
-   app.post('/api/chat', handleChatRequest);
-   
-   app.listen(3000, () => {
-     console.log('Server running on port 3000');
-   });
-   ```
+Retrieves conversation history for a specific session.
 
-4. **Enable OpenAI Integration**
-   - Open `api/chat.js`
-   - Uncomment the OpenAI API integration code (lines marked with TODO)
-   - The code will automatically use OpenAI if `OPENAI_API_KEY` is configured
+### 4. GET /api/sessions - List All Sessions
 
-### API Endpoint
+Lists all conversation sessions with statistics.
 
-**URL:** `/api/chat`  
-**Method:** `POST`  
+See [DATABASE_SETUP.md](../DATABASE_SETUP.md) for detailed API documentation.
+
+## Deployment
+
+### Vercel (Recommended)
+
+Vercel automatically detects `api/chat.py` as a Python serverless function.
+
+1. Import the repository at [vercel.com/new](https://vercel.com/new).
+2. Add the `DASHSCOPE_API_KEY` environment variable in **Settings → Environment Variables**.
+3. Deploy — the `/api/chat` endpoint is available immediately.
+
+> **Important:** GitHub Actions **Repository secrets** are only available during CI/CD workflow runs. They are **not** passed to the Vercel runtime. You must set `DASHSCOPE_API_KEY` in **Vercel's** Environment Variables.
+
+### Local
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Configure API Key
+
+Set the `DASHSCOPE_API_KEY` environment variable:
+
+```bash
+export DASHSCOPE_API_KEY="sk-xxx"
+```
+
+Get your API key from [阿里云百炼](https://help.aliyun.com/model-studio/getting-started/models).
+
+For Vercel deployments, set `DASHSCOPE_API_KEY` in **Vercel → Settings → Environment Variables**.
+
+### Run the Service
+
+```bash
+python api/chat.py
+```
+
+The service starts at `http://localhost:5000`. Set a custom port with:
+
+```bash
+PORT=8080 python api/chat.py
+```
+
+## API Endpoint
+
+**URL:** `/api/chat`
+**Method:** `POST`
 **Content-Type:** `application/json`
 
-#### Request Body
+### Request Body
+
 ```json
 {
-  "message": "用户的问题"
+  "message": "你是谁？"
 }
 ```
 
-#### Response
+### Success Response
+
 ```json
 {
-  "reply": "AI的回复",
-  "timestamp": "2025-01-28T12:00:00.000Z"
+  "reply": "AI的回复"
 }
 ```
 
-#### Error Response
+### Error Response
+
 ```json
 {
   "error": "错误信息",
-  "reply": "升级中！"
+  "reply": "抱歉，服务暂时不可用。"
 }
 ```
 
-### Frontend Integration
+## Frontend Integration
 
-Update the `callOpenAI` function in `index.html`:
+The `index.html` chat interface calls `POST /api/chat` automatically.
+When the page is served from GitHub Pages (`anxiangsir.github.io`), it calls the Vercel-hosted API cross-origin.
+Update the `VERCEL_ORIGIN` constant in `index.html` if your Vercel production URL changes.
 
-```javascript
-async function callOpenAI(message) {
-  try {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ message: message })
-    });
-    const data = await response.json();
-    return data.reply;
-  } catch (error) {
-    console.error('Error calling OpenAI API:', error);
-    return '抱歉，服务暂时不可用。';
-  }
-}
-```
+## Security
 
-Then update the `sendMessage` function to use it:
-```javascript
-// Replace the setTimeout block with:
-const reply = await callOpenAI(message);
-addMessage(reply, false);
-chatSendBtn.disabled = false;
-chatInput.focus();
-```
-
-### Customization
-
-The system prompt can be customized in `api/chat.js`:
-```javascript
-{
-  role: 'system',
-  content: '你是安翔（Xiang An）的AI助手。安翔是GlintLab的研究科学家和团队负责人，专注于计算机视觉和多模态大模型研究。请根据他的背景信息回答用户问题。'
-}
-```
-
-### Cost Considerations
-
-- GPT-3.5-turbo: ~$0.002 per 1K tokens
-- GPT-4: ~$0.03-0.06 per 1K tokens
-- Consider implementing rate limiting to control costs
-
-### Security Best Practices
-
-1. **Never commit API keys** to the repository
-2. **Use environment variables** for sensitive configuration
-3. **Implement rate limiting** to prevent abuse
-4. **Validate and sanitize** all user inputs
-5. **Add authentication** if needed for production use
-
-## Testing
-
-Test the current implementation by typing any message in the chat box. It will respond with "升级中！"
-
-Once OpenAI integration is enabled, the chat will provide intelligent responses based on the system prompt.
+- **Never** commit API keys to the repository.
+- Use Vercel Environment Variables or local environment variables for `DASHSCOPE_API_KEY`.
+- Consider adding rate limiting for production use.
