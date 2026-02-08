@@ -170,6 +170,7 @@
       "year": 2022,
       "paper_url": "https://arxiv.org/abs/2203.15565",
       "code_url": "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch",
+      "keywords": ["partialfc", "partial fc", "face recognition", "large-scale training"],
       "media_links": [{"name": "知乎", "url": "https://zhuanlan.zhihu.com/p/267346623"}],
       "extra_code_urls": [
         {"name": "MXNet", "url": "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/mxnet"},
@@ -186,6 +187,7 @@
       "year": 2021,
       "paper_url": "https://arxiv.org/abs/2010.05222",
       "code_url": "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch",
+      "keywords": ["partialfc", "partial fc", "face recognition", "large-scale training"],
       "media_links": [{"name": "知乎", "url": "https://zhuanlan.zhihu.com/p/267346623"}],
       "extra_code_urls": [
         {"name": "MXNet", "url": "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/mxnet"},
