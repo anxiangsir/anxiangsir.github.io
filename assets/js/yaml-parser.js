@@ -10,6 +10,8 @@ function parseYAML(yamlText) {
     let currentKey = null;
     let multilineValue = [];
     let inMultiline = false;
+    let inNestedList = false;
+    let currentNestedItem = null;
     let parsingSelectedList = false;
     
     for (let i = 0; i < lines.length; i++) {
@@ -56,6 +58,8 @@ function parseYAML(yamlText) {
             currentPub = {};
             multilineValue = [];
             inMultiline = false;
+            inNestedList = false;
+            currentNestedItem = null;
             
             // Get title value
             const match = line.match(/^  - title:\s*"?(.+?)"?$/);
@@ -70,6 +74,8 @@ function parseYAML(yamlText) {
                 currentPub[currentKey] = multilineValue.join('\n').trim();
                 multilineValue = [];
             }
+            inNestedList = false;
+            currentNestedItem = null;
             
             const match = line.match(/^    (\w+):\s*(.*)$/);
             if (match) {
@@ -81,6 +87,12 @@ function parseYAML(yamlText) {
                     inMultiline = true;
                     currentKey = key;
                     multilineValue = [];
+                } else if (value === '') {
+                    // Start of nested list (e.g., media_links:, extra_code_urls:)
+                    inMultiline = false;
+                    inNestedList = true;
+                    currentKey = key;
+                    currentPub[key] = [];
                 } else {
                     inMultiline = false;
                     currentKey = null;
@@ -88,6 +100,22 @@ function parseYAML(yamlText) {
                     value = value.replace(/^["']|["']$/g, '');
                     currentPub[key] = value;
                 }
+            }
+        }
+        // Nested list item (e.g., "      - name: value")
+        else if (inNestedList && currentPub && line.match(/^      - \w+:/)) {
+            const itemMatch = line.match(/^      - (\w+):\s*"?(.+?)"?$/);
+            if (itemMatch) {
+                currentNestedItem = {};
+                currentNestedItem[itemMatch[1]] = itemMatch[2].replace(/^["']|["']$/g, '');
+                currentPub[currentKey].push(currentNestedItem);
+            }
+        }
+        // Nested list sub-property (e.g., "        url: value")
+        else if (inNestedList && currentNestedItem && line.match(/^        \w+:/)) {
+            const subMatch = line.match(/^        (\w+):\s*"?(.+?)"?$/);
+            if (subMatch) {
+                currentNestedItem[subMatch[1]] = subMatch[2].replace(/^["']|["']$/g, '');
             }
         }
         // Multiline content

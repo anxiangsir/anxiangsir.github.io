@@ -15,6 +15,9 @@ publications:
   - title: "UniViT: Unifying Image and Video Understanding in One Vision Encoder"
     authors: "Feilong Tang, Xiang An, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Ziyong Feng, Jiankang Deng, Zongyuan Ge, et al."
     venue: "NeurIPS 2025"
+    media_links:
+      - name: "新浪财经"
+        url: "https://finance.sina.cn/stock/jdts/2026-01-20/detail-inhhxvez7537617.d.html?vt=4"
 
   - title: "LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training"
     authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al."
@@ -22,6 +25,9 @@ publications:
     paper_url: "https://arxiv.org/abs/2509.23661"
     code_url: "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5"
     preview_image: "assets/img/publication_preview_1.jpg"
+    media_links:
+      - name: "搜狐科技"
+        url: "https://www.sohu.com/a/943520117_129720"
     summary: |
       LLaVA-OneVision-1.5 is a fully open-source multimodal training framework that democratizes the development of large multimodal models (LMMs). This work represents a significant step towards making state-of-the-art multimodal AI accessible to the broader research community. The framework provides comprehensive tools and pipelines for training, fine-tuning, and deploying multimodal models that can understand both visual and textual information. By open-sourcing the complete training infrastructure, data processing pipelines, and model weights, LLaVA-OneVision-1.5 enables researchers and practitioners to build upon cutting-edge multimodal AI without requiring massive computational resources or proprietary datasets. The framework supports various vision-language tasks including image captioning, visual question answering, and multimodal reasoning, making it a versatile platform for advancing multimodal AI research.
 
@@ -102,6 +108,14 @@ publications:
     paper_url: "https://arxiv.org/abs/2203.15565"
     code_url: "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch"
     preview_image: "assets/img/publication_preview_6.jpg"
+    media_links:
+      - name: "知乎"
+        url: "https://zhuanlan.zhihu.com/p/267346623"
+    extra_code_urls:
+      - name: "MXNet"
+        url: "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/mxnet"
+      - name: "PyTorch"
+        url: "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/pytorch"
     summary: |
       This CVPR 2022 paper introduces Partial FC (Fully Connected layer), a revolutionary training method for large-scale face recognition that simultaneously improves both efficiency and robustness. Face recognition models typically require training on millions of identities, resulting in an extremely large final classification layer that consumes massive GPU memory and computational resources. Partial FC addresses this challenge by randomly sampling a subset of identities in each training iteration, significantly reducing memory requirements while maintaining or even improving model performance. The key insight is that each training sample only needs to be discriminated from a subset of all identities rather than the entire dataset, and proper sampling strategies can ensure effective learning. This approach enables training on datasets with 10+ million identities on a single machine, which was previously impossible. Beyond efficiency gains, Partial FC also improves model robustness by introducing implicit regularization through the sampling process. The method has been widely adopted in the face recognition community and has become a standard technique in the InsightFace framework, enabling researchers and practitioners to train state-of-the-art face recognition models with limited computational resources.
 
@@ -111,6 +125,14 @@ publications:
     paper_url: "https://arxiv.org/abs/2010.05222"
     code_url: "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch"
     preview_image: "assets/img/publication_preview_7.jpg"
+    media_links:
+      - name: "知乎"
+        url: "https://zhuanlan.zhihu.com/p/267346623"
+    extra_code_urls:
+      - name: "MXNet"
+        url: "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/mxnet"
+      - name: "PyTorch"
+        url: "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/pytorch"
     summary: |
       Published at ICCV 2021 Workshop, this paper presents the original Partial FC method that revolutionizes large-scale face recognition training. The work tackles the fundamental scalability challenge in face recognition: training on datasets with millions of identities requires enormous GPU memory for the final fully connected layer, which previously necessitated expensive multi-GPU setups or model parallelism. Partial FC introduces an elegant solution by dynamically sampling a subset of class centers in each training iteration, reducing memory consumption from O(n) to O(k) where n is the total number of identities and k is the sample size. This breakthrough enables training on 10 million identities using a single machine with 8 GPUs, a scale that was previously only achievable with large clusters. The paper provides comprehensive theoretical analysis showing that this sampling strategy maintains convergence guarantees while significantly improving training efficiency. Beyond the immediate practical benefits, this work demonstrates that smart sampling strategies can fundamentally change the scaling properties of deep learning systems. Partial FC has become an essential component of modern face recognition systems and has influenced training methods in other large-scale classification tasks, showing that careful algorithm design can overcome hardware limitations.
 
