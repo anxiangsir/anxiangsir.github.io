@@ -108,43 +108,49 @@ def _fetch_scholar_citations():
     return None
 
 
-@app.route("/api/scholar", methods=["GET"])
-def get_citations():
-    """Return the citation count, using cache when possible."""
+def get_scholar_citations_cached():
+    """
+    Public API to get scholar citations with caching.
+    Returns the citation count or None if unavailable.
+    """
     from db_utils import get_db_connection
-
+    
     conn = get_db_connection()
-    citations = None
-    source = "fallback"
-
     if conn:
         try:
             cached_value, is_stale = _get_cached(conn)
-
+            
             if cached_value is not None and not is_stale:
-                return jsonify({"citations": cached_value, "source": "cache"})
-
+                return cached_value
+            
             # Cache is stale or missing – try fetching fresh data
             fresh = _fetch_scholar_citations()
             if fresh is not None:
                 _set_cached(conn, fresh)
-                return jsonify({"citations": fresh, "source": "scholar"})
-
+                return fresh
+            
             # Fetch failed – return stale cache if available
             if cached_value is not None:
-                citations = cached_value
-                source = "stale_cache"
+                return cached_value
         except Exception as e:
-            logger.error(f"Scholar endpoint error: {e}")
+            logger.warning(f"Scholar citations fetch error: {e}")
         finally:
             conn.close()
     else:
         # No DB available – try direct fetch
         fresh = _fetch_scholar_citations()
         if fresh is not None:
-            return jsonify({"citations": fresh, "source": "scholar"})
+            return fresh
+    
+    return None
 
-    if citations is None:
-        return jsonify({"citations": None, "source": "unavailable"}), 503
 
-    return jsonify({"citations": citations, "source": source})
+@app.route("/api/scholar", methods=["GET"])
+def get_citations():
+    """Return the citation count, using cache when possible."""
+    citations = get_scholar_citations_cached()
+    
+    if citations is not None:
+        return jsonify({"citations": citations, "source": "cache"})
+    
+    return jsonify({"citations": None, "source": "unavailable"}), 503
