@@ -98,12 +98,13 @@ def _fetch_scholar_citations():
     try:
         with urlopen(req, timeout=10) as resp:
             html = resp.read().decode("utf-8", errors="replace")
-        # Google Scholar profile page has citation count in a table cell
-        # Pattern: <td class="gsc_rsb_std">NUMBER</td>
-        matches = re.findall(r'<td class="gsc_rsb_std">(\d+)</td>', html)
-        if matches:
-            # First match is "All" citations count
-            return int(matches[0])
+        # Google Scholar profile page has citation count in the Citations row
+        # Look for "Citations" label followed by the first number in gsc_rsb_std cell
+        # This is more robust than just taking the first gsc_rsb_std cell
+        match = re.search(r'Citations</a></td>\s*<td class="gsc_rsb_std">(\d+)</td>', html)
+        if match:
+            # This is the "All" citations count (first column after Citations label)
+            return int(match.group(1))
     except (URLError, Exception) as e:
         logger.warning(f"Scholar fetch failed: {e}")
     return None
