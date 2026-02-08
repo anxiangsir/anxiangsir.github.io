@@ -14,6 +14,7 @@ from collections import Counter
 
 _KB_PATH = os.path.join(os.path.dirname(__file__), "knowledge_base.json")
 _knowledge_base = None
+_MEDIA_KEYWORDS = "media news 媒体 新闻 报道"
 
 
 def _load_knowledge_base():
@@ -44,7 +45,7 @@ def _load_knowledge_base():
         media_links = doc.get("media_links", [])
         if media_links:
             parts.append(" ".join(ml.get("name", "") for ml in media_links))
-            parts.append("media news 媒体 新闻 报道")
+            parts.append(_MEDIA_KEYWORDS)
 
         searchable = " ".join(p for p in parts if p).lower()
         docs.append({**doc, "_searchable": searchable})
@@ -215,8 +216,13 @@ def format_context(results):
                 lines.append(f"Summary: {summary}")
             media_links = r.get("media_links", [])
             if media_links:
-                ml_parts = [f"[{ml.get('name', '')}]({ml.get('url', '')})" for ml in media_links]
-                lines.append(f"Media coverage: {', '.join(ml_parts)}")
+                ml_parts = [
+                    f"[{ml['name']}]({ml['url']})"
+                    for ml in media_links
+                    if ml.get("name") and ml.get("url")
+                ]
+                if ml_parts:
+                    lines.append(f"Media coverage: {', '.join(ml_parts)}")
             sections.append("\n".join(lines))
 
         elif doc_type == "github_project":
