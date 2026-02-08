@@ -23,7 +23,7 @@ CORS(app)
 
 DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY", "")
 BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-MODEL = "qwen-flash"
+MODEL = "qwen-max"
 
 SYSTEM_PROMPT = """\
 # Role Definition
