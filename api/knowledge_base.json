@@ -25,7 +25,8 @@
       "title": "UniViT: Unifying Image and Video Understanding in One Vision Encoder",
       "authors": "Feilong Tang, Xiang An, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Ziyong Feng, Jiankang Deng, Zongyuan Ge, et al.",
       "venue": "NeurIPS 2025",
-      "year": 2025
+      "year": 2025,
+      "media_links": [{"name": "新浪财经", "url": "https://finance.sina.cn/stock/jdts/2026-01-20/detail-inhhxvez7537617.d.html?vt=4"}]
     },
     {
       "id": "pub_llava_onevision_1_5",
@@ -36,6 +37,7 @@
       "year": 2025,
       "paper_url": "https://arxiv.org/abs/2509.23661",
       "code_url": "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5",
+      "media_links": [{"name": "搜狐科技", "url": "https://www.sohu.com/a/943520117_129720"}],
       "summary": "LLaVA-OneVision-1.5 is a fully open-source multimodal training framework that democratizes the development of large multimodal models (LMMs). The framework provides comprehensive tools and pipelines for training, fine-tuning, and deploying multimodal models that can understand both visual and textual information."
     },
     {
@@ -168,6 +170,11 @@
       "year": 2022,
       "paper_url": "https://arxiv.org/abs/2203.15565",
       "code_url": "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch",
+      "media_links": [{"name": "知乎", "url": "https://zhuanlan.zhihu.com/p/267346623"}],
+      "extra_code_urls": [
+        {"name": "MXNet", "url": "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/mxnet"},
+        {"name": "PyTorch", "url": "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/pytorch"}
+      ],
       "summary": "This CVPR 2022 paper introduces Partial FC, a revolutionary training method for large-scale face recognition that simultaneously improves both efficiency and robustness. It enables training on datasets with 10+ million identities on a single machine by randomly sampling a subset of identities in each training iteration."
     },
     {
@@ -179,6 +186,11 @@
       "year": 2021,
       "paper_url": "https://arxiv.org/abs/2010.05222",
       "code_url": "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch",
+      "media_links": [{"name": "知乎", "url": "https://zhuanlan.zhihu.com/p/267346623"}],
+      "extra_code_urls": [
+        {"name": "MXNet", "url": "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/mxnet"},
+        {"name": "PyTorch", "url": "https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/pytorch"}
+      ],
       "summary": "The original Partial FC method that revolutionizes large-scale face recognition training. It introduces dynamic sampling of class centers, reducing memory consumption from O(n) to O(k), enabling training on 10 million identities using a single machine with 8 GPUs."
     },
     {
