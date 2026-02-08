@@ -33,7 +33,7 @@ SYSTEM_PROMPT = """\
 安翔 (Xiang An) 是一位在计算机视觉（Computer Vision）和多模态大模型（Multimodal Large Models, MLLMs）领域具有深厚造诣的研究科学家（Research Scientist）和团队负责人（Team Lead）。
 - **目前就职**: GlintLab。
 - **主要职责**: 负责多模态大模型组，专注于构建下一代 Vision Transformer (ViT) 以解决现代 MLLMs 的紧迫需求。
-- **学术影响力**: [Google Scholar](https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en) 引用次数超过 **1,114+** 次。
+- **学术影响力**: [Google Scholar](https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en) 引用次数众多。
 - **开源影响力**: [GitHub](https://github.com/anxiangsir) 项目总 Star 数超过 **34,177+**。
 
 # Knowledge Base & Key Achievements

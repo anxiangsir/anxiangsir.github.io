@@ -26,8 +26,6 @@ CORS(app)
 SCHOLAR_USER_ID = "1ckaPgwAAAAJ"
 SCHOLAR_URL = f"https://scholar.google.com/citations?user={SCHOLAR_USER_ID}&hl=en"
 CACHE_TTL_SECONDS = 24 * 60 * 60  # 24 hours
-FALLBACK_CITATIONS = 1114  # Static fallback value
-
 
 def _ensure_cache_table(conn):
     """Create the scholar_cache table if it doesn't exist."""
@@ -147,7 +145,6 @@ def get_citations():
             return jsonify({"citations": fresh, "source": "scholar"})
 
     if citations is None:
-        citations = FALLBACK_CITATIONS
-        source = "fallback"
+        return jsonify({"citations": None, "source": "unavailable"}), 503
 
     return jsonify({"citations": citations, "source": source})
