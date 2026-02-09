@@ -237,8 +237,8 @@
       "name": "UNICOM / MLCD",
       "url": "https://github.com/deepglint/unicom",
       "role": "Project Leader and Main Author",
-      "description": "Universal image retrieval representation learning framework. Proposed region-based cluster discrimination method. Includes Unicom (ICLR 2023), Multi-label CD (ECCV 2024), and Region-based CD (ICCV 2025 Highlight).",
-      "keywords": ["image retrieval", "representation learning", "cluster discrimination", "self-supervised", "unicom", "MLCD", "contrastive learning"]
+      "description": "Universal image retrieval representation learning framework. Proposed region-based cluster discrimination method. Includes Unicom (ICLR 2023), Multi-label CD (ECCV 2024), and Region-based CD (ICCV 2025 Highlight). MLCD has been integrated into Hugging Face Transformers library (https://huggingface.co/docs/transformers/main/model_doc/mlcd). Also developed MLCD-Seg for multimodal referring expression segmentation (https://github.com/deepglint/MLCD-Seg).",
+      "keywords": ["image retrieval", "representation learning", "cluster discrimination", "self-supervised", "unicom", "MLCD", "contrastive learning", "transformers", "referring expression segmentation", "multimodal"]
     },
     {
       "id": "project_llava_next",

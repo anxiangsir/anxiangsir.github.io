@@ -81,6 +81,12 @@ publications:
     paper_url: "https://arxiv.org/abs/2407.17331"
     code_url: "https://github.com/deepglint/unicom"
     preview_image: "assets/img/publication_preview_4.jpg"
+    media_links:
+      - name: "Transformers"
+        url: "https://huggingface.co/docs/transformers/main/model_doc/mlcd"
+    extra_code_urls:
+      - name: "MLCD-Seg"
+        url: "https://github.com/deepglint/MLCD-Seg"
     summary: |
       This ECCV 2024 paper introduces a groundbreaking multi-label cluster discrimination framework for self-supervised visual representation learning. Traditional clustering-based methods assign each sample to a single cluster, which oversimplifies the complex semantic structure of visual data where images often contain multiple objects or concepts. Our approach allows each image to be associated with multiple cluster labels, enabling the model to capture the multi-faceted nature of visual scenes. The multi-label clustering objective encourages the network to learn representations that are sensitive to various semantic aspects present in an image, leading to more comprehensive feature learning. We develop an efficient algorithm for multi-label cluster assignment that scales to large datasets while maintaining computational efficiency. The learned representations demonstrate superior transfer learning performance across various vision tasks, showing that acknowledging the multi-label nature of visual data leads to more versatile and powerful representations. This work bridges the gap between single-label clustering methods and the inherent complexity of visual semantics.
 
