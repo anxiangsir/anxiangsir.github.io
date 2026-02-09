@@ -28,6 +28,12 @@ publications:
     media_links:
       - name: "搜狐科技"
         url: "https://www.sohu.com/a/943520117_129720"
+      - name: "机器之心"
+        url: "https://zhuanlan.zhihu.com/p/1961086032977044390"
+      - name: "YouTube"
+        url: "https://www.youtube.com/watch?v=MIp1ys9Lkqg"
+      - name: "Twitter"
+        url: "https://x.com/liuziwei7/status/1969408440608178419"
     summary: |
       LLaVA-OneVision-1.5 is a fully open-source multimodal training framework that democratizes the development of large multimodal models (LMMs). This work represents a significant step towards making state-of-the-art multimodal AI accessible to the broader research community. The framework provides comprehensive tools and pipelines for training, fine-tuning, and deploying multimodal models that can understand both visual and textual information. By open-sourcing the complete training infrastructure, data processing pipelines, and model weights, LLaVA-OneVision-1.5 enables researchers and practitioners to build upon cutting-edge multimodal AI without requiring massive computational resources or proprietary datasets. The framework supports various vision-language tasks including image captioning, visual question answering, and multimodal reasoning, making it a versatile platform for advancing multimodal AI research.
 
