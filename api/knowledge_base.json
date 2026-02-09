@@ -49,7 +49,8 @@
       "year": 2025,
       "paper_url": "https://arxiv.org/abs/2507.20025",
       "code_url": "https://github.com/deepglint/unicom",
-      "summary": "This ICCV 2025 Highlight paper presents a novel approach to self-supervised visual representation learning by introducing region-based cluster discrimination. The framework performs clustering at the region level rather than the global image level, enabling more discriminative local features while maintaining global semantic coherence."
+      "media_links": [{"name": "知乎专栏", "url": "https://zhuanlan.zhihu.com/p/1934583835460371676"}],
+      "summary": "This ICCV 2025 Highlight paper (abbreviated as RiceViT) presents a novel approach to self-supervised visual representation learning by introducing region-based cluster discrimination. The framework performs clustering at the region level rather than the global image level, enabling more discriminative local features while maintaining global semantic coherence. RiceViT has been adopted by several state-of-the-art multimodal models including openPangu-VL-7B (which surpasses Qwen3VL as documented in https://raw.gitcode.com/ascend-tribe/openPangu-VL-7B/raw/main/doc/technical_report.pdf), LLaVA-OneVision-1.5 (https://arxiv.org/pdf/2509.23661), and Innovator-VL (https://github.com/InnovatorLM/Innovator-VL), demonstrating its effectiveness and wide adoption in the multimodal learning community."
     },
     {
       "id": "pub_realsyn",
