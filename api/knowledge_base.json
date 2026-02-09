@@ -37,7 +37,7 @@
       "year": 2025,
       "paper_url": "https://arxiv.org/abs/2509.23661",
       "code_url": "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5",
-      "media_links": [{"name": "搜狐科技", "url": "https://www.sohu.com/a/943520117_129720"}],
+      "media_links": [{"name": "搜狐科技", "url": "https://www.sohu.com/a/943520117_129720"}, {"name": "机器之心", "url": "https://zhuanlan.zhihu.com/p/1961086032977044390"}, {"name": "YouTube", "url": "https://www.youtube.com/watch?v=MIp1ys9Lkqg"}, {"name": "Twitter", "url": "https://x.com/liuziwei7/status/1969408440608178419"}],
       "summary": "LLaVA-OneVision-1.5 is a fully open-source multimodal training framework that democratizes the development of large multimodal models (LMMs). The framework provides comprehensive tools and pipelines for training, fine-tuning, and deploying multimodal models that can understand both visual and textual information."
     },
     {
