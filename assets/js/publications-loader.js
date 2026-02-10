@@ -132,7 +132,7 @@ async function loadSelectedPublications() {
         li.appendChild(venueSpan);
         
         // Links
-        if (pub.paper_url || pub.code_url || pub.extra_code_urls || pub.media_links) {
+        if (pub.paper_url || pub.code_url || pub.homepage_url || pub.extra_code_urls || pub.media_links) {
             li.appendChild(document.createTextNode(' — '));
             const linksSpan = document.createElement('span');
             linksSpan.className = 'pub-links';
@@ -156,6 +156,18 @@ async function loadSelectedPublications() {
                 codeLink.target = '_blank';
                 codeLink.rel = 'noopener noreferrer';
                 linksSpan.appendChild(codeLink);
+            }
+
+            if (pub.homepage_url) {
+                if (pub.paper_url || pub.code_url) {
+                    linksSpan.appendChild(document.createTextNode(' '));
+                }
+                const homepageLink = document.createElement('a');
+                homepageLink.href = pub.homepage_url;
+                homepageLink.textContent = '[Homepage]';
+                homepageLink.target = '_blank';
+                homepageLink.rel = 'noopener noreferrer';
+                linksSpan.appendChild(homepageLink);
             }
 
             renderExtraLinks(linksSpan, pub);
@@ -226,7 +238,7 @@ async function loadAllPublications() {
         li.appendChild(venueSpan);
         
         // Links
-        if (pub.paper_url || pub.code_url || pub.extra_code_urls || pub.media_links) {
+        if (pub.paper_url || pub.code_url || pub.homepage_url || pub.extra_code_urls || pub.media_links) {
             li.appendChild(document.createTextNode(' — '));
             
             if (pub.paper_url) {
@@ -248,6 +260,18 @@ async function loadAllPublications() {
                 codeLink.target = '_blank';
                 codeLink.rel = 'noopener noreferrer';
                 li.appendChild(codeLink);
+            }
+
+            if (pub.homepage_url) {
+                if (pub.paper_url || pub.code_url) {
+                    li.appendChild(document.createTextNode(' '));
+                }
+                const homepageLink = document.createElement('a');
+                homepageLink.href = pub.homepage_url;
+                homepageLink.textContent = '[Homepage]';
+                homepageLink.target = '_blank';
+                homepageLink.rel = 'noopener noreferrer';
+                li.appendChild(homepageLink);
             }
 
             renderExtraLinks(li, pub);
