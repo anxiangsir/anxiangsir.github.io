@@ -1,6 +1,18 @@
 {
   "documents": [
     {
+      "id": "pub_onevision_encoder",
+      "type": "publication",
+      "title": "OneVision-Encoder: Codec-Aligned Sparsity as a Foundational Principle for Multimodal Intelligence",
+      "authors": "Feilong Tang, Xiang An, Yunyao Yan, Yin Xie, Bin Qin, Kaicheng Yang, Yifei Shen, Yuanhan Zhang, Chunyuan Li, Shikun Feng, Changrui Chen, Huajie Tan, Ming Hu, Manyuan Zhang, Bo Li, Ziyong Feng, Ziwei Liu, Zongyuan Ge, Jiankang Deng",
+      "venue": "arXiv:2602.08683",
+      "year": 2026,
+      "paper_url": "https://arxiv.org/abs/2602.08683",
+      "code_url": "https://github.com/EvolvingLMMs-Lab/OneVision-Encoder",
+      "homepage_url": "https://www.lmms-lab.com/onevision-encoder/index.html",
+      "summary": "OneVision-Encoder introduces a foundational principle for multimodal intelligence through codec-aligned sparsity. The work is built on the hypothesis that artificial general intelligence is fundamentally a compression problem, requiring alignment between deep learning architectures and data structure. Current vision architectures process dense pixel grids uniformly, wasting compute on redundant information while discriminative information is sparse. OneVision-Encoder addresses this by encoding video through compressing predictive visual structure into semantic meaning. Using Codec Patchification, it focuses exclusively on the 3.1%-25% of regions rich in signal entropy. To unify spatial and temporal reasoning under irregular token layouts, it employs shared 3D RoPE and trains with large-scale cluster discrimination over more than one million semantic concepts. When integrated into large multimodal models, OneVision-Encoder consistently outperforms strong vision backbones such as Qwen3-ViT and SigLIP2 across 16 image, video, and document understanding benchmarks, despite using substantially fewer visual tokens and pretraining data. On video understanding tasks, it achieves an average improvement of 4.1% over Qwen3-ViT. Under attentive probing, it achieves state-of-the-art representation quality with 17.1% and 8.1% Top-1 accuracy improvements over SigLIP2 and DINOv3 on Diving-48. These results demonstrate that codec-aligned, patch-level sparsity is a foundational principle for next-generation visual generalists."
+    },
+    {
       "id": "pub_victor",
       "type": "publication",
       "title": "ViCToR: Improving Visual Comprehension via Token Reconstruction for Pretraining LMMs",
