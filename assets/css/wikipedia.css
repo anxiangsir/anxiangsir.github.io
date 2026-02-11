@@ -39,9 +39,9 @@ html {
 }
 
 body {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 12px;
-    line-height: 1.8;
+    font-family: Georgia, Garamond, 'Times New Roman', 'Palatino Linotype', serif;
+    font-size: 14px;
+    line-height: 1.6;
     color: var(--wiki-text);
     background-color: var(--wiki-background);
     margin: 0;
