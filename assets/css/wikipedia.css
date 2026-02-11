@@ -39,7 +39,7 @@ html {
 }
 
 body {
-    font-family: 'Press Start 2P', cursive, monospace;
+    font-family: 'Press Start 2P', monospace;
     font-size: 12px;
     line-height: 1.8;
     color: var(--wiki-text);
