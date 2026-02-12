@@ -245,6 +245,15 @@
       "keywords": ["multimodal", "LLM", "vision transformer", "ViT", "LLaVA", "training framework", "open source", "MLLM"]
     },
     {
+      "id": "project_onevision_encoder",
+      "type": "github_project",
+      "name": "OneVision-Encoder",
+      "url": "https://github.com/EvolvingLMMs-Lab/OneVision-Encoder",
+      "role": "Lead Author",
+      "description": "Next-generation vision encoder that introduces codec-aligned sparsity as a foundational principle for multimodal intelligence. Achieves state-of-the-art performance on 16 image, video, and document understanding benchmarks while using substantially fewer visual tokens. Demonstrates 4.1% average improvement over Qwen3-ViT on video understanding tasks and achieves 17.1% and 8.1% Top-1 accuracy improvements over SigLIP2 and DINOv3 on Diving-48.",
+      "keywords": ["vision encoder", "sparsity", "codec", "video understanding", "multimodal", "visual representation", "compression", "ViT", "efficiency"]
+    },
+    {
       "id": "project_unicom",
       "type": "github_project",
       "name": "UNICOM / MLCD",
