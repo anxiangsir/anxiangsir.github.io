@@ -24,7 +24,7 @@ app = Flask(__name__)
 CORS(app)
 
 SCHOLAR_USER_ID = "1ckaPgwAAAAJ"
-SCHOLAR_URL = f"https://scholar.google.com/citations?user={SCHOLAR_USER_ID}&hl=en"
+SCHOLAR_URL = f"https://scholar.google.com/citations?hl=en&user={SCHOLAR_USER_ID}&view_op=list_works&sortby=pubdate"
 CACHE_TTL_SECONDS = 24 * 60 * 60  # 24 hours
 
 def _ensure_cache_table(conn):
