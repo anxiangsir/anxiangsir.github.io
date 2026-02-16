@@ -27,6 +27,34 @@ function highlightAuthor(authorsText) {
     );
 }
 
+// Extract year from publication (from year field or venue string)
+function extractYear(pub) {
+    // First try explicit year field
+    if (pub.year) {
+        return pub.year;
+    }
+    
+    // Otherwise extract from venue string (e.g., "AAAI 2026", "Preprint, 2025", "GitHub 2020")
+    if (pub.venue) {
+        const yearMatch = pub.venue.match(/\b(20\d{2})\b/);
+        if (yearMatch) {
+            return parseInt(yearMatch[1]);
+        }
+    }
+    
+    // Default to 0 if no year found (will be sorted to the end)
+    return 0;
+}
+
+// Sort publications by year in descending order (newest first)
+function sortPublicationsByYear(publications) {
+    return publications.sort((a, b) => {
+        const yearA = extractYear(a);
+        const yearB = extractYear(b);
+        return yearB - yearA; // Descending order (newest first)
+    });
+}
+
 // Render link elements for media_links and extra_code_urls
 function renderExtraLinks(container, pub) {
     if (pub.extra_code_urls && Array.isArray(pub.extra_code_urls)) {
@@ -209,8 +237,11 @@ async function loadAllPublications() {
     // Clear existing content
     pubList.innerHTML = '';
 
+    // Sort publications by year in descending order (newest first)
+    const sortedPublications = sortPublicationsByYear(data.publications);
+
     // Render each publication in Wikipedia style
-    data.publications.forEach((pub, index) => {
+    sortedPublications.forEach((pub, index) => {
         const li = document.createElement('li');
 
         // Title (plain text, bold - no hyperlink since [Paper] link is below)
@@ -280,7 +311,7 @@ async function loadAllPublications() {
         pubList.appendChild(li);
     });
 
-    console.log(`Successfully loaded ${data.publications.length} publications from YAML`);
+    console.log(`Successfully loaded and sorted ${data.publications.length} publications from YAML (newest first)`);
 }
 
 // Auto-initialize based on page
