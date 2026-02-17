@@ -7,6 +7,7 @@
 const GITHUB_REPOS = [
     { owner: 'deepinsight', repo: 'insightface', selector: '.stars-insightface' },
     { owner: 'EvolvingLMMs-Lab', repo: 'LLaVA-OneVision-1.5', selector: '.stars-llava-onevision' },
+    { owner: 'EvolvingLMMs-Lab', repo: 'OneVision-Encoder', selector: '.stars-onevision-encoder' },
     { owner: 'LLaVA-VL', repo: 'LLaVA-NeXT', selector: '.stars-llava-next' },
     { owner: 'deepglint', repo: 'unicom', selector: '.stars-unicom' },
     { owner: 'anxiangsir', repo: 'urban_seg', selector: '.stars-urban-seg' }

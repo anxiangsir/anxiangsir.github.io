@@ -22,3 +22,15 @@ COMMENT ON COLUMN chat_logs.role IS '消息角色：user（用户）或 assistan
 COMMENT ON COLUMN chat_logs.content IS '消息内容';
 COMMENT ON COLUMN chat_logs.user_agent IS '用户浏览器信息（可选）';
 COMMENT ON COLUMN chat_logs.created_at IS '消息创建时间';
+
+-- Google Scholar 引用数缓存表
+CREATE TABLE IF NOT EXISTS scholar_cache (
+  key VARCHAR(64) PRIMARY KEY,
+  value INTEGER NOT NULL,
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+COMMENT ON TABLE scholar_cache IS 'Google Scholar 数据缓存表';
+COMMENT ON COLUMN scholar_cache.key IS '缓存键（如 citations）';
+COMMENT ON COLUMN scholar_cache.value IS '缓存值（如引用次数）';
+COMMENT ON COLUMN scholar_cache.updated_at IS '最后更新时间';

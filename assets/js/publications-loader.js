@@ -27,6 +27,61 @@ function highlightAuthor(authorsText) {
     );
 }
 
+// Extract year from publication (from year field or venue string)
+function extractYear(pub) {
+    // First try explicit year field
+    if (pub.year) {
+        return pub.year;
+    }
+    
+    // Otherwise extract from venue string (e.g., "AAAI 2026", "Preprint, 2025", "GitHub 2020")
+    if (pub.venue) {
+        const yearMatch = pub.venue.match(/\b(20\d{2})\b/);
+        if (yearMatch) {
+            return parseInt(yearMatch[1]);
+        }
+    }
+    
+    // Default to 0 if no year found (will be sorted to the end)
+    return 0;
+}
+
+// Sort publications by year in descending order (newest first)
+function sortPublicationsByYear(publications) {
+    return publications.sort((a, b) => {
+        const yearA = extractYear(a);
+        const yearB = extractYear(b);
+        return yearB - yearA; // Descending order (newest first)
+    });
+}
+
+// Render link elements for media_links and extra_code_urls
+function renderExtraLinks(container, pub) {
+    if (pub.extra_code_urls && Array.isArray(pub.extra_code_urls)) {
+        pub.extra_code_urls.forEach(item => {
+            container.appendChild(document.createTextNode(' '));
+            const link = document.createElement('a');
+            link.href = item.url;
+            link.textContent = '[' + item.name + ']';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            container.appendChild(link);
+        });
+    }
+    if (pub.media_links && Array.isArray(pub.media_links)) {
+        pub.media_links.forEach(item => {
+            container.appendChild(document.createTextNode(' '));
+            const link = document.createElement('a');
+            link.href = item.url;
+            link.textContent = '[' + item.name + ']';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.className = 'media-link';
+            container.appendChild(link);
+        });
+    }
+}
+
 // Render selected publications for index.html (Wikipedia style)
 async function loadSelectedPublications() {
     // Load both files: selected_publications.yaml (titles only) and publications.yaml (full data)
@@ -105,7 +160,7 @@ async function loadSelectedPublications() {
         li.appendChild(venueSpan);
         
         // Links
-        if (pub.paper_url || pub.code_url) {
+        if (pub.paper_url || pub.code_url || pub.homepage_url || pub.extra_code_urls || pub.media_links) {
             li.appendChild(document.createTextNode(' — '));
             const linksSpan = document.createElement('span');
             linksSpan.className = 'pub-links';
@@ -130,6 +185,20 @@ async function loadSelectedPublications() {
                 codeLink.rel = 'noopener noreferrer';
                 linksSpan.appendChild(codeLink);
             }
+
+            if (pub.homepage_url) {
+                if (pub.paper_url || pub.code_url) {
+                    linksSpan.appendChild(document.createTextNode(' '));
+                }
+                const homepageLink = document.createElement('a');
+                homepageLink.href = pub.homepage_url;
+                homepageLink.textContent = '[Homepage]';
+                homepageLink.target = '_blank';
+                homepageLink.rel = 'noopener noreferrer';
+                linksSpan.appendChild(homepageLink);
+            }
+
+            renderExtraLinks(linksSpan, pub);
             
             li.appendChild(linksSpan);
         }
@@ -168,8 +237,11 @@ async function loadAllPublications() {
     // Clear existing content
     pubList.innerHTML = '';
 
+    // Sort publications by year in descending order (newest first)
+    const sortedPublications = sortPublicationsByYear(data.publications);
+
     // Render each publication in Wikipedia style
-    data.publications.forEach((pub, index) => {
+    sortedPublications.forEach((pub, index) => {
         const li = document.createElement('li');
 
         // Title (plain text, bold - no hyperlink since [Paper] link is below)
@@ -197,7 +269,7 @@ async function loadAllPublications() {
         li.appendChild(venueSpan);
         
         // Links
-        if (pub.paper_url || pub.code_url) {
+        if (pub.paper_url || pub.code_url || pub.homepage_url || pub.extra_code_urls || pub.media_links) {
             li.appendChild(document.createTextNode(' — '));
             
             if (pub.paper_url) {
@@ -220,12 +292,26 @@ async function loadAllPublications() {
                 codeLink.rel = 'noopener noreferrer';
                 li.appendChild(codeLink);
             }
+
+            if (pub.homepage_url) {
+                if (pub.paper_url || pub.code_url) {
+                    li.appendChild(document.createTextNode(' '));
+                }
+                const homepageLink = document.createElement('a');
+                homepageLink.href = pub.homepage_url;
+                homepageLink.textContent = '[Homepage]';
+                homepageLink.target = '_blank';
+                homepageLink.rel = 'noopener noreferrer';
+                li.appendChild(homepageLink);
+            }
+
+            renderExtraLinks(li, pub);
         }
 
         pubList.appendChild(li);
     });
 
-    console.log(`Successfully loaded ${data.publications.length} publications from YAML`);
+    console.log(`Successfully loaded and sorted ${data.publications.length} publications from YAML (newest first)`);
 }
 
 // Auto-initialize based on page

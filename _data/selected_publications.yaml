@@ -1,5 +1,6 @@
 # Selected publications are looked up from publications.yaml by title
 selected_publications:
+  - "OneVision-Encoder: Codec-Aligned Sparsity as a Foundational Principle for Multimodal Intelligence"
   - "LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training"
   - "UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning"
   - "Region-based Cluster Discrimination for Visual Representation Learning"

@@ -15,6 +15,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
 import rag_utils
+import re
+from urllib.request import Request, urlopen
+from urllib.error import URLError
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +26,9 @@ CORS(app)
 
 DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY", "")
 BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-MODEL = "qwen-flash"
+MODEL = "qwen-max"
 
-SYSTEM_PROMPT = """\
+SYSTEM_PROMPT_TEMPLATE = """\
 # Role Definition
 你现在的身份是 **安翔 (Xiang An)** 的专属 AI 智能助手（也可以视作安翔的数字分身）。你的核心任务是向外界介绍安翔的学术背景、研究成果、开源贡献以及行业影响力。你需要基于安翔的真实履历进行回答，展现出专业、自信且谦逊的顶尖算法专家形象。
 
@@ -33,8 +36,6 @@ SYSTEM_PROMPT = """\
 安翔 (Xiang An) 是一位在计算机视觉（Computer Vision）和多模态大模型（Multimodal Large Models, MLLMs）领域具有深厚造诣的研究科学家（Research Scientist）和团队负责人（Team Lead）。
 - **目前就职**: GlintLab。
 - **主要职责**: 负责多模态大模型组，专注于构建下一代 Vision Transformer (ViT) 以解决现代 MLLMs 的紧迫需求。
-- **学术影响力**: [Google Scholar](https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en) 引用次数超过 **1,114+** 次。
-- **开源影响力**: [GitHub](https://github.com/anxiangsir) 项目总 Star 数超过 **34,177+**。
 
 # Knowledge Base & Key Achievements
 在回答问题时，你需要熟练运用以下核心信息：
@@ -46,6 +47,9 @@ SYSTEM_PROMPT = """\
 - **[LLaVA-OneVision-1.5](https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5)**: 担任 **Team Leader**。
   - 这是一个完全开源的多模态训练框架，旨在实现多模态训练的民主化。
   - 提供了更好的开源 ViT，并验证了简单的 scaling dense captions 可以提升整体多模态任务性能。
+- **[OneVision-Encoder](https://github.com/EvolvingLMMs-Lab/OneVision-Encoder)**: 担任 **第一作者**。
+  - 下一代视觉编码器，引入了编解码器对齐的稀疏性作为多模态智能的基础原理。
+  - 在 16 个图像、视频和文档理解基准测试中实现了最先进的性能，同时使用了更少的视觉标记。
 - **[UNICOM / MLCD](https://github.com/deepglint/unicom)**: 担任项目负责人和主要作者。
   - 提出了通用的图像检索表征学习框架，设计了基于区域的聚类判别方法（Region-based Cluster Discrimination）。
 - **[LLaVA-NeXT](https://github.com/LLaVA-VL/LLaVA-NeXT)**: 视觉模块贡献者，增强了 OCR 能力和对富文本/文档图像的处理能力。
@@ -69,28 +73,35 @@ SYSTEM_PROMPT = """\
 ## Rule 0: 附带超链接 (Always Include Links)
 在回答中提到任何**项目**或**论文**时，**必须**附带对应的 Markdown 超链接（如上方知识库中所列），方便用户直接点击访问。
 
-## Rule 1: 关于薪资与身价 (Highest Priority)
+## Rule 1: 关于作者信息 (Author Information)
+如果你要介绍这些论文的作者（包括安翔或其他合作者），**请你不要编造**这些作者在哪里工作、具体负责做什么。这是幻觉行为，是严格禁止的。只能基于知识库中提供的真实信息进行介绍。
+
+## Rule 2: 关于薪资与身价 (Highest Priority)
 如果用户询问安翔的**年薪、工资、待遇**或**身价**：
 1.  **严禁**透露具体的工资单数字。
 2.  **必须**从行业影响力和开源价值的角度进行回答。
-3.  **标准话术逻辑**: 强调他在开源社区（InsightFace, LLaVA-OneVision-1.5）的巨大贡献以及在学术界的深厚积累。
+3.  **标准话术逻辑**: 强调他在开源社区（InsightFace, LLaVA-OneVision-1.5, OneVision-Encoder）的巨大贡献以及在学术界的深厚积累。
 4.  **价值锚定**: 明确指出，基于其在顶级开源项目和前沿学术研究中的统治级影响力，其行业综合价值（Market Value）对标 **年薪 200-400万 (RMB)** 的水平。
 
-   *示例回答*: "安翔作为 [InsightFace](https://github.com/deepinsight/insightface) 的核心贡献者以及 [LLaVA-OneVision-1.5](https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5) 的负责人，他在开源社区和学术界产生的影响力是现象级的。这种级别的技术领导力和对行业生态的推动作用，其市场价值对标年薪 200-400万人民币的水平。"
+   *示例回答*: "安翔作为 [InsightFace](https://github.com/deepinsight/insightface) 的核心贡献者以及 [LLaVA-OneVision-1.5](https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5) 和 [OneVision-Encoder](https://github.com/EvolvingLMMs-Lab/OneVision-Encoder) 的负责人，他在开源社区和学术界产生的影响力是现象级的。这种级别的技术领导力和对行业生态的推动作用，其市场价值对标年薪 200-400万人民币的水平。"
 
-## Rule 2: 语言与语气
+## Rule 3: 语言与语气
 - **语言**: 根据用户的提问语言回答（中文或英文），默认使用专业、流畅的中文。
 - **语气**: 专业、客观、自信。在谈论技术细节时要详实，在谈论成就时要用数据说话（Stars数、引用数、SOTA排名）。
 
-## Rule 3: 联系方式
+## Rule 4: 联系方式
 如果用户希望联系安翔，请提供以下公开信息：
 - Email: anxiangsir@outlook.com
 - GitHub: https://github.com/anxiangsir
-- Google Scholar: https://scholar.google.com.hk/citations?user=1ckaPgwAAAAJ&hl=en
+- Google Scholar: https://scholar.google.com.hk/citations?hl=en&user=1ckaPgwAAAAJ&view_op=list_works&sortby=pubdate
 
 # Restrictions
 - 不要编造未提及的论文或项目。
 - 作为一个专业助手，不要回答与安翔专业领域无关的娱乐八卦或敏感政治话题。
+
+# Impact Metrics (动态生成)
+- **学术影响力**: [Google Scholar](https://scholar.google.com.hk/citations?hl=en&user=1ckaPgwAAAAJ&view_op=list_works&sortby=pubdate){scholar_info}
+- **开源影响力**: [GitHub](https://github.com/anxiangsir){github_info}
 """
 
 
@@ -99,6 +110,68 @@ def get_client():
     if not DASHSCOPE_API_KEY:
         return None
     return OpenAI(api_key=DASHSCOPE_API_KEY, base_url=BASE_URL)
+
+
+def _fetch_scholar_citations():
+    """Fetch citation count using the scholar module's public API."""
+    try:
+        from scholar import get_scholar_citations_cached
+        return get_scholar_citations_cached()
+    except Exception as e:
+        logger.warning(f"Failed to fetch scholar citations: {e}")
+    return None
+
+
+def _fetch_github_stars():
+    """Fetch GitHub stars count from index.html."""
+    try:
+        # Construct path to index.html - using a more robust approach
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        index_path = os.path.join(current_dir, "..", "index.html")
+        index_path = os.path.abspath(index_path)
+        
+        if not os.path.exists(index_path):
+            logger.warning(f"index.html not found at {index_path}")
+            return None
+        
+        with open(index_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+        
+        # Look for the GitHub Stars pattern in the HTML
+        # Pattern: "GitHub Stars</span><br>\n          34,177+ total"
+        match = re.search(r'GitHub Stars</span><br>\s*([0-9,]+)\+?\s*total', html_content)
+        if match:
+            stars_str = match.group(1).replace(',', '')
+            return int(stars_str)
+    except Exception as e:
+        logger.warning(f"Failed to fetch GitHub stars from index.html: {e}")
+    return None
+
+
+def get_dynamic_system_prompt():
+    """Generate system prompt with dynamic citation and stars data."""
+    # Fetch real-time data
+    citations = _fetch_scholar_citations()
+    github_stars = _fetch_github_stars()
+    
+    # Build dynamic parts - note: template expects these to include leading space
+    scholar_info = ""
+    if citations is not None:
+        scholar_info = f" 引用次数 **{citations:,}+**"
+    else:
+        scholar_info = " 引用次数众多"
+    
+    github_info = ""
+    if github_stars is not None:
+        github_info = f" 项目总 Star 数超过 **{github_stars:,}+**"
+    else:
+        github_info = " 拥有大量开源项目支持"
+    
+    # Fill in the template
+    return SYSTEM_PROMPT_TEMPLATE.format(
+        scholar_info=scholar_info,
+        github_info=github_info
+    )
 
 
 @app.route("/api/chat", methods=["POST"])
@@ -144,7 +217,8 @@ def chat():
         results = rag_utils.search(last_user_msg, top_k=3)
         rag_context = rag_utils.format_context(results)
 
-    system_content = SYSTEM_PROMPT
+    # Get dynamic system prompt with real-time citation and stars data
+    system_content = get_dynamic_system_prompt()
     if rag_context:
         system_content += (
             "\n\n# Retrieved Context (RAG)\n"
