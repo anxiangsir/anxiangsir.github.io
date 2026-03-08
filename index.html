@@ -1061,8 +1061,8 @@
       // ── Input ─────────────────────────────────────────────
       document.addEventListener('keydown', e => {
         initAudio();
-        if(e.code === 'ArrowLeft'  || e.code === 'KeyA') keys.left  = true;
-        if(e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+        if(e.code === 'ArrowLeft'  || e.code === 'KeyA') { keys.left  = true; if(state==='PLAYING') e.preventDefault(); }
+        if(e.code === 'ArrowRight' || e.code === 'KeyD') { keys.right = true; if(state==='PLAYING') e.preventDefault(); }
         if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
           if(!keys.jump) jumpHeld = true;
           keys.jump = true;
@@ -1070,7 +1070,7 @@
           if(state === 'PLAYING') e.preventDefault();
         }
         if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.run = true;
-        if(e.code === 'KeyZ' || e.code === 'KeyX') keys.shoot = true;
+        if(e.code === 'KeyZ' || e.code === 'KeyX') { keys.shoot = true; if(state==='PLAYING') e.preventDefault(); }
       });
 
       document.addEventListener('keyup', e => {
@@ -1180,18 +1180,15 @@
         // Player jump
         if(keys.jump && jumpHeld && player.onGround) {
           player.vy = speed >= RUN_SPEED ? FAST_JUMP_VEL : JUMP_VEL;
-          player.onGround = false;
           playSound('jump');
         }
         jumpHeld = false;
 
-        // Gravity
-        if(!player.onGround) {
-          player.vy += (player.vy < 0 && keys.jump) ? JUMP_GRAVITY : GRAVITY;
-          if(player.vy > MAX_Y_VEL) player.vy = MAX_Y_VEL;
-        }
-        player.y += player.vy;
+        // Gravity + Y movement (onGround reset before collision below)
         player.onGround = false;
+        player.vy += (player.vy < 0 && keys.jump) ? JUMP_GRAVITY : GRAVITY;
+        if(player.vy > MAX_Y_VEL) player.vy = MAX_Y_VEL;
+        player.y += player.vy;
 
         // Collision helpers
         function checkCols(rect) {
@@ -1201,7 +1198,7 @@
             if(rectIntersect(rect, gr)) hits.push(gr);
           });
           pipes.forEach(p => { if(rectIntersect(rect, p)) hits.push(p); });
-          blocks.forEach(b => { if(!b.hit || b.type === 'solid' || b.oy !== 0) {} else {} if(rectIntersect(rect, {x:b.x,y:b.y+b.oy,w:b.w,h:b.h})) hits.push({x:b.x,y:b.y+b.oy,w:b.w,h:b.h}); });
+          blocks.forEach(b => { if(b.type === 'brick' && b.hit && !b.content && b.count === 0) return; if(rectIntersect(rect, {x:b.x,y:b.y+b.oy,w:b.w,h:b.h})) hits.push({x:b.x,y:b.y+b.oy,w:b.w,h:b.h}); });
           return hits;
         }
         function checkColsX(rect) {
@@ -1211,7 +1208,7 @@
             if(rectIntersect(rect, gr)) hits.push(gr);
           });
           pipes.forEach(p => { if(rectIntersect(rect, p)) hits.push(p); });
-          blocks.forEach(b => { if(rectIntersect(rect, {x:b.x,y:b.y+b.oy,w:b.w,h:b.h})) hits.push({x:b.x,y:b.y+b.oy,w:b.w,h:b.h}); });
+          blocks.forEach(b => { if(b.type === 'brick' && b.hit && !b.content && b.count === 0) return; if(rectIntersect(rect, {x:b.x,y:b.y+b.oy,w:b.w,h:b.h})) hits.push({x:b.x,y:b.y+b.oy,w:b.w,h:b.h}); });
           return hits;
         }
 
@@ -1229,8 +1226,10 @@
         const yHits = checkCols(pRect);
         yHits.forEach(h => {
           if(player.vy >= 0 && player.y + player.height > h.y && player.y < h.y) {
+            // Landing on top
             player.y = h.y - player.height; player.vy = 0; player.onGround = true;
-          } else if(player.vy < 0) {
+          } else if(player.vy < 0 && player.y < h.y + h.h) {
+            // Hitting underside
             player.y = h.y + h.h; player.vy = 0;
             let hitBlock = blocks.find(b => b.x === h.x && b.y + b.oy === h.y);
             if(hitBlock && !hitBlock.hit) {
@@ -1241,7 +1240,6 @@
                   score += 100; if(hitBlock.content === 'coin') { coins++; playSound('coin'); } particles.push({x: hitBlock.x+10, y: hitBlock.y, vy: -5, type: 'coin', life: 20});
                 } else if(hitBlock.content === 'mushroom') {
                   if(player.isBig) {
-                    // big/fire mario hits mushroom box → spawn flower
                     particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 0, vy: 0, type: 'flower', onGround: false, life: undefined});
                   } else {
                     particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 2, vy: 0, type: 'mushroom', onGround: false});
@@ -1364,8 +1362,9 @@
 
         if(player.x > cameraX + 400 && state !== 'DEAD') cameraX = player.x - 400;
         
-        if(player.onGround) player.animFrame += Math.abs(player.vx)*0.1;
-        else player.animFrame = 0;
+        if(player.onGround && Math.abs(player.vx) > 0.1) player.animFrame += Math.abs(player.vx) * 0.1;
+        else if(player.onGround && Math.abs(player.vx) < 0.1) player.animFrame = 0;
+        // keep animFrame when airborne so landing doesn't flicker
       }
 
       // ── Draw ──────────────────────────────────────────────
