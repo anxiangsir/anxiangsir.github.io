@@ -812,187 +812,86 @@
 
       // ── Audio ──────────────────────────────────────────────
       let audioCtx = null;
-      const soundBuffers = {};
-      const SOUNDS = {
-        jump:       'https://archive.org/download/mario_nes_snes_sounds/Mario%201%20-%20Jump.ogg',
-        coin:       'https://archive.org/download/mario_nes_snes_sounds/coin%20%28nes%29.ogg',
-        stomp:      'https://archive.org/download/mario_nes_snes_sounds/stomp.ogg',
-        mushroom:   'https://archive.org/download/mario_nes_snes_sounds/Power%20Up%20%28nes%29.ogg',
-        death:      'https://archive.org/download/mario_nes_snes_sounds/Mario%201%20-%20Die.ogg',
-        levelclear: 'https://archive.org/download/mario_nes_snes_sounds/Mario%201%20-%20Win%20Stage.ogg'
+      const audioBufs = {};
+      const AUDIO_FILES = {
+        jump:            'assets/audio/small_jump.ogg',
+        big_jump:        'assets/audio/big_jump.ogg',
+        coin:            'assets/audio/coin.ogg',
+        stomp:           'assets/audio/stomp.ogg',
+        powerup_appears: 'assets/audio/powerup_appears.ogg',
+        powerup:         'assets/audio/powerup.ogg',
+        death:           'assets/audio/death.wav',
+        brick:           'assets/audio/brick_smash.ogg',
+        bump:            'assets/audio/bump.ogg',
+        fireball:        'assets/audio/fireball.ogg',
+        oneup:           'assets/audio/one_up.ogg',
+        flagpole:        'assets/audio/flagpole.wav',
+        stage_clear:     'assets/audio/stage_clear.wav',
+        game_over:       'assets/audio/game_over.ogg',
+        kick:            'assets/audio/kick.ogg',
       };
 
       function initAudio() {
         if(audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        Object.entries(SOUNDS).forEach(([name, url]) => {
+        Object.entries(AUDIO_FILES).forEach(([k, url]) => {
           fetch(url)
             .then(r => r.arrayBuffer())
-            .then(buf => audioCtx.decodeAudioData(buf))
-            .then(decoded => { soundBuffers[name] = decoded; })
+            .then(ab => audioCtx.decodeAudioData(ab))
+            .then(buf => { audioBufs[k] = buf; })
             .catch(() => {});
         });
       }
 
-      function playSound(name) {
-        if(!audioCtx || !soundBuffers[name]) return;
+      function playBuf(name, volume) {
+        if(!audioCtx || !audioBufs[name]) return;
         if(audioCtx.state === 'suspended') audioCtx.resume();
         const src = audioCtx.createBufferSource();
-        src.buffer = soundBuffers[name];
-        src.connect(audioCtx.destination);
+        src.buffer = audioBufs[name];
+        if(volume !== undefined && volume !== 1) {
+          const g = audioCtx.createGain(); g.gain.value = volume;
+          src.connect(g); g.connect(audioCtx.destination);
+        } else {
+          src.connect(audioCtx.destination);
+        }
         src.start(0);
       }
 
-      // ── BGM (Web Audio synthesis — SMB overworld theme) ───
-      let bgmPlaying = false;
-      let bgmTimeout = null;
+      function playSound(name) {
+        // map old names to new buffer keys
+        const MAP = { jump: player.isBig ? 'big_jump' : 'jump', coin: 'coin', stomp: 'stomp', mushroom: 'powerup', death: 'death', brick: 'brick', bump: 'bump' };
+        playBuf(MAP[name] || name);
+      }
+
+      // ── BGM ─────────────────────────────────────────────
+      let bgmAudio = null;
+      let bgmFast = false;
 
       function stopBGM() {
-        bgmPlaying = false;
-        if(bgmTimeout) { clearTimeout(bgmTimeout); bgmTimeout = null; }
+        if(bgmAudio) { bgmAudio.pause(); bgmAudio.currentTime = 0; bgmAudio = null; }
+        bgmFast = false;
       }
 
-      function startBGM() {
-        if(!audioCtx) return;
-        stopBGM();
-        bgmPlaying = true;
-        const BPM = 200, B = 60 / BPM, S = B / 2;
-        // SMB overworld theme — [frequency_hz, duration_sec]
-        const notes = [
-          [329.63,S],[329.63,S],[0,S],[329.63,S],[0,S],[261.63,S],[329.63,B],[392,B],[0,B],[196,B],
-          [261.63,B+S],[196,B+S],[0,S],[164.81,B+S],[220,B],[246.94,B],[233.08,S],[220,B],
-          [196,B*2/3],[329.63,B*2/3],[392,B*2/3],[440,B],[349.23,B],[392,B],
-          [0,S],[329.63,B],[261.63,B],[220,B],[196,B],
-          [261.63,B+S],[196,B+S],[0,S],[164.81,B+S],[220,B],[246.94,B],[233.08,S],[220,B],
-          [196,B*2/3],[329.63,B*2/3],[392,B*2/3],[440,B],[349.23,B],[392,B],
-          [0,S],[329.63,B],[261.63,B],[220,B],[196,B]
-        ];
-        function playNote(freq, dur, t) {
-          if(!freq || !audioCtx) return;
-          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-          o.connect(g); g.connect(audioCtx.destination);
-          o.type = 'square';
-          o.frequency.setValueAtTime(freq, t);
-          g.gain.setValueAtTime(0.07, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.9);
-          o.start(t); o.stop(t + dur);
-        }
-        function schedule() {
-          if(!bgmPlaying || !audioCtx) return;
-          let t = audioCtx.currentTime + 0.05, tot = 0;
-          notes.forEach(([f, d]) => { playNote(f, d, t + tot); tot += d; });
-          bgmTimeout = setTimeout(schedule, (tot - 0.1) * 1000);
-        }
-        schedule();
+      function startBGM(fast) {
+        const src = fast ? 'assets/audio/main_theme_sped_up.ogg' : 'assets/audio/main_theme.ogg';
+        if(bgmAudio && bgmFast === !!fast) return; // already playing correct track
+        if(bgmAudio) { bgmAudio.pause(); }
+        bgmAudio = new Audio(src);
+        bgmAudio.loop = true;
+        bgmAudio.volume = 0.6;
+        bgmFast = !!fast;
+        bgmAudio.play().catch(() => {});
       }
 
-      function playFireball() {
-        if(!audioCtx) return;
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.connect(g); g.connect(audioCtx.destination);
-        o.type = 'sawtooth';
-        o.frequency.setValueAtTime(880, audioCtx.currentTime);
-        o.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.15);
-        g.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-        o.start(); o.stop(audioCtx.currentTime + 0.15);
-      }
+      function playFireball() { playBuf('fireball'); }
 
-      function playSpreadGun() {
-        if(!audioCtx) return;
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const now = audioCtx.currentTime;
-        // Noise burst: high-pass filtered white noise → fast decay
-        for(let i = 0; i < 3; i++) {
-          const bufSize = Math.floor(audioCtx.sampleRate * 0.09);
-          const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-          const data = buf.getChannelData(0);
-          for(let j = 0; j < bufSize; j++) data[j] = (Math.random()*2-1) * Math.exp(-j/(bufSize*0.25));
-          const noise = audioCtx.createBufferSource();
-          noise.buffer = buf;
-          const filt = audioCtx.createBiquadFilter();
-          filt.type = 'highpass'; filt.frequency.value = 1800 + i*400;
-          const g = audioCtx.createGain();
-          g.gain.setValueAtTime(0.22, now + i*0.018);
-          g.gain.exponentialRampToValueAtTime(0.001, now + i*0.018 + 0.09);
-          noise.connect(filt); filt.connect(g); g.connect(audioCtx.destination);
-          noise.start(now + i*0.018); noise.stop(now + i*0.018 + 0.12);
-        }
-        // Tonal sawtooth sweep layer
-        const o = audioCtx.createOscillator(), g2 = audioCtx.createGain();
-        o.type = 'sawtooth';
-        o.frequency.setValueAtTime(900, now);
-        o.frequency.exponentialRampToValueAtTime(320, now + 0.12);
-        g2.gain.setValueAtTime(0.15, now);
-        g2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-        o.connect(g2); g2.connect(audioCtx.destination);
-        o.start(now); o.stop(now + 0.13);
-      }
+      function playSpreadGun() { playBuf('fireball', 0.9); }
 
-      function playOneUp() {
-        if(!audioCtx) return;
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        // Classic NES 1-UP jingle: three ascending notes
-        const notes = [[659, 0], [784, 0.1], [1047, 0.2]];
-        notes.forEach(([freq, delay]) => {
-          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-          o.connect(g); g.connect(audioCtx.destination);
-          o.type = 'square';
-          o.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
-          g.gain.setValueAtTime(0.1, audioCtx.currentTime + delay);
-          g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.09);
-          o.start(audioCtx.currentTime + delay);
-          o.stop(audioCtx.currentTime + delay + 0.1);
-        });
-      }
+      function playOneUp() { playBuf('oneup'); }
 
-      function playFlagpoleJingle() {
-        if(!audioCtx) return;
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        // Classic SMB flagpole descending jingle
-        const t0 = audioCtx.currentTime;
-        const notes = [
-          [392,0.1],[330,0.1],[262,0.1],[220,0.1],[196,0.15],
-          [262,0.1],[196,0.3]
-        ];
-        let t = t0;
-        notes.forEach(([freq, dur]) => {
-          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-          o.connect(g); g.connect(audioCtx.destination);
-          o.type = 'square';
-          o.frequency.setValueAtTime(freq, t);
-          g.gain.setValueAtTime(0.1, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.9);
-          o.start(t); o.stop(t + dur);
-          t += dur;
-        });
-      }
+      function playFlagpoleJingle() { playBuf('flagpole'); }
 
-      function playStageClear() {
-        if(!audioCtx) return;
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        // SMB Course Clear fanfare
-        const t0 = audioCtx.currentTime;
-        const S = 0.08, B = 0.16;
-        const notes = [
-          [523,S],[523,S],[523,S],[523,B+S],[392,B+S],
-          [523,S],[523,S],[523,S],[523,B+S],[392,B+S],
-          [523,S],[523,S],[523,S],[659,B],[523,B],
-          [392,B],[330,B],[440,B],[494,B],[523,B+S]
-        ];
-        let t = t0;
-        notes.forEach(([freq, dur]) => {
-          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-          o.connect(g); g.connect(audioCtx.destination);
-          o.type = 'square';
-          o.frequency.setValueAtTime(freq, t);
-          g.gain.setValueAtTime(0.1, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.9);
-          o.start(t); o.stop(t + dur);
-          t += dur;
-        });
-      }
+      function playStageClear() { playBuf('stage_clear'); }
 
       // ── CONFIG — all tunable constants in one place ─────────────────────────────
       const CONFIG = {
@@ -1099,6 +998,8 @@
           [4672,292,'coin'], [4672,154,'mushroom'], [4800,292,'coin'], [5531,154,'coin'], 
           [7288,292,'coin']];
         qCoords.forEach(c => blocks.push({x: c[0], y: c[1]*0.8, w: 34, h: 34, type: 'qbox', hit: false, content: c[2], oy:0, timer:Math.random()*100}));
+        // Hidden 1UP block (invisible) — first pit area, original SMB1 position
+        blocks.push({x: 2970, y: 292*0.8, w: 34, h: 34, type: 'qbox', hit: false, content: '1up', oy: 0, timer: 0, invisible: true});
 
         const stairW = 34, stairH = 34;
         let sx = 5745;
@@ -1192,7 +1093,15 @@
         }
 
         // Time
-        if(Date.now() - timeTimer > 1000) { time = Math.max(0, time - 1); timeTimer = Date.now(); if(time <= 0) killPlayer(); }
+        if(Date.now() - timeTimer > 1000) { 
+          time = Math.max(0, time - 1); 
+          timeTimer = Date.now(); 
+          if(time <= 0) killPlayer(); 
+          if(state === 'PLAYING' && bgmAudio) {
+            if(time < 100 && !bgmFast) startBGM(true);
+            else if(time >= 100 && bgmFast) startBGM(false);
+          }
+        }
 
         // ── Player velocity (horizontal + jump intent) ────────────────────────────────
         const speed = keys.run ? RUN_SPEED : WALK_SPEED;
@@ -1252,14 +1161,14 @@
                 if(hitBlock.content === 'coin' || hitBlock.type === 'brick') {
                   score += 100; if(hitBlock.content === 'coin') { coins++; playSound('coin'); } particles.push({x: hitBlock.x+10, y: hitBlock.y, vy: -1.5, type: 'coin', life: 80});
                 } else if(hitBlock.content === 'mushroom') {
-                  playSound('mushroom');
+                  playBuf('powerup_appears');
                   if(player.isBig) {
                     particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 1, vy: 0, type: 'flower', onGround: false, life: undefined, label: CONF_LABELS[Math.floor(Math.random()*CONF_LABELS.length)]});
                   } else {
                     particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 1, vy: 0, type: 'mushroom', onGround: false, label: CONF_LABELS[Math.floor(Math.random()*CONF_LABELS.length)]});
                   }
                 } else if(hitBlock.content === 'flower') {
-                  playSound('mushroom');
+                  playBuf('powerup_appears');
                   particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 0, vy: 0, type: 'flower', onGround: false, life: undefined, label: CONF_LABELS[Math.floor(Math.random()*CONF_LABELS.length)]});
                 } else if(hitBlock.content === '1up') {
                   playOneUp();
@@ -1267,6 +1176,7 @@
                 }
               } else if(hitBlock.type === 'brick' && player.isBig) {
                 hitBlock.hit = true;
+                playBuf('brick');
                 particles.push({x: hitBlock.x, y: hitBlock.y, vx: -2, vy: -5, type: 'debris', life: 40});
               }
             }
@@ -1537,10 +1447,12 @@
             if(b.hit && (b.content || b.count > 0)) { drawSprite(sprTiles, 432, 0, 16, 16, 0, 0, b.w, b.h); }
             else { drawSprite(sprTiles, 16, 0, 16, 16, 0, 0, b.w, b.h); }
           } else if(b.type === 'qbox') {
-            if(b.hit) { drawSprite(sprTiles, 432, 0, 16, 16, 0, 0, b.w, b.h); }
-            else {
-              let frame = Math.floor(b.timer/10)%3;
-              drawSprite(sprTiles, 384 + frame*16, 0, 16, 16, 0, 0, b.w, b.h);
+            if(!b.invisible) {
+              if(b.hit) { drawSprite(sprTiles, 432, 0, 16, 16, 0, 0, b.w, b.h); }
+              else {
+                let frame = Math.floor(b.timer/10)%3;
+                drawSprite(sprTiles, 384 + frame*16, 0, 16, 16, 0, 0, b.w, b.h);
+              }
             }
           }
           ctx.restore();
