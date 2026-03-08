@@ -899,6 +899,37 @@
         o.start(); o.stop(audioCtx.currentTime + 0.15);
       }
 
+      function playSpreadGun() {
+        if(!audioCtx) return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        // Noise burst: high-pass filtered white noise → fast decay
+        for(let i = 0; i < 3; i++) {
+          const bufSize = Math.floor(audioCtx.sampleRate * 0.09);
+          const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+          const data = buf.getChannelData(0);
+          for(let j = 0; j < bufSize; j++) data[j] = (Math.random()*2-1) * Math.exp(-j/(bufSize*0.25));
+          const noise = audioCtx.createBufferSource();
+          noise.buffer = buf;
+          const filt = audioCtx.createBiquadFilter();
+          filt.type = 'highpass'; filt.frequency.value = 1800 + i*400;
+          const g = audioCtx.createGain();
+          g.gain.setValueAtTime(0.22, now + i*0.018);
+          g.gain.exponentialRampToValueAtTime(0.001, now + i*0.018 + 0.09);
+          noise.connect(filt); filt.connect(g); g.connect(audioCtx.destination);
+          noise.start(now + i*0.018); noise.stop(now + i*0.018 + 0.12);
+        }
+        // Tonal sawtooth sweep layer
+        const o = audioCtx.createOscillator(), g2 = audioCtx.createGain();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(900, now);
+        o.frequency.exponentialRampToValueAtTime(320, now + 0.12);
+        g2.gain.setValueAtTime(0.15, now);
+        g2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        o.connect(g2); g2.connect(audioCtx.destination);
+        o.start(now); o.stop(now + 0.13);
+      }
+
       function playOneUp() {
         if(!audioCtx) return;
         if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -913,6 +944,53 @@
           g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.09);
           o.start(audioCtx.currentTime + delay);
           o.stop(audioCtx.currentTime + delay + 0.1);
+        });
+      }
+
+      function playFlagpoleJingle() {
+        if(!audioCtx) return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        // Classic SMB flagpole descending jingle
+        const t0 = audioCtx.currentTime;
+        const notes = [
+          [392,0.1],[330,0.1],[262,0.1],[220,0.1],[196,0.15],
+          [262,0.1],[196,0.3]
+        ];
+        let t = t0;
+        notes.forEach(([freq, dur]) => {
+          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+          o.connect(g); g.connect(audioCtx.destination);
+          o.type = 'square';
+          o.frequency.setValueAtTime(freq, t);
+          g.gain.setValueAtTime(0.1, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.9);
+          o.start(t); o.stop(t + dur);
+          t += dur;
+        });
+      }
+
+      function playStageClear() {
+        if(!audioCtx) return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        // SMB Course Clear fanfare
+        const t0 = audioCtx.currentTime;
+        const S = 0.08, B = 0.16;
+        const notes = [
+          [523,S],[523,S],[523,S],[523,B+S],[392,B+S],
+          [523,S],[523,S],[523,S],[523,B+S],[392,B+S],
+          [523,S],[523,S],[523,S],[659,B],[523,B],
+          [392,B],[330,B],[440,B],[494,B],[523,B+S]
+        ];
+        let t = t0;
+        notes.forEach(([freq, dur]) => {
+          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+          o.connect(g); g.connect(audioCtx.destination);
+          o.type = 'square';
+          o.frequency.setValueAtTime(freq, t);
+          g.gain.setValueAtTime(0.1, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.9);
+          o.start(t); o.stop(t + dur);
+          t += dur;
         });
       }
 
@@ -964,7 +1042,8 @@
       const player = {
         x: 50, y: 100, width: 24, height: 32, vx: 0, vy: 0,
         facing: 1, onGround: false, isBig: false, isFire: false, dead: false,
-        animFrame: 0, invulnTimer: 0, shootCooldown: 0
+        animFrame: 0, invulnTimer: 0, shootCooldown: 0,
+        poleSliding: false, walkingToCastle: false, poleTimer: 0
       };
 
       const C = {
@@ -996,6 +1075,7 @@
         if(e.code === 'KeyZ' || e.code === 'KeyX') keys.shoot = false;
       });
 
+      const CONF_LABELS = ['CVPR','ECCV','ICLR','NeurIPS','ICML','ICCV','AAAI'];
       // ── Level ─────────────────────────────────────────────
       function initLevel() {
         grounds = [{x: 0, w: 2953}, {x: 3048, w: 635}, {x: 3819, w: 2735}, {x: 6647, w: 2300}];
@@ -1026,7 +1106,7 @@
         sx = 6001;
         for(let i=0; i<4; i++) for(let j=0; j<(4-i); j++) blocks.push({x: sx+i*stairW, y: GROUND_HEIGHT-(j+1)*stairH, w: stairW, h: stairH, type: 'solid'});
 
-        flagpole = { x: 8505, y: 80, w: 4, h: GROUND_HEIGHT - 80, flagY: 80 };
+        flagpole = { x: 8505, y: 80, w: 4, h: GROUND_HEIGHT - 80, flagY: 80, castleX: 8780 };
 
         enemies = [680, 1380, 1720, 2870, 3560, 4450, 4930, 5080, 6780].map(ex => ({
           x: ex, y: GROUND_HEIGHT - 32, w: 32, h: 32, type: 'goomba', vx: -1, vy: 0, dead: 0, frame: 0
@@ -1041,7 +1121,7 @@
         if(lives <= 0) { lives = 3; score = 0; coins = 0; }
         time = 300; timeTimer = Date.now(); cameraX = 0;
         player.x = 50; player.y = 100; player.vx = 0; player.vy = 0; player.dead = false;
-        player.isBig = false; player.isFire = false; player.height = 32;
+        player.isBig = false; player.isFire = false; player.height = 32; player.poleSliding = false; player.walkingToCastle = false; player.poleTimer = 0;
         initLevel();
         startBGM();
         if(!frameId) gameLoop();
@@ -1064,13 +1144,44 @@
         if(state === 'TITLE') return;
         
         if(state === 'COMPLETE') {
-          player.vx = 0;
-          if(player.y < GROUND_HEIGHT - player.height) player.vy += GRAVITY;
-          else { player.vy = 0; player.y = GROUND_HEIGHT - player.height; }
-          player.y += player.vy;
-          if(flagpole.flagY < GROUND_HEIGHT - 32) flagpole.flagY += 3;
-          completeTimer--;
-          if(completeTimer <= 0) state = 'TITLE';
+          // Phase 1: pole sliding — Mario slides down, flag slides down
+          if(player.poleSliding) {
+            player.x = flagpole.x - player.width; // pin to pole
+            if(player.y + player.height < GROUND_HEIGHT) {
+              player.y += 5;
+            } else {
+              player.y = GROUND_HEIGHT - player.height;
+              player.poleSliding = false;
+              player.walkingToCastle = true;
+              player.poleTimer = 0;
+              playStageClear();
+            }
+            // Flag slides down simultaneously
+            if(flagpole.flagY < GROUND_HEIGHT - 24) flagpole.flagY += 5;
+          }
+          // Phase 2: brief pause then walk to castle
+          else if(player.walkingToCastle) {
+            player.poleTimer++;
+            if(player.poleTimer > 20) { // brief pause facing left
+              player.facing = 1;
+              player.vx = 4;
+              player.x += player.vx;
+              player.animFrame += 0.3;
+              // Camera follows Mario
+              const targetCamX = player.x - canvas.width / 2;
+              cameraX += (targetCamX - cameraX) * 0.15;
+              // Reached castle
+              if(player.x > flagpole.castleX + 60) {
+                player.walkingToCastle = false;
+                completeTimer = 180;
+              }
+            }
+          }
+          // Phase 3: countdown then return to title
+          else {
+            completeTimer--;
+            if(completeTimer <= 0) state = 'TITLE';
+          }
           return;
         }
 
@@ -1139,17 +1250,17 @@
               if(hitBlock.type === 'qbox' || (hitBlock.type === 'brick' && hitBlock.content)) {
                 hitBlock.hit = true;
                 if(hitBlock.content === 'coin' || hitBlock.type === 'brick') {
-                  score += 100; if(hitBlock.content === 'coin') { coins++; playSound('coin'); } particles.push({x: hitBlock.x+10, y: hitBlock.y, vy: -5, type: 'coin', life: 20});
+                  score += 100; if(hitBlock.content === 'coin') { coins++; playSound('coin'); } particles.push({x: hitBlock.x+10, y: hitBlock.y, vy: -1.5, type: 'coin', life: 80});
                 } else if(hitBlock.content === 'mushroom') {
                   playSound('mushroom');
                   if(player.isBig) {
-                    particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 1, vy: 0, type: 'flower', onGround: false, life: undefined});
+                    particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 1, vy: 0, type: 'flower', onGround: false, life: undefined, label: CONF_LABELS[Math.floor(Math.random()*CONF_LABELS.length)]});
                   } else {
-                    particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 1, vy: 0, type: 'mushroom', onGround: false});
+                    particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 1, vy: 0, type: 'mushroom', onGround: false, label: CONF_LABELS[Math.floor(Math.random()*CONF_LABELS.length)]});
                   }
                 } else if(hitBlock.content === 'flower') {
                   playSound('mushroom');
-                  particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 0, vy: 0, type: 'flower', onGround: false, life: undefined});
+                  particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 0, vy: 0, type: 'flower', onGround: false, life: undefined, label: CONF_LABELS[Math.floor(Math.random()*CONF_LABELS.length)]});
                 } else if(hitBlock.content === '1up') {
                   playOneUp();
                   particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: -1, vy: 0, type: '1up', onGround: false});
@@ -1231,19 +1342,22 @@
         if(player.shootCooldown > 0) player.shootCooldown--;
         if(shootPressed && player.isFire && player.shootCooldown === 0) {
           shootPressed = false;
-          playFireball();
-          particles.push({
-            type: 'fireball', life: undefined,
-            x: player.x + (player.facing > 0 ? player.width : 0),
-            y: player.y + player.height/2 - 8,
-            vx: player.facing * 7, vy: -2,
-            frame: 0, bounces: 0
+          playSpreadGun();
+          const bx = player.x + (player.facing > 0 ? player.width : 0);
+          const by = player.y + player.height/2 - 4;
+          const spd = 8;
+          // 3-way Contra spread: straight, up-diagonal, down-diagonal
+          [{vx: player.facing*spd, vy: 0},
+           {vx: player.facing*spd*0.8, vy: -spd*0.6},
+           {vx: player.facing*spd*0.8, vy:  spd*0.6}].forEach(function(vel) {
+            particles.push({type:'spread', life:undefined, x:bx, y:by, vx:vel.vx, vy:vel.vy, frame:0});
           });
+          player.shootCooldown = CONFIG.SHOOT_COOLDOWN;
         }
 
         // Particles
         particles.forEach(p => {
-          if(p.type === 'coin') { p.vy += GRAVITY; p.y += p.vy; p.life--; }
+          if(p.type === 'coin') { p.vy += GRAVITY * 0.15; if(p.vy > 0) p.vy = 0; p.y += p.vy; p.life--; }
           else if(p.type === 'text') { p.y -= 1; p.life--; }
           else if(p.type === 'mushroom') {
             p.x += p.vx;
@@ -1290,6 +1404,20 @@
                 particles.push({x:e.x,y:e.y,text:'200',life:30,type:'text'});
               }
             });
+          } else if(p.type === 'spread') {
+            // Contra spread bullet: travels in straight line, no gravity
+            p.frame += 0.25;
+            p.x += p.vx; p.y += p.vy;
+            // Kill on wall/floor collision
+            let sbHit = checkCols({x: p.x-4, y: p.y-4, w: 8, h: 8});
+            if(sbHit.length > 0) p.life = 0;
+            if(p.x < cameraX - 50 || p.x > cameraX + 900 || p.y < -50 || p.y > canvas.height + 50) p.life = 0;
+            enemies.forEach(e => {
+              if(!e.dead && rectIntersect({x:p.x-5,y:p.y-5,w:10,h:10}, e)) {
+                e.dead = 1; p.life = 0; score += 200;
+                particles.push({x:e.x,y:e.y,text:'200',life:30,type:'text'});
+              }
+            });
           } else if(p.type === '1up') {
             // 1-UP mushroom: same physics as regular mushroom, but gives extra life
             p.x += p.vx;
@@ -1317,10 +1445,28 @@
 
         blocks.forEach(b => { if(b.oy < 0) b.oy += 1; if(b.timer!==undefined) b.timer++; });
 
-        if(player.x > flagpole.x && state === 'PLAYING') {
+        // Flagpole grab: Mario's right edge crosses pole x
+        if(state === 'PLAYING' && player.x + player.width >= flagpole.x && player.x < flagpole.x + 20) {
           stopBGM();
-          playSound('levelclear');
-          state = 'COMPLETE'; completeTimer = 180; player.x = flagpole.x - 10;
+          playFlagpoleJingle();
+          // Score bonus based on grab height (distance from top of pole)
+          const grabY = player.y;
+          const poleTop = flagpole.y;
+          const grabHeight = GROUND_HEIGHT - grabY; // higher grab = larger value
+          let bonus;
+          if(grabHeight > 340) bonus = 5000;
+          else if(grabHeight > 280) bonus = 2000;
+          else if(grabHeight > 200) bonus = 800;
+          else if(grabHeight > 120) bonus = 400;
+          else bonus = 100;
+          score += bonus;
+          // Show bonus popup
+          particles.push({x: flagpole.x - 30, y: player.y, vy: -1.5, type: 'score', value: bonus, life: 90});
+          state = 'COMPLETE';
+          player.poleSliding = true;
+          player.walkingToCastle = false;
+          player.poleTimer = 0;
+          player.vx = 0; player.vy = 0;
         }
 
         const targetCamX = player.x - canvas.width / 2;
@@ -1358,8 +1504,28 @@
         });
 
         if(flagpole) {
-          ctx.fillStyle = '#fff'; ctx.fillRect(flagpole.x, flagpole.y, flagpole.w, flagpole.h);
-          ctx.fillStyle = '#0f0'; ctx.fillRect(flagpole.x - 16, flagpole.flagY, 20, 20);
+          // Castle (brick structure)
+          const cx = flagpole.castleX;
+          ctx.fillStyle = '#aaa';
+          // Battlements
+          for(let i=0; i<5; i++) { if(i%2===0) ctx.fillRect(cx + i*20, GROUND_HEIGHT-120, 20, 24); }
+          // Main body
+          ctx.fillRect(cx, GROUND_HEIGHT-96, 100, 96);
+          // Door
+          ctx.fillStyle = '#333'; ctx.fillRect(cx+36, GROUND_HEIGHT-48, 28, 48);
+          // Windows
+          ctx.fillStyle = '#333'; ctx.fillRect(cx+10, GROUND_HEIGHT-80, 20, 20); ctx.fillRect(cx+70, GROUND_HEIGHT-80, 20, 20);
+          // Pole (white vertical bar)
+          ctx.fillStyle = '#ccc'; ctx.fillRect(flagpole.x + 1, flagpole.y, 3, flagpole.h);
+          // Pole finial (ball on top)
+          ctx.fillStyle = '#fc0'; ctx.beginPath(); ctx.arc(flagpole.x + 2, flagpole.y, 6, 0, Math.PI*2); ctx.fill();
+          // Flag (green triangle)
+          ctx.fillStyle = '#0c0';
+          ctx.beginPath();
+          ctx.moveTo(flagpole.x - 1, flagpole.flagY);
+          ctx.lineTo(flagpole.x - 22, flagpole.flagY + 10);
+          ctx.lineTo(flagpole.x - 1, flagpole.flagY + 20);
+          ctx.closePath(); ctx.fill();
         }
 
         blocks.forEach(b => {
@@ -1385,25 +1551,62 @@
           if(p.type === 'coin') {
             let coinFrames = [52, 4, 20, 36];
             let cIdx = Math.floor(Date.now()/100) % 4;
-            drawSprite(sprItems, coinFrames[cIdx], 113, 8, 14, p.x-4, p.y-7, 16, 14);
+            drawSprite(sprItems, coinFrames[cIdx], 113, 8, 14, p.x-4, p.y-7, 24, 20);
+            ctx.save();
+            const alpha = Math.min(1, p.life / 30);
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = '#76b900';
+            ctx.font = 'bold 16px "Courier New"';
+            ctx.textAlign = 'center';
+            ctx.fillText('Nvidia B200 +1', p.x+4, p.y - 14);
+            ctx.restore();
           } else if(p.type === 'text') {
             ctx.fillStyle = (p.text && p.text.indexOf('1UP') >= 0) ? '#0f0' : '#fff';
             ctx.font = '16px "Courier New"'; ctx.fillText(p.text, p.x, p.y);
           } else if(p.type === 'mushroom') {
             drawSprite(sprItems, 0, 0, 16, 16, p.x, p.y, 32, 32);
+            if(p.label) { ctx.save(); ctx.fillStyle='#ff0'; ctx.font='bold 11px "Courier New"'; ctx.textAlign='center'; ctx.fillText(p.label, p.x+16, p.y-4); ctx.restore(); }
           } else if(p.type === 'flower') {
             let ff = Math.floor(Date.now()/150) % 4;
             let fx = [0, 16, 32, 48][ff];
             drawSprite(sprItems, fx, 32, 16, 16, p.x, p.y, 34, 34);
+            if(p.label) { ctx.save(); ctx.fillStyle='#ff0'; ctx.font='bold 11px "Courier New"'; ctx.textAlign='center'; ctx.fillText(p.label, p.x+17, p.y-4); ctx.restore(); }
           } else if(p.type === 'fireball') {
             let fbX = [96,104,96,104][Math.floor(p.frame)%4];
             let fbY = [144,144,152,152][Math.floor(p.frame)%4];
             drawSprite(sprItems, fbX, fbY, 8, 8, p.x, p.y, 16, 16);
+          } else if(p.type === 'spread') {
+            // Contra-style yellow diamond bullet with white highlight
+            ctx.save();
+            const sz = 5;
+            // Outer diamond: bright yellow
+            ctx.fillStyle = '#FFE000';
+            ctx.beginPath();
+            ctx.moveTo(p.x,     p.y - sz);
+            ctx.lineTo(p.x + sz, p.y);
+            ctx.lineTo(p.x,     p.y + sz);
+            ctx.lineTo(p.x - sz, p.y);
+            ctx.closePath();
+            ctx.fill();
+            // Inner diamond: white highlight
+            ctx.fillStyle = '#FFFFFF';
+            const si = Math.ceil(sz * 0.45);
+            ctx.beginPath();
+            ctx.moveTo(p.x,      p.y - si);
+            ctx.lineTo(p.x + si, p.y);
+            ctx.lineTo(p.x,      p.y + si);
+            ctx.lineTo(p.x - si, p.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
           } else if(p.type === 'debris') {
             drawSprite(sprTiles, 16, 0, 16, 16, p.x, p.y, 10, 10);
           } else if(p.type === '1up') {
             // Green 1-UP mushroom: sprite at (16, 0) on item sheet (16x16)
             drawSprite(sprItems, 16, 0, 16, 16, p.x, p.y, 32, 32);
+          } else if(p.type === 'score') {
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 14px "Courier New"';
+            ctx.fillText(p.value, p.x, p.y);
           }
         });
 
@@ -1471,7 +1674,7 @@
         ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, 40);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 18px "Courier New", monospace';
         ctx.fillText(`MARIO`, 40, 20); ctx.fillText(`${score.toString().padStart(6,'0')}`, 40, 36);
-        ctx.fillText(`\u{1FA99} \u{00D7}${coins.toString().padStart(2,'0')}`, 200, 36);
+        ctx.fillText(`NVIDIA B200`, 185, 20); ctx.fillText(`×${coins.toString().padStart(2,'0')}`, 200, 36);
         ctx.fillText(`WORLD`, 360, 20); ctx.fillText(`1-1`, 370, 36);
         ctx.fillText(`TIME`, 520, 20); ctx.fillText(`${time}`, 525, 36);
         ctx.fillText(`\u2665 x${lives}`, 660, 36);
