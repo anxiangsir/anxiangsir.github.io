@@ -1480,10 +1480,8 @@
         if(state === 'TITLE') {
           ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.fillStyle = '#fff'; ctx.font = 'bold 48px "Courier New"';
-          ctx.fillText('SUPER MARIO BROS', canvas.width/2, canvas.height*0.35);
-          ctx.font = '24px "Courier New"'; ctx.fillText('Press SPACE to Start', canvas.width/2, canvas.height*0.46);
-          ctx.font = '14px "Courier New"';
-          ctx.fillText('\u2190\u2192 Move  |  Space/W Jump  |  Shift Run  |  Z/X Fire', canvas.width/2, canvas.height*0.56);
+          ctx.textAlign = 'center'; ctx.fillText('SUPER MARIO BROS', canvas.width/2, 200);
+          ctx.font = '24px "Courier New"'; ctx.fillText('Press SPACE to Start', canvas.width/2, 260);
           ctx.textAlign = 'left';
         } else if(state === 'COMPLETE') {
           ctx.fillStyle = '#fff'; ctx.font = 'bold 36px "Courier New"';
