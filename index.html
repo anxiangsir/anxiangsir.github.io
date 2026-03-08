@@ -434,115 +434,7 @@
     }
     .pub-entry .hidden.open { max-height: 30em; padding: 8px; }
 
-    /* === CHAT BOX === */
-    .chat-section { background: transparent; border: none; padding: 0; margin-bottom: 24px; }
-    .chat-container {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border-soft);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      padding: 18px; max-width: 750px; margin: 0 auto;
-    }
-    .chat-header {
-      font-family: var(--font-pixel);
-      font-size: 0.88em; font-weight: 700;
-      color: var(--color-text);
-      margin-bottom: 12px; padding-bottom: 10px;
-      border-bottom: 1px solid var(--color-border-light);
-    }
-    .chat-messages {
-      height: 250px; overflow-y: auto;
-      padding: 10px; margin-bottom: 10px;
-      background: var(--color-bg);
-      border: 1px solid var(--color-border-light);
-    }
-    .chat-messages::-webkit-scrollbar { width: 6px; }
-    .chat-messages::-webkit-scrollbar-track { background: #f1f1f1; }
-    .chat-messages::-webkit-scrollbar-thumb { background: #c1c1c1; }
-    .chat-messages::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-    .chat-fullscreen-toggle {
-      float: right; background: none;
-      border: 1px solid var(--color-border-soft);
-      border-radius: 3px; cursor: pointer;
-      font-size: 1em; padding: 2px 7px;
-      color: var(--color-muted); transition: background 0.1s;
-    }
-    .chat-fullscreen-toggle:hover { background: var(--color-bg); }
-    .chat-container.fullscreen {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%; max-width: none;
-      z-index: 10000; display: flex; flex-direction: column;
-      padding: 16px 20px; box-sizing: border-box;
-    }
-    .chat-container.fullscreen .chat-messages { flex: 1; height: auto; }
-    .chat-container.fullscreen .chat-input-container { flex-shrink: 0; }
-    .chat-message {
-      margin: 8px 0; padding: 8px 12px;
-      line-height: 1.55;
-      animation: fadeIn 0.18s ease-out;
-      max-width: 85%;
-      border: 1px solid;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .chat-message.user {
-      background: #e8f0fe; border-color: #b3c8f5;
-      margin-left: auto; margin-right: 0;
-    }
-    .chat-message.assistant {
-      background: var(--color-surface); border-color: var(--color-border-soft);
-      border-left: 3px solid var(--color-accent);
-      margin-left: 0; margin-right: auto;
-    }
-    .chat-message-label {
-      font-family: var(--font-pixel);
-      font-size: 0.6em; color: var(--color-muted);
-      margin-bottom: 4px;
-      text-transform: uppercase; letter-spacing: 0.4px;
-    }
-    .chat-input-container { display: flex; gap: 8px; align-items: stretch; }
-    .chat-input {
-      flex: 1; padding: 8px 12px;
-      border: 1px solid var(--color-border-soft);
-      font-family: var(--font-body); font-size: 0.95em;
-      outline: none; transition: border-color 0.12s;
-    }
-    .chat-input:focus {
-      border-color: var(--color-accent);
-      box-shadow: 0 0 0 2px rgba(51,102,204,0.12);
-    }
-    .chat-send-btn {
-      padding: 8px 20px;
-      background: var(--color-accent); color: #fff;
-      border: none;
-      font-family: var(--font-pixel);
-      font-size: 0.7em; font-weight: 700;
-      cursor: pointer;
-      transition: background 0.1s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-    }
-    .chat-send-btn:hover { background: #254ca3; }
-    .chat-send-btn:active { background: #1a3a80; }
-    .chat-send-btn:disabled { background: #bdbdbd; cursor: not-allowed; box-shadow: none; }
-    .chat-markdown { line-height: 1.6; }
-    .chat-markdown p { margin: 5px 0; }
-    .chat-markdown p:first-child { margin-top: 0; }
-    .chat-markdown p:last-child { margin-bottom: 0; }
-    .chat-markdown ul, .chat-markdown ol { margin: 4px 0; padding-left: 20px; }
-    .chat-markdown code { background: #f0f0f0; padding: 1px 4px; font-family: var(--font-mono); font-size: 0.85em; }
-    .chat-markdown pre { background: #282c34; color: #abb2bf; padding: 10px 14px; overflow-x: auto; margin: 6px 0; }
-    .chat-markdown pre code { background: none; padding: 0; color: inherit; font-size: 0.85em; }
-    .chat-markdown blockquote { border-left: 3px solid #ddd; margin: 4px 0; padding: 2px 10px; color: #666; }
-    .chat-markdown h1 { font-size: 1.15em; margin: 6px 0 3px; }
-    .chat-markdown h2 { font-size: 1.05em; margin: 6px 0 3px; border: none; padding: 0; }
-    .chat-markdown h3 { font-size: 1em; margin: 6px 0 3px; }
-    .chat-markdown table { border-collapse: collapse; margin: 6px 0; width: 100%; }
-    .chat-markdown th, .chat-markdown td { border: 1px solid #ddd; padding: 4px 8px; }
-    .chat-markdown th { background: #f5f5f5; font-weight: 600; }
-    .chat-markdown a { color: var(--color-link); }
-    .chat-markdown a:hover { text-decoration: underline; }
-    .chat-markdown hr { border: none; border-top: 1px solid #e0e0e0; margin: 6px 0; }
+
 
     /* === FOOTER === */
     .wiki-footer {
@@ -567,11 +459,7 @@
       .wiki-content { padding: 18px 16px; }
       .wiki-footer { max-width: none; border: none; background: var(--color-bg); }
     }
-    @media (max-width: 600px) {
-      .chat-messages { height: 180px; }
-      .chat-message { max-width: 95%; }
-      .chat-input { font-size: 16px; }
-    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       * { transition: none !important; animation: none !important; }
@@ -593,7 +481,7 @@
       <div class="wiki-sidebar-title">Contents</div>
       <ol class="toc-list">
         <li><a href="#">(Top)</a></li>
-        <li><a href="#chat">Ask Xiang An anything</a></li>
+
         <li><a href="#publications">Publications</a></li>
         <li><a href="#awards">Awards &amp; Competitions</a></li>
         <li><a href="#open-source">Open Source</a>
@@ -614,23 +502,7 @@
 
 <p class="hatnote">For a complete list of publications, see <a href="publications.html">All Publications</a>.</p>
 
-<h2 id="chat">Ask Xiang An anything <a class="section-anchor" href="#chat">§</a></h2>
 
-<div class="chat-section">
-  <div class="chat-container">
-    <div class="chat-header">💬 Chat <span style="font-size:0.75em;opacity:0.7;margin-left:6px;">RAG-enhanced</span><button id="chatFullscreenToggle" class="chat-fullscreen-toggle" title="全屏/退出全屏" aria-label="Toggle fullscreen mode">⛶</button></div>
-    <div class="chat-messages" id="chatMessages">
-      <div class="chat-message assistant">
-        <div class="chat-message-label">Xiang An</div>
-        <div>你好！欢迎来到安翔的主页，有什么可以帮你的吗？</div>
-      </div>
-    </div>
-    <div class="chat-input-container">
-      <input type="text" id="chatInput" class="chat-input" placeholder="输入您的消息..." />
-      <button id="chatSendBtn" class="chat-send-btn">发送</button>
-    </div>
-  </div>
-</div>
 
 <h2 id="publications">Publications <a class="section-anchor" href="#publications">§</a></h2>
 
@@ -1559,189 +1431,6 @@
         .catch(err => { console.warn('Scholar API unavailable:', err); });
     })();
   </script>
-  
-  <!-- Markdown rendering for chat -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/14.1.3/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.7/purify.min.js"></script>
 
-  <!-- Chat functionality -->
-  <script>
-    (function() {
-      // Chat API endpoint — auto-detect environment
-      // On Vercel or localhost the API is co-located; on GitHub Pages we
-      // call the Vercel-hosted serverless function cross-origin.
-      // ⚠️  Update this URL if the Vercel project is renamed or redeployed
-      //     under a different domain (check Vercel Dashboard → Domains).
-      const VERCEL_ORIGIN = 'https://anxiangsir-github-io.vercel.app';
-      const CHAT_API_URL = (window.location.hostname === 'localhost' ||
-                            window.location.hostname.includes('vercel.app'))
-        ? '/api/chat'
-        : VERCEL_ORIGIN + '/api/chat';
-      
-      // Chat log API for database storage
-      const CHAT_LOG_API_URL = (window.location.hostname === 'localhost' ||
-                                window.location.hostname.includes('vercel.app'))
-        ? '/api/chat-log'
-        : VERCEL_ORIGIN + '/api/chat-log';
-      
-      const chatMessages = document.getElementById('chatMessages');
-      const chatInput = document.getElementById('chatInput');
-      const chatSendBtn = document.getElementById('chatSendBtn');
-      const chatContainer = document.querySelector('.chat-container');
-      const chatFullscreenToggle = document.getElementById('chatFullscreenToggle');
-
-      // Fullscreen toggle functionality
-      let isFullscreen = false;
-      let hasAutoFullscreened = false;
-
-      function setChatFullscreen(enter) {
-        isFullscreen = enter;
-        if (enter) {
-          chatContainer.classList.add('fullscreen');
-          chatFullscreenToggle.textContent = '✕';
-          chatFullscreenToggle.title = '退出全屏';
-          document.body.style.overflow = 'hidden';
-        } else {
-          chatContainer.classList.remove('fullscreen');
-          chatFullscreenToggle.textContent = '⛶';
-          chatFullscreenToggle.title = '全屏';
-          document.body.style.overflow = '';
-        }
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
-
-      chatFullscreenToggle.addEventListener('click', function() {
-        setChatFullscreen(!isFullscreen);
-      });
-
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && isFullscreen) {
-          setChatFullscreen(false);
-        }
-      });
-
-      // Maintain conversation history for context (capped to avoid excessive payloads)
-      const conversationHistory = [];
-      const MAX_HISTORY = 50;
-      
-      // Generate session ID for this conversation (UUID v4)
-      let sessionId = null;
-      try {
-        // 尝试从 localStorage 读取现有 sessionId
-        sessionId = localStorage.getItem('chatSessionId');
-        if (!sessionId) {
-          // 生成新的 UUID
-          sessionId = crypto.randomUUID();
-          localStorage.setItem('chatSessionId', sessionId);
-        }
-      } catch (e) {
-        // 如果不支持 crypto.randomUUID 或 localStorage，使用简单的随机 ID
-        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      }
-
-      function addMessage(text, isUser) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `chat-message ${isUser ? 'user' : 'assistant'}`;
-        
-        const labelDiv = document.createElement('div');
-        labelDiv.className = 'chat-message-label';
-        labelDiv.textContent = isUser ? 'USER' : 'Xiang An';
-        
-        const contentDiv = document.createElement('div');
-        if (isUser) {
-          contentDiv.textContent = text;
-        } else {
-          contentDiv.className = 'chat-markdown';
-          contentDiv.innerHTML = DOMPurify.sanitize(marked.parse(text));
-        }
-        
-        messageDiv.appendChild(labelDiv);
-        messageDiv.appendChild(contentDiv);
-        chatMessages.appendChild(messageDiv);
-        
-        // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
-      
-      // 静默保存对话到数据库
-      async function saveChatLog(role, content) {
-        try {
-          await fetch(CHAT_LOG_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              session_id: sessionId,
-              role: role,
-              content: content,
-              user_agent: navigator.userAgent
-            })
-          });
-          // 静默成功，不做任何处理
-        } catch (error) {
-          // 静默失败，不影响聊天体验
-          console.debug('Chat log save skipped:', error.message);
-        }
-      }
-
-      async function callChatAPI(messages) {
-        try {
-          const response = await fetch(CHAT_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages: messages })
-          });
-          const data = await response.json();
-          return data.reply || '抱歉，服务暂时不可用。';
-        } catch (error) {
-          console.error('Chat API error:', error);
-          return '抱歉，服务暂时不可用。';
-        }
-      }
-
-      async function sendMessage() {
-        const message = chatInput.value.trim();
-        if (!message) return;
-        
-        // Auto-enter fullscreen on first message
-        if (!hasAutoFullscreened) {
-          hasAutoFullscreened = true;
-          setChatFullscreen(true);
-        }
-        
-        // Add user message to UI and history
-        addMessage(message, true);
-        conversationHistory.push({ role: 'user', content: message });
-        chatInput.value = '';
-        
-        // 静默保存用户消息到数据库
-        saveChatLog('user', message);
-        
-        // Disable button while waiting for response
-        chatSendBtn.disabled = true;
-        
-        // Call the Python chat API with full conversation context
-        const reply = await callChatAPI(conversationHistory);
-        addMessage(reply, false);
-        conversationHistory.push({ role: 'assistant', content: reply });
-        if (conversationHistory.length > MAX_HISTORY) {
-          conversationHistory.splice(0, conversationHistory.length - MAX_HISTORY);
-        }
-        
-        // 静默保存助手回复到数据库
-        saveChatLog('assistant', reply);
-        
-        chatSendBtn.disabled = false;
-        chatInput.focus();
-      }
-
-      // Event listeners
-      chatSendBtn.addEventListener('click', sendMessage);
-      chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          sendMessage();
-        }
-      });
-    })();
-  </script>
 </body>
 </html>
