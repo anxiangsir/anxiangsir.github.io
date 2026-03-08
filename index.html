@@ -6,604 +6,575 @@
   <title>Xiang An - Personal Homepage</title>
   <meta name="description" content="Xiang An - Research Scientist and Team Lead at GlintLab">
   <link rel="shortcut icon" href="assets/img/profile_pic.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css">
   <style>
+    /* ============================================
+       THEME: Pixelify Sans + Wikipedia colors
+       Inspired by brianboli.com/inside/
+       - Pixelify Sans: pixel-perfect, crisp at all sizes
+       - Wikipedia color palette (faithful)
+       - 3-column grid layout
+    ============================================ */
+
+    :root {
+      --sidebar-col:   200px;
+      --infobox-col:   276px;
+      --header-rail-h: 52px;
+      --pad-y:         24px;
+      --content-pad-x: 32px;
+
+      /* Wikipedia colors */
+      --color-bg:           #f8f9fa;
+      --color-surface:      #ffffff;
+      --color-surface-soft: #fafbfc;
+      --color-text:         #202122;
+      --color-muted:        #54595d;
+      --color-border:       #a2a9b1;
+      --color-border-soft:  #c8ccd1;
+      --color-border-light: #eaecf0;
+      --color-column-sep:   #d0d7de;
+      --color-link:         #0645ad;
+      --color-link-vis:     #0b0080;
+      --color-accent:       #3366cc;
+      --color-accent-soft:  #cee0f2;
+      --color-warn-bg:      #fff8e1;
+      --color-warn-border:  #d4a017;
+      --color-warn-text:    #5c4a1a;
+
+      /* Fonts */
+      --font-pixel: 'Pixelify Sans', 'Courier New', monospace;
+      --font-body:  -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      --font-ui:    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono:  'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 14px;
-      line-height: 1.6;
-      color: #202122;
-      background: #f8f9fa;
+      font-family: var(--font-body);
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: var(--color-text);
+      background: var(--color-bg);
+      padding: 12px 16px 24px;
     }
 
-    /* Header */
+    /* === HEADER === */
     .wiki-header {
-      background: #fff;
-      border-bottom: 1px solid #a2a9b1;
-      padding: 0.5em 0;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
     .wiki-header-inner {
-      max-width: 1200px;
+      max-width: 1440px;
       margin: 0 auto;
-      padding: 0 1em;
+      padding: 0 16px;
+      height: 44px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
     .wiki-logo {
-      font-size: 1.1em;
-      font-weight: bold;
-      color: #202122;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 1em;
+      font-weight: 600;
+      color: var(--color-text);
       text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .wiki-logo::before {
+      content: '';
+      display: inline-block;
+      width: 9px; height: 9px;
+      background: var(--color-accent);
     }
     .wiki-nav a {
-      color: #0645ad;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.875em;
+      color: var(--color-link);
       text-decoration: none;
-      margin-left: 1.5em;
-      font-size: 0.9em;
+      margin-left: 20px;
     }
     .wiki-nav a:hover { text-decoration: underline; }
 
-    /* Main layout */
+    /* === 3-COLUMN GRID === */
+
+    /* === 3-COLUMN GRID === */
     .wiki-wrapper {
-      max-width: 1400px;
+      max-width: 1440px;
       margin: 0 auto;
-      display: flex;
-      min-height: calc(100vh - 100px);
+      display: grid;
+      grid-template-columns: var(--sidebar-col) minmax(0,1fr) var(--infobox-col);
+      align-items: start;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-bottom: none;
+      box-shadow: 0 4px 16px rgba(15,23,42,0.07);
+      position: relative;
+    }
+    /* top accent stripe */
+    .wiki-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #b7c6da 0%, #7fa8d8 50%, #b7c6da 100%);
+      pointer-events: none;
+    }
+    /* column separator lines */
+    .wiki-wrapper::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(var(--color-column-sep), var(--color-column-sep)),
+        linear-gradient(var(--color-column-sep), var(--color-column-sep));
+      background-size: 1px 100%, 1px 100%;
+      background-position: var(--sidebar-col) 0, calc(100% - var(--infobox-col)) 0;
+      background-repeat: no-repeat;
     }
 
-    /* Left sidebar - TOC */
+    /* === LEFT SIDEBAR === */
     .wiki-sidebar {
-      width: 176px;
-      flex-shrink: 0;
-      background: #f8f9fa;
-      border-right: 1px solid #a2a9b1;
-      padding: 0.75em;
+      background: transparent;
+      padding: var(--pad-y) 16px;
+      position: sticky;
+      top: 52px;
+      align-self: flex-start;
+      max-height: calc(100vh - 60px);
+      overflow-y: auto;
     }
     .wiki-sidebar-title {
-      font-weight: bold;
-      padding-bottom: 0.5em;
-      border-bottom: 1px solid #c8ccd1;
-      margin-bottom: 0.5em;
+      font-family: var(--font-pixel);
+      font-size: 0.82em;
+      font-weight: 700;
+      color: var(--color-text);
+      min-height: var(--header-rail-h);
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border-soft);
+      margin-bottom: 6px;
     }
-    .wiki-sidebar ul {
+    /* TOC numbered list */
+    .wiki-sidebar ol.toc-list {
       list-style: none;
+      padding: 0; margin: 0;
+      counter-reset: toc-counter;
+    }
+    .wiki-sidebar ol.toc-list > li {
+      counter-increment: toc-counter;
       margin: 0;
-      padding: 0;
     }
-    .wiki-sidebar li {
-      margin: 0.3em 0;
+    .wiki-sidebar ol.toc-list > li > a::before {
+      content: counter(toc-counter) ".\00a0";
+      color: var(--color-muted);
+      font-size: 0.85em;
     }
-    .wiki-sidebar a {
-      color: #0645ad;
+    .wiki-sidebar ol.toc-list li a {
+      font-family: var(--font-ui);
+      font-size: 0.88em;
+      color: var(--color-link);
       text-decoration: none;
-      font-size: 0.9em;
+      display: block;
+      padding: 2px 2px;
+      line-height: 1.4;
     }
-    .wiki-sidebar a:hover { text-decoration: underline; }
+    .wiki-sidebar ol.toc-list li a:hover { text-decoration: underline; }
+    .wiki-sidebar ol.toc-list li a:visited { color: var(--color-link-vis); }
+    /* sub-items (level 2) */
+    .wiki-sidebar ol.toc-list .toc-sub {
+      list-style: none;
+      padding-left: 14px;
+      margin: 0;
+      counter-reset: toc-sub-counter;
+    }
+    .wiki-sidebar ol.toc-list .toc-sub li {
+      counter-increment: toc-sub-counter;
+    }
+    .wiki-sidebar ol.toc-list .toc-sub li a::before {
+      content: counter(toc-counter) "." counter(toc-sub-counter) "\00a0";
+      color: var(--color-muted);
+      font-size: 0.82em;
+    }
 
-    /* Content area */
+    /* === CONTENT === */
     .wiki-content {
-      flex: 1;
-      background: #fff;
-      border-left: 1px solid #a2a9b1;
-      border-right: 1px solid #a2a9b1;
-      padding: 1.5em 2em;
+      background: transparent;
+      padding: var(--pad-y) var(--content-pad-x);
       min-width: 0;
     }
 
-    /* Page title */
+    /* === PAGE TITLE — Pixelify Sans, very legible === */
     .wiki-title {
-      font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
-      font-size: 1.8em;
-      font-weight: normal;
-      border-bottom: 1px solid #a2a9b1;
-      padding-bottom: 0.2em;
-      margin-bottom: 0.5em;
+      font-family: var(--font-pixel);
+      font-size: 1.7em;
+      font-weight: 700;
+      color: var(--color-text);
+      min-height: var(--header-rail-h);
+      display: flex;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      letter-spacing: 0.3px;
+      line-height: 1.2;
     }
 
-    /* Typography */
-    h1, h2, h3, h4, h5, h6 {
-      font-weight: normal;
-      color: #000;
-      margin-top: 1em;
-      margin-bottom: 0.25em;
-    }
+    /* === TYPOGRAPHY === */
+    h1, h2, h3, h4, h5, h6 { font-weight: normal; color: #000; margin-top: 1em; margin-bottom: 0.25em; }
     h2 {
-      font-size: 1.5em;
-      border-bottom: 1px solid #a2a9b1;
-      padding-bottom: 0.2em;
+      font-family: var(--font-pixel);
+      font-size: 1.25em;
+      font-weight: 700;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 8px;
+      margin-top: 32px;
+      margin-bottom: 14px;
+      letter-spacing: 0.2px;
+      position: relative;
     }
-    h3 { font-size: 1.2em; }
-    h4 { font-size: 1.1em; font-weight: bold; }
-    h5 { font-size: 1em; font-weight: bold; }
+    /* § anchor decoration — appears on hover */
+    h2 .section-anchor {
+      font-family: var(--font-ui);
+      font-size: 0.7em;
+      font-weight: normal;
+      color: var(--color-muted);
+      margin-left: 8px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      text-decoration: none;
+      vertical-align: middle;
+    }
+    h2:hover .section-anchor { opacity: 1; }
+    h2 .section-anchor:hover { color: var(--color-link); }
+    h3 {
+      font-family: var(--font-pixel);
+      font-size: 1em;
+      font-weight: 700;
+      margin-top: 18px;
+      margin-bottom: 6px;
+    }
+    h4 { font-size: 1em; font-weight: bold; }
+    h5 { font-size: 0.95em; font-weight: bold; }
 
-    p { margin: 0.5em 0; }
+    p { margin: 10px 0; }
 
-    a { color: #0645ad; text-decoration: none; }
+    a { color: var(--color-link); text-decoration: none; text-underline-offset: 0.15em; }
     a:hover { text-decoration: underline; }
-    a:visited { color: #0b0080; }
+    a:visited { color: var(--color-link-vis); }
 
-    ul, ol { margin: 0.3em 0 0.3em 1.6em; }
-    li { margin: 0.2em 0; }
+    ul, ol { margin: 4px 0 4px 24px; }
+    li { margin: 3px 0; }
 
-    hr {
-      border: none;
-      border-top: 1px solid #a2a9b1;
-      margin: 1em 0;
-    }
+    hr { border: none; border-top: 1px solid var(--color-border); margin: 16px 0; }
 
     blockquote {
-      border-left: 3px solid #c8ccd1;
-      padding-left: 1em;
-      margin: 1em 0;
-      color: #54595d;
+      border-left: 3px solid var(--color-border-soft);
+      padding-left: 1em; margin: 12px 0;
+      color: var(--color-muted);
     }
 
+    /* === HATNOTE === */
+    .hatnote {
+      font-family: var(--font-body);
+      font-style: italic;
+      font-size: 0.9em;
+      color: var(--color-muted);
+      background: transparent;
+      padding: 3px 0 3px 1.6em;
+      margin: 0 0 12px 0;
+      border: none;
+      position: relative;
+    }
+    .hatnote::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0.9em; height: 0.9em;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2354595d' d='M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zm1 11H9v-4h2v4zm0-6H9V5h2v2z'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      opacity: 0.7;
+    }
+    .hatnote a { color: var(--color-link); }
     code {
-      font-family: monospace;
-      background: #f8f9fa;
-      padding: 1px 4px;
-      border: 1px solid #eaecf0;
+      font-family: var(--font-mono); font-size: 0.85em;
+      background: var(--color-bg); padding: 1px 5px;
+      border: 1px solid var(--color-border-soft);
     }
     pre {
-      background: #f8f9fa;
-      border: 1px solid #eaecf0;
-      padding: 1em;
-      overflow-x: auto;
-      font-family: monospace;
-      font-size: 0.9em;
+      background: var(--color-bg); border: 1px solid var(--color-border-soft);
+      padding: 1em; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 0.85em;
     }
 
-    /* Right sidebar - Infobox */
+    b, strong { font-weight: 600; }
+
+    /* === INFOBOX === */
     .wiki-infobox-container {
-      width: 260px;
-      flex-shrink: 0;
-      padding: 0.75em;
-      background: #f8f9fa;
+      background: transparent;
+      padding: var(--pad-y) 16px;
     }
     .infobox {
-      border: 1px solid #a2a9b1;
-      background: #f8f9fa;
-      font-size: 0.9em;
-      padding: 0.5em;
-      position: sticky;
-      top: 1em;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      font-size: 0.85em;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      position: sticky; top: 60px;
+      width: 100%;
     }
     .infobox-title {
-      background: #eaecf0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 1.1em;
+      font-weight: 600;
+      color: var(--color-text);
       text-align: center;
-      font-weight: bold;
-      padding: 0.4em;
-      margin: -0.5em -0.5em 0.5em -0.5em;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--color-border);
     }
     .infobox img {
       width: 100%;
-      border: 1px solid #c8ccd1;
+      display: block;
     }
     .infobox-caption {
       text-align: center;
-      font-size: 0.85em;
-      color: #54595d;
-      padding: 0.3em 0;
+      font-size: 0.8em;
+      color: var(--color-muted);
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--color-border-soft);
     }
     .infobox-row {
-      padding: 0.3em 0;
-      border-top: 1px solid #eaecf0;
+      padding: 8px 12px;
+      border-top: 1px solid var(--color-border-soft);
+      line-height: 1.5;
     }
     .infobox-label {
-      font-weight: bold;
-    }
-
-    .infobox-row a {
-      word-break: break-all;
-    }
-    .infobox-row i {
-      width: 1.2em;
-      text-align: center;
-    }
-
-    /* Publications */
-    .publications { margin-top: 0.5em; }
-    .publications ol.bibliography {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .publications ol.bibliography li {
-      margin-bottom: 0.8em !important;
-      padding-bottom: 0.6em !important;
-      padding-top: 0.6em !important;
-      margin-top: 0 !important;
-      border-bottom: 1px solid #eaecf0;
-    }
-    .publications ol.bibliography li:last-child {
-      border-bottom: none;
-    }
-    .publications ol.bibliography li .pub-entry .hidden {
-      display: none;
-    }
-    .pub-entry {
-      line-height: 1.4;
-    }
-    .pub-entry .periodical,
-    .pub-entry .additional,
-    .pub-entry .author {
-      margin: 0.2em 0 0;
-      line-height: 1.3;
-    }
-    .pub-entry .pub-number {
-      display: none;
-    }
-    .pub-entry .title {
-      font-weight: bold;
-    }
-    .pub-entry .title a {
-      color: #0645ad;
-    }
-    .pub-entry .periodical {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 600;
+      font-size: 0.85em;
+      color: var(--color-text);
       display: block;
-      color: #54595d;
-      font-size: 0.9em;
+      margin-bottom: 2px;
     }
+    .infobox-value {
+      font-size: 0.9em;
+      color: var(--color-text);
+    }
+    .infobox-row a { word-break: break-word; color: var(--color-link); }
+    .infobox-row i { width: 1.2em; text-align: center; }
+
+    /* === PUBLICATIONS === */
+    .publications { margin-top: 8px; }
+    .publications ol.bibliography { list-style: none; padding: 0; margin: 0; display: grid; row-gap: 8px; }
+    .publications ol.bibliography li {
+      margin: 0 !important;
+      padding: 12px 14px !important;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-soft);
+      border-left: 3px solid var(--color-border);
+      transition: border-left-color 0.12s, box-shadow 0.12s;
+    }
+    .publications ol.bibliography li:hover {
+      border-left-color: var(--color-accent);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .publications ol.bibliography li .pub-entry .hidden { display: none; }
+    .pub-entry { line-height: 1.5; display: grid; row-gap: 4px; }
+    .pub-entry .pub-number { display: none; }
+    .pub-entry .title { font-weight: 600; }
+    .pub-entry .title a { color: var(--color-link); }
+    .pub-entry .title a:hover { text-decoration: underline; }
+    .pub-entry .periodical { display: block; color: var(--color-muted); font-size: 0.88em; }
     .pub-entry .periodical .genre-tag {
       display: inline-block;
-      padding: 0.12em 0.45em;
-      border: 1px solid #c8ccd1;
-      border-radius: 3px;
-      background: #f8f9fa;
-      color: #54595d;
+      padding: 1px 7px;
+      border: 1px solid var(--color-border-soft);
+      background: var(--color-bg);
+      color: var(--color-muted);
       font-size: 0.85em;
-      font-style: normal;
-      line-height: 1.2;
-      margin: 0.15em 0.4em 0 0;
-      max-width: 100%;
-      white-space: normal;
-      word-break: break-word;
+      line-height: 1.4;
+      margin: 2px 4px 0 0;
+      white-space: nowrap;
     }
     .pub-entry .periodical .genre-tag-secondary {
-      border-color: #eaecf0;
-      background: #fff;
+      background: var(--color-surface); color: var(--color-link);
     }
-    .pub-entry .periodical .genre-tag a {
-      color: inherit;
-      text-decoration: none;
-    }
-    .pub-entry .periodical .genre-tag a:hover {
-      text-decoration: underline;
-    }
+    .pub-entry .periodical .genre-tag a { color: inherit; text-decoration: none; }
+    .pub-entry .periodical .genre-tag a:hover { text-decoration: underline; }
     .pub-entry .additional {
       display: block;
-      color: #5c4a1a;
-      background: #fff8e1;
-      border-left: 3px solid #d4a017;
-      padding: 0.25em 0.5em;
-      border-radius: 2px;
-      font-weight: normal;
+      color: var(--color-warn-text);
+      background: var(--color-warn-bg);
+      border-left: 3px solid var(--color-warn-border);
+      padding: 4px 8px;
+      font-size: 0.88em;
     }
-    .pub-entry .author {
-      display: block;
-      color: #54595d;
-      font-size: 0.9em;
-    }
-    .pub-entry .links {
-      font-size: 0.85em;
-      margin-left: 0.5em;
-    }
-    .pub-entry .links a {
-      margin-right: 0.3em;
-    }
+    .pub-entry .author { display: block; color: var(--color-muted); font-size: 0.88em; }
+    .pub-entry .links { font-size: 0.85em; margin-left: 6px; }
+    .pub-entry .links a { margin-right: 4px; }
     .pub-entry .hidden {
-      max-height: 0;
-      overflow: hidden;
+      max-height: 0; overflow: hidden;
       transition: max-height 0.2s ease;
-      background: #f8f9fa;
-      border: 1px solid #eaecf0;
-      margin-top: 0.5em;
-      font-size: 0.9em;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border-soft);
+      margin-top: 6px; font-size: 0.9em;
     }
-    .pub-entry .hidden.open {
-      max-height: 30em;
-      padding: 0.5em;
-    }
+    .pub-entry .hidden.open { max-height: 30em; padding: 8px; }
 
-    /* Chat Box */
-    .chat-section {
-      background: transparent;
-      border: none;
-      padding: 0;
-      margin-bottom: 2em;
-    }
+    /* === CHAT BOX === */
+    .chat-section { background: transparent; border: none; padding: 0; margin-bottom: 24px; }
     .chat-container {
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 1.25em;
-      max-width: 750px;
-      margin: 0 auto;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-soft);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 18px; max-width: 750px; margin: 0 auto;
     }
     .chat-header {
-      font-weight: 600;
-      font-size: 1.05em;
-      margin-bottom: 0.75em;
-      color: #202122;
-      padding-bottom: 0.75em;
-      border-bottom: 1px solid #e8e8e8;
+      font-family: var(--font-pixel);
+      font-size: 0.88em; font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 12px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--color-border-light);
     }
     .chat-messages {
-      height: 250px;
-      overflow-y: auto;
-      padding: 0.75em;
-      margin-bottom: 0.75em;
-      background: #fafafa;
-      border: 1px solid #e8e8e8;
-      border-radius: 6px;
+      height: 250px; overflow-y: auto;
+      padding: 10px; margin-bottom: 10px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border-light);
     }
-    .chat-messages::-webkit-scrollbar {
-      width: 6px;
-    }
-    .chat-messages::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 3px;
-    }
-    .chat-messages::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 3px;
-    }
-    .chat-messages::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
-    }
-    /* Fullscreen chat mode */
+    .chat-messages::-webkit-scrollbar { width: 6px; }
+    .chat-messages::-webkit-scrollbar-track { background: #f1f1f1; }
+    .chat-messages::-webkit-scrollbar-thumb { background: #c1c1c1; }
+    .chat-messages::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
     .chat-fullscreen-toggle {
-      float: right;
-      background: none;
-      border: 1px solid #d0d0d0;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1em;
-      padding: 0.15em 0.5em;
-      color: #54595d;
-      transition: all 0.2s ease;
+      float: right; background: none;
+      border: 1px solid var(--color-border-soft);
+      border-radius: 3px; cursor: pointer;
+      font-size: 1em; padding: 2px 7px;
+      color: var(--color-muted); transition: background 0.1s;
     }
-    .chat-fullscreen-toggle:hover {
-      background: #f0f0f0;
-      color: #202122;
-    }
+    .chat-fullscreen-toggle:hover { background: var(--color-bg); }
     .chat-container.fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      max-width: none;
-      border-radius: 0;
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      padding: 1em 1.5em;
-      box-sizing: border-box;
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%; max-width: none;
+      z-index: 10000; display: flex; flex-direction: column;
+      padding: 16px 20px; box-sizing: border-box;
     }
-    .chat-container.fullscreen .chat-messages {
-      flex: 1;
-      height: auto;
-    }
-    .chat-container.fullscreen .chat-input-container {
-      flex-shrink: 0;
-    }
+    .chat-container.fullscreen .chat-messages { flex: 1; height: auto; }
+    .chat-container.fullscreen .chat-input-container { flex-shrink: 0; }
     .chat-message {
-      margin: 0.6em 0;
-      padding: 0.6em 0.9em;
-      border-radius: 6px;
-      line-height: 1.5;
-      animation: fadeIn 0.25s ease-out;
+      margin: 8px 0; padding: 8px 12px;
+      line-height: 1.55;
+      animation: fadeIn 0.18s ease-out;
       max-width: 85%;
+      border: 1px solid;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     .chat-message.user {
-      background: #e3f2fd;
-      border-left: 3px solid #2196f3;
-      margin-left: auto;
-      margin-right: 0;
+      background: #e8f0fe; border-color: #b3c8f5;
+      margin-left: auto; margin-right: 0;
     }
     .chat-message.assistant {
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-left: 3px solid #4caf50;
-      margin-left: 0;
-      margin-right: auto;
+      background: var(--color-surface); border-color: var(--color-border-soft);
+      border-left: 3px solid var(--color-accent);
+      margin-left: 0; margin-right: auto;
     }
     .chat-message-label {
-      font-weight: 600;
-      font-size: 0.8em;
-      color: #666;
-      margin-bottom: 0.25em;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+      font-family: var(--font-pixel);
+      font-size: 0.6em; color: var(--color-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase; letter-spacing: 0.4px;
     }
-    .chat-input-container {
-      display: flex;
-      gap: 0.5em;
-      align-items: stretch;
-    }
+    .chat-input-container { display: flex; gap: 8px; align-items: stretch; }
     .chat-input {
-      flex: 1;
-      padding: 0.7em 0.9em;
-      border: 1px solid #d0d0d0;
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 0.95em;
-      transition: all 0.2s ease;
+      flex: 1; padding: 8px 12px;
+      border: 1px solid var(--color-border-soft);
+      font-family: var(--font-body); font-size: 0.95em;
+      outline: none; transition: border-color 0.12s;
     }
     .chat-input:focus {
-      outline: none;
-      border-color: #2196f3;
-      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px rgba(51,102,204,0.12);
     }
     .chat-send-btn {
-      padding: 0.7em 1.8em;
-      background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-      color: #fff;
+      padding: 8px 20px;
+      background: var(--color-accent); color: #fff;
       border: none;
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 0.95em;
+      font-family: var(--font-pixel);
+      font-size: 0.7em; font-weight: 700;
       cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+      transition: background 0.1s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
-    .chat-send-btn:hover {
-      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-      box-shadow: 0 3px 6px rgba(33, 150, 243, 0.3);
-      transform: translateY(-1px);
-    }
-    .chat-send-btn:active {
-      transform: translateY(0);
-      box-shadow: 0 1px 2px rgba(33, 150, 243, 0.2);
-    }
-    .chat-send-btn:disabled {
-      background: #bdbdbd;
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
-    }
+    .chat-send-btn:hover { background: #254ca3; }
+    .chat-send-btn:active { background: #1a3a80; }
+    .chat-send-btn:disabled { background: #bdbdbd; cursor: not-allowed; box-shadow: none; }
     .chat-markdown { line-height: 1.6; }
-    .chat-markdown p { margin: 0.4em 0; }
+    .chat-markdown p { margin: 5px 0; }
     .chat-markdown p:first-child { margin-top: 0; }
     .chat-markdown p:last-child { margin-bottom: 0; }
-    .chat-markdown ul, .chat-markdown ol { margin: 0.4em 0; padding-left: 1.5em; }
-    .chat-markdown code {
-      background: #f0f0f0; padding: 0.15em 0.35em; border-radius: 3px;
-      font-size: 0.9em; font-family: 'SFMono-Regular', Consolas, monospace;
-    }
-    .chat-markdown pre {
-      background: #282c34; color: #abb2bf; padding: 0.75em 1em;
-      border-radius: 5px; overflow-x: auto; margin: 0.5em 0;
-    }
-    .chat-markdown pre code {
-      background: none; padding: 0; color: inherit; font-size: 0.85em;
-    }
-    .chat-markdown blockquote {
-      border-left: 3px solid #ddd; margin: 0.4em 0; padding: 0.2em 0.8em; color: #666;
-    }
-    .chat-markdown h1, .chat-markdown h2, .chat-markdown h3 {
-      margin: 0.5em 0 0.3em; line-height: 1.3;
-    }
-    .chat-markdown h1 { font-size: 1.2em; }
-    .chat-markdown h2 { font-size: 1.1em; }
-    .chat-markdown h3 { font-size: 1.05em; }
-    .chat-markdown table {
-      border-collapse: collapse; margin: 0.5em 0; width: 100%;
-    }
-    .chat-markdown th, .chat-markdown td {
-      border: 1px solid #ddd; padding: 0.35em 0.6em; text-align: left;
-    }
+    .chat-markdown ul, .chat-markdown ol { margin: 4px 0; padding-left: 20px; }
+    .chat-markdown code { background: #f0f0f0; padding: 1px 4px; font-family: var(--font-mono); font-size: 0.85em; }
+    .chat-markdown pre { background: #282c34; color: #abb2bf; padding: 10px 14px; overflow-x: auto; margin: 6px 0; }
+    .chat-markdown pre code { background: none; padding: 0; color: inherit; font-size: 0.85em; }
+    .chat-markdown blockquote { border-left: 3px solid #ddd; margin: 4px 0; padding: 2px 10px; color: #666; }
+    .chat-markdown h1 { font-size: 1.15em; margin: 6px 0 3px; }
+    .chat-markdown h2 { font-size: 1.05em; margin: 6px 0 3px; border: none; padding: 0; }
+    .chat-markdown h3 { font-size: 1em; margin: 6px 0 3px; }
+    .chat-markdown table { border-collapse: collapse; margin: 6px 0; width: 100%; }
+    .chat-markdown th, .chat-markdown td { border: 1px solid #ddd; padding: 4px 8px; }
     .chat-markdown th { background: #f5f5f5; font-weight: 600; }
-    .chat-markdown a { color: #2196f3; text-decoration: none; }
+    .chat-markdown a { color: var(--color-link); }
     .chat-markdown a:hover { text-decoration: underline; }
-    .chat-markdown hr { border: none; border-top: 1px solid #e0e0e0; margin: 0.5em 0; }
+    .chat-markdown hr { border: none; border-top: 1px solid #e0e0e0; margin: 6px 0; }
 
-    /* Footer */
+    /* === FOOTER === */
     .wiki-footer {
-      text-align: center;
-      padding: 1em;
-      font-size: 0.85em;
-      color: #54595d;
-      border-top: 1px solid #a2a9b1;
-      background: #f8f9fa;
+      text-align: center; padding: 14px;
+      font-size: 0.85em; color: var(--color-muted);
+      max-width: 1440px; margin: 0 auto;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border); border-top: none;
     }
 
-    /* Hide TOC in content when sidebar exists */
+    /* === MISC === */
     .toc { display: none; }
 
-    /* Responsive */
+    /* === RESPONSIVE === */
     @media (max-width: 900px) {
-      .wiki-wrapper {
-        flex-direction: column;
-      }
-      .wiki-sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #a2a9b1;
-      }
-      .wiki-infobox-container {
-        width: 100%;
-        order: 999;
-      }
-      .infobox {
-        max-width: 400px;
-        margin: 0 auto;
-      }
-      .infobox img {
-        width: 100%;
-        margin: 0 auto;
-        display: block;
-      }
-      .wiki-content {
-        border-left: none;
-        border-right: none;
-        padding: 1em;
-      }
-      
-      /* Mobile chat optimizations */
-      .chat-container {
-        padding: 1em;
-        border-radius: 6px;
-      }
-      .chat-header {
-        font-size: 1em;
-        padding-bottom: 0.6em;
-        margin-bottom: 0.6em;
-      }
-      .chat-messages {
-        height: 200px;
-        padding: 0.6em;
-        margin-bottom: 0.6em;
-      }
-      .chat-message {
-        margin: 0.5em 0;
-        padding: 0.5em 0.7em;
-        font-size: 0.95em;
-        max-width: 90%;
-      }
-      .chat-message-label {
-        font-size: 0.75em;
-      }
-      .chat-input-container {
-        flex-direction: row;
-        gap: 0.4em;
-      }
-      .chat-input {
-        padding: 0.65em 0.75em;
-        font-size: 0.9em;
-        min-width: 0;
-      }
-      .chat-send-btn {
-        padding: 0.65em 1.2em;
-        font-size: 0.9em;
-        white-space: nowrap;
-      }
+      body { padding: 0; }
+      .wiki-wrapper { grid-template-columns: 1fr; border: none; box-shadow: none; }
+      .wiki-wrapper::after { display: none; }
+      .wiki-sidebar { position: static; border-bottom: 1px solid var(--color-border); padding: 16px; max-height: none; }
+      .wiki-sidebar-title, .wiki-title, .infobox-title { min-height: auto; }
+      .wiki-infobox-container { order: 2; padding: 16px; }
+      .wiki-content { padding: 18px 16px; }
+      .wiki-footer { max-width: none; border: none; background: var(--color-bg); }
     }
-    
     @media (max-width: 600px) {
-      .chat-messages {
-        height: 180px;
-      }
-      .chat-message {
-        max-width: 95%;
-      }
-      .chat-input {
-        font-size: 16px; /* Prevent zoom on iOS */
-      }
-      .chat-send-btn {
-        padding: 0.65em 1em;
-      }
+      .chat-messages { height: 180px; }
+      .chat-message { max-width: 95%; }
+      .chat-input { font-size: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
@@ -615,18 +586,25 @@
       </nav>
     </div>
   </header>
+  </header>
 
   <div class="wiki-wrapper">
     <aside class="wiki-sidebar">
       <div class="wiki-sidebar-title">Contents</div>
-      <ul>
+      <ol class="toc-list">
         <li><a href="#">(Top)</a></li>
         <li><a href="#chat">Ask Xiang An anything</a></li>
         <li><a href="#publications">Publications</a></li>
-        <li><a href="#awards">Awards</a></li>
-        <li><a href="#open-source">Open Source</a></li>
+        <li><a href="#awards">Awards &amp; Competitions</a></li>
+        <li><a href="#open-source">Open Source</a>
+          <ol class="toc-sub">
+            <li><a href="#open-source">InsightFace</a></li>
+            <li><a href="#open-source">LLaVA-OneVision</a></li>
+            <li><a href="#open-source">UNICOM</a></li>
+          </ol>
+        </li>
         <li><a href="#external-links">External Links</a></li>
-      </ul>
+      </ol>
     </aside>
 
     <main class="wiki-content">
@@ -634,7 +612,9 @@
 
 <p><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, specializing in computer vision and multimodal large models. You can find his research on <a href="https://scholar.google.com.hk/citations?hl=en&user=1ckaPgwAAAAJ&view_op=list_works&sortby=pubdate" target="_blank">Google Scholar</a><span id="scholar-citations-bio-wrapper" style="display:none"> (with <b><span id="scholar-citations-bio"></span> citations</b>)</span> and his open-source projects on <a href="https://github.com/anxiangsir" target="_blank">GitHub</a> (with a total of <b>34,177+ stars</b>). His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐).</p>
 
-<h2 id="chat">Ask Xiang An anything</h2>
+<p class="hatnote">For a complete list of publications, see <a href="publications.html">All Publications</a>.</p>
+
+<h2 id="chat">Ask Xiang An anything <a class="section-anchor" href="#chat">§</a></h2>
 
 <div class="chat-section">
   <div class="chat-container">
@@ -652,7 +632,7 @@
   </div>
 </div>
 
-<h2 id="publications">Publications</h2>
+<h2 id="publications">Publications <a class="section-anchor" href="#publications">§</a></h2>
 
 <p>The following is a selection of notable publications. For a complete list, see <a href="publications.html">All Publications</a>.</p>
 
@@ -752,7 +732,7 @@
 </ol>
 </div>
 
-<h2 id="awards">Awards & Competitions</h2>
+<h2 id="awards">Awards &amp; Competitions <a class="section-anchor" href="#awards">§</a></h2>
 
 <ul>
   <li><b>ICCV 2025 Outstanding Reviewer</b></li>
@@ -763,7 +743,7 @@
   <li><b>First Place in Vehicle Re-Identification, PRCV 2019</b></li>
 </ul>
 
-<h2 id="open-source">Open Source</h2>
+<h2 id="open-source">Open Source <a class="section-anchor" href="#open-source">§</a></h2>
 
 <div class="publications">
 <ol class="bibliography">
@@ -811,7 +791,7 @@
 </ol>
 </div>
 
-<h2 id="external-links">External Links</h2>
+<h2 id="external-links">External Links <a class="section-anchor" href="#external-links">§</a></h2>
 
 <ul>
   <li><a href="mailto:anxiangsir@outlook.com"><i class="fas fa-envelope"></i> Email: anxiangsir@outlook.com</a></li>
@@ -829,51 +809,725 @@
     <aside class="wiki-infobox-container">
       <div class="infobox">
         <div class="infobox-title">Xiang An</div>
-
         <img src="assets/img/profile_pic.jpg" alt="Xiang An">
+        <div class="infobox-caption">Research Scientist &amp; Team Lead</div>
         <div class="infobox-row">
-          <span class="infobox-label">Position</span><br>
-          Research Scientist, Team Lead
+          <span class="infobox-label">Position</span>
+          <span class="infobox-value">Research Scientist, Team Lead</span>
         </div>
         <div class="infobox-row">
-          <span class="infobox-label">Field</span><br>
-          Computer Vision, Multimodal AI
+          <span class="infobox-label">Field</span>
+          <span class="infobox-value">Computer Vision, Multimodal AI</span>
         </div>
         <div class="infobox-row">
-          <span class="infobox-label">Notable Work</span><br>
-          InsightFace, UNICOM/MLCD, LLaVA-OneVision-1.5, OneVision-Encoder
+          <span class="infobox-label">Notable&nbsp;work</span>
+          <span class="infobox-value">InsightFace, UNICOM/MLCD, LLaVA-OneVision-1.5, OneVision-Encoder</span>
         </div>
-
         <div class="infobox-row">
-          <span class="infobox-label">GitHub</span><br>
-          <a href="https://github.com/anxiangsir"><i class="fab fa-github"></i> anxiangsir</a>
+          <span class="infobox-label">GitHub</span>
+          <span class="infobox-value"><a href="https://github.com/anxiangsir"><i class="fab fa-github"></i> anxiangsir</a></span>
         </div>
-
         <div class="infobox-row">
-          <span class="infobox-label">Google Scholar</span><br>
-          <a href="https://scholar.google.com.hk/citations?hl=en&user=1ckaPgwAAAAJ&view_op=list_works&sortby=pubdate"><i class="ai ai-google-scholar"></i> Profile</a>
+          <span class="infobox-label">Scholar</span>
+          <span class="infobox-value"><a href="https://scholar.google.com.hk/citations?hl=en&amp;user=1ckaPgwAAAAJ&amp;view_op=list_works&amp;sortby=pubdate"><i class="ai ai-google-scholar"></i> Profile</a></span>
         </div>
-
         <div class="infobox-row">
-          <span class="infobox-label">Citations</span><br>
-          <span id="scholar-citations"></span><span id="scholar-citations-suffix" style="display:none"> (Google Scholar)</span>
+          <span class="infobox-label">Citations</span>
+          <span class="infobox-value"><span id="scholar-citations"></span><span id="scholar-citations-suffix" style="display:none"> (Google Scholar)</span></span>
         </div>
-
         <div class="infobox-row">
-          <span class="infobox-label">GitHub Stars</span><br>
-          34,177+ total
+          <span class="infobox-label">GH Stars</span>
+          <span class="infobox-value">34,177+ total</span>
         </div>
-
         <div class="infobox-row">
-          <span class="infobox-label">Email</span><br>
-          <a href="mailto:anxiangsir@outlook.com"><i class="fas fa-envelope"></i> Contact</a>
+          <span class="infobox-label">Email</span>
+          <span class="infobox-value"><a href="mailto:anxiangsir@outlook.com"><i class="fas fa-envelope"></i> Contact</a></span>
         </div>
       </div>
     </aside>
   </div>
 
+  <!-- === SUPER MARIO GAME === -->
+  <div class="mario-game-container">
+    <div class="mario-game-header">
+      <span>🍄 Super Mario Bros 1-1</span>
+      <div style="display:flex;gap:8px">
+        <button id="marioStartBtn" class="mario-btn">▶ START</button>
+      </div>
+    </div>
+    <canvas id="marioCanvas" width="800" height="480"></canvas>
+    <div class="mario-controls">
+      <span>← → Move</span>
+      <span>SPACE Jump</span>
+      <span>SHIFT Run</span>
+    </div>
+  </div>
+  <style>
+    .mario-game-container {
+      display: none;
+      max-width: 800px;
+      margin: 24px auto 0;
+      background: #000;
+      border: 4px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .mario-game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #000;
+      color: #fff;
+      font-family: 'Press Start 2P', 'Courier New', monospace;
+      font-weight: bold;
+      font-size: 16px;
+      border-bottom: 2px solid #333;
+    }
+    .mario-btn {
+      background: #E8A000;
+      border: 2px solid #fff;
+      color: #000;
+      padding: 6px 16px;
+      font-family: inherit;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .mario-btn:hover { background: #ffd700; }
+    #marioCanvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #5C94FC;
+      image-rendering: pixelated;
+    }
+    .mario-controls {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      padding: 12px;
+      background: #000;
+      border-top: 2px solid #333;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #aaa;
+    }
+    @media (min-width: 901px) {
+      .mario-game-container { display: block; }
+    }
+  </style>
+  <script>
+    (function() {
+      const canvas = document.getElementById('marioCanvas');
+      const ctx = canvas.getContext('2d');
+      const startBtn = document.getElementById('marioStartBtn');
+      
+      const sprMario = new Image(); sprMario.src = 'assets/img/mario_bros.png';
+      const sprEnemies = new Image(); sprEnemies.src = 'assets/img/smb_enemies_sheet.png';
+      const sprItems = new Image(); sprItems.src = 'assets/img/item_objects.png';
+      const sprTiles = new Image(); sprTiles.src = 'assets/img/tile_set.png';
+
+      function drawSprite(img, sx, sy, sw, sh, dx, dy, dw, dh) {
+        ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+      }
+
+      // ── Audio ──────────────────────────────────────────────
+      let audioCtx = null;
+      const soundBuffers = {};
+      const SOUNDS = {
+        jump:       'https://archive.org/download/mario_nes_snes_sounds/Mario%201%20-%20Jump.ogg',
+        coin:       'https://archive.org/download/mario_nes_snes_sounds/coin%20%28nes%29.ogg',
+        stomp:      'https://archive.org/download/mario_nes_snes_sounds/stomp.ogg',
+        mushroom:   'https://archive.org/download/mario_nes_snes_sounds/Power%20Up%20%28nes%29.ogg',
+        death:      'https://archive.org/download/mario_nes_snes_sounds/Mario%201%20-%20Die.ogg',
+        levelclear: 'https://archive.org/download/mario_nes_snes_sounds/Mario%201%20-%20Win%20Stage.ogg'
+      };
+
+      function initAudio() {
+        if(audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        Object.entries(SOUNDS).forEach(([name, url]) => {
+          fetch(url)
+            .then(r => r.arrayBuffer())
+            .then(buf => audioCtx.decodeAudioData(buf))
+            .then(decoded => { soundBuffers[name] = decoded; })
+            .catch(() => {});
+        });
+      }
+
+      function playSound(name) {
+        if(!audioCtx || !soundBuffers[name]) return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const src = audioCtx.createBufferSource();
+        src.buffer = soundBuffers[name];
+        src.connect(audioCtx.destination);
+        src.start(0);
+      }
+
+      // ── BGM (Web Audio synthesis — SMB overworld theme) ───
+      let bgmPlaying = false;
+      let bgmTimeout = null;
+
+      function stopBGM() {
+        bgmPlaying = false;
+        if(bgmTimeout) { clearTimeout(bgmTimeout); bgmTimeout = null; }
+      }
+
+      function startBGM() {
+        if(!audioCtx) return;
+        stopBGM();
+        bgmPlaying = true;
+        const BPM = 200, B = 60 / BPM, S = B / 2;
+        // SMB overworld theme — [frequency_hz, duration_sec]
+        const notes = [
+          [329.63,S],[329.63,S],[0,S],[329.63,S],[0,S],[261.63,S],[329.63,B],[392,B],[0,B],[196,B],
+          [261.63,B+S],[196,B+S],[0,S],[164.81,B+S],[220,B],[246.94,B],[233.08,S],[220,B],
+          [196,B*2/3],[329.63,B*2/3],[392,B*2/3],[440,B],[349.23,B],[392,B],
+          [0,S],[329.63,B],[261.63,B],[220,B],[196,B],
+          [261.63,B+S],[196,B+S],[0,S],[164.81,B+S],[220,B],[246.94,B],[233.08,S],[220,B],
+          [196,B*2/3],[329.63,B*2/3],[392,B*2/3],[440,B],[349.23,B],[392,B],
+          [0,S],[329.63,B],[261.63,B],[220,B],[196,B]
+        ];
+        function playNote(freq, dur, t) {
+          if(!freq || !audioCtx) return;
+          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+          o.connect(g); g.connect(audioCtx.destination);
+          o.type = 'square';
+          o.frequency.setValueAtTime(freq, t);
+          g.gain.setValueAtTime(0.07, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.9);
+          o.start(t); o.stop(t + dur);
+        }
+        function schedule() {
+          if(!bgmPlaying || !audioCtx) return;
+          let t = audioCtx.currentTime + 0.05, tot = 0;
+          notes.forEach(([f, d]) => { playNote(f, d, t + tot); tot += d; });
+          bgmTimeout = setTimeout(schedule, (tot - 0.1) * 1000);
+        }
+        schedule();
+      }
+
+      function playFireball() {
+        if(!audioCtx) return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(880, audioCtx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.15);
+        g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        o.start(); o.stop(audioCtx.currentTime + 0.15);
+      }
+
+      // ── Constants ─────────────────────────────────────────
+      const GRAVITY = 0.4;
+      const JUMP_GRAVITY = 0.2;
+      const JUMP_VEL = -10;
+      const FAST_JUMP_VEL = -12.5;
+      const MAX_Y_VEL = 11;
+      const WALK_SPEED = 3;
+      const RUN_SPEED = 5;
+      const WALK_ACCEL = 0.15;
+      const GROUND_HEIGHT = 418;
+      
+      let state = 'TITLE'; 
+      let frameId = null;
+      let score = 0, coins = 0, time = 300, lives = 3;
+      let cameraX = 0;
+      let timeTimer = 0, deadTimer = 0, completeTimer = 0;
+      
+      const keys = { left: false, right: false, jump: false, run: false, shoot: false };
+      let jumpHeld = false;
+      
+      let grounds = [], pipes = [], blocks = [], enemies = [], particles = [], flagpole = null;
+      
+      const player = {
+        x: 50, y: 100, width: 24, height: 32, vx: 0, vy: 0,
+        facing: 1, onGround: false, isBig: false, isFire: false, dead: false,
+        animFrame: 0, invulnTimer: 0, shootCooldown: 0
+      };
+
+      const C = {
+        SKY: '#5C94FC', DIRT: '#E69C24', BRICK: '#C84B00', QBOX: '#E8A000',
+        QBOX_HIT: '#C84B00', PIPE: '#008000', PIPE_OUTLINE: '#00A800',
+        RED: '#CC0000', SKIN: '#FCA044', BLUE: '#0000CC', SHOE: '#6B3300'
+      };
+
+      // ── Input ─────────────────────────────────────────────
+      document.addEventListener('keydown', e => {
+        initAudio();
+        if(e.code === 'ArrowLeft'  || e.code === 'KeyA') keys.left  = true;
+        if(e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+        if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+          if(!keys.jump) jumpHeld = true;
+          keys.jump = true;
+          if(state === 'TITLE' || state === 'COMPLETE') startGame();
+          if(state === 'PLAYING') e.preventDefault();
+        }
+        if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.run = true;
+        if(e.code === 'KeyZ' || e.code === 'KeyX') keys.shoot = true;
+      });
+
+      document.addEventListener('keyup', e => {
+        if(e.code === 'ArrowLeft'  || e.code === 'KeyA') keys.left  = false;
+        if(e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+        if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') keys.jump = false;
+        if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.run = false;
+        if(e.code === 'KeyZ' || e.code === 'KeyX') keys.shoot = false;
+      });
+
+      // ── Level ─────────────────────────────────────────────
+      function initLevel() {
+        grounds = [{x: 0, w: 2953}, {x: 3048, w: 635}, {x: 3819, w: 2735}, {x: 6647, w: 2300}];
+        pipes = [
+          {x: 1202, y: 362, w: 83, h: 66}, {x: 1631, y: 327, w: 83, h: 112},
+          {x: 1973, y: 293, w: 83, h: 136}, {x: 2445, y: 293, w: 83, h: 136},
+          {x: 6989, y: 362, w: 83, h: 66}, {x: 7675, y: 362, w: 83, h: 66}
+        ];
+        
+        blocks = [];
+        const brickCoords = [[858,292], [944,292], [1030,292], [3299,292], [3385,292], 
+          [3430,154], [3473,154], [3516,154], [3559,154], [3602,154], [3645,154], 
+          [3688,154], [3731,154], [3901,154], [3944,154], [3987,154], [4030,292, 'coins', 6], 
+          [4287,292], [4330,292, 'star', 1], [5058,292], [5187,154], [5230,154], 
+          [5273,154], [5488,154], [5574,154], [5617,154], [5531,292], [5574,292], 
+          [7202,292], [7245,292], [7331,292]];
+        brickCoords.forEach(c => blocks.push({x: c[0], y: c[1]*0.8, w: 34, h: 34, type: 'brick', hit: false, content: c[2], count: c[3]||0, oy:0}));
+
+        const qCoords = [[685,292,'coin'], [901,292,'mushroom'], [987,292,'coin'], 
+          [943,154,'coin'], [3342,292,'flower'], [4030,154,'coin'], [4544,292,'coin'], 
+          [4672,292,'coin'], [4672,154,'mushroom'], [4800,292,'coin'], [5531,154,'coin'], 
+          [7288,292,'coin']];
+        qCoords.forEach(c => blocks.push({x: c[0], y: c[1]*0.8, w: 34, h: 34, type: 'qbox', hit: false, content: c[2], oy:0, timer:Math.random()*100}));
+
+        const stairW = 34, stairH = 34;
+        let sx = 5745;
+        for(let i=0; i<4; i++) for(let j=0; j<=i; j++) blocks.push({x: sx+i*stairW, y: GROUND_HEIGHT-(j+1)*stairH, w: stairW, h: stairH, type: 'solid'});
+        sx = 6001;
+        for(let i=0; i<4; i++) for(let j=0; j<(4-i); j++) blocks.push({x: sx+i*stairW, y: GROUND_HEIGHT-(j+1)*stairH, w: stairW, h: stairH, type: 'solid'});
+
+        flagpole = { x: 8505, y: 80, w: 4, h: GROUND_HEIGHT - 80, flagY: 80 };
+
+        enemies = [680, 1380, 1720, 2870, 3680, 4450, 4930, 5080, 6780].map(ex => ({
+          x: ex, y: GROUND_HEIGHT - 32, w: 32, h: 32, type: 'goomba', vx: -1, vy: 0, dead: 0, frame: 0
+        }));
+
+        particles = [];
+      }
+
+      function startGame() {
+        if(state === 'PLAYING') return;
+        state = 'PLAYING';
+        if(lives <= 0) { lives = 3; score = 0; coins = 0; }
+        time = 300; timeTimer = Date.now(); cameraX = 0;
+        player.x = 50; player.y = 100; player.vx = 0; player.vy = 0; player.dead = false;
+        player.isBig = false; player.isFire = false; player.height = 32;
+        initLevel();
+        startBGM();
+        if(!frameId) gameLoop();
+      }
+
+      function killPlayer() {
+        if(player.dead) return;
+        stopBGM();
+        playSound('death');
+        player.dead = true; player.vy = -10; player.vx = 0;
+        state = 'DEAD'; deadTimer = 180; lives--;
+      }
+
+      function rectIntersect(r1, r2) {
+        return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);
+      }
+
+      // ── Update ────────────────────────────────────────────
+      function update() {
+        if(state === 'TITLE') return;
+        
+        if(state === 'COMPLETE') {
+          player.vx = 0;
+          if(player.y < GROUND_HEIGHT - player.height) player.vy += GRAVITY;
+          else { player.vy = 0; player.y = GROUND_HEIGHT - player.height; }
+          player.y += player.vy;
+          if(flagpole.flagY < GROUND_HEIGHT - 32) flagpole.flagY += 3;
+          completeTimer--;
+          if(completeTimer <= 0) state = 'TITLE';
+          return;
+        }
+
+        if(state === 'DEAD') {
+          player.y += player.vy; player.vy += GRAVITY; deadTimer--;
+          if(deadTimer <= 0) { if(lives > 0) startGame(); else state = 'TITLE'; }
+          return;
+        }
+
+        // Time
+        if(Date.now() - timeTimer > 1000) { time = Math.max(0, time - 1); timeTimer = Date.now(); if(time <= 0) killPlayer(); }
+
+        // Player horizontal
+        const speed = keys.run ? RUN_SPEED : WALK_SPEED;
+        const accel = WALK_ACCEL;
+        if(keys.left)  { player.vx = Math.max(player.vx - accel, -speed); player.facing = -1; }
+        else if(keys.right) { player.vx = Math.min(player.vx + accel,  speed); player.facing =  1; }
+        else { player.vx *= 0.85; if(Math.abs(player.vx) < 0.1) player.vx = 0; }
+        player.x += player.vx;
+        player.x = Math.max(0, player.x);
+
+        // Player jump
+        if(keys.jump && jumpHeld && player.onGround) {
+          player.vy = speed >= RUN_SPEED ? FAST_JUMP_VEL : JUMP_VEL;
+          player.onGround = false;
+          playSound('jump');
+        }
+        jumpHeld = false;
+
+        // Gravity
+        if(!player.onGround) {
+          player.vy += (player.vy < 0 && keys.jump) ? JUMP_GRAVITY : GRAVITY;
+          if(player.vy > MAX_Y_VEL) player.vy = MAX_Y_VEL;
+        }
+        player.y += player.vy;
+        player.onGround = false;
+
+        // Collision helpers
+        function checkCols(rect) {
+          const hits = [];
+          grounds.forEach(g => {
+            const gr = {x: g.x, y: GROUND_HEIGHT, w: g.w, h: 100};
+            if(rectIntersect(rect, gr)) hits.push(gr);
+          });
+          pipes.forEach(p => { if(rectIntersect(rect, p)) hits.push(p); });
+          blocks.forEach(b => { if(!b.hit || b.type === 'solid' || b.oy !== 0) {} else {} if(rectIntersect(rect, {x:b.x,y:b.y+b.oy,w:b.w,h:b.h})) hits.push({x:b.x,y:b.y+b.oy,w:b.w,h:b.h}); });
+          return hits;
+        }
+        function checkColsX(rect) {
+          const hits = [];
+          grounds.forEach(g => {
+            const gr = {x: g.x, y: GROUND_HEIGHT, w: g.w, h: 100};
+            if(rectIntersect(rect, gr)) hits.push(gr);
+          });
+          pipes.forEach(p => { if(rectIntersect(rect, p)) hits.push(p); });
+          blocks.forEach(b => { if(rectIntersect(rect, {x:b.x,y:b.y+b.oy,w:b.w,h:b.h})) hits.push({x:b.x,y:b.y+b.oy,w:b.w,h:b.h}); });
+          return hits;
+        }
+
+        // X collision
+        const pRectX = {x: player.x, y: player.y + 4, w: player.width, h: player.height - 8};
+        const xHits = checkColsX(pRectX);
+        if(xHits.length > 0) {
+          const h = xHits[0];
+          if(player.x + player.width/2 < h.x + h.w/2) { player.x = h.x - player.width; player.vx = 0; }
+          else { player.x = h.x + h.w; player.vx = 0; }
+        }
+
+        // Y collision
+        const pRect = {x: player.x, y: player.y, w: player.width, h: player.height};
+        const yHits = checkCols(pRect);
+        yHits.forEach(h => {
+          if(player.vy >= 0 && player.y + player.height > h.y && player.y < h.y) {
+            player.y = h.y - player.height; player.vy = 0; player.onGround = true;
+          } else if(player.vy < 0) {
+            player.y = h.y + h.h; player.vy = 0;
+            let hitBlock = blocks.find(b => b.x === h.x && b.y + b.oy === h.y);
+            if(hitBlock && !hitBlock.hit) {
+              hitBlock.oy = -10;
+              if(hitBlock.type === 'qbox' || (hitBlock.type === 'brick' && hitBlock.content)) {
+                hitBlock.hit = true;
+                if(hitBlock.content === 'coin' || hitBlock.type === 'brick') {
+                  score += 100; if(hitBlock.content === 'coin') { coins++; playSound('coin'); } particles.push({x: hitBlock.x+10, y: hitBlock.y, vy: -5, type: 'coin', life: 20});
+                } else if(hitBlock.content === 'mushroom') {
+                  if(player.isBig) {
+                    // big/fire mario hits mushroom box → spawn flower
+                    particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 0, vy: 0, type: 'flower', onGround: false, life: undefined});
+                  } else {
+                    particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 2, vy: 0, type: 'mushroom', onGround: false});
+                  }
+                } else if(hitBlock.content === 'flower') {
+                  particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 0, vy: 0, type: 'flower', onGround: false, life: undefined});
+                }
+              } else if(hitBlock.type === 'brick' && player.isBig) {
+                hitBlock.hit = true; 
+                particles.push({x: hitBlock.x, y: hitBlock.y, vx: -2, vy: -5, type: 'debris', life: 40});
+              }
+            }
+          }
+        });
+
+        if(player.y > 600) killPlayer();
+
+        // Enemies
+        enemies.forEach(e => {
+          if(e.x < cameraX - 100 || e.x > cameraX + 900) return;
+          if(e.dead) { e.dead++; return; }
+          e.vy += GRAVITY; e.x += e.vx; e.y += e.vy;
+          let eHit = checkCols(e);
+          if(eHit.length > 0) {
+            let h = eHit[0];
+            if(e.vy > 0 && e.y + e.h >= h.y && e.y < h.y) { e.y = h.y - e.h; e.vy = 0; }
+            else if(e.vx !== 0) { e.vx *= -1; e.x += e.vx * 2; }
+          }
+          e.frame += 0.1;
+          
+          if(rectIntersect(pRect, e)) {
+            if(player.vy > 0 && player.y + player.height < e.y + 20) {
+              playSound('stomp');
+              e.dead = 1; player.vy = JUMP_VEL/1.5; score += 100;
+              particles.push({x: e.x, y: e.y, text: '100', life: 30, type: 'text'});
+            } else if(!player.invulnTimer) {
+              if(player.isBig) { player.isBig = false; player.isFire = false; player.height = 32; player.invulnTimer = 60; } 
+              else killPlayer();
+            }
+          }
+        });
+        if(player.invulnTimer > 0) player.invulnTimer--;
+
+        // Shooting
+        if(player.shootCooldown > 0) player.shootCooldown--;
+        if(keys.shoot && player.isFire && player.shootCooldown === 0) {
+          player.shootCooldown = 22;
+          playFireball();
+          particles.push({
+            type: 'fireball', life: undefined,
+            x: player.x + (player.facing > 0 ? player.width : 0),
+            y: player.y + player.height/2 - 8,
+            vx: player.facing * 7, vy: -2,
+            frame: 0, bounces: 0
+          });
+        }
+
+        // Particles
+        particles.forEach(p => {
+          if(p.type === 'coin') { p.vy += GRAVITY; p.y += p.vy; p.life--; }
+          else if(p.type === 'text') { p.y -= 1; p.life--; }
+          else if(p.type === 'mushroom') {
+            p.x += p.vx;
+            let pHitX = checkColsX({x: p.x, y: p.y+2, w: 32, h: 28});
+            if(pHitX.length > 0) { p.vx *= -1; p.x += p.vx * 2; }
+            if(!p.onGround) p.vy += GRAVITY;
+            p.y += p.vy;
+            p.onGround = false;
+            let pHit = checkCols({x: p.x, y: p.y, w: 32, h: 32});
+            if(pHit.length > 0) {
+              if(p.vy >= 0) { p.y = pHit[0].y - 32; p.vy = 0; p.onGround = true; }
+              else { p.vy = 0; p.y = pHit[0].y + pHit[0].h; }
+            }
+            if(rectIntersect(pRect, {x: p.x, y: p.y, w: 32, h: 32})) {
+              p.life = 0; score += 1000; playSound('mushroom');
+              if(!player.isBig) { player.isBig = true; player.height = 64; player.y -= 32; }
+            }
+            if(p.x < cameraX - 200 || p.x > cameraX + 1000 || p.y > 600) p.life = 0;
+          } else if(p.type === 'flower') {
+            // flower stays on top of block; player touch → Fire Mario
+            if(rectIntersect(pRect, {x: p.x, y: p.y, w: 34, h: 34})) {
+              p.life = 0; score += 1000; playSound('mushroom');
+              player.isBig = true; player.height = 64;
+              if(player.y + player.height > GROUND_HEIGHT) player.y = GROUND_HEIGHT - player.height;
+              player.isFire = true;
+            }
+            if(p.x < cameraX - 200 || p.x > cameraX + 1000) p.life = 0;
+          } else if(p.type === 'fireball') {
+            p.frame += 0.2;
+            p.vy += GRAVITY * 0.8;
+            if(p.vy > 8) p.vy = 8;
+            p.x += p.vx; p.y += p.vy;
+            let fbHit = checkCols({x: p.x, y: p.y, w: 16, h: 16});
+            if(fbHit.length > 0) {
+              let fh = fbHit[0];
+              if(p.vy > 0 && p.y + 16 >= fh.y) { p.y = fh.y - 16; p.vy = -5; p.bounces++; }
+              else if(p.vy < 0 && p.y <= fh.y + fh.h) { p.vy = Math.abs(p.vy); }
+              else { p.life = 0; }
+            }
+            if(p.bounces > 4 || p.x < cameraX - 50 || p.x > cameraX + 900 || p.y > 600) p.life = 0;
+            enemies.forEach(e => {
+              if(!e.dead && rectIntersect({x:p.x,y:p.y,w:16,h:16}, e)) {
+                e.dead = 1; p.life = 0; score += 200;
+                particles.push({x:e.x,y:e.y,text:'200',life:30,type:'text'});
+              }
+            });
+          } else if(p.type === 'debris') {
+            p.vy += GRAVITY * 0.5; p.x += p.vx; p.y += p.vy; p.life--;
+          }
+        });
+        particles = particles.filter(p => p.life !== 0 && (p.life === undefined || p.life > 0));
+
+        blocks.forEach(b => { if(b.oy < 0) b.oy += 1; if(b.timer!==undefined) b.timer++; });
+
+        if(player.x > flagpole.x && state === 'PLAYING') {
+          stopBGM();
+          playSound('levelclear');
+          state = 'COMPLETE'; completeTimer = 180; player.x = flagpole.x - 10;
+        }
+
+        if(player.x > cameraX + 400 && state !== 'DEAD') cameraX = player.x - 400;
+        
+        if(player.onGround) player.animFrame += Math.abs(player.vx)*0.1;
+        else player.animFrame = 0;
+      }
+
+      // ── Draw ──────────────────────────────────────────────
+      function draw() {
+        ctx.fillStyle = C.SKY; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.imageSmoothingEnabled = false;
+        
+        ctx.save(); ctx.translate(-Math.floor(cameraX), 0);
+
+        grounds.forEach(g => {
+          ctx.fillStyle = C.DIRT; ctx.fillRect(g.x, GROUND_HEIGHT + 34, g.w, 480 - GROUND_HEIGHT - 34);
+          for(let dx = g.x; dx < g.x + g.w; dx += 34) {
+            let dw = Math.min(34, g.x + g.w - dx);
+            drawSprite(sprTiles, 0, 16, 16 * (dw/34), 16, dx, GROUND_HEIGHT, dw, 34);
+          }
+        });
+
+        pipes.forEach(p => {
+          ctx.fillStyle = C.PIPE; ctx.fillRect(p.x+2, p.y+16, p.w-4, p.h-16); ctx.fillRect(p.x, p.y, p.w, 16);
+          ctx.strokeStyle = C.PIPE_OUTLINE; ctx.strokeRect(p.x+2, p.y+16, p.w-4, p.h-16); ctx.strokeRect(p.x, p.y, p.w, 16);
+        });
+
+        if(flagpole) {
+          ctx.fillStyle = '#fff'; ctx.fillRect(flagpole.x, flagpole.y, flagpole.w, flagpole.h);
+          ctx.fillStyle = '#0f0'; ctx.fillRect(flagpole.x - 16, flagpole.flagY, 20, 20);
+        }
+
+        blocks.forEach(b => {
+          if(b.type === 'brick' && b.hit && !b.content && b.count === 0 && b.oy === 0) return;
+          ctx.save(); ctx.translate(b.x, b.y + b.oy);
+          if(b.type === 'solid') {
+            drawSprite(sprTiles, 16, 0, 16, 16, 0, 0, b.w, b.h);
+          } else if(b.type === 'brick') {
+            if(b.hit && (b.content || b.count > 0)) { drawSprite(sprTiles, 432, 0, 16, 16, 0, 0, b.w, b.h); }
+            else { drawSprite(sprTiles, 16, 0, 16, 16, 0, 0, b.w, b.h); }
+          } else if(b.type === 'qbox') {
+            if(b.hit) { drawSprite(sprTiles, 432, 0, 16, 16, 0, 0, b.w, b.h); }
+            else {
+              let frame = Math.floor(b.timer/10)%3;
+              drawSprite(sprTiles, 384 + frame*16, 0, 16, 16, 0, 0, b.w, b.h);
+            }
+          }
+          ctx.restore();
+        });
+
+        // Particles draw
+        particles.forEach(p => {
+          if(p.type === 'coin') {
+            let coinFrames = [52, 4, 20, 36];
+            let cIdx = Math.floor(Date.now()/100) % 4;
+            drawSprite(sprItems, coinFrames[cIdx], 113, 8, 14, p.x-4, p.y-7, 16, 14);
+          } else if(p.type === 'text') {
+            ctx.fillStyle = '#fff'; ctx.font = '16px "Courier New"'; ctx.fillText(p.text, p.x, p.y);
+          } else if(p.type === 'mushroom') {
+            drawSprite(sprItems, 0, 0, 16, 16, p.x, p.y, 32, 32);
+          } else if(p.type === 'flower') {
+            let ff = Math.floor(Date.now()/150) % 4;
+            let fx = [0, 16, 32, 48][ff];
+            drawSprite(sprItems, fx, 32, 16, 16, p.x, p.y, 34, 34);
+          } else if(p.type === 'fireball') {
+            let fbX = [96,104,96,104][Math.floor(p.frame)%4];
+            let fbY = [144,144,152,152][Math.floor(p.frame)%4];
+            drawSprite(sprItems, fbX, fbY, 8, 8, p.x, p.y, 16, 16);
+          } else if(p.type === 'debris') {
+            drawSprite(sprTiles, 16, 0, 16, 16, p.x, p.y, 10, 10);
+          }
+        });
+
+        // Enemies draw
+        enemies.forEach(e => {
+          if(e.dead > 20) return;
+          if(e.dead) {
+            drawSprite(sprEnemies, 61, 0, 16, 16, e.x, e.y+16, e.w, 16);
+          } else {
+            let exFrame = Math.floor(e.frame)%2===0 ? 0 : 30;
+            drawSprite(sprEnemies, exFrame, 4, 16, 16, e.x, e.y, e.w, e.h);
+          }
+        });
+
+        // Mario draw
+        if(state !== 'TITLE' && (!player.invulnTimer || player.invulnTimer % 4 < 2)) {
+          ctx.save();
+          ctx.translate(player.x + player.width/2, player.y + player.height/2);
+          ctx.scale(player.facing, 1);
+          ctx.translate(-player.width/2, -player.height/2);
+          
+          if (player.dead) {
+            drawSprite(sprMario, 160, 32, 15, 16, 0, 0, player.width, player.height);
+          } else if (player.isFire) {
+            // Fire Mario (white suit) — y-offset row 48 in mario_bros.png
+            if (!player.onGround) {
+              drawSprite(sprMario, 144, 48, 16, 32, 0, 0, player.width, player.height);
+            } else if (Math.abs(player.vx) > 0.1) {
+              let f  = Math.floor(player.animFrame) % 3;
+              let wx = f===0 ? 81  : f===1 ? 97  : 113;
+              let ww = f===0 ? 16  : 15;
+              drawSprite(sprMario, wx, 48, ww, 32, 0, 0, player.width, player.height);
+            } else {
+              drawSprite(sprMario, 176, 48, 16, 32, 0, 0, player.width, player.height);
+            }
+          } else if (player.isBig) {
+            if (!player.onGround) {
+              drawSprite(sprMario, 144, 0, 16, 32, 0, 0, player.width, player.height);
+            } else if (Math.abs(player.vx) > 0.1) {
+              let f  = Math.floor(player.animFrame) % 3;
+              let wx = f===0 ? 81 : f===1 ? 97 : 113;
+              let ww = f===0 ? 16 : f===1 ? 15 : 15;
+              drawSprite(sprMario, wx, 0, ww, 32, 0, 0, player.width, player.height);
+            } else {
+              drawSprite(sprMario, 176, 0, 16, 32, 0, 0, player.width, player.height);
+            }
+          } else {
+            if (!player.onGround) {
+              drawSprite(sprMario, 144, 32, 16, 16, 0, 0, player.width, player.height);
+            } else if (Math.abs(player.vx) > 0.1) {
+              let f  = Math.floor(player.animFrame) % 3;
+              let wx = f===0 ? 80 : f===1 ? 96 : 112;
+              let ww = f===0 ? 15 : 16;
+              drawSprite(sprMario, wx, 32, ww, 16, 0, 0, player.width, player.height);
+            } else {
+              drawSprite(sprMario, 178, 32, 12, 16, 0, 0, player.width, player.height);
+            }
+          }
+          ctx.restore();
+        }
+
+        ctx.restore();
+
+        // HUD
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, 40);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 18px "Courier New", monospace';
+        ctx.fillText(`MARIO`, 40, 20); ctx.fillText(`${score.toString().padStart(6,'0')}`, 40, 36);
+        ctx.fillText(`\u{1FA99} \u{00D7}${coins.toString().padStart(2,'0')}`, 200, 36);
+        ctx.fillText(`WORLD`, 360, 20); ctx.fillText(`1-1`, 370, 36);
+        ctx.fillText(`TIME`, 520, 20); ctx.fillText(`${time}`, 525, 36);
+        ctx.fillText(`LIVES: ${lives}`, 660, 36);
+
+        if(state === 'TITLE') {
+          ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 48px "Courier New"';
+          ctx.textAlign = 'center'; ctx.fillText('SUPER MARIO BROS', canvas.width/2, 200);
+          ctx.font = '24px "Courier New"'; ctx.fillText('Press SPACE to Start', canvas.width/2, 260);
+          ctx.textAlign = 'left';
+        } else if(state === 'COMPLETE') {
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 36px "Courier New"';
+          ctx.textAlign = 'center'; ctx.fillText('COURSE CLEAR!', canvas.width/2, 240);
+          ctx.textAlign = 'left';
+        }
+      }
+
+      function gameLoop() {
+        update(); draw(); frameId = requestAnimationFrame(gameLoop);
+      }
+
+      startBtn.addEventListener('click', () => { initAudio(); startGame(); });
+      
+      draw();
+    })();
+  </script>
+
   <footer class="wiki-footer">
-    This page was last edited on January 28, 2025.
+    This page was last edited on January 28, 2025. &nbsp;|&nbsp; Powered by pixels &amp; caffeine &nbsp;&#x2665;
   </footer>
 
   <!-- GitHub Stars Loader -->
