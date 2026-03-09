@@ -1210,9 +1210,11 @@
             player.y = stepCandidate.y - player.height;
             player.onGround = true;
           } else {
-            // True wall — push player back
+            // True wall — push player back in the direction they came from
             const h = sortedHits[0];
-            if(player.x + player.width/2 < h.x + h.w/2) { player.x = h.x - player.width; player.vx = 0; }
+            if(player.vx > 0) { player.x = h.x - player.width; player.vx = 0; }
+            else if(player.vx < 0) { player.x = h.x + h.w; player.vx = 0; }
+            else if(player.x + player.width/2 < h.x + h.w/2) { player.x = h.x - player.width; player.vx = 0; }
             else { player.x = h.x + h.w; player.vx = 0; }
           }
         }
