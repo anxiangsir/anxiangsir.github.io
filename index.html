@@ -1198,18 +1198,21 @@
         const xRect = {x: player.x, y: player.y + 4, w: player.width, h: player.height - 8};
         const xHits = checkCols(xRect);
         if(xHits.length > 0) {
-          // For step-up: pick the hit with the HIGHEST blockTop (closest to ground) so we
-          // always try to step onto the lowest reachable stair step.
-          const stepH = 34;
           const playerBottom = player.y + player.height;
-          // Sort hits by blockTop descending (largest y = lowest on screen = easiest to step)
+          // Sort by blockTop descending — lowest step first (easiest to climb)
           const sortedHits = xHits.slice().sort((a, b) => b.y - a.y);
-          const h = sortedHits[0];
-          const blockTop = h.y;
-          if(player.onGround && playerBottom > blockTop && playerBottom <= blockTop + stepH) {
-            player.y = blockTop - player.height;
+          // Find the highest step surface we're actually colliding with from the side
+          // (blockTop must be strictly below playerBottom, i.e. the step exists above our feet)
+          const STEP_EPS = 0.75;
+          const stepCandidate = sortedHits.find(h => h.y <= playerBottom + STEP_EPS);
+          const stepHeight = stepCandidate ? (playerBottom - stepCandidate.y) : Infinity;
+          if(player.vy >= -STEP_EPS && stepCandidate && stepHeight <= 34 + STEP_EPS) {
+            // Step up onto this block (≤1 tile high step)
+            player.y = stepCandidate.y - player.height;
             player.onGround = true;
           } else {
+            // True wall — push player back
+            const h = sortedHits[0];
             if(player.x + player.width/2 < h.x + h.w/2) { player.x = h.x - player.width; player.vx = 0; }
             else { player.x = h.x + h.w; player.vx = 0; }
           }
