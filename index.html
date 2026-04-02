@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script defer src="/_vercel/insights/script.js"></script>
   <title>Xiang An - Personal Homepage</title>
   <meta name="description" content="Xiang An - Research Scientist and Team Lead at GlintLab">
   <link rel="shortcut icon" href="assets/img/profile_pic.jpg">
@@ -435,6 +436,20 @@
       padding: 4px 8px;
       font-size: 0.88em;
     }
+    .lang-toggle {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-soft);
+      color: var(--color-link);
+      padding: 2px 10px;
+      font-size: 0.85em;
+      cursor: pointer;
+      border-radius: 3px;
+      font-family: var(--font-ui);
+      margin-left: auto;
+    }
+    .lang-toggle:hover {
+      background: var(--color-accent-soft);
+    }
     .pub-entry .author { display: block; color: var(--color-muted); font-size: 0.88em; }
     .pub-entry .links { font-size: 0.85em; margin-left: 6px; }
     .pub-entry .links a { margin-right: 4px; }
@@ -496,6 +511,7 @@
           <a href="/pages/blog.html">Blog</a>
         </nav>
       </div>
+      <button type="button" id="lang-toggle" class="lang-toggle">中文</button>
     </div>
   </header>
 
@@ -542,7 +558,8 @@
       <span class="genre-tag genre-tag-secondary"><a href="https://www.bilibili.com/video/BV1viF9ztEDH/?spm_id_from=333.1391.0.0" target="_blank">Bilibili</a></span>
       <span class="genre-tag genre-tag-secondary"><a href="https://www.youtube.com/watch?v=PPBmfUoIxJ8" target="_blank">YouTube</a></span>
     </span>
-    <span class="additional">Introduces codec-aligned sparsity as a foundational principle for multimodal intelligence. Focuses exclusively on 3.1%-25% of regions rich in signal entropy, achieving 4.1% average improvement over Qwen3-ViT on video understanding tasks</span>
+    <span class="additional" data-lang="en">Proposes codec-aligned sparsity as a foundational principle, focusing computation exclusively on the 3.1%–25% of visual regions rich in signal entropy. Achieves a 4.1% average improvement over Qwen3-ViT on video understanding, demonstrating that efficiency and accuracy are positively correlated.</span>
+    <span class="additional" data-lang="zh" style="display:none">提出编解码器对齐稀疏性作为多模态智能的基础原则，将计算聚焦于仅占3.1%–25%的高信息熵视觉区域。在视频理解任务上比Qwen3-ViT平均提升4.1%，证明了效率与精度可以正相关。</span>
     <span class="author">Feilong Tang, <b><u>Xiang An</u></b>, Yunyao Yan, Yin Xie, Bin Qin, Kaicheng Yang, Yifei Shen, Yuanhan Zhang, Chunyuan Li, Shikun Feng, Changrui Chen, Huajie Tan, Ming Hu, Manyuan Zhang, Bo Li, Ziyong Feng, Ziwei Liu, Zongyuan Ge, Jiankang Deng</span>
 </div>
 </li>
@@ -554,7 +571,8 @@
       <span class="genre-tag genre-tag-secondary"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">Code</a></span>
       <span class="genre-tag genre-tag-secondary"><a href="https://www.sohu.com/a/943520117_129720" target="_blank">搜狐科技</a></span>
     </span>
-    <span class="additional">Fully open-source code, data, checkpoints and training logs; Provided a better open-source ViT; Proved the idea that simple scaling dense captions would improve overall multimodal tasks performance</span>
+    <span class="additional" data-lang="en">A fully open-source multimodal training framework that releases all code, data, checkpoints, and training logs to democratize MLLM research. Introduces a better open-source ViT and demonstrates that simply scaling dense captions significantly improves overall multimodal task performance.</span>
+    <span class="additional" data-lang="zh" style="display:none">完全开源的多模态训练框架，公开所有代码、数据、模型权重和训练日志，推动MLLM研究的民主化。引入更优的开源ViT，并证明简单扩展密集描述即可显著提升多模态整体性能。</span>
     <span class="author"><b><u>Xiang An</u></b>, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al.</span>
 </div>
 </li>
@@ -564,6 +582,8 @@
     <span class="periodical"><span class="genre-tag">AAAI 2026 (Oral)</span>
       <span class="genre-tag genre-tag-secondary"><a href="https://github.com/GaryGuTC/UniME-v2" target="_blank">Code</a></span>
     </span>
+    <span class="additional" data-lang="en">Introduces the MLLM-as-a-Judge paradigm for universal multimodal embedding learning, using large language models to evaluate and guide embedding quality. Achieves superior cross-modal retrieval by leveraging rich feedback signals beyond simple similarity metrics.</span>
+    <span class="additional" data-lang="zh" style="display:none">提出MLLM-as-a-Judge范式用于通用多模态嵌入学习，利用大语言模型评估和引导嵌入质量。通过超越简单相似度指标的丰富反馈信号，实现了卓越的跨模态检索性能。</span>
     <span class="author">Tiancheng Gu, Kaicheng Yang, Kaichen Zhang, <b><u>Xiang An</u></b>, Ziyong Feng, Yueyi Zhang, Weidong Cai, Jiankang Deng, Lidong Bing</span>
 </div>
 </li>
@@ -573,7 +593,8 @@
     <span class="periodical"><span class="genre-tag">ICCV 2025 (Highlight)</span>
       <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepglint/unicom" target="_blank">Code</a></span>
     </span>
-    <span class="additional">Novel approach to self-supervised learning by introducing region-based cluster discrimination.</span>
+    <span class="additional" data-lang="en">Introduces region-level cluster discrimination for self-supervised visual representation learning, capturing fine-grained spatial relationships that global methods miss. Already adopted by state-of-the-art models including openPangu-VL-7B, LLaVA-OneVision-1.5, and Innovator-VL.</span>
+    <span class="additional" data-lang="zh" style="display:none">提出区域级聚类判别方法用于自监督视觉表征学习，捕捉全局方法无法获取的细粒度空间关系。已被openPangu-VL-7B、LLaVA-OneVision-1.5和Innovator-VL等前沿模型采用。</span>
     <span class="author">Yin Xie, Kaicheng Yang, <b><u>Xiang An (Project Leader)</u></b>, Kun Wu, Yongle Zhao, Weimo Deng, Zimin Ran, Yumeng Wang, Ziyong Feng, Jiankang Deng</span>
 </div>
 </li>
@@ -585,7 +606,8 @@
       <span class="genre-tag genre-tag-secondary"><a href="https://huggingface.co/docs/transformers/main/model_doc/mlcd" target="_blank">Transformers</a></span>
       <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepglint/MLCD-Seg" target="_blank">MLCD-Seg</a></span>
     </span>
-    <span class="additional">Multi-label cluster discrimination framework for self-supervised visual representation learning</span>
+    <span class="additional" data-lang="en">Proposes multi-label cluster discrimination that assigns multiple cluster labels per image, capturing the multi-faceted semantic structure of visual scenes. Integrated into HuggingFace Transformers as an official model and adopted by the LLaVA-NeXT community, enabling widespread adoption.</span>
+    <span class="additional" data-lang="zh" style="display:none">提出多标签聚类判别方法，为每张图像分配多个聚类标签，捕捉视觉场景的多面语义结构。已集成至HuggingFace Transformers官方模型库并被LLaVA-NeXT社区采纳，推动了广泛的社区采用。</span>
     <span class="author"><b><u>Xiang An</u></b>, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jiankang Deng</span>
 </div>
 </li>
@@ -595,7 +617,8 @@
     <span class="periodical"><span class="genre-tag">ICLR 2023</span>
       <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepglint/unicom" target="_blank">Code</a></span>
     </span>
-    <span class="additional">Universal and compact representation learning framework for large-scale image retrieval. Foundation for scalable image retrieval systems</span>
+    <span class="additional" data-lang="en">Presents a universal and compact representation learning framework for large-scale image retrieval, achieving state-of-the-art results with significantly smaller model sizes. Serves as the foundation for scalable image retrieval systems in both academic research and industrial applications.</span>
+    <span class="additional" data-lang="zh" style="display:none">提出通用且紧凑的表征学习框架用于大规模图像检索，以显著更小的模型实现了最优性能。成为学术研究和工业应用中可扩展图像检索系统的基础。</span>
     <span class="author"><b><u>Xiang An</u></b>, Jiankang Deng, Kaicheng Yang, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu</span>
 </div>
 </li>
@@ -608,7 +631,8 @@
       <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/pytorch" target="_blank">PyTorch</a></span>
       <span class="genre-tag genre-tag-secondary"><a href="https://zhuanlan.zhihu.com/p/267346623" target="_blank">知乎</a></span>
     </span>
-    <span class="additional">Enabling training of 10 million identities on a single machine through innovative Partial FC approach</span>
+    <span class="additional" data-lang="en">Solves the GPU memory bottleneck in large-scale face recognition by dynamically sampling identity subsets during training, enabling 10M+ identities on a single machine. Achieved 1st place in the NIST FRVT competition, with the sampling process also acting as implicit regularization that simultaneously improves training efficiency and model robustness.</span>
+    <span class="additional" data-lang="zh" style="display:none">通过训练中动态采样身份子集，解决了大规模人脸识别的GPU显存瓶颈，实现单机训练千万级身份。达成NIST FRVT竞赛第一名，采样过程同时充当隐式正则化，在提升训练效率的同时增强了模型鲁棒性。</span>
     <span class="author"><b><u>Xiang An</u></b>, Jiankang Deng, Jia Guo, Ziyong Feng, Xuhan Zhu, Jing Yang, Tongliang Liu</span>
 </div>
 </li>
@@ -621,6 +645,8 @@
       <span class="genre-tag genre-tag-secondary"><a href="https://github.com/deepinsight/insightface/tree/master/recognition/partial_fc/pytorch" target="_blank">PyTorch</a></span>
       <span class="genre-tag genre-tag-secondary"><a href="https://zhuanlan.zhihu.com/p/267346623" target="_blank">知乎</a></span>
     </span>
+    <span class="additional" data-lang="en">The original Partial FC method that reduces the classification layer's memory from O(n) to O(k) through dynamic class center sampling, making million-scale face recognition training accessible. This foundational work has become a standard component in modern face recognition systems and the InsightFace framework.</span>
+    <span class="additional" data-lang="zh" style="display:none">Partial FC的原创方法，通过动态类中心采样将分类层显存从O(n)降至O(k)，使百万级人脸识别训练成为可能。这一基础性工作已成为现代人脸识别系统和InsightFace框架的标准组件。</span>
     <span class="author"><b><u>Xiang An</u></b>, Xuhan Zhu, Yuan Gao, Yang Xiao, Yongle Zhao, Ziyong Feng, Lan Wu, Bin Qin, Ming Zhang, Debing Zhang, Ying Fu</span>
 </div>
 </li>
@@ -1681,5 +1707,19 @@
     })();
   </script>
 
+  <script>
+    (function() {
+      var currentLang = 'en';
+      var toggleBtn = document.getElementById('lang-toggle');
+      if (!toggleBtn) return;
+      toggleBtn.addEventListener('click', function() {
+        currentLang = currentLang === 'en' ? 'zh' : 'en';
+        document.querySelectorAll('.additional[data-lang]').forEach(function(el) {
+          el.style.display = el.getAttribute('data-lang') === currentLang ? '' : 'none';
+        });
+        toggleBtn.textContent = currentLang === 'en' ? '中文' : 'EN';
+      });
+    })();
+  </script>
 </body>
 </html>
