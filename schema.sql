@@ -34,3 +34,23 @@ COMMENT ON TABLE scholar_cache IS 'Google Scholar 数据缓存表';
 COMMENT ON COLUMN scholar_cache.key IS '缓存键（如 citations）';
 COMMENT ON COLUMN scholar_cache.value IS '缓存值（如引用次数）';
 COMMENT ON COLUMN scholar_cache.updated_at IS '最后更新时间';
+
+CREATE TABLE IF NOT EXISTS visitor_logs (
+  id SERIAL PRIMARY KEY,
+  ip_anonymized VARCHAR(45) NOT NULL,
+  country VARCHAR(100),
+  country_code VARCHAR(5),
+  city VARCHAR(100),
+  region VARCHAR(100),
+  lat DECIMAL(9,6),
+  lon DECIMAL(9,6),
+  page_path VARCHAR(500) DEFAULT '/',
+  user_agent TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_visitor_created ON visitor_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_visitor_country ON visitor_logs(country_code);
+CREATE INDEX IF NOT EXISTS idx_visitor_ip_page ON visitor_logs(ip_anonymized, page_path, created_at);
+
+COMMENT ON TABLE visitor_logs IS '网站访客地理位置记录表';

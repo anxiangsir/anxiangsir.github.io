@@ -495,6 +495,44 @@
       html { scroll-behavior: auto; }
       * { transition: none !important; animation: none !important; }
     }
+    /* === VISITOR MAP === */
+    .visitor-map-container {
+      width: 100%;
+      border: 1px solid var(--color-border-light, #d8d8d8);
+      background: var(--color-surface);
+      border-radius: 4px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    .visitor-map-container svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .visitor-map-container svg path {
+      transition: fill 0.3s ease;
+      outline: none;
+    }
+    .visitor-map-container svg path:hover {
+      stroke: var(--color-text);
+      stroke-width: 1px;
+      cursor: pointer;
+    }
+    .visitor-map-tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: var(--color-surface, #fff);
+      border: 1px solid var(--color-border, #a2a9b1);
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 0.85em;
+      color: var(--color-text, #202122);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -768,909 +806,13 @@
     </aside>
   </div>
 
-  <!-- === SUPER MARIO GAME === -->
-  <div class="mario-game-container">
-    <div class="mario-game-header">
-      <span>🍄 Super Mario Bros 1-1</span>
-      <div style="display:flex;gap:8px">
-        <button id="marioStartBtn" class="mario-btn" type="button">▶ START</button>
-      </div>
-    </div>
-    <canvas id="marioCanvas" width="800" height="480"></canvas>
-  <div class="mario-controls">
-      <span>⬅ ➡ / A D &nbsp; Move</span>
-      <span>Space / W / ↑ &nbsp; Jump</span>
-      <span>Shift &nbsp; Run</span>
-      <span>Z / X &nbsp; 🔥 Fire</span>
-    </div>
-    <div id="marioDebug" style="font-family:'Courier New',monospace;font-size:12px;color:#0f0;background:#000;padding:4px 12px;border-top:1px solid #222;min-height:20px;"></div>
+  <div class="wiki-wrapper" style="margin-top: 16px;">
+    <main class="wiki-content" style="max-width: 100%; padding-bottom: 24px;">
+      <h2 id="visitor-map">Visitor Map <a class="section-anchor" href="#visitor-map">§</a></h2>
+      <div id="visitor-stats" style="margin-bottom: 12px; font-weight: bold; color: var(--color-text);">Loading visitor data...</div>
+      <div id="visitor-map-container" class="visitor-map-container"></div>
+    </main>
   </div>
-  <style>
-    .mario-game-container {
-      display: none;
-      max-width: 800px;
-      margin: 24px auto 0;
-      background: #000;
-      border: 4px solid #333;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .mario-game-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: #000;
-      color: #fff;
-      font-family: 'Courier New', Consolas, monospace;
-      font-weight: bold;
-      font-size: 16px;
-      border-bottom: 2px solid #333;
-    }
-    .mario-btn {
-      background: #E8A000;
-      border: 2px solid #fff;
-      color: #000;
-      padding: 6px 16px;
-      font-family: inherit;
-      font-weight: bold;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 4px;
-      text-transform: uppercase;
-    }
-    .mario-btn:hover { background: #ffd700; }
-    #marioCanvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      background: #5C94FC;
-      image-rendering: pixelated;
-    }
-    .mario-controls {
-      display: flex;
-      justify-content: center;
-      gap: 32px;
-      padding: 12px;
-      background: #000;
-      border-top: 2px solid #333;
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      color: #ccc;
-      flex-wrap: wrap;
-      row-gap: 6px;
-    }
-    @media (min-width: 901px) {
-      .mario-game-container { display: block; }
-    }
-  </style>
-  <script>
-    (function() {
-      const canvas = document.getElementById('marioCanvas');
-      const ctx = canvas.getContext('2d');
-      const startBtn = document.getElementById('marioStartBtn');
-      
-      const sprMario = new Image(); sprMario.src = 'assets/img/mario_bros.png';
-      const sprEnemies = new Image(); sprEnemies.src = 'assets/img/smb_enemies_sheet.png';
-      const sprItems = new Image(); sprItems.src = 'assets/img/item_objects.png';
-      const sprTiles = new Image(); sprTiles.src = 'assets/img/tile_set.png';
-
-      function drawSprite(img, sx, sy, sw, sh, dx, dy, dw, dh) {
-        ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-      }
-
-      // ── Audio ──────────────────────────────────────────────
-      let audioCtx = null;
-      const audioBufs = {};
-      const AUDIO_FILES = {
-        jump:            'assets/audio/small_jump.ogg',
-        big_jump:        'assets/audio/big_jump.ogg',
-        coin:            'assets/audio/coin.ogg',
-        stomp:           'assets/audio/stomp.ogg',
-        powerup_appears: 'assets/audio/powerup_appears.ogg',
-        powerup:         'assets/audio/powerup.ogg',
-        death:           'assets/audio/death.wav',
-        brick:           'assets/audio/brick_smash.ogg',
-        bump:            'assets/audio/bump.ogg',
-        fireball:        'assets/audio/fireball.ogg',
-        oneup:           'assets/audio/one_up.ogg',
-        flagpole:        'assets/audio/flagpole.wav',
-        stage_clear:     'assets/audio/stage_clear.wav',
-        game_over:       'assets/audio/game_over.ogg',
-        kick:            'assets/audio/kick.ogg',
-      };
-
-      function initAudio() {
-        if(audioCtx) return;
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        Object.entries(AUDIO_FILES).forEach(([k, url]) => {
-          fetch(url)
-            .then(r => r.arrayBuffer())
-            .then(ab => audioCtx.decodeAudioData(ab))
-            .then(buf => { audioBufs[k] = buf; })
-            .catch(() => {});
-        });
-      }
-
-      function playBuf(name, volume) {
-        if(!audioCtx || !audioBufs[name]) return;
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const src = audioCtx.createBufferSource();
-        src.buffer = audioBufs[name];
-        if(volume !== undefined && volume !== 1) {
-          const g = audioCtx.createGain(); g.gain.value = volume;
-          src.connect(g); g.connect(audioCtx.destination);
-        } else {
-          src.connect(audioCtx.destination);
-        }
-        src.start(0);
-      }
-
-      function playSound(name) {
-        // map old names to new buffer keys
-        const MAP = { jump: player.isBig ? 'big_jump' : 'jump', coin: 'coin', stomp: 'stomp', mushroom: 'powerup', death: 'death', brick: 'brick', bump: 'bump' };
-        playBuf(MAP[name] || name);
-      }
-
-      // ── BGM ─────────────────────────────────────────────
-      let bgmAudio = null;
-      let bgmFast = false;
-
-      function stopBGM() {
-        if(bgmAudio) { bgmAudio.pause(); bgmAudio.currentTime = 0; bgmAudio = null; }
-        bgmFast = false;
-      }
-
-      function startBGM(fast) {
-        const src = fast ? 'assets/audio/main_theme_sped_up.ogg' : 'assets/audio/main_theme.ogg';
-        if(bgmAudio && bgmFast === !!fast) return; // already playing correct track
-        if(bgmAudio) { bgmAudio.pause(); }
-        bgmAudio = new Audio(src);
-        bgmAudio.loop = true;
-        bgmAudio.volume = 0.6;
-        bgmFast = !!fast;
-        bgmAudio.play().catch(() => {});
-      }
-
-      function playFireball() { playBuf('fireball'); }
-
-      function playSpreadGun() { playBuf('fireball', 0.9); }
-
-      function playOneUp() { playBuf('oneup'); }
-
-      function playFlagpoleJingle() { playBuf('flagpole'); }
-
-      function playStageClear() { playBuf('stage_clear'); }
-
-      // ── CONFIG — all tunable constants in one place ─────────────────────────────
-      const CONFIG = {
-        // Physics
-        GRAVITY:        0.4,
-        JUMP_GRAVITY:   0.2,
-        JUMP_VEL:      -10,
-        FAST_JUMP_VEL: -12.5,
-        MAX_Y_VEL:      11,
-        WALK_SPEED:     3,
-        RUN_SPEED:      5,
-        WALK_ACCEL:     0.15,
-        // World
-        GROUND_HEIGHT:  418,   // px from canvas top to ground surface
-        SHOOT_COOLDOWN: 22,    // frames between fireballs
-        // Timers (frames)
-        DEAD_TIMER:     180,
-        COMPLETE_TIMER: 180,
-        INVULN_FRAMES:  60,
-        // Level geometry helpers
-        ORIG_CANVAS_H:  480,   // original canvas height
-      };
-      // Destructure for convenience (keeps all existing code unchanged)
-      const GRAVITY       = CONFIG.GRAVITY;
-      const JUMP_GRAVITY  = CONFIG.JUMP_GRAVITY;
-      const JUMP_VEL      = CONFIG.JUMP_VEL;
-      const FAST_JUMP_VEL = CONFIG.FAST_JUMP_VEL;
-      const MAX_Y_VEL     = CONFIG.MAX_Y_VEL;
-      const WALK_SPEED    = CONFIG.WALK_SPEED;
-      const RUN_SPEED     = CONFIG.RUN_SPEED;
-      const WALK_ACCEL    = CONFIG.WALK_ACCEL;
-      const GROUND_HEIGHT = CONFIG.GROUND_HEIGHT;
-      
-      let state = 'TITLE'; 
-      let frameId = null;
-      let score = 0, coins = 0, time = 300, lives = 3;
-      let cameraX = 0;
-      let timeTimer = 0, deadTimer = 0, completeTimer = 0;
-      
-      const keys = { left: false, right: false, jump: false, run: false, shoot: false };
-      let jumpHeld = false;
-      let shootPressed = false;
-
-      
-      let grounds = [], pipes = [], blocks = [], enemies = [], particles = [], flagpole = null;
-      
-      const player = {
-        x: 50, y: 100, width: 24, height: 32, vx: 0, vy: 0,
-        facing: 1, onGround: false, isBig: false, isFire: false, dead: false,
-        animFrame: 0, invulnTimer: 0, shootCooldown: 0,
-        poleSliding: false, walkingToCastle: false, poleTimer: 0
-      };
-
-      const C = {
-        SKY: '#5C94FC', DIRT: '#E69C24', BRICK: '#C84B00', QBOX: '#E8A000',
-        QBOX_HIT: '#C84B00', PIPE: '#008000', PIPE_OUTLINE: '#00A800',
-        RED: '#CC0000', SKIN: '#FCA044', BLUE: '#0000CC', SHOE: '#6B3300'
-      };
-
-      // ── Input ─────────────────────────────────────────────
-      document.addEventListener('keydown', e => {
-        initAudio();
-        if(e.code === 'ArrowLeft'  || e.code === 'KeyA') { keys.left  = true; if(state==='PLAYING') e.preventDefault(); }
-        if(e.code === 'ArrowRight' || e.code === 'KeyD') { keys.right = true; if(state==='PLAYING') e.preventDefault(); }
-        if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
-          if(!keys.jump) jumpHeld = true;
-          keys.jump = true;
-          if(state === 'TITLE' || state === 'COMPLETE') startGame();
-          if(state === 'PLAYING') e.preventDefault();
-        }
-        if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.run = true;
-        if(e.code === 'KeyZ' || e.code === 'KeyX') { keys.shoot = true; shootPressed = true; if(state==='PLAYING') e.preventDefault(); }
-      });
-
-      document.addEventListener('keyup', e => {
-        if(e.code === 'ArrowLeft'  || e.code === 'KeyA') keys.left  = false;
-        if(e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
-        if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') keys.jump = false;
-        if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.run = false;
-        if(e.code === 'KeyZ' || e.code === 'KeyX') keys.shoot = false;
-      });
-
-      const CONF_LABELS = ['CVPR','ECCV','ICLR','NeurIPS','ICML','ICCV','AAAI'];
-      // ── Level ─────────────────────────────────────────────
-      function initLevel() {
-        grounds = [{x: 0, w: 2953}, {x: 3048, w: 635}, {x: 3819, w: 2828}, {x: 6647, w: 2300}];
-        pipes = [
-          {x: 1202, y: 362, w: 83, h: 66}, {x: 1631, y: 327, w: 83, h: 112},
-          {x: 1973, y: 293, w: 83, h: 136}, {x: 2445, y: 293, w: 83, h: 136},
-          {x: 6989, y: 362, w: 83, h: 66}, {x: 7675, y: 362, w: 83, h: 66}
-        ];
-        
-        blocks = [];
-        const brickCoords = [[858,292], [944,292], [1030,292], [3299,292], [3385,292], 
-          [3430,154], [3473,154], [3516,154], [3559,154], [3602,154], [3645,154], 
-          [3688,154], [3731,154], [3901,154], [3944,154], [3987,154], [4030,292, 'coins', 6], 
-          [4287,292], [4330,292, 'star', 1], [5058,292], [5187,154], [5230,154], 
-          [5273,154], [5488,154], [5574,154], [5617,154], [5531,292], [5574,292], 
-          [7202,292], [7245,292], [7331,292]];
-        brickCoords.forEach(c => {
-          blocks.push({x: c[0], y: c[1]*0.8, w: 34, h: 34, type: 'brick', hit: false, content: c[2], count: c[3]||0, oy:0});
-        });
-
-        const qCoords = [[685,292,'coin'], [901,292,'mushroom'], [987,292,'coin'], 
-          [943,154,'coin'], [3342,292,'flower'], [3545,292,'1up'], [4030,154,'coin'], [4544,292,'coin'], 
-          [4672,292,'coin'], [4672,154,'mushroom'], [4800,292,'coin'], [5531,154,'coin'], 
-          [7288,292,'coin']];
-        qCoords.forEach(c => {
-          blocks.push({x: c[0], y: c[1]*0.8, w: 34, h: 34, type: 'qbox', hit: false, content: c[2], oy:0, timer:Math.random()*100});
-        });
-        // Hidden 1UP block (invisible) — first pit area, original SMB1 position
-        blocks.push({x: 2970, y: 292*0.8, w: 34, h: 34, type: 'qbox', hit: false, content: '1up', oy: 0, timer: 0, invisible: true});
-
-        const stairW = 34, stairH = 34;
-        let sx = 5745;
-        for(let i=0; i<4; i++) for(let j=0; j<=i; j++) blocks.push({x: sx+i*stairW, y: GROUND_HEIGHT-(j+1)*stairH, w: stairW, h: stairH, type: 'solid'});
-        sx = 6001;
-        for(let i=0; i<4; i++) for(let j=0; j<(4-i); j++) blocks.push({x: sx+i*stairW, y: GROUND_HEIGHT-(j+1)*stairH, w: stairW, h: stairH, type: 'solid'});
-
-        flagpole = { x: 8505, y: 80, w: 4, h: GROUND_HEIGHT - 80, flagY: 80, castleX: 8780 };
-
-        enemies = [980, 1380, 1720, 2870, 3560, 4450, 4930, 5080, 6780].map(ex => ({
-          x: ex, y: GROUND_HEIGHT - 32, w: 32, h: 32, type: 'goomba', vx: -1, vy: 0, dead: 0, frame: 0
-        }));
-
-        particles = [];
-      }
-
-      function startGame() {
-        if(state === 'PLAYING') return;
-        state = 'PLAYING';
-        if(lives <= 0) { lives = 3; score = 0; coins = 0; }
-        time = 300; timeTimer = Date.now(); cameraX = 0;
-        player.x = 50; player.y = 100; player.vx = 0; player.vy = 0; player.dead = false;
-        player.isBig = false; player.isFire = false; player.height = 32; player.poleSliding = false; player.walkingToCastle = false; player.poleTimer = 0;
-        initLevel();
-        startBGM();
-        if(!frameId) gameLoop();
-      }
-
-      function killPlayer() {
-        if(player.dead) return;
-        stopBGM();
-        playSound('death');
-        player.dead = true; player.vy = -10; player.vx = 0;
-        state = 'DEAD'; deadTimer = 180; lives--;
-      }
-
-      function rectIntersect(r1, r2) {
-        return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);
-      }
-
-      // ── Update ────────────────────────────────────────────
-      function update() {
-        if(state === 'TITLE') return;
-        
-        if(state === 'COMPLETE') {
-          // Phase 1: pole sliding — Mario slides down, flag slides down
-          if(player.poleSliding) {
-            player.x = flagpole.x - player.width; // pin to pole
-            if(player.y + player.height < GROUND_HEIGHT) {
-              player.y += 5;
-            } else {
-              player.y = GROUND_HEIGHT - player.height;
-              player.poleSliding = false;
-              player.walkingToCastle = true;
-              player.poleTimer = 0;
-              playStageClear();
-            }
-            // Flag slides down simultaneously
-            if(flagpole.flagY < GROUND_HEIGHT - 24) flagpole.flagY += 5;
-          }
-          // Phase 2: brief pause then walk to castle
-          else if(player.walkingToCastle) {
-            player.poleTimer++;
-            if(player.poleTimer > 20) { // brief pause facing left
-              player.facing = 1;
-              player.vx = 4;
-              player.x += player.vx;
-              player.animFrame += 0.3;
-              // Camera follows Mario
-              const targetCamX = player.x - canvas.width / 2;
-              cameraX += (targetCamX - cameraX) * 0.15;
-              // Reached castle
-              if(player.x > flagpole.castleX + 60) {
-                player.walkingToCastle = false;
-                completeTimer = 180;
-              }
-            }
-          }
-          // Phase 3: countdown then return to title
-          else {
-            completeTimer--;
-            if(completeTimer <= 0) state = 'TITLE';
-          }
-          return;
-        }
-
-        if(state === 'DEAD') {
-          player.y += player.vy; player.vy += GRAVITY; deadTimer--;
-          if(deadTimer <= 0) { if(lives > 0) startGame(); else state = 'TITLE'; }
-          return;
-        }
-
-        // Time
-        if(Date.now() - timeTimer > 1000) { 
-          time = Math.max(0, time - 1); 
-          timeTimer = Date.now(); 
-          if(time <= 0) killPlayer(); 
-          if(state === 'PLAYING' && bgmAudio) {
-            if(time < 100 && !bgmFast) startBGM(true);
-            else if(time >= 100 && bgmFast) startBGM(false);
-          }
-        }
-
-        // ── Player velocity (horizontal + jump intent) ────────────────────────────────
-        const speed = keys.run ? RUN_SPEED : WALK_SPEED;
-        const accel = WALK_ACCEL;
-        if(keys.left)  { player.vx = Math.max(player.vx - accel, -speed); player.facing = -1; }
-        else if(keys.right) { player.vx = Math.min(player.vx + accel,  speed); player.facing =  1; }
-        else { player.vx *= 0.85; if(Math.abs(player.vx) < 0.1) player.vx = 0; }
-
-        // Jump (only when onGround — onGround was set last frame's Y step)
-        if(keys.jump && jumpHeld && player.onGround) {
-          player.vy = speed >= RUN_SPEED ? FAST_JUMP_VEL : JUMP_VEL;
-          playSound('jump');
-        }
-        jumpHeld = false;
-
-
-
-
-        // ── Collision helpers (defined once, used by X and Y steps) ──────────────────────
-        function checkCols(rect) {
-          const hits = [];
-          grounds.forEach(g => {
-            const gr = {x: g.x, y: GROUND_HEIGHT, w: g.w, h: 100};
-            if(rectIntersect(rect, gr)) hits.push(gr);
-          });
-          pipes.forEach(p => { if(rectIntersect(rect, p)) hits.push(p); });
-          blocks.forEach(b => {
-            if(b.type === 'brick' && b.hit && !b.content && b.count === 0) return;
-            if(rectIntersect(rect, {x:b.x, y:b.y+b.oy, w:b.w, h:b.h})) hits.push({x:b.x, y:b.y+b.oy, w:b.w, h:b.h});
-          });
-          return hits;
-        }
-
-        // ── Step 1: Y movement + Y collision (before X so prevY is clean) ─────────────────
-        player.onGround = false;
-        const prevY = player.y;
-        player.vy += (player.vy < 0 && keys.jump) ? JUMP_GRAVITY : GRAVITY;
-        if(player.vy > MAX_Y_VEL) player.vy = MAX_Y_VEL;
-        player.y += player.vy;
-
-        const yRect = {x: player.x, y: player.y, w: player.width, h: player.height};
-        const yHits = checkCols(yRect);
-        yHits.forEach(h => {
-          const prevBottom = prevY + player.height;
-          const currBottom = player.y + player.height;
-          if(player.vy >= 0 && prevBottom <= h.y + 1 && currBottom > h.y) {
-            // Landing on top
-            player.y = h.y - player.height; player.vy = 0; player.onGround = true;
-          } else if(player.vy < 0 && prevY >= h.y + h.h - 1 && player.y < h.y + h.h) {
-            // Hitting underside
-            player.y = h.y + h.h; player.vy = 0;
-            let hitBlock = blocks.find(b => b.x === h.x && b.y + b.oy === h.y);
-            if(hitBlock && !hitBlock.hit) {
-              hitBlock.oy = -10;
-              if(hitBlock.type === 'qbox' || (hitBlock.type === 'brick' && hitBlock.content)) {
-                hitBlock.hit = true;
-                if(hitBlock.content === 'coin' || hitBlock.type === 'brick') {
-                  score += 100; if(hitBlock.content === 'coin') { coins++; playSound('coin'); } particles.push({x: hitBlock.x+10, y: hitBlock.y, vy: -1.5, type: 'coin', life: 80});
-                } else if(hitBlock.content === 'mushroom') {
-                  playBuf('powerup_appears');
-                  if(player.isBig) {
-                    particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 1, vy: 0, type: 'flower', onGround: false, life: undefined, label: CONF_LABELS[Math.floor(Math.random()*CONF_LABELS.length)]});
-                  } else {
-                    particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 1, vy: 0, type: 'mushroom', onGround: false, label: CONF_LABELS[Math.floor(Math.random()*CONF_LABELS.length)]});
-                  }
-                } else if(hitBlock.content === 'flower') {
-                  playBuf('powerup_appears');
-                  particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: 0, vy: 0, type: 'flower', onGround: false, life: undefined, label: CONF_LABELS[Math.floor(Math.random()*CONF_LABELS.length)]});
-                } else if(hitBlock.content === '1up') {
-                  playOneUp();
-                  particles.push({x: hitBlock.x, y: hitBlock.y-34, vx: -1, vy: 0, type: '1up', onGround: false});
-                }
-              } else if(hitBlock.type === 'brick' && player.isBig) {
-                hitBlock.hit = true;
-                playBuf('brick');
-                particles.push({x: hitBlock.x, y: hitBlock.y, vx: -2, vy: -5, type: 'debris', life: 40});
-              }
-            }
-          }
-        });
-        // Hard clamp: if still inside any ground segment, force to surface (handles edge cases)
-        grounds.forEach(g => {
-          if(player.x + player.width > g.x && player.x < g.x + g.w) {
-            if(player.y + player.height > GROUND_HEIGHT) {
-              player.y = GROUND_HEIGHT - player.height; player.vy = 0; player.onGround = true;
-            }
-          }
-        });
-
-        // ── Step 2: X movement + X collision (after Y is resolved) ─────────────────────────
-        player.x += player.vx;
-        player.x = Math.max(0, player.x);
-        // X collision uses a vertically-shrunk rect to avoid false hits on top/bottom edges
-        const xRect = {x: player.x, y: player.y + 4, w: player.width, h: player.height - 8};
-        const xHits = checkCols(xRect);
-        if(xHits.length > 0) {
-          const playerBottom = player.y + player.height;
-          // Sort by blockTop descending — lowest step first (easiest to climb)
-          const sortedHits = xHits.slice().sort((a, b) => b.y - a.y);
-          // Find the highest step surface we're actually colliding with from the side
-          // (blockTop must be strictly below playerBottom, i.e. the step exists above our feet)
-          const STEP_EPS = 4;
-          const stepCandidate = sortedHits.find(h => h.y <= playerBottom + STEP_EPS);
-          const stepHeight = stepCandidate ? (playerBottom - stepCandidate.y) : Infinity;
-          if(player.vy >= -STEP_EPS && stepCandidate && stepHeight <= 40 + STEP_EPS) {
-            // Step up onto this block (≤1 tile high step)
-            player.y = stepCandidate.y - player.height;
-            player.onGround = true;
-          } else {
-            // True wall — push player back
-            const h = sortedHits[0];
-            if(player.x + player.width/2 < h.x + h.w/2) { player.x = h.x - player.width; player.vx = 0; }
-            else { player.x = h.x + h.w; player.vx = 0; }
-          }
-        }
-
-        if(player.y > canvas.height + 50) killPlayer();
-
-        // pRect: full player rect for enemy/item collision (computed after X+Y are settled)
-        const pRect = {x: player.x, y: player.y, w: player.width, h: player.height};
-        // checkColsX reuses checkCols (same geometry; named for clarity in mushroom code)
-        function checkColsX(rect) { return checkCols(rect); }
-
-        // Enemies
-        enemies.forEach(e => {
-          if(e.x < cameraX - 100 || e.x > cameraX + 900) return;
-          if(e.dead) { e.dead++; return; }
-          e.vy += GRAVITY; e.x += e.vx; e.y += e.vy;
-          let eHit = checkCols(e);
-          if(eHit.length > 0) {
-            let h = eHit[0];
-            if(e.vy > 0 && e.y + e.h >= h.y && e.y < h.y) { e.y = h.y - e.h; e.vy = 0; }
-            else if(e.vx !== 0) { e.vx *= -1; e.x += e.vx * 2; }
-          }
-          e.frame += 0.1;
-          
-          if(rectIntersect(pRect, e)) {
-            if(player.vy > 0 && player.y + player.height < e.y + 20) {
-              playSound('stomp');
-              e.dead = 1; player.vy = JUMP_VEL/1.5; score += 100;
-              particles.push({x: e.x, y: e.y, text: '100', life: 30, type: 'text'});
-            } else if(!player.invulnTimer) {
-              if(player.isBig) { player.isBig = false; player.isFire = false; player.height = 32; player.invulnTimer = 60; } 
-              else killPlayer();
-            }
-          }
-        });
-        if(player.invulnTimer > 0) player.invulnTimer--;
-
-        // Shooting
-        if(player.shootCooldown > 0) player.shootCooldown--;
-        if(shootPressed && player.isFire && player.shootCooldown === 0) {
-          shootPressed = false;
-          playSpreadGun();
-          const bx = player.x + (player.facing > 0 ? player.width : 0);
-          const by = player.y + player.height/2 - 4;
-          const spd = 8;
-          // 3-way Contra spread: straight, up-diagonal, down-diagonal
-          [{vx: player.facing*spd, vy: 0},
-           {vx: player.facing*spd*0.8, vy: -spd*0.6},
-           {vx: player.facing*spd*0.8, vy:  spd*0.6}].forEach(function(vel) {
-            particles.push({type:'spread', life:undefined, x:bx, y:by, vx:vel.vx, vy:vel.vy, frame:0});
-          });
-          player.shootCooldown = CONFIG.SHOOT_COOLDOWN;
-        }
-
-        // Particles
-        particles.forEach(p => {
-          if(p.type === 'coin') { p.vy += GRAVITY * 0.15; if(p.vy > 0) p.vy = 0; p.y += p.vy; p.life--; }
-          else if(p.type === 'text') { p.y -= 1; p.life--; }
-          else if(p.type === 'mushroom') {
-            p.x += p.vx;
-            let pHitX = checkColsX({x: p.x, y: p.y+2, w: 32, h: 28});
-            if(pHitX.length > 0) { p.vx *= -1; p.x += p.vx * 2; }
-            if(!p.onGround) p.vy += GRAVITY;
-            p.y += p.vy;
-            p.onGround = false;
-            let pHit = checkCols({x: p.x, y: p.y, w: 32, h: 32});
-            if(pHit.length > 0) {
-              if(p.vy >= 0) { p.y = pHit[0].y - 32; p.vy = 0; p.onGround = true; }
-              else { p.vy = 0; p.y = pHit[0].y + pHit[0].h; }
-            }
-            if(rectIntersect(pRect, {x: p.x, y: p.y, w: 32, h: 32})) {
-              p.life = 0; score += 1000; playSound('mushroom');
-              if(!player.isBig) { player.isBig = true; player.height = 64; player.y -= 32; }
-            }
-            if(p.x < cameraX - 200 || p.x > cameraX + 1000 || p.y > canvas.height + 50) p.life = 0;
-          } else if(p.type === 'flower') {
-            // flower stays on top of block; player touch → Fire Mario
-            if(rectIntersect(pRect, {x: p.x, y: p.y, w: 34, h: 34})) {
-              p.life = 0; score += 1000; playSound('mushroom');
-              player.isBig = true; player.height = 64;
-              if(player.y + player.height > GROUND_HEIGHT) player.y = GROUND_HEIGHT - player.height;
-              player.isFire = true;
-            }
-            if(p.x < cameraX - 200 || p.x > cameraX + 1000) p.life = 0;
-          } else if(p.type === 'fireball') {
-            p.frame += 0.2;
-            p.vy += GRAVITY * 0.8;
-            if(p.vy > 8) p.vy = 8;
-            p.x += p.vx; p.y += p.vy;
-            let fbHit = checkCols({x: p.x, y: p.y, w: 16, h: 16});
-            if(fbHit.length > 0) {
-              let fh = fbHit[0];
-              if(p.vy > 0 && p.y + 16 >= fh.y) { p.y = fh.y - 16; p.vy = -5; p.bounces++; }
-              else if(p.vy < 0 && p.y <= fh.y + fh.h) { p.vy = Math.abs(p.vy); }
-              else { p.life = 0; }
-            }
-            if(p.bounces > 4 || p.x < cameraX - 50 || p.x > cameraX + 900 || p.y > canvas.height + 50) p.life = 0;
-            enemies.forEach(e => {
-              if(!e.dead && rectIntersect({x:p.x,y:p.y,w:16,h:16}, e)) {
-                e.dead = 1; p.life = 0; score += 200;
-                particles.push({x:e.x,y:e.y,text:'200',life:30,type:'text'});
-              }
-            });
-          } else if(p.type === 'spread') {
-            // Contra spread bullet: travels in straight line, no gravity
-            p.frame += 0.25;
-            p.x += p.vx; p.y += p.vy;
-            // Kill on wall/floor collision
-            let sbHit = checkCols({x: p.x-4, y: p.y-4, w: 8, h: 8});
-            if(sbHit.length > 0) p.life = 0;
-            if(p.x < cameraX - 50 || p.x > cameraX + 900 || p.y < -50 || p.y > canvas.height + 50) p.life = 0;
-            enemies.forEach(e => {
-              if(!e.dead && rectIntersect({x:p.x-5,y:p.y-5,w:10,h:10}, e)) {
-                e.dead = 1; p.life = 0; score += 200;
-                particles.push({x:e.x,y:e.y,text:'200',life:30,type:'text'});
-              }
-            });
-          } else if(p.type === '1up') {
-            // 1-UP mushroom: same physics as regular mushroom, but gives extra life
-            p.x += p.vx;
-            let upHitX = checkColsX({x: p.x, y: p.y+2, w: 32, h: 28});
-            if(upHitX.length > 0) { p.vx *= -1; p.x += p.vx * 2; }
-            if(!p.onGround) p.vy += GRAVITY;
-            p.y += p.vy;
-            p.onGround = false;
-            let upHit = checkCols({x: p.x, y: p.y, w: 32, h: 32});
-            if(upHit.length > 0) {
-              if(p.vy >= 0) { p.y = upHit[0].y - 32; p.vy = 0; p.onGround = true; }
-              else { p.vy = 0; p.y = upHit[0].y + upHit[0].h; }
-            }
-            if(rectIntersect(pRect, {x: p.x, y: p.y, w: 32, h: 32})) {
-              p.life = 0; lives++; score += 0;
-              particles.push({x: player.x, y: player.y - 10, text: '1UP!', life: 60, type: 'text'});
-              playOneUp();
-            }
-            if(p.x < cameraX - 200 || p.x > cameraX + 1000 || p.y > canvas.height + 50) p.life = 0;
-          } else if(p.type === 'debris') {
-            p.vy += GRAVITY * 0.5; p.x += p.vx; p.y += p.vy; p.life--;
-          }
-        });
-        particles = particles.filter(p => p.life !== 0 && (p.life === undefined || p.life > 0));
-
-        blocks.forEach(b => { if(b.oy < 0) b.oy += 1; if(b.timer!==undefined) b.timer++; });
-
-        // Flagpole grab: Mario's right edge crosses pole x
-        if(state === 'PLAYING' && player.x + player.width >= flagpole.x && player.x < flagpole.x + 20) {
-          stopBGM();
-          playFlagpoleJingle();
-          // Score bonus based on grab height (distance from top of pole)
-          const grabY = player.y;
-          const poleTop = flagpole.y;
-          const grabHeight = GROUND_HEIGHT - grabY; // higher grab = larger value
-          let bonus;
-          if(grabHeight > 340) bonus = 5000;
-          else if(grabHeight > 280) bonus = 2000;
-          else if(grabHeight > 200) bonus = 800;
-          else if(grabHeight > 120) bonus = 400;
-          else bonus = 100;
-          score += bonus;
-          // Show bonus popup
-          particles.push({x: flagpole.x - 30, y: player.y, vy: -1.5, type: 'score', value: bonus, life: 90});
-          state = 'COMPLETE';
-          player.poleSliding = true;
-          player.walkingToCastle = false;
-          player.poleTimer = 0;
-          player.vx = 0; player.vy = 0;
-        }
-
-        const targetCamX = player.x - canvas.width / 2;
-        if(state !== 'DEAD') cameraX += (targetCamX - cameraX) * 0.15;
-        if(cameraX < 0) cameraX = 0;
-        
-        if(player.onGround && Math.abs(player.vx) > 0.1) player.animFrame += Math.abs(player.vx) * 0.1;
-        else if(player.onGround && Math.abs(player.vx) < 0.1) player.animFrame = 0;
-        // keep animFrame when airborne so landing doesn't flicker
-        // Debug display
-        const dbg = document.getElementById('marioDebug');
-        if(dbg) dbg.textContent = `x:${Math.round(player.x)}  y:${Math.round(player.y)}  vx:${player.vx.toFixed(2)}  vy:${player.vy.toFixed(2)}  onGround:${player.onGround}  state:${state}  cam:${Math.round(cameraX)}`;
-
-      }
-
-      // ── Draw ──────────────────────────────────────────────
-      function draw() {
-        ctx.textAlign = 'left';
-        ctx.fillStyle = C.SKY; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.imageSmoothingEnabled = false;
-        
-        ctx.save(); ctx.translate(-Math.floor(cameraX), 0);
-
-        grounds.forEach(g => {
-          ctx.fillStyle = C.DIRT; ctx.fillRect(g.x, GROUND_HEIGHT + 34, g.w, canvas.height - GROUND_HEIGHT - 34);
-          for(let dx = g.x; dx < g.x + g.w; dx += 34) {
-            let dw = Math.min(34, g.x + g.w - dx);
-            drawSprite(sprTiles, 0, 16, 16 * (dw/34), 16, dx, GROUND_HEIGHT, dw, 34);
-          }
-        });
-
-        pipes.forEach(p => {
-          ctx.fillStyle = C.PIPE; ctx.fillRect(p.x+2, p.y+16, p.w-4, p.h-16); ctx.fillRect(p.x, p.y, p.w, 16);
-          ctx.strokeStyle = C.PIPE_OUTLINE; ctx.strokeRect(p.x+2, p.y+16, p.w-4, p.h-16); ctx.strokeRect(p.x, p.y, p.w, 16);
-        });
-
-        if(flagpole) {
-          // Castle (brick structure)
-          const cx = flagpole.castleX;
-          ctx.fillStyle = '#aaa';
-          // Battlements
-          for(let i=0; i<5; i++) { if(i%2===0) ctx.fillRect(cx + i*20, GROUND_HEIGHT-120, 20, 24); }
-          // Main body
-          ctx.fillRect(cx, GROUND_HEIGHT-96, 100, 96);
-          // Door
-          ctx.fillStyle = '#333'; ctx.fillRect(cx+36, GROUND_HEIGHT-48, 28, 48);
-          // Windows
-          ctx.fillStyle = '#333'; ctx.fillRect(cx+10, GROUND_HEIGHT-80, 20, 20); ctx.fillRect(cx+70, GROUND_HEIGHT-80, 20, 20);
-          // Pole (white vertical bar)
-          ctx.fillStyle = '#ccc'; ctx.fillRect(flagpole.x + 1, flagpole.y, 3, flagpole.h);
-          // Pole finial (ball on top)
-          ctx.fillStyle = '#fc0'; ctx.beginPath(); ctx.arc(flagpole.x + 2, flagpole.y, 6, 0, Math.PI*2); ctx.fill();
-          // Flag (green triangle)
-          ctx.fillStyle = '#0c0';
-          ctx.beginPath();
-          ctx.moveTo(flagpole.x - 1, flagpole.flagY);
-          ctx.lineTo(flagpole.x - 22, flagpole.flagY + 10);
-          ctx.lineTo(flagpole.x - 1, flagpole.flagY + 20);
-          ctx.closePath(); ctx.fill();
-        }
-
-        blocks.forEach(b => {
-          if(b.type === 'brick' && b.hit && !b.content && b.count === 0 && b.oy === 0) return;
-          ctx.save(); ctx.translate(b.x, b.y + b.oy);
-          if(b.type === 'solid') {
-            drawSprite(sprTiles, 16, 0, 16, 16, 0, 0, b.w, b.h);
-          } else if(b.type === 'brick') {
-            if(b.hit && (b.content || b.count > 0)) { drawSprite(sprTiles, 432, 0, 16, 16, 0, 0, b.w, b.h); }
-            else { drawSprite(sprTiles, 16, 0, 16, 16, 0, 0, b.w, b.h); }
-          } else if(b.type === 'qbox') {
-            if(!b.invisible) {
-              if(b.hit) { drawSprite(sprTiles, 432, 0, 16, 16, 0, 0, b.w, b.h); }
-              else {
-                let frame = Math.floor(b.timer/10)%3;
-                drawSprite(sprTiles, 384 + frame*16, 0, 16, 16, 0, 0, b.w, b.h);
-              }
-            }
-          }
-          ctx.restore();
-        });
-
-        // Particles draw
-        particles.forEach(p => {
-          if(p.type === 'coin') {
-            let coinFrames = [52, 4, 20, 36];
-            let cIdx = Math.floor(Date.now()/100) % 4;
-            drawSprite(sprItems, coinFrames[cIdx], 113, 8, 14, p.x-4, p.y-7, 24, 20);
-            ctx.save();
-            const alpha = Math.min(1, p.life / 30);
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = '#76b900';
-            ctx.font = 'bold 16px "Courier New"';
-            ctx.textAlign = 'center';
-            ctx.fillText('Nvidia B200 +1', p.x+4, p.y - 14);
-            ctx.restore();
-          } else if(p.type === 'text') {
-            ctx.fillStyle = (p.text && p.text.indexOf('1UP') >= 0) ? '#0f0' : '#fff';
-            ctx.font = '16px "Courier New"'; ctx.fillText(p.text, p.x, p.y);
-          } else if(p.type === 'mushroom') {
-            drawSprite(sprItems, 0, 0, 16, 16, p.x, p.y, 32, 32);
-            if(p.label) { ctx.save(); ctx.fillStyle='#ff0'; ctx.font='bold 11px "Courier New"'; ctx.textAlign='center'; ctx.fillText(p.label, p.x+16, p.y-4); ctx.restore(); }
-          } else if(p.type === 'flower') {
-            let ff = Math.floor(Date.now()/150) % 4;
-            let fx = [0, 16, 32, 48][ff];
-            drawSprite(sprItems, fx, 32, 16, 16, p.x, p.y, 34, 34);
-            if(p.label) { ctx.save(); ctx.fillStyle='#ff0'; ctx.font='bold 11px "Courier New"'; ctx.textAlign='center'; ctx.fillText(p.label, p.x+17, p.y-4); ctx.restore(); }
-          } else if(p.type === 'fireball') {
-            let fbX = [96,104,96,104][Math.floor(p.frame)%4];
-            let fbY = [144,144,152,152][Math.floor(p.frame)%4];
-            drawSprite(sprItems, fbX, fbY, 8, 8, p.x, p.y, 16, 16);
-          } else if(p.type === 'spread') {
-            // Contra-style yellow diamond bullet with white highlight
-            ctx.save();
-            const sz = 5;
-            // Outer diamond: bright yellow
-            ctx.fillStyle = '#FFE000';
-            ctx.beginPath();
-            ctx.moveTo(p.x,     p.y - sz);
-            ctx.lineTo(p.x + sz, p.y);
-            ctx.lineTo(p.x,     p.y + sz);
-            ctx.lineTo(p.x - sz, p.y);
-            ctx.closePath();
-            ctx.fill();
-            // Inner diamond: white highlight
-            ctx.fillStyle = '#FFFFFF';
-            const si = Math.ceil(sz * 0.45);
-            ctx.beginPath();
-            ctx.moveTo(p.x,      p.y - si);
-            ctx.lineTo(p.x + si, p.y);
-            ctx.lineTo(p.x,      p.y + si);
-            ctx.lineTo(p.x - si, p.y);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-          } else if(p.type === 'debris') {
-            drawSprite(sprTiles, 16, 0, 16, 16, p.x, p.y, 10, 10);
-          } else if(p.type === '1up') {
-            // Green 1-UP mushroom: sprite at (16, 0) on item sheet (16x16)
-            drawSprite(sprItems, 16, 0, 16, 16, p.x, p.y, 32, 32);
-          } else if(p.type === 'score') {
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 14px "Courier New"';
-            ctx.fillText(p.value, p.x, p.y);
-          }
-        });
-
-        // Enemies draw
-        enemies.forEach(e => {
-          if(e.dead > 20) return;
-          if(e.dead) {
-            drawSprite(sprEnemies, 61, 0, 16, 16, e.x, e.y+16, e.w, 16);
-          } else {
-            let exFrame = Math.floor(e.frame)%2===0 ? 0 : 30;
-            drawSprite(sprEnemies, exFrame, 4, 16, 16, e.x, e.y, e.w, e.h);
-          }
-        });
-
-        // Mario draw
-        if(state !== 'TITLE' && (!player.invulnTimer || player.invulnTimer % 4 < 2)) {
-          ctx.save();
-          ctx.translate(player.x + player.width/2, player.y + player.height/2);
-          ctx.scale(player.facing, 1);
-          ctx.translate(-player.width/2, -player.height/2);
-          
-          if (player.dead) {
-            drawSprite(sprMario, 160, 32, 15, 16, 0, 0, player.width, player.height);
-          } else if (player.isFire) {
-            // Fire Mario (white suit) — y-offset row 48 in mario_bros.png
-            if (!player.onGround) {
-              drawSprite(sprMario, 144, 48, 16, 32, 0, 0, player.width, player.height);
-            } else if (Math.abs(player.vx) > 0.1) {
-              let f  = Math.floor(player.animFrame) % 3;
-              let wx = f===0 ? 81  : f===1 ? 97  : 113;
-              let ww = f===0 ? 16  : 15;
-              drawSprite(sprMario, wx, 48, ww, 32, 0, 0, player.width, player.height);
-            } else {
-              drawSprite(sprMario, 176, 48, 16, 32, 0, 0, player.width, player.height);
-            }
-          } else if (player.isBig) {
-            if (!player.onGround) {
-              drawSprite(sprMario, 144, 0, 16, 32, 0, 0, player.width, player.height);
-            } else if (Math.abs(player.vx) > 0.1) {
-              let f  = Math.floor(player.animFrame) % 3;
-              let wx = f===0 ? 81 : f===1 ? 97 : 113;
-              let ww = f===0 ? 16 : f===1 ? 15 : 15;
-              drawSprite(sprMario, wx, 0, ww, 32, 0, 0, player.width, player.height);
-            } else {
-              drawSprite(sprMario, 176, 0, 16, 32, 0, 0, player.width, player.height);
-            }
-          } else {
-            if (!player.onGround) {
-              drawSprite(sprMario, 144, 32, 16, 16, 0, 0, player.width, player.height);
-            } else if (Math.abs(player.vx) > 0.1) {
-              let f  = Math.floor(player.animFrame) % 3;
-              let wx = f===0 ? 80 : f===1 ? 96 : 112;
-              let ww = f===0 ? 15 : 16;
-              drawSprite(sprMario, wx, 32, ww, 16, 0, 0, player.width, player.height);
-            } else {
-              drawSprite(sprMario, 178, 32, 12, 16, 0, 0, player.width, player.height);
-            }
-          }
-          ctx.restore();
-        }
-
-        ctx.restore();
-
-        // HUD
-        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, 40);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 18px "Courier New", monospace';
-        ctx.fillText(`MARIO`, 40, 20); ctx.fillText(`${score.toString().padStart(6,'0')}`, 40, 36);
-        ctx.fillText(`NVIDIA B200`, 185, 20); ctx.fillText(`×${coins.toString().padStart(2,'0')}`, 200, 36);
-        ctx.fillText(`WORLD`, 360, 20); ctx.fillText(`1-1`, 370, 36);
-        ctx.fillText(`TIME`, 520, 20); ctx.fillText(`${time}`, 525, 36);
-        ctx.fillText(`\u2665 x${lives}`, 660, 36);
-        if(player.isFire) { ctx.fillStyle = '#fa0'; ctx.font = '13px "Courier New", monospace'; ctx.fillText('[Z/X] FIRE', 660, 20); ctx.fillStyle = '#fff'; ctx.font = 'bold 18px "Courier New", monospace'; }
-
-        if(state === 'TITLE') {
-          ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = '#fff'; ctx.font = 'bold 48px "Courier New"';
-          ctx.textAlign = 'center'; ctx.fillText('SUPER MARIO BROS', canvas.width/2, 200);
-          ctx.font = '24px "Courier New"'; ctx.fillText('Press SPACE to Start', canvas.width/2, 260);
-          ctx.textAlign = 'left';
-        } else if(state === 'COMPLETE') {
-          ctx.fillStyle = '#fff'; ctx.font = 'bold 36px "Courier New"';
-          ctx.fillText('COURSE CLEAR!', canvas.width/2, canvas.height*0.42);
-          ctx.textAlign = 'left';
-        }
-      }
-
-      function gameLoop() {
-        update(); draw(); frameId = requestAnimationFrame(gameLoop);
-      }
-
-      startBtn.addEventListener('click', () => { initAudio(); startGame(); });
-      
-      draw();
-    })();
-  </script>
 
   <footer class="wiki-footer">
     This page was last edited on January 28, 2025. &nbsp;|&nbsp; Powered by pixels &amp; caffeine &nbsp;&#x2665;
@@ -1721,5 +863,120 @@
       });
     })();
   </script>
+
+  <!-- Visitor Map Integration -->
+  <script>
+    (function() {
+      const VERCEL_ORIGIN = 'https://anxiangsir-github-io.vercel.app';
+      const VISITOR_API = (window.location.hostname === 'localhost' ||
+                           window.location.hostname.includes('vercel.app'))
+        ? '/api/visitor'
+        : VERCEL_ORIGIN + '/api/visitor';
+
+      const mapContainer = document.getElementById('visitor-map-container');
+      const statsContainer = document.getElementById('visitor-stats');
+
+      const tooltip = document.createElement('div');
+      tooltip.className = 'visitor-map-tooltip';
+      document.body.appendChild(tooltip);
+
+      function getColor(count) {
+        if (!count || count === 0) return '#e0e0e0';
+        if (count <= 5) return '#cee0f2';
+        if (count <= 20) return '#9cc5e8';
+        if (count <= 50) return '#6ba3d6';
+        if (count <= 100) return '#3b82c4';
+        return '#1a56a0';
+      }
+
+      async function initMap() {
+        try {
+          const svgResponse = await fetch('/assets/img/world-map.min.svg');
+          if (!svgResponse.ok) throw new Error('Failed to load map SVG');
+          const svgText = await svgResponse.text();
+          mapContainer.innerHTML = svgText;
+
+          const svgEl = mapContainer.querySelector('svg');
+          if (svgEl) {
+            svgEl.setAttribute('viewBox', '30.767 241.591 784.077 458.627');
+            const allPaths = svgEl.querySelectorAll('path');
+            for (const p of allPaths) {
+              p.style.fill = '#e0e0e0';
+            }
+          }
+
+          try {
+            await fetch(VISITOR_API, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ page: window.location.pathname })
+            });
+          } catch(e) {
+            console.warn('Could not record visit:', e);
+          }
+
+          let visitorData = null;
+          try {
+            const statsResponse = await fetch(VISITOR_API);
+            if (statsResponse.ok) {
+              visitorData = await statsResponse.json();
+            }
+          } catch(e) {
+            console.warn('Could not load visitor stats:', e);
+          }
+
+          if (visitorData && visitorData.success) {
+            const countries = visitorData.countries || {};
+            const numCountries = Object.keys(countries).length;
+            const totalVisitors = visitorData.total_visitors || 0;
+            statsContainer.textContent = `${totalVisitors.toLocaleString()} visitors from ${numCountries} countries`;
+
+            for (const [code, info] of Object.entries(countries)) {
+              const el = document.getElementById(code.toLowerCase());
+              if (el) {
+                const paths = el.tagName.toLowerCase() === 'path' ? [el] : Array.from(el.querySelectorAll('path'));
+                const color = getColor(info.count);
+                for (const p of paths) {
+                  p.style.fill = color;
+                  p.addEventListener('mouseenter', () => {
+                    tooltip.textContent = `${info.name}: ${info.count} visitors`;
+                    tooltip.style.opacity = '1';
+                  });
+                  p.addEventListener('mousemove', (e) => {
+                    tooltip.style.left = `${e.clientX + 10}px`;
+                    tooltip.style.top = `${e.clientY + 10}px`;
+                  });
+                  p.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                  });
+                  p.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    tooltip.textContent = `${info.name}: ${info.count} visitors`;
+                    tooltip.style.left = `${touch.clientX + 10}px`;
+                    tooltip.style.top = `${touch.clientY - 40}px`;
+                    tooltip.style.opacity = '1';
+                  }, { passive: false });
+                }
+              }
+            }
+          } else {
+            statsContainer.textContent = 'Visitor data currently unavailable';
+          }
+        } catch (err) {
+          console.error('Visitor map error:', err);
+          statsContainer.textContent = 'Visitor data currently unavailable';
+        }
+      }
+      initMap();
+      document.addEventListener('touchstart', function(e) {
+        if (!e.target.closest('.visitor-map-container')) {
+          tooltip.style.opacity = '0';
+        }
+      });
+    })();
+    // end of map script
+  </script>
 </body>
 </html>
+<!-- EOF -->
