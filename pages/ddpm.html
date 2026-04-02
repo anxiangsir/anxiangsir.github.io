@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script defer src="/_vercel/insights/script.js"></script>
+    <title>Xiang An - Diffusion Models 深入解析</title>
+    <meta name="description" content="DDPM、DDIM 与 Flow Matching 的直观数学与代码对比，含交互动画。" />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=UnifrakturMaguntia&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --paper: #e9dbce;
+        --ink: #261a15;
+        --ink-light: #4a362a;
+        --ddpm: #e74c3c;
+        --ddim: #3498db;
+        --flow: #2ecc71;
+        --font-masthead: "UnifrakturMaguntia", "Old English Text MT", "Engravers MT", serif;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-serif);
+        line-height: 1.55;
+        padding: 3rem 1.2rem;
+      }
+      .site-nav { max-width: 1200px; margin: 0 auto 1rem; padding: 0 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-sans); font-size: 0.85em; flex-wrap: wrap; }
+      .site-nav a { color: #ccc; text-decoration: none; font-weight: 600; letter-spacing: 0.02em; padding: 2px 4px; }
+      .site-nav a:hover { color: #fff; text-decoration: underline; }
+      .site-nav .nav-sep { color: #555; user-select: none; }
+
+      .newspaper {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: var(--paper);
+        background-image:
+          linear-gradient(90deg, transparent 49.5%, rgba(0,0,0,0.025) 50%, rgba(255,255,255,0.08) 50.5%, transparent 51%),
+          linear-gradient(90deg, transparent 24.5%, rgba(0,0,0,0.015) 25%, rgba(255,255,255,0.04) 25.5%, transparent 26%),
+          linear-gradient(90deg, transparent 74.5%, rgba(0,0,0,0.015) 75%, rgba(255,255,255,0.04) 75.5%, transparent 76%),
+          linear-gradient(180deg, transparent 32.5%, rgba(0,0,0,0.015) 33%, rgba(255,255,255,0.03) 33.5%, transparent 34%),
+          linear-gradient(180deg, transparent 65.5%, rgba(0,0,0,0.015) 66%, rgba(255,255,255,0.03) 66.5%, transparent 67%),
+          linear-gradient(180deg, rgba(255, 248, 238, 0.4) 0%, rgba(120, 76, 46, 0.05) 100%),
+          radial-gradient(ellipse at center, transparent 40%, rgba(139, 90, 43, 0.25) 100%),
+          radial-gradient(circle at 18% 14%, rgba(92, 56, 29, 0.08), transparent 18%),
+          radial-gradient(circle at 82% 11%, rgba(110, 70, 42, 0.1), transparent 16%),
+          radial-gradient(circle at 13% 82%, rgba(120, 78, 45, 0.07), transparent 20%),
+          radial-gradient(circle at 10% 20%, rgba(200, 160, 120, 0.15), transparent 40%),
+          radial-gradient(circle at 90% 80%, rgba(180, 130, 90, 0.2), transparent 50%),
+          radial-gradient(circle at 45% 75%, rgba(120, 80, 50, 0.04), transparent 25%),
+          radial-gradient(circle at 75% 35%, rgba(100, 60, 40, 0.05), transparent 20%),
+          url('data:image/svg+xml;utf8,<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" opacity="0.06" filter="url(%23n)"/></svg>');
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), inset 0 0 50px rgba(100, 60, 30, 0.2);
+        padding: 3rem 3.2rem;
+        position: relative;
+      }
+      .newspaper::before {
+        content: "";
+        position: absolute;
+        top: 15px; left: 15px; right: 15px; bottom: 15px;
+        border: 1px solid rgba(43, 29, 22, 0.3);
+        outline: 1px solid rgba(43, 29, 22, 0.1);
+        outline-offset: -4px;
+        pointer-events: none;
+      }
+      .newspaper::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(0,0,0,0.06), transparent 8%, transparent 92%, rgba(0,0,0,0.06)), linear-gradient(180deg, rgba(255,255,255,0.08), transparent 10%, transparent 90%, rgba(70,40,20,0.08));
+        box-shadow: inset 0 0 120px rgba(70, 40, 20, 0.35);
+        pointer-events: none;
+      }
+      .corner-ornament { position: absolute; width: 35px; height: 35px; border: 2px solid rgba(43, 29, 22, 0.4); z-index: 4; pointer-events: none; }
+      .corner-ornament.top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
+      .corner-ornament.top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
+      .corner-ornament.bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
+      .corner-ornament.bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+      .corner-ornament::before { content: "❈"; position: absolute; color: rgba(43, 29, 22, 0.5); font-size: 1.1rem; }
+      .corner-ornament.top-left::before { top: -2px; left: 3px; transform: rotate(-45deg); }
+      .corner-ornament.top-right::before { top: -2px; right: 3px; transform: rotate(45deg); }
+      .corner-ornament.bottom-left::before { bottom: -2px; left: 3px; transform: rotate(-135deg); }
+      .corner-ornament.bottom-right::before { bottom: -2px; right: 3px; transform: rotate(135deg); }
+
+      .stamp {
+        position: absolute; top: 25px; right: 35px; width: 90px; height: 90px; border: 4px double #5c1818; border-radius: 50%;
+        box-shadow: inset 0 0 0 2px rgba(92, 24, 24, 0.28), 0 1px 4px rgba(0,0,0,0.12); display: flex; align-items: center; justify-content: center;
+        text-align: center; font-family: var(--font-headline); font-size: 0.73rem; font-weight: 900; color: #5c1818; text-transform: uppercase;
+        transform: rotate(14deg); opacity: 0.72; mix-blend-mode: multiply; z-index: 6;
+      }
+      .stamp span { display: block; transform: rotate(-10deg); line-height: 1.2; }
+
+      .masthead { text-align: center; border-bottom: 6px double var(--ink); padding-bottom: 10px; margin-bottom: 30px; position: relative; z-index: 2; }
+      .masthead::before, .masthead::after { content: "✦ ✦ ✦"; position: absolute; top: 58px; font-size: 0.8rem; letter-spacing: 4px; opacity: 0.65; }
+      .masthead::before { left: 6px; }
+      .masthead::after { right: 6px; }
+      .masthead-title { font-family: var(--font-headline); font-size: clamp(46px, 8vw, 82px); font-weight: 900; line-height: 1; margin: 5px 0 10px; text-shadow: 1px 1px 0 rgba(255,255,255,0.7), 2px 2px 0 rgba(0,0,0,0.18), 4px 4px 0 rgba(90,55,30,0.12), 0 0 16px rgba(255,248,220,0.2); }
+      .masthead-sub { font-family: var(--font-masthead); font-size: clamp(18px, 3.5vw, 28px); letter-spacing: 1px; }
+      .dateline { border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); padding: 8px 0; font-size: 0.84em; text-transform: uppercase; letter-spacing: 1.6px; display: flex; justify-content: space-between; font-family: var(--font-sans); margin-bottom: 20px; font-weight: 600; }
+      .lang-toggle {
+        position: absolute; top: 14px; right: 12px; z-index: 9;
+        font-family: var(--font-sans); font-size: 0.75rem; font-weight: 700;
+        padding: 4px 10px; cursor: pointer; letter-spacing: 0.5px;
+        background: rgba(233, 219, 206, 0.85); color: var(--ink);
+        border: 1.5px solid var(--ink); border-radius: 3px;
+      }
+
+      .content { position: relative; z-index: 2; }
+      [data-lang] { display: none; }
+      body.lang-zh [data-lang="zh"], body.lang-en [data-lang="en"] { display: inline; }
+      body.lang-zh [data-lang-block="zh"], body.lang-en [data-lang-block="en"] { display: block; }
+      [data-lang-block] { display: none; }
+
+      .headline { font-family: var(--font-headline); font-size: clamp(30px, 5vw, 42px); text-align: center; line-height: 1.1; margin: 4px 0 18px; }
+      .dek { text-align: center; font-size: 1.22rem; max-width: 880px; margin: 0 auto 28px; }
+      .section-title {
+        font-family: var(--font-headline); font-weight: 800; text-transform: uppercase;
+        margin: 22px 0 10px; font-size: clamp(25px, 4.2vw, 34px);
+        border-top: 1px solid rgba(43,29,22,0.34); padding-top: 18px;
+      }
+      .lede, p { font-size: 1.24rem; margin: 10px 0; }
+      .math-card {
+        border: 3px double rgba(43,29,22,0.45);
+        background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(120,76,46,0.07));
+        padding: 14px 16px; margin: 12px 0 16px;
+      }
+      .math-line { font-family: var(--font-sans); font-size: 1.02rem; margin: 5px 0; letter-spacing: 0.01em; }
+      .key { font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-sans); font-size: 0.8rem; color: var(--ink-light); }
+
+      .comparison-table { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: 1.05rem; }
+      .comparison-table th, .comparison-table td { border: 1.4px solid rgba(43,29,22,0.45); padding: 8px 9px; vertical-align: top; }
+      .comparison-table thead th { font-family: var(--font-headline); font-size: 1.2rem; text-align: left; background: rgba(43,29,22,0.08); }
+      .c-ddpm { color: var(--ddpm); font-weight: 700; }
+      .c-ddim { color: var(--ddim); font-weight: 700; }
+      .c-flow { color: var(--flow); font-weight: 700; }
+
+      .viz-box {
+        border: 4px double var(--ink);
+        outline: 1px solid var(--ink);
+        outline-offset: 3px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(84,53,31,0.07));
+        margin: 14px 0 20px;
+        padding: 10px;
+      }
+      .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-family: var(--font-sans); margin: 8px 0 4px; }
+      .controls button, .controls select {
+        border: 1px solid rgba(43,29,22,0.65); background: rgba(255,255,255,0.45);
+        color: var(--ink); padding: 4px 8px; font-family: var(--font-sans); font-size: 0.82rem; font-weight: 700;
+      }
+      .controls input[type="range"] { width: 140px; accent-color: var(--ink); }
+      .stat { font-family: var(--font-sans); font-size: 0.84rem; color: var(--ink-light); font-weight: 700; letter-spacing: 0.02em; }
+      canvas { width: 100%; display: block; border: 1px solid rgba(43,29,22,0.5); background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.44), rgba(80,50,30,0.1)); }
+
+      pre {
+        background: rgba(24, 14, 11, 0.91);
+        color: #efe9de;
+        border: 2px solid rgba(43,29,22,0.55);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+        padding: 12px;
+        overflow-x: auto;
+        font-size: 0.88rem;
+        line-height: 1.42;
+        margin: 10px 0;
+      }
+      code { font-family: "SFMono-Regular", Menlo, Consolas, monospace; }
+
+      .footer-note { margin-top: 18px; font-size: 1.05rem; border-top: 1px solid rgba(43,29,22,0.35); padding-top: 10px; }
+
+      @media (max-width: 820px) {
+        body { padding: 1.2rem 0.4rem; }
+        .newspaper { padding: 2rem 1rem; }
+        .stamp { transform: rotate(14deg) scale(0.78); transform-origin: top right; }
+        .headline { margin-top: 8px; }
+        .lede, p { font-size: 1.12rem; }
+      }
+    </style>
+  </head>
+  <body class="lang-zh">
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/partial_fc.html">PFC</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/llava_onevision2.html">OV2</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+    </nav>
+
+    <main class="newspaper">
+      <button type="button" class="lang-toggle" id="langToggle">EN</button>
+      <div class="corner-ornament top-left"></div>
+      <div class="corner-ornament top-right"></div>
+      <div class="corner-ornament bottom-left"></div>
+      <div class="corner-ornament bottom-right"></div>
+      <div class="stamp"><span>Theory<br>+ Code</span></div>
+
+      <header class="masthead">
+        <h1 class="masthead-title">Diffusion Models</h1>
+        <div class="masthead-sub">深入解析 · DDPM → DDIM → Flow Matching</div>
+      </header>
+      <div class="dateline">
+        <span>Vol. 2026</span>
+        <span>Visual ML Editorial</span>
+        <span>Research Notes</span>
+      </div>
+
+      <article class="content">
+        <h2 class="headline">
+          <span data-lang="zh">从“加噪再去噪”到“沿速度场直线回家”</span>
+          <span data-lang="en">From “noise then denoise” to “go home along velocity”</span>
+        </h2>
+        <p class="dek">
+          <span data-lang="zh">一篇可交互的直觉版教程：用统一视角比较 DDPM、DDIM 与 Flow Matching 的数学结构、采样路径与代码差异。</span>
+          <span data-lang="en">An interactive intuition-first guide comparing DDPM, DDIM, and Flow Matching from math, trajectories, and code perspectives.</span>
+        </p>
+
+        <h3 class="section-title"><span data-lang="zh">1) 引子：扩散模型到底在做什么？</span><span data-lang="en">1) Introduction: What does a diffusion model do?</span></h3>
+        <p class="lede"><span data-lang="zh">核心问题很朴素：<b>如何从纯噪声生成有结构的数据</b>。扩散方法把这个难题拆成很多个简单步骤——先把真实样本逐步加噪，再学习“逆向去噪”把噪声拉回数据流形。</span><span data-lang="en">The core challenge is simple: <b>generate structured data from pure noise</b>. Diffusion breaks this into easy steps—gradually add noise to real data, then learn the reverse denoising process back to the data manifold.</span></p>
+        <p><span data-lang="zh">为什么重要？因为它稳定、可扩展、生成质量高；缺点是经典采样太慢。于是有了 DDIM（同模型更快采样）和 Flow Matching（更直接的 ODE 学习框架）。</span><span data-lang="en">Why it matters: stable training, scalable quality, and strong generation; downside: classic sampling is slow. That motivates DDIM (faster sampling with the same model) and Flow Matching (a cleaner ODE-style learning framework).</span></p>
+
+        <h3 class="section-title"><span data-lang="zh">2) DDPM：基础范式</span><span data-lang="en">2) DDPM: the foundation</span></h3>
+        <p><span data-lang="zh"><b>前向过程</b>：每一步注入少量高斯噪声，最终得到接近标准高斯的 <i>x<sub>T</sub></i>。</span><span data-lang="en"><b>Forward process</b>: inject a little Gaussian noise each step until <i>x<sub>T</sub></i> is near standard Gaussian.</span></p>
+        <div class="math-card">
+          <div class="key">DDPM Forward</div>
+          <div class="math-line">q(x<sub>t</sub>|x<sub>t-1</sub>) = N(√(1-β<sub>t</sub>)x<sub>t-1</sub>, β<sub>t</sub>I)</div>
+          <div class="math-line">x<sub>t</sub> = √(ᾱ<sub>t</sub>)x<sub>0</sub> + √(1-ᾱ<sub>t</sub>)ε</div>
+        </div>
+        <p><span data-lang="zh"><b>反向过程</b>：训练神经网络 ε<sub>θ</sub>(x<sub>t</sub>, t) 预测噪声，再一步步去噪：</span><span data-lang="en"><b>Reverse process</b>: train ε<sub>θ</sub>(x<sub>t</sub>, t) to predict noise, then denoise step by step:</span></p>
+        <div class="math-card">
+          <div class="math-line">L = E[ || ε - ε<sub>θ</sub>(x<sub>t</sub>, t) ||² ]</div>
+          <div class="math-line"><span data-lang="zh">关键洞察：理论扎实，但常见采样约 1000 步，慢。</span><span data-lang="en">Key insight: theoretically grounded, but ~1000 sampling steps are slow.</span></div>
+        </div>
+
+        <h3 class="section-title"><span data-lang="zh">3) DDIM：同一模型的确定性捷径</span><span data-lang="en">3) DDIM: deterministic shortcut with same model</span></h3>
+        <p><span data-lang="zh">DDIM <b>不改训练</b>，只改采样轨迹。把随机项设为 0（σ<sub>t</sub>=0）后，路径变成确定性映射，可大步跳时刻。</span><span data-lang="en">DDIM keeps <b>the same training</b> and changes only sampling trajectories. Set stochasticity to zero (σ<sub>t</sub>=0), get deterministic mapping, and skip timesteps aggressively.</span></p>
+        <div class="math-card">
+          <div class="key">DDIM Sampling Update</div>
+          <div class="math-line">x<sub>t-1</sub> = √(ᾱ<sub>t-1</sub>)·x̂<sub>0</sub> + √(1-ᾱ<sub>t-1</sub>)·direction</div>
+          <div class="math-line"><span data-lang="zh">实践常见：50 步、20 步即可生成可用样本。</span><span data-lang="en">In practice: 50-step or even 20-step sampling often works well.</span></div>
+        </div>
+
+        <h3 class="section-title"><span data-lang="zh">4) Flow Matching：优雅的速度场视角</span><span data-lang="en">4) Flow Matching: elegant velocity-field view</span></h3>
+        <p><span data-lang="zh">Flow Matching 直接学习一个 ODE 速度场：点在 t∈[0,1] 上沿向量场流动。最常见设置是线性插值轨迹：</span><span data-lang="en">Flow Matching directly learns an ODE velocity field: points flow along vectors on t∈[0,1]. A common setup uses straight interpolation:</span></p>
+        <div class="math-card">
+          <div class="math-line">x<sub>t</sub> = (1-t)x<sub>0</sub> + tε</div>
+          <div class="math-line">v<sub>target</sub> = ε - x<sub>0</sub></div>
+          <div class="math-line">L = E[ || v<sub>θ</sub>(x<sub>t</sub>, t) - (ε - x<sub>0</sub>) ||² ]</div>
+        </div>
+        <p><span data-lang="zh">这和 Rectified Flow、Stable Diffusion 3 背后的思想一脉相承：在更规则的路径上学速度，采样可用常规 ODE 求解器完成。</span><span data-lang="en">This aligns with ideas behind Rectified Flow and Stable Diffusion 3: learn velocity on more regular paths, then sample with standard ODE solvers.</span></p>
+
+        <h3 class="section-title"><span data-lang="zh">5) 并排对比（数学 + 工程）</span><span data-lang="en">5) Side-by-side comparison (math + engineering)</span></h3>
+        <table class="comparison-table">
+          <thead>
+            <tr><th></th><th class="c-ddpm">DDPM</th><th class="c-ddim">DDIM</th><th class="c-flow">Flow Matching</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span data-lang="zh">训练目标</span><span data-lang="en">Training</span></td><td><span data-lang="zh">预测噪声 ε</span><span data-lang="en">Predict noise ε</span></td><td><span data-lang="zh">与 DDPM 相同</span><span data-lang="en">Same as DDPM</span></td><td><span data-lang="zh">预测速度 v</span><span data-lang="en">Predict velocity v</span></td></tr>
+            <tr><td><span data-lang="zh">采样</span><span data-lang="en">Sampling</span></td><td><span data-lang="zh">随机，T 步</span><span data-lang="en">Stochastic, T steps</span></td><td><span data-lang="zh">确定性，S≪T</span><span data-lang="en">Deterministic, S≪T</span></td><td><span data-lang="zh">ODE 求解，S 步</span><span data-lang="en">ODE solver, S steps</span></td></tr>
+            <tr><td><span data-lang="zh">路径形状</span><span data-lang="en">Path shape</span></td><td><span data-lang="zh">抖动/弯曲</span><span data-lang="en">Wiggly/curved</span></td><td><span data-lang="zh">平滑弯曲</span><span data-lang="en">Smooth/curved</span></td><td><span data-lang="zh">近似直线</span><span data-lang="en">Nearly straight</span></td></tr>
+            <tr><td><span data-lang="zh">速度</span><span data-lang="en">Speed</span></td><td><span data-lang="zh">慢（~1000）</span><span data-lang="en">Slow (~1000)</span></td><td><span data-lang="zh">快（~50）</span><span data-lang="en">Fast (~50)</span></td><td><span data-lang="zh">快（~50）</span><span data-lang="en">Fast (~50)</span></td></tr>
+            <tr><td><span data-lang="zh">模型复用</span><span data-lang="en">Model reuse</span></td><td>✓</td><td><span data-lang="zh">同一个 DDPM 模型</span><span data-lang="en">Same DDPM model</span></td><td><span data-lang="zh">通常是不同训练目标</span><span data-lang="en">Usually a different objective</span></td></tr>
+            <tr><td><span data-lang="zh">数学框架</span><span data-lang="en">Math framework</span></td><td>SDE</td><td><span data-lang="zh">ODE（特例）</span><span data-lang="en">ODE (special case)</span></td><td>ODE (CFM)</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="section-title"><span data-lang="zh">6) 交互动画 I：前向加噪 & 反向生成</span><span data-lang="en">6) Interactive Animation I: forward noise & reverse generation</span></h3>
+        <div class="viz-box">
+          <div class="controls">
+            <label class="stat"><span data-lang="zh">方法</span><span data-lang="en">Method</span></label>
+            <select id="methodSelect">
+              <option value="ddpm">DDPM</option>
+              <option value="ddim">DDIM</option>
+              <option value="flow">Flow Matching</option>
+            </select>
+            <button type="button" id="anim1Play"><span data-lang="zh">暂停</span><span data-lang="en">Pause</span></button>
+            <button type="button" id="anim1Reset"><span data-lang="zh">重置</span><span data-lang="en">Reset</span></button>
+            <label class="stat"><span data-lang="zh">速度</span><span data-lang="en">Speed</span></label>
+            <input type="range" id="anim1Speed" min="0.4" max="2.4" step="0.1" value="1" />
+            <span class="stat" id="anim1Status"></span>
+          </div>
+          <canvas id="canvas1" width="1120" height="430" aria-label="Diffusion forward and reverse animation"></canvas>
+        </div>
+
+        <h3 class="section-title"><span data-lang="zh">7) 交互动画 II：单粒子轨迹对照</span><span data-lang="en">7) Interactive Animation II: single-particle trajectories</span></h3>
+        <div class="viz-box">
+          <div class="controls">
+            <button type="button" id="anim2Play"><span data-lang="zh">播放</span><span data-lang="en">Play</span></button>
+            <button type="button" id="anim2Reset"><span data-lang="zh">重置</span><span data-lang="en">Reset</span></button>
+            <label class="stat"><span data-lang="zh">速度</span><span data-lang="en">Speed</span></label>
+            <input type="range" id="anim2Speed" min="0.2" max="2.8" step="0.1" value="1" />
+            <span class="stat" id="anim2Status"></span>
+          </div>
+          <canvas id="canvas2" width="1120" height="350" aria-label="Trajectory comparison animation"></canvas>
+        </div>
+
+        <h3 class="section-title"><span data-lang="zh">8) 代码视角：三种范式的伪代码</span><span data-lang="en">8) Code view: simplified pseudocode</span></h3>
+        <pre><code># DDPM Training
+def ddpm_train_step(model, x_0):
+    t = randint(0, T)
+    noise = randn_like(x_0)
+    x_t = sqrt(alpha_bar[t]) * x_0 + sqrt(1 - alpha_bar[t]) * noise
+    predicted_noise = model(x_t, t)
+    loss = mse(noise, predicted_noise)
+    return loss
+
+# DDPM Sampling (slow)
+def ddpm_sample(model):
+    x = randn(shape)  # pure noise
+    for t in reversed(range(T)):  # T=1000 steps!
+        z = randn_like(x) if t &gt; 0 else 0
+        predicted_noise = model(x, t)
+        x = (1/sqrt(alpha[t])) * (x - (1-alpha[t])/sqrt(1-alpha_bar[t]) * predicted_noise) + sigma[t] * z
+    return x</code></pre>
+
+        <pre><code># DDIM Sampling (fast, same model!)
+def ddim_sample(model, steps=50):
+    x = randn(shape)
+    timesteps = linspace(T, 0, steps)  # skip steps!
+    for t, t_prev in zip(timesteps[:-1], timesteps[1:]):
+        predicted_noise = model(x, t)
+        predicted_x0 = (x - sqrt(1-alpha_bar[t]) * predicted_noise) / sqrt(alpha_bar[t])
+        x = sqrt(alpha_bar[t_prev]) * predicted_x0 + sqrt(1-alpha_bar[t_prev]) * predicted_noise
+    return x</code></pre>
+
+        <pre><code># Flow Matching Training
+def flow_matching_train_step(model, x_0):
+    t = rand()  # uniform [0,1]
+    noise = randn_like(x_0)
+    x_t = (1 - t) * x_0 + t * noise  # straight interpolation!
+    velocity = noise - x_0  # target velocity
+    predicted_v = model(x_t, t)
+    loss = mse(velocity, predicted_v)
+    return loss
+
+# Flow Matching Sampling
+def flow_matching_sample(model, steps=50):
+    x = randn(shape)  # pure noise at t=1
+    dt = 1.0 / steps
+    for i in range(steps):
+        t = 1 - i * dt
+        v = model(x, t)
+        x = x - v * dt  # Euler step, straight path
+    return x</code></pre>
+
+        <p class="footer-note"><span data-lang="zh"><b>一句话总结：</b>DDPM 给了最稳健的概率基础，DDIM 让它真正“可用”，Flow Matching 则把“从噪声到数据”的过程改写成更简洁的速度场学习问题。</span><span data-lang="en"><b>One-line takeaway:</b> DDPM provides the probabilistic foundation, DDIM makes it practical, and Flow Matching reframes generation as clean velocity-field learning.</span></p>
+      </article>
+    </main>
+
+    <script>
+      const body = document.body;
+      const langToggle = document.getElementById('langToggle');
+      const applyLang = (lang) => {
+        body.classList.toggle('lang-zh', lang === 'zh');
+        body.classList.toggle('lang-en', lang === 'en');
+        document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+        langToggle.textContent = lang === 'zh' ? 'EN' : '中文';
+      };
+      langToggle.addEventListener('click', () => applyLang(body.classList.contains('lang-zh') ? 'en' : 'zh'));
+
+      const methodColor = { ddpm: '#e74c3c', ddim: '#3498db', flow: '#2ecc71' };
+      const methodSteps = { ddpm: 1000, ddim: 50, flow: 50 };
+
+      function makeSmilePoints(count, cx, cy, scale) {
+        const pts = [];
+        for (let i = 0; i < count; i++) {
+          const r = Math.random();
+          let x = 0, y = 0;
+          if (r < 0.55) {
+            const a = Math.random() * Math.PI * 2;
+            const rr = 0.8 + Math.random() * 0.26;
+            x = Math.cos(a) * rr;
+            y = Math.sin(a) * rr;
+          } else if (r < 0.72) {
+            x = -0.35 + (Math.random() - 0.5) * 0.18;
+            y = -0.22 + (Math.random() - 0.5) * 0.15;
+          } else if (r < 0.89) {
+            x = 0.35 + (Math.random() - 0.5) * 0.18;
+            y = -0.22 + (Math.random() - 0.5) * 0.15;
+          } else {
+            const a = Math.PI * (0.12 + Math.random() * 0.76);
+            const rr = 0.53 + Math.random() * 0.08;
+            x = Math.cos(a) * rr;
+            y = Math.sin(a) * rr + 0.14;
+          }
+          pts.push({ tx: cx + x * scale, ty: cy + y * scale });
+        }
+        return pts;
+      }
+
+      function makeNoisePoints(points, w, h) {
+        return points.map(() => ({
+          nx: w * (0.2 + Math.random() * 0.6) + (Math.random() - 0.5) * 120,
+          ny: h * (0.2 + Math.random() * 0.6) + (Math.random() - 0.5) * 120,
+          ph: Math.random() * Math.PI * 2
+        }));
+      }
+
+      function lerp(a, b, t) { return a + (b - a) * t; }
+
+      const c1 = document.getElementById('canvas1');
+      const x1 = c1.getContext('2d');
+      const methodSelect = document.getElementById('methodSelect');
+      const a1Play = document.getElementById('anim1Play');
+      const a1Reset = document.getElementById('anim1Reset');
+      const a1Speed = document.getElementById('anim1Speed');
+      const a1Status = document.getElementById('anim1Status');
+      let a1Running = true;
+      let a1t = 0;
+      let a1Method = 'ddpm';
+      let points = [];
+      let noise = [];
+
+      function resetAnim1() {
+        const w = c1.width, h = c1.height;
+        points = makeSmilePoints(180, w * 0.32, h * 0.53, Math.min(w, h) * 0.23);
+        noise = makeNoisePoints(points, w, h);
+        a1t = 0;
+      }
+
+      function drawGrid(ctx, w, h) {
+        ctx.save();
+        ctx.globalAlpha = 0.16;
+        ctx.strokeStyle = '#3b271d';
+        ctx.lineWidth = 0.6;
+        for (let i = 1; i < 6; i++) {
+          const y = (h / 6) * i;
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+        for (let i = 1; i < 8; i++) {
+          const x = (w / 8) * i;
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function renderAnim1(dt) {
+        if (a1Running) a1t = (a1t + dt * Number(a1Speed.value) * 0.09) % 2;
+        const w = c1.width, h = c1.height;
+        x1.clearRect(0, 0, w, h);
+        drawGrid(x1, w, h);
+
+        const forward = a1t < 1;
+        const prog = forward ? a1t : (a1t - 1);
+        const steps = methodSteps[a1Method];
+        const stepNow = Math.max(0, Math.min(steps, Math.floor(prog * steps)));
+        const title = forward ? (body.classList.contains('lang-zh') ? 'Forward: 加噪中' : 'Forward: adding noise') : (body.classList.contains('lang-zh') ? 'Reverse: 生成中' : 'Reverse: generating');
+        a1Status.textContent = `${title} | ${body.classList.contains('lang-zh') ? '步数' : 'Step'} ${stepNow}/${steps}`;
+
+        x1.fillStyle = '#3b261c';
+        x1.font = 'bold 16px "Helvetica Neue", Arial';
+        x1.fillText('Data', 14, 24);
+        x1.fillText('Noise', w - 74, 24);
+        x1.strokeStyle = 'rgba(59,38,28,0.45)';
+        x1.beginPath(); x1.moveTo(w * 0.48, 0); x1.lineTo(w * 0.48, h); x1.stroke();
+
+        const c = methodColor[a1Method];
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i], n = noise[i];
+          let x = 0, y = 0;
+          if (forward) { x = lerp(p.tx, n.nx, prog); y = lerp(p.ty, n.ny, prog); }
+          else { x = lerp(n.nx, p.tx, prog); y = lerp(n.ny, p.ty, prog); }
+
+          if (a1Method === 'ddpm') {
+            const jig = (forward ? 7 : 11) * (forward ? prog : (1 - prog));
+            x += Math.sin(n.ph + a1t * 11 + i * 0.12) * jig;
+            y += Math.cos(n.ph + a1t * 10 + i * 0.17) * jig;
+          } else if (a1Method === 'ddim') {
+            const cur = (forward ? prog : (1 - prog));
+            x += Math.sin(n.ph + i * 0.03) * 24 * cur * (1 - cur);
+            y += Math.cos(n.ph + i * 0.05) * 16 * cur * (1 - cur);
+          }
+
+          x1.fillStyle = c;
+          x1.globalAlpha = 0.72;
+          x1.beginPath(); x1.arc(x, y, 1.8, 0, Math.PI * 2); x1.fill();
+        }
+        x1.globalAlpha = 1;
+        x1.fillStyle = c;
+        x1.font = '700 13px "Helvetica Neue", Arial';
+        x1.fillText(a1Method.toUpperCase(), w - 104, h - 12);
+      }
+
+      methodSelect.addEventListener('change', (e) => { a1Method = e.target.value; });
+      a1Play.addEventListener('click', () => {
+        a1Running = !a1Running;
+        a1Play.innerHTML = a1Running
+          ? '<span data-lang="zh">暂停</span><span data-lang="en">Pause</span>'
+          : '<span data-lang="zh">播放</span><span data-lang="en">Play</span>';
+      });
+      a1Reset.addEventListener('click', resetAnim1);
+
+      const c2 = document.getElementById('canvas2');
+      const x2 = c2.getContext('2d');
+      const a2Play = document.getElementById('anim2Play');
+      const a2Reset = document.getElementById('anim2Reset');
+      const a2Speed = document.getElementById('anim2Speed');
+      const a2Status = document.getElementById('anim2Status');
+      let a2Running = true;
+      let a2t = 0;
+      let trj = null;
+
+      function buildTrajectories() {
+        const w = c2.width, h = c2.height;
+        const s = { x: w * 0.17, y: h * 0.78 };
+        const e = { x: w * 0.83, y: h * 0.22 };
+        const ddpm = [s];
+        for (let i = 1; i <= 120; i++) {
+          const t = i / 120;
+          const px = lerp(s.x, e.x, t);
+          const py = lerp(s.y, e.y, t);
+          const amp = 22 * (1 - t);
+          ddpm.push({ x: px + Math.sin(i * 0.53) * amp, y: py + Math.cos(i * 0.42) * amp });
+        }
+        const ddim = [];
+        const c1p = { x: w * 0.39, y: h * 0.86 };
+        const c2p = { x: w * 0.65, y: h * 0.13 };
+        for (let i = 0; i <= 60; i++) {
+          const t = i / 60;
+          const mt = 1 - t;
+          ddim.push({
+            x: mt * mt * mt * s.x + 3 * mt * mt * t * c1p.x + 3 * mt * t * t * c2p.x + t * t * t * e.x,
+            y: mt * mt * mt * s.y + 3 * mt * mt * t * c1p.y + 3 * mt * t * t * c2p.y + t * t * t * e.y
+          });
+        }
+        const flow = [s, e];
+        trj = { s, e, ddpm, ddim, flow };
+      }
+
+      function samplePath(path, t) {
+        const n = path.length - 1;
+        const p = Math.max(0, Math.min(0.9999, t)) * n;
+        const i = Math.floor(p);
+        const f = p - i;
+        return {
+          x: lerp(path[i].x, path[i + 1].x, f),
+          y: lerp(path[i].y, path[i + 1].y, f)
+        };
+      }
+
+      function strokePath(ctx, path, color, dashed) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash(dashed ? [6, 4] : []);
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      function renderAnim2(dt) {
+        if (a2Running) a2t = Math.min(1, a2t + dt * Number(a2Speed.value) * 0.00033);
+        if (!trj) return;
+        const w = c2.width, h = c2.height;
+        x2.clearRect(0, 0, w, h);
+        drawGrid(x2, w, h);
+
+        strokePath(x2, trj.ddpm, '#e74c3c', true);
+        strokePath(x2, trj.ddim, '#3498db', false);
+        strokePath(x2, trj.flow, '#2ecc71', false);
+
+        const p1 = samplePath(trj.ddpm, a2t);
+        const p2 = samplePath(trj.ddim, a2t);
+        const p3 = samplePath(trj.flow, a2t);
+        [[p1, '#e74c3c'], [p2, '#3498db'], [p3, '#2ecc71']].forEach(([p, c]) => {
+          x2.fillStyle = c;
+          x2.beginPath(); x2.arc(p.x, p.y, 5, 0, Math.PI * 2); x2.fill();
+        });
+
+        x2.fillStyle = '#2d1f17';
+        x2.font = 'bold 13px "Helvetica Neue", Arial';
+        x2.fillText(body.classList.contains('lang-zh') ? '起点: 噪声' : 'Start: noise', trj.s.x - 40, trj.s.y + 18);
+        x2.fillText(body.classList.contains('lang-zh') ? '终点: 数据' : 'End: data', trj.e.x - 20, trj.e.y - 10);
+        x2.fillStyle = '#e74c3c'; x2.fillText('DDPM', 16, 20);
+        x2.fillStyle = '#3498db'; x2.fillText('DDIM', 80, 20);
+        x2.fillStyle = '#2ecc71'; x2.fillText('Flow Matching', 146, 20);
+
+        const ddpmStep = Math.floor(a2t * 1000);
+        const d2 = Math.floor(a2t * 50);
+        a2Status.textContent = body.classList.contains('lang-zh')
+          ? `DDPM ${ddpmStep}/1000 · DDIM ${d2}/50 · Flow ${d2}/50`
+          : `DDPM ${ddpmStep}/1000 · DDIM ${d2}/50 · Flow ${d2}/50`;
+      }
+
+      a2Play.addEventListener('click', () => {
+        a2Running = !a2Running;
+        a2Play.innerHTML = a2Running
+          ? '<span data-lang="zh">暂停</span><span data-lang="en">Pause</span>'
+          : '<span data-lang="zh">播放</span><span data-lang="en">Play</span>';
+      });
+      a2Reset.addEventListener('click', () => { a2t = 0; buildTrajectories(); });
+
+      function fitCanvas(canvas, h) {
+        const w = canvas.clientWidth;
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(w * ratio);
+        canvas.height = Math.floor(h * ratio);
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      }
+
+      function onResize() {
+        fitCanvas(c1, 430);
+        fitCanvas(c2, 350);
+        resetAnim1();
+        buildTrajectories();
+      }
+
+      let last = performance.now();
+      function raf(now) {
+        const dt = now - last;
+        last = now;
+        renderAnim1(dt);
+        renderAnim2(dt);
+        requestAnimationFrame(raf);
+      }
+
+      onResize();
+      window.addEventListener('resize', onResize);
+      applyLang('zh');
+      requestAnimationFrame(raf);
+    </script>
+  </body>
+</html>

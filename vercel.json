@@ -24,6 +24,10 @@
     {
       "source": "/yarn.html",
       "destination": "/pages/yarn.html"
+    },
+    {
+      "source": "/ddpm.html",
+      "destination": "/pages/ddpm.html"
     }
   ],
   "headers": [
