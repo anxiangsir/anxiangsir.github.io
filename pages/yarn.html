@@ -150,6 +150,18 @@
       <div class="math-block">
         f(x, m, &theta;<sub>d</sub>) = e<sup>im&theta;<sub>d</sub></sup> x
       </div>
+      <p class="phase-desc" id="sec1-desc-complex">
+        更严谨地，将其写为复数形式的旋转（在 2D 子空间中）：
+      </p>
+      <div class="math-block">
+        f<sub>W</sub>(x<sub>m</sub>, m, &theta;<sub>d</sub>) = e<sup>im&theta;<sub>d</sub></sup> W x<sub>m</sub>
+      </div>
+      <p class="phase-desc" id="sec1-desc-framework">
+        后续的所有上下文扩展方法（包括 YaRN），本质上都是通过引入位置函数 <span class="math">g(m)</span> 和频率函数 <span class="math">h(&theta;)</span> 来修改这个旋转公式：
+      </p>
+      <div class="math-block">
+        f'<sub>W</sub>(x<sub>m</sub>, m, &theta;<sub>d</sub>) = f<sub>W</sub>(x<sub>m</sub>, g(m), h(&theta;<sub>d</sub>))
+      </div>
       <p class="phase-desc" id="sec1-desc2">
         关键在于，不同维度 <span class="math">d</span> 拥有不同的旋转频率 <span class="math">&theta;<sub>d</sub></span>：<br>
         <strong>低维度（小 d）</strong>旋转极快，捕捉局部的相对距离；<br><strong>高维度（大 d）</strong>旋转极慢，几乎静止，编码宏观的绝对位置信息。
@@ -178,8 +190,17 @@
         旋转频率 <span class="math">&theta;<sub>d</sub></span> 决定了该维度在序列中需要多少个 Token 才能完成一次完整的 2&pi; 旋转。我们将这个跨度称为<strong>波长 (Wavelength)</strong> <span class="math">&lambda;<sub>d</sub></span>。
       </p>
       <div class="math-block">
-        &lambda;<sub>d</sub> = 2&pi; / &theta;<sub>d</sub>
+        &lambda;<sub>d</sub> = 2&pi; / &theta;<sub>d</sub> = 2&pi; &middot; 10000<sup>2d/|D|</sup>
       </div>
+      <p class="phase-desc" id="sec2-desc-ratio">
+        定义预训练上下文长度 <span class="math">L</span> 与波长的比值 <span class="math">r(d)</span>：
+      </p>
+      <div class="math-block">
+        r(d) = L / &lambda;<sub>d</sub> = L / (2&pi; &middot; 10000<sup>2d/|D|</sup>)
+      </div>
+      <p class="phase-desc" id="sec2-desc-ratio-exp">
+        这个比值决定了该维度如何被处理：当 <span class="math">r &gg; 1</span> 时，该维度在训练窗口内完成多次循环 &rarr; <strong>高频（局部信息）</strong>；当 <span class="math">r &ll; 1</span> 时，该维度几乎不旋转 &rarr; <strong>低频（全局位置信息）</strong>。
+      </p>
       <div class="stage-wrapper">
         <div class="viz-layer" id="wavelength-layer">
           <svg width="100%" height="100%" id="svg-wavelength">
@@ -205,6 +226,15 @@
       <p class="phase-desc" id="sec3-desc">
         要扩展上下文到 <span class="math">s&middot;L</span>，最直接的方法是 <strong>Position Interpolation (PI)</strong>：把所有位置坐标缩小为 <span class="math">m/s</span>。在频域上，这等于把所有频率压缩为 <span class="math">&theta;<sub>d</sub>/s</span>。<br><br>但这对高频维度（低 d）是灾难性的。高频维度原本用来区分非常近的 Token，将它们硬性拉伸后，相邻 Token 的相对角度差变得过小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。
       </p>
+      <p class="phase-desc" id="sec3-desc-math">
+        用数学公式表达，PI 相当于：
+      </p>
+      <div class="math-block">
+        g(m) = m/s, &nbsp;&nbsp; h(&theta;<sub>d</sub>) = &theta;<sub>d</sub>
+      </div>
+      <p class="phase-desc" id="sec3-desc-prob">
+        这等价于将所有维度的有效频率变为 <span class="math">&theta;<sub>d</sub>/s</span>。在数学上，原本相邻 Token 间的旋转角度差是 <span class="math">&theta;<sub>d</sub></span>，现在变成了 <span class="math">&theta;<sub>d</sub>/s</span>。对于高频维度来说，角度差变得极小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。
+      </p>
       <div class="stage-wrapper">
         <div class="viz-layer" id="pi-layer">
           <svg width="100%" height="100%" id="svg-pi">
@@ -222,7 +252,18 @@
         </div>
       </div>
 
-      <h3 class="phase-heading" id="sec4-heading">4. YaRN 核心：分段 NTK 插值</h3>
+      <h3 class="phase-heading" id="sec4-0-heading">4. NTK-Aware 插值 (前置基础)</h3>
+      <p class="phase-desc" id="sec4-0-desc">
+        在引入分段 NTK 之前，我们先看看 <strong>NTK-Aware Interpolation</strong>。它不直接缩放位置，而是修改底数 <span class="math">b</span>，将插值的压力分散到所有维度上：
+      </p>
+      <div class="math-block">
+        b' = b &middot; s<sup>|D|/(|D|-2)</sup>
+      </div>
+      <p class="phase-desc" id="sec4-0-desc2">
+        高频维度受影响较小，低频维度受影响较大。但这依然不够完美，于是 YaRN 提出了 NTK-by-parts。
+      </p>
+
+      <h3 class="phase-heading" id="sec4-heading">4.1 YaRN 核心：分段 NTK 插值</h3>
       <p class="phase-desc" id="sec4-desc">
         YaRN 的精髓在于 <strong>NTK-by-parts</strong>：不要一刀切地缩放。引入比值 <span class="math">r = L / &lambda;<sub>d</sub></span>，并定义两个阈值 <span class="math">&alpha;=1, &beta;=32</span>：<br><br>
         <span style="color: var(--color-keep); font-weight: bold;">■ 高频 (r &gt; &beta;)</span>：波长远小于L。完全不插值，保持原样。<br>
@@ -232,6 +273,20 @@
       <div class="math-block">
         h(&theta;<sub>d</sub>) = (1-&gamma;(r)) &middot; &theta;<sub>d</sub>/s + &gamma;(r) &middot; &theta;<sub>d</sub>
       </div>
+      <p class="phase-desc" id="sec4-desc-ramp">
+        这里的 <span class="math">&gamma;(r)</span> 是一个斜坡函数（Ramp function），其具体定义为：
+      </p>
+      <div class="math-block" style="text-align: left; padding-left: 10%; display: inline-block; margin-left: 50%; transform: translateX(-50%);">
+        &gamma;(r) = 0, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if r &lt; &alpha; <br>
+        &gamma;(r) = 1, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if r &gt; &beta; <br>
+        &gamma;(r) = (r-&alpha;)/(&beta;-&alpha;), &nbsp; otherwise
+      </div>
+      <p class="phase-desc" id="sec4-desc-cases">
+        让我们用具体数字（以 LLaMA 为例，<span class="math">L=4096, b=10000</span>）来看三个极端情况：<br><br>
+        1. <strong>最高频 (d=0)</strong>：<span class="math">&theta;<sub>0</sub> = 1.0</span>，波长 <span class="math">&lambda;<sub>0</sub> &approx; 6.28</span>。比值 <span class="math">r &approx; 652 &gg; &beta;</span>。此时 <span class="math">&gamma;=1</span>，完全使用原频率 <span class="math">&theta;<sub>0</sub></span>，保留局部信息。<br>
+        2. <strong>最低频 (d=31)</strong>：<span class="math">&theta;<sub>31</sub></span> 极小，波长远大于 <span class="math">L</span>。比值 <span class="math">r &approx; 0.00065 &ll; &alpha;</span>。此时 <span class="math">&gamma;=0</span>，使用全量 PI 插值 <span class="math">&theta;<sub>31</sub>/s</span>。<br>
+        3. <strong>中频</strong>：按比例平滑混合。
+      </p>
       <div class="stage-wrapper">
         <div class="viz-layer" id="ntk-layer" style="display:flex; align-items:flex-end; justify-content:space-between; padding: 20px;">
           <!-- Bars generated via JS -->
@@ -244,8 +299,20 @@
             </div>
             <input type="range" id="slider-s-ntk" min="1" max="32" step="1" value="16">
           </div>
-        </div>
+        </div> <!-- control-group -->
+      </div> <!-- controls -->
+      <h3 class="phase-heading" id="sec4-dyn-heading">4.5. 动态 NTK 与直觉 (Intuition)</h3>
+      <p class="phase-desc" id="sec4-dyn-desc">
+        在实际推理时，我们并不知道最终序列长度。YaRN 使用<strong>动态缩放因子</strong>，根据当前序列长度 <span class="math">l'</span> 实时计算：
+      </p>
+      <div class="math-block">
+        s = max(1, l'/L)
       </div>
+      <p class="phase-desc" id="sec4-dyn-desc2">
+        这意味着模型可以在不进行任何微调（Fine-tuning）的情况下，在推理时动态适应不同的上下文长度。<br><br>
+        <strong>为什么分段 NTK 如此有效？（Intuition）</strong><br>
+        核心洞察是：高频维度编码的是<strong>局部距离</strong>（相邻 Token）。它们的波长极短，在预训练窗口 <span class="math">L</span> 内已经历了无数个完整周期。它们<strong>已经见过了所有可能的相对位置</strong>，如果强行插值，反而会破坏这种细粒度。而低频维度编码的是<strong>全局位置</strong>，波长超过 <span class="math">L</span>，在训练时连一个完整周期都没走完。这些维度面对更长的序列时，才真正需要通过 PI 进行“插值外推”。NTK-by-parts 完美地用数学将这一直觉落地。
+      </p>
 
       <h3 class="phase-heading" id="sec5-heading">5. 注意力缩放 (Attention Scaling)</h3>
       <p class="phase-desc" id="sec5-desc">
@@ -293,6 +360,20 @@
           lblSNtk: "Target Extension Scale (s)",
           sec5Head: "5. Attention Scaling",
           sec5Desc: "YaRN found that after interpolation, the attention logits distribution shifts (larger average length alters variance). To correct this temperature bias, YaRN multiplies attention by a critical scaling factor:",
+          sec1DescComplex: "More rigorously, it can be written as a rotation in complex form (in a 2D subspace):",
+          sec1DescFramework: "All subsequent context extension methods (including YaRN) essentially modify this rotation by introducing a position function <span class=\"math\">g(m)</span> and a frequency function <span class=\"math\">h(&theta;)</span>:",
+          sec2DescRatio: "Define the ratio <span class=\"math\">r(d)</span> between the pre-training context length <span class=\"math\">L</span> and the wavelength:",
+          sec2DescRatioExp: "This ratio determines how each dimension is treated: when <span class=\"math\">r &gg; 1</span>, the dimension completes many cycles within the training window &rarr; <strong>high frequency (local info)</strong>; when <span class=\"math\">r &ll; 1</span>, it barely rotates &rarr; <strong>low frequency (global position info)</strong>.",
+          sec3DescMath: "Expressed mathematically, PI is equivalent to:",
+          sec3DescProb: "This is equivalent to scaling all effective frequencies to <span class=\"math\">&theta;<sub>d</sub>/s</span>. For high-frequency dimensions, the angle between adjacent tokens was <span class=\"math\">&theta;<sub>d</sub></span>, but now it's <span class=\"math\">&theta;<sub>d</sub>/s</span>. This drastic reduction causes the model to become 'nearsighted', losing its fine-grained relative resolution.",
+          sec40Head: "4. NTK-Aware Interpolation (Precursor)",
+          sec40Desc: "Before introducing NTK-by-parts, let's look at <strong>NTK-Aware Interpolation</strong>. Instead of directly scaling positions, it modifies the base <span class=\"math\">b</span> to spread the interpolation pressure across all dimensions:",
+          sec40Desc2: "High-frequency dimensions are affected less, and low-frequency ones are affected more. But it's still not perfect, leading YaRN to propose NTK-by-parts.",
+          sec4DescRamp: "Here, <span class=\"math\">&gamma;(r)</span> is a ramp function defined as:",
+          sec4DescCases: "Let's walk through 3 cases with concrete numbers (using LLaMA: <span class=\"math\">L=4096, b=10000</span>):<br><br>1. <strong>Highest freq (d=0)</strong>: <span class=\"math\">&theta;<sub>0</sub> = 1.0</span>, <span class=\"math\">&lambda;<sub>0</sub> &approx; 6.28</span>. Ratio <span class=\"math\">r &approx; 652 &gg; &beta;</span>. Here <span class=\"math\">&gamma;=1</span>, keeping <span class=\"math\">&theta;<sub>0</sub></span> unchanged (preserving local info).<br>2. <strong>Lowest freq (d=31)</strong>: <span class=\"math\">&theta;<sub>31</sub></span> is tiny, <span class=\"math\">&lambda;<sub>31</sub> &gg; L</span>. Ratio <span class=\"math\">r &approx; 0.00065 &ll; &alpha;</span>. Here <span class=\"math\">&gamma;=0</span>, applying full PI <span class=\"math\">&theta;<sub>31</sub>/s</span>.<br>3. <strong>Mid freq</strong>: A smooth proportional blend.",
+          sec4DynHead: "4.5. Dynamic NTK & Intuition",
+          sec4DynDesc: "During inference, the exact sequence length isn't known upfront. YaRN uses a <strong>dynamic scale factor</strong> calculated on-the-fly based on the current sequence length <span class=\"math\">l'</span>:",
+          sec4DynDesc2: "This allows the model to adapt dynamically to varying context lengths during inference without any fine-tuning.<br><br><strong>Why NTK-by-Parts Works (Intuition)</strong><br>The core insight: high-frequency dimensions encode <strong>local distances</strong> (nearby tokens). Their short wavelengths mean they complete many cycles within <span class=\"math\">L</span>. They have <strong>already seen all possible relative positions</strong>. Interpolating them would destroy this granularity. Low-frequency dimensions encode <strong>global position</strong>. Their wavelengths exceed <span class=\"math\">L</span>, so they only saw a fraction of a cycle during training. These are the dimensions that actually need interpolation (PI) to handle longer sequences. NTK-by-parts is the perfect mathematical realization of this insight.",
           sec6Head: "6. YaRN Method Summary",
           stat1Lbl: "Seamlessly Supported Context",
           stat2Lbl: "Reduction in Fine-Tuning Tokens",
@@ -315,6 +396,20 @@
           lblSNtk: "目标扩展倍数 (s)",
           sec5Head: "5. 注意力缩放 (Attention Scaling)",
           sec5Desc: "YaRN 发现，在插值后，注意力的 Logits 分布会发生变动（平均长度变大导致方差改变）。为了修正这种温度偏差，YaRN 在注意力计算后乘以一个极小但关键的缩放系数：",
+          sec1DescComplex: "更严谨地，将其写为复数形式的旋转（在 2D 子空间中）：",
+          sec1DescFramework: "后续的所有上下文扩展方法（包括 YaRN），本质上都是通过引入位置函数 <span class=\"math\">g(m)</span> 和频率函数 <span class=\"math\">h(&theta;)</span> 来修改这个旋转公式：",
+          sec2DescRatio: "定义预训练上下文长度 <span class=\"math\">L</span> 与波长的比值 <span class=\"math\">r(d)</span>：",
+          sec2DescRatioExp: "这个比值决定了该维度如何被处理：当 <span class=\"math\">r &gg; 1</span> 时，该维度在训练窗口内完成多次循环 &rarr; <strong>高频（局部信息）</strong>；当 <span class=\"math\">r &ll; 1</span> 时，该维度几乎不旋转 &rarr; <strong>低频（全局位置信息）</strong>。",
+          sec3DescMath: "用数学公式表达，PI 相当于：",
+          sec3DescProb: "这等价于将所有维度的有效频率变为 <span class=\"math\">&theta;<sub>d</sub>/s</span>。在数学上，原本相邻 Token 间的旋转角度差是 <span class=\"math\">&theta;<sub>d</sub></span>，现在变成了 <span class=\"math\">&theta;<sub>d</sub>/s</span>。对于高频维度来说，角度差变得极小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。",
+          sec40Head: "4. NTK-Aware 插值 (前置基础)",
+          sec40Desc: "在引入分段 NTK 之前，我们先看看 <strong>NTK-Aware Interpolation</strong>。它不直接缩放位置，而是修改底数 <span class=\"math\">b</span>，将插值的压力分散到所有维度上：",
+          sec40Desc2: "高频维度受影响较小，低频维度受影响较大。但这依然不够完美，于是 YaRN 提出了 NTK-by-parts。",
+          sec4DescRamp: "这里的 <span class=\"math\">&gamma;(r)</span> 是一个斜坡函数（Ramp function），其具体定义为：",
+          sec4DescCases: "让我们用具体数字（以 LLaMA 为例，<span class=\"math\">L=4096, b=10000</span>）来看三个极端情况：<br><br>1. <strong>最高频 (d=0)</strong>：<span class=\"math\">&theta;<sub>0</sub> = 1.0</span>，波长 <span class=\"math\">&lambda;<sub>0</sub> &approx; 6.28</span>。比值 <span class=\"math\">r &approx; 652 &gg; &beta;</span>。此时 <span class=\"math\">&gamma;=1</span>，完全使用原频率 <span class=\"math\">&theta;<sub>0</sub></span>，保留局部信息。<br>2. <strong>最低频 (d=31)</strong>：<span class=\"math\">&theta;<sub>31</sub></span> 极小，波长远大于 <span class=\"math\">L</span>。比值 <span class=\"math\">r &approx; 0.00065 &ll; &alpha;</span>。此时 <span class=\"math\">&gamma;=0</span>，使用全量 PI 插值 <span class=\"math\">&theta;<sub>31</sub>/s</span>。<br>3. <strong>中频</strong>：按比例平滑混合。",
+          sec4DynHead: "4.5. 动态 NTK 与直觉 (Intuition)",
+          sec4DynDesc: "在实际推理时，我们并不知道最终序列长度。YaRN 使用<strong>动态缩放因子</strong>，根据当前序列长度 <span class=\"math\">l'</span> 实时计算：",
+          sec4DynDesc2: "这意味着模型可以在不进行任何微调（Fine-tuning）的情况下，在推理时动态适应不同的上下文长度。<br><br><strong>为什么分段 NTK 如此有效？（Intuition）</strong><br>核心洞察是：高频维度编码的是<strong>局部距离</strong>（相邻 Token）。它们的波长极短，在预训练窗口 <span class=\"math\">L</span> 内已经历了无数个完整周期。它们<strong>已经见过了所有可能的相对位置</strong>，如果强行插值，反而会破坏这种细粒度。而低频维度编码的是<strong>全局位置</strong>，波长超过 <span class=\"math\">L</span>，在训练时连一个完整周期都没走完。这些维度面对更长的序列时，才真正需要通过 PI 进行“插值外推”。NTK-by-parts 完美地用数学将这一直觉落地。",
           sec6Head: "6. YaRN 方法总结",
           stat1Lbl: "无缝支持的上下文长度",
           stat2Lbl: "微调 Token 量降低",
@@ -349,6 +444,20 @@
         document.getElementById('stat1-lbl').innerHTML = L.stat1Lbl;
         document.getElementById('stat2-lbl').innerHTML = L.stat2Lbl;
         document.getElementById('stat3-lbl').innerHTML = L.stat3Lbl;
+        document.getElementById('sec1-desc-complex').innerHTML = L.sec1DescComplex;
+        document.getElementById('sec1-desc-framework').innerHTML = L.sec1DescFramework;
+        document.getElementById('sec2-desc-ratio').innerHTML = L.sec2DescRatio;
+        document.getElementById('sec2-desc-ratio-exp').innerHTML = L.sec2DescRatioExp;
+        document.getElementById('sec3-desc-math').innerHTML = L.sec3DescMath;
+        document.getElementById('sec3-desc-prob').innerHTML = L.sec3DescProb;
+        document.getElementById('sec4-0-heading').innerHTML = L.sec40Head;
+        document.getElementById('sec4-0-desc').innerHTML = L.sec40Desc;
+        document.getElementById('sec4-0-desc2').innerHTML = L.sec40Desc2;
+        document.getElementById('sec4-desc-ramp').innerHTML = L.sec4DescRamp;
+        document.getElementById('sec4-desc-cases').innerHTML = L.sec4DescCases;
+        document.getElementById('sec4-dyn-heading').innerHTML = L.sec4DynHead;
+        document.getElementById('sec4-dyn-desc').innerHTML = L.sec4DynDesc;
+        document.getElementById('sec4-dyn-desc2').innerHTML = L.sec4DynDesc2;
       }
 
       langToggleBtn.addEventListener('click', () => {
