@@ -89,6 +89,9 @@
         .math-block { padding: 1rem 0.5rem; font-size: 0.9rem; overflow-x: auto; }
         .math-block .katex { font-size: 0.85em; }
         .code-block { font-size: 0.78rem; padding: 1rem; margin: 1.5rem 0; }
+        .rollout-packet table { font-size: 0.82em; }
+        .rollout-packet td, .rollout-packet th { padding: 6px 8px; }
+        .rollout-packet [id^='rp-head-note'], .rollout-packet [id^='rp-note-'] { display: none; }
         .timeline-container { flex-direction: column; }
         body { padding: 1rem; }
         .article { padding: 0 1rem 2rem; max-width: 100%; }
@@ -196,7 +199,49 @@
       <p class="phase-desc" id="sec1-desc2"></p>
       
       <p class="phase-desc" id="sec1-desc3"></p>
-      <pre class="code-block"><code id="sec1-rollout-packet" class="language-python"></code></pre>
+      <div class="rollout-packet" id="sec1-rollout-packet">
+        <table style="width:100%; border-collapse:collapse; font-family:var(--font-sans); font-size:0.92em; border:1px solid var(--border);">
+          <thead>
+            <tr style="background:var(--bg-alt); border-bottom:2px solid var(--border);">
+              <th style="padding:10px 12px; text-align:left; border-right:1px solid var(--border); white-space:nowrap;" id="rp-head-field"></th>
+              <th style="padding:10px 12px; text-align:left; border-right:1px solid var(--border);" id="rp-head-value"></th>
+              <th style="padding:10px 12px; text-align:left;" id="rp-head-note"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-weight:600; font-family:'JetBrains Mono',monospace; font-size:0.9em; white-space:nowrap;">input_ids</td>
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:0.88em; color:var(--text-secondary);">["123+456=?", "The", "answer", "is", "579", "."]</td>
+              <td style="padding:8px 12px; color:var(--text-secondary); font-size:0.9em;" id="rp-note-input"></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border); background:var(--bg-alt);">
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-weight:600; font-family:'JetBrains Mono',monospace; font-size:0.9em; white-space:nowrap;">logprobs</td>
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:0.88em; color:var(--text-secondary);">[-0.12, -0.41, -0.35, -0.09, -0.22]</td>
+              <td style="padding:8px 12px; color:var(--text-secondary); font-size:0.9em;" id="rp-note-logprobs"></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-weight:600; font-family:'JetBrains Mono',monospace; font-size:0.9em; white-space:nowrap;">loss_mask</td>
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:0.88em;"><span style="color:var(--text-secondary);">0, 0, 0,</span> <span style="color:#27ae60; font-weight:600;">1, 1, 1, 1, 1</span></td>
+              <td style="padding:8px 12px; color:var(--text-secondary); font-size:0.9em;" id="rp-note-mask"></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border); background:var(--bg-alt);">
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-weight:600; font-family:'JetBrains Mono',monospace; font-size:0.9em; white-space:nowrap;">rewards</td>
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:0.88em; color:#27ae60; font-weight:600;">1.0</td>
+              <td style="padding:8px 12px; color:var(--text-secondary); font-size:0.9em;" id="rp-note-rewards"></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-weight:600; font-family:'JetBrains Mono',monospace; font-size:0.9em; white-space:nowrap;">advantages</td>
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:0.88em; color:var(--text-secondary);">[0.12, 0.34, 0.56, 0.78, 0.91]</td>
+              <td style="padding:8px 12px; color:var(--text-secondary); font-size:0.9em;" id="rp-note-advantages"></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-weight:600; font-family:'JetBrains Mono',monospace; font-size:0.9em; white-space:nowrap;">versions</td>
+              <td style="padding:8px 12px; border-right:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:0.88em; color:var(--text-secondary);">["v2", "v2", "v2", "v2", "v2"]</td>
+              <td style="padding:8px 12px; color:var(--text-secondary); font-size:0.9em;" id="rp-note-versions"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <p class="phase-desc" id="sec1-desc4"></p>
       <p class="phase-desc" id="sec1-desc5"></p>
       <p class="phase-desc" id="sec1-desc6"></p>
@@ -422,14 +467,15 @@ $$\text{where } u_t^{\text{prox}}(\theta) = \frac{\pi_\theta(a_t | s_t)}{\textco
           sec1Desc1: "LLM 的 RL 训练本质是一个高频闭环：模型先按当前策略生成回答（rollout），奖励模型/规则验证器给出分数，再用 PPO 更新权重。这个循环在训练中会重复成千上万次。",
           sec1Desc2: "关键点是：rollout 不是一句自然语言，而是一份可训练的数据包。每个 token 都要带上概率、掩码、优势值与版本信息，否则训练器无法做稳定的策略梯度更新。",
           sec1Desc3: "典型 rollout 数据结构为 <code>{input_ids, logprobs, loss_mask, rewards, advantages, versions}</code>。其中 <code>input_ids</code> 是 prompt+response 拼接；<code>logprobs</code> 记录生成策略下每个 token 的对数概率；<code>loss_mask</code> 对 prompt 置 0、对生成 token 置 1。",
-          sec1RolloutPacket: `{
-  "input_ids":   ["123+456=?", "The", "answer", "is", "579", "."],
-  "logprobs":    [-0.12, -0.41, -0.35, -0.09, -0.22],
-  "loss_mask":   [0, 0, 0, 1, 1, 1, 1, 1],
-  "rewards":     1.0,
-  "advantages":  [0.12, 0.34, 0.56, 0.78, 0.91],  # GAE credit
-  "versions":    ["v2", "v2", "v2", "v2", "v2"]
-}`,
+          rpHeadField: "字段",
+          rpHeadValue: "示例值",
+          rpHeadNote: "说明",
+          rpNoteInput: "prompt + response 拼接",
+          rpNoteLogprobs: "生成策略下每个 token 的对数概率",
+          rpNoteMask: "0 = prompt (不参与损失)，1 = 生成 token",
+          rpNoteRewards: "验证器/奖励模型评分",
+          rpNoteAdvantages: "GAE 逐 token 信用分配",
+          rpNoteVersions: "记录生成该 token 的策略版本",
           sec1Desc4: "具体例子：用户提问“123+456=?” → 模型生成 “The answer is 579.” → 执行验证器比对正确答案 → \(\text{reward}=1.0\) → 通过 GAE 为每个 token 分配 advantage → 送入 PPO 做梯度更新。",
           sec1Desc5: "同步瓶颈非常直观：假设 512 张 GPU、一次 256 个 prompt，最长响应 8192 token、平均仅 2000 token。同步系统必须等 8192 token 的请求结束后才能进入下一步，绝大部分 GPU 在后半程空转。",
           sec1Desc6: "因此 AReaL 的核心优化目标不是“让单次生成更快”，而是让生成与训练持续重叠，避免被最慢样本拖住全局吞吐。",
@@ -557,14 +603,15 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec1Desc1: "LLM RL training is a tight loop: generate a response rollout, score it with reward/verification, then update weights with PPO. This loop repeats thousands of times during training.",
           sec1Desc2: "A rollout is not just text; it is a trainable token-level packet carrying probabilities, masks, credit assignment, and version metadata.",
           sec1Desc3: "A typical packet is <code>{input_ids, logprobs, loss_mask, rewards, advantages, versions}</code>. <code>input_ids</code> concatenates prompt + response; <code>logprobs</code> stores per-token log-likelihoods under the generating policy; <code>loss_mask</code> is 0 on prompt tokens and 1 on generated tokens.",
-          sec1RolloutPacket: `{
-  "input_ids":   ["123+456=?", "The", "answer", "is", "579", "."],
-  "logprobs":    [-0.12, -0.41, -0.35, -0.09, -0.22],
-  "loss_mask":   [0, 0, 0, 1, 1, 1, 1, 1],
-  "rewards":     1.0,
-  "advantages":  [0.12, 0.34, 0.56, 0.78, 0.91],  # GAE credit
-  "versions":    ["v2", "v2", "v2", "v2", "v2"]
-}`,
+          rpHeadField: "Field",
+          rpHeadValue: "Example",
+          rpHeadNote: "Description",
+          rpNoteInput: "prompt + response concatenated",
+          rpNoteLogprobs: "per-token log-likelihood under generating policy",
+          rpNoteMask: "0 = prompt (no loss), 1 = generated token",
+          rpNoteRewards: "verifier / reward model score",
+          rpNoteAdvantages: "GAE token-level credit assignment",
+          rpNoteVersions: "policy version that generated each token",
           sec1Desc4: "Concrete example: user asks \"123+456=?\" → model outputs \"The answer is 579.\" → verifier executes check → \(\text{reward}=1.0\) → GAE computes token-level advantages → PPO update consumes the trajectory.",
           sec1Desc5: "Sync bottleneck with numbers: 512 GPUs, batch of 256 prompts, longest response 8192 tokens while average is 2000. Everyone must wait for the 8192-token straggler before advancing.",
           sec1Desc6: "So the real optimization target is continuous overlap between generation and training, not just faster single-request decoding.",
@@ -709,7 +756,15 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
         document.getElementById('sec1-desc1').innerHTML = L.sec1Desc1;
         document.getElementById('sec1-desc2').innerHTML = L.sec1Desc2;
         document.getElementById('sec1-desc3').innerHTML = L.sec1Desc3;
-        document.getElementById('sec1-rollout-packet').innerHTML = highlightPython(L.sec1RolloutPacket);
+        document.getElementById('rp-head-field').textContent = L.rpHeadField;
+        document.getElementById('rp-head-value').textContent = L.rpHeadValue;
+        document.getElementById('rp-head-note').textContent = L.rpHeadNote;
+        document.getElementById('rp-note-input').textContent = L.rpNoteInput;
+        document.getElementById('rp-note-logprobs').textContent = L.rpNoteLogprobs;
+        document.getElementById('rp-note-mask').textContent = L.rpNoteMask;
+        document.getElementById('rp-note-rewards').textContent = L.rpNoteRewards;
+        document.getElementById('rp-note-advantages').textContent = L.rpNoteAdvantages;
+        document.getElementById('rp-note-versions').textContent = L.rpNoteVersions;
         document.getElementById('sec1-desc4').innerHTML = L.sec1Desc4;
         document.getElementById('sec1-desc5').innerHTML = L.sec1Desc5;
         document.getElementById('sec1-desc6').innerHTML = L.sec1Desc6;
