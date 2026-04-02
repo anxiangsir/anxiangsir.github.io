@@ -9,6 +9,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
     <style>
       :root {
         --bg: #ffffff;
@@ -54,7 +58,15 @@
       .phase-desc { font-family: var(--font-serif); font-size: 1.05rem; text-align: left; max-width: none; margin: 0 0 15px; color: var(--text-secondary); line-height: 1.75; }
       
       .math { font-family: var(--font-math); background: var(--bg-alt); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.95em; border: 1px solid var(--border); color: var(--text); }
-      .math-block { display: block; text-align: center; font-family: var(--font-math); font-size: 1.1rem; padding: 1.5rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); }
+      .math-block { display: block; text-align: center; padding: 1.5rem 1rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .code-block { display: block; background: #1e1e2e; color: #cdd6f4; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.88rem; line-height: 1.7; padding: 1.25rem 1.5rem; margin: 2rem 0; border-radius: 8px; border-left: 3px solid var(--accent); overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: pre; tab-size: 2; }
+      .code-block code { background: none; border: none; padding: 0; font-size: inherit; font-family: inherit; color: inherit; }
+      .code-block .kw { color: #cba6f7; }
+      .code-block .fn { color: #89b4fa; }
+      .code-block .str { color: #a6e3a1; }
+      .code-block .num { color: #fab387; }
+      .code-block .cm { color: #6c7086; font-style: italic; }
+      .code-block .op { color: #89dceb; }
       
       .stage-wrapper { width: 100%; position: relative; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 0 auto 35px; background: var(--bg-alt); box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; justify-content: center; align-items: center; flex-direction: column; }
       .stage-footer { padding: 15px 20px; background: var(--bg); border-top: 1px solid var(--border); width: 100%; font-family: var(--font-sans); text-align: center; font-size: 0.95rem; font-weight: bold; color: var(--text); min-height: 3rem; display: flex; align-items: center; justify-content: center; }
@@ -74,6 +86,9 @@
       .tl-util { text-align: center; font-family: var(--font-sans); font-size: 0.9rem; font-weight: bold; margin-top: 10px; }
       
       @media (max-width: 768px) {
+        .math-block { padding: 1rem 0.5rem; font-size: 0.9rem; overflow-x: auto; }
+        .math-block .katex { font-size: 0.85em; }
+        .code-block { font-size: 0.78rem; padding: 1rem; margin: 1.5rem 0; }
         .timeline-container { flex-direction: column; }
         body { padding: 1rem; }
         .article { padding: 0 1rem 2rem; max-width: 100%; }
@@ -181,7 +196,7 @@
       <p class="phase-desc" id="sec1-desc2"></p>
       
       <p class="phase-desc" id="sec1-desc3"></p>
-      <div class="math-block" id="sec1-rollout-packet"></div>
+      <pre class="code-block"><code id="sec1-rollout-packet" class="language-python"></code></pre>
       <p class="phase-desc" id="sec1-desc4"></p>
       <p class="phase-desc" id="sec1-desc5"></p>
       <p class="phase-desc" id="sec1-desc6"></p>
@@ -269,7 +284,7 @@
       <h3 class="phase-heading" id="sec4-heading"></h3>
       <p class="phase-desc" id="sec4-desc1"></p>
       <p class="phase-desc" id="sec4-desc2"></p>
-      <div class="math-block">&lfloor;(N<sub>r</sub> - 1) / B&rfloor; &le; i + &eta;</div>
+      <div class="math-block">$$\left\lfloor \frac{N_r - 1}{B} \right\rfloor \leq i + \eta$$</div>
       <p class="phase-desc" id="sec4-desc3"></p>
       <p class="phase-desc" id="sec4-desc4"></p>
       <p class="phase-desc" id="sec4-desc5"></p>
@@ -321,19 +336,15 @@
 
       <h3 class="phase-heading" id="sec5-heading"></h3>
       <p class="phase-desc" id="sec5-desc1"></p>
-      <div class="math-block">
-        J<sub>PPO</sub>(&theta;) = E[min(u<sub>t</sub>(&theta;)&middot;&Acirc;<sub>t</sub>, clip(u<sub>t</sub>(&theta;), 1-&epsilon;, 1+&epsilon;)&middot;&Acirc;<sub>t</sub>)]<br>
-        where u<sub>t</sub>(&theta;) = &pi;<sub>&theta;</sub>(a<sub>t</sub>|s<sub>t</sub>) / &pi;<sub>old</sub>(a<sub>t</sub>|s<sub>t</sub>)
-      </div>
+      <div class="math-block">$$J_{\text{PPO}}(\theta) = \mathbb{E}\left[\min\left(u_t(\theta) \cdot \hat{A}_t,\; \text{clip}(u_t(\theta),\, 1{-}\epsilon,\, 1{+}\epsilon) \cdot \hat{A}_t\right)\right]$$
+$$\text{where } u_t(\theta) = \frac{\pi_\theta(a_t | s_t)}{\pi_{\text{old}}(a_t | s_t)}$$</div>
       <p class="phase-desc" id="sec5-desc2"></p>
       <p class="phase-desc" id="sec5-desc3"></p>
       <p class="phase-desc" id="sec5-desc4"></p>
       <p class="phase-desc" id="sec5-desc7"></p>
-      <div class="math-block" id="sec5-loss-code"></div>
-      <div class="math-block">
-        J(&theta;) = E[&Sigma;<sub>t</sub> (<span style="color:#27ae60">&pi;<sub>prox</sub></span>/<span style="color:#c0392b">&pi;<sub>behav</sub></span>) &middot; min(u<sub>t</sub><sup>prox</sup>&middot;&Acirc;<sub>t</sub>, clip(u<sub>t</sub><sup>prox</sup>, 1-&epsilon;, 1+&epsilon;)&middot;&Acirc;<sub>t</sub>)]<br>
-        where u<sub>t</sub><sup>prox</sup>(&theta;) = &pi;<sub>&theta;</sub>(a<sub>t</sub>|s<sub>t</sub>) / <span style="color:#27ae60">&pi;<sub>prox</sub></span>(a<sub>t</sub>|s<sub>t</sub>)
-      </div>
+      <pre class="code-block"><code id="sec5-loss-code" class="language-python"></code></pre>
+      <div class="math-block">$$J(\theta) = \mathbb{E}\left[\sum_t \frac{\textcolor{#27ae60}{\pi_{\text{prox}}}}{\textcolor{#c0392b}{\pi_{\text{behav}}}} \cdot \min\left(u_t^{\text{prox}} \cdot \hat{A}_t,\; \text{clip}(u_t^{\text{prox}},\, 1{-}\epsilon,\, 1{+}\epsilon) \cdot \hat{A}_t\right)\right]$$
+$$\text{where } u_t^{\text{prox}}(\theta) = \frac{\pi_\theta(a_t | s_t)}{\textcolor{#27ae60}{\pi_{\text{prox}}}(a_t | s_t)}$$</div>
       <p class="phase-desc" id="sec5-desc5"></p>
       <p class="phase-desc" id="sec5-desc6"></p>
       <p class="phase-desc" id="sec5-desc8"></p>
@@ -410,9 +421,16 @@
           sec1Head: "1. 同步RL的代价",
           sec1Desc1: "LLM 的 RL 训练本质是一个高频闭环：模型先按当前策略生成回答（rollout），奖励模型/规则验证器给出分数，再用 PPO 更新权重。这个循环在训练中会重复成千上万次。",
           sec1Desc2: "关键点是：rollout 不是一句自然语言，而是一份可训练的数据包。每个 token 都要带上概率、掩码、优势值与版本信息，否则训练器无法做稳定的策略梯度更新。",
-          sec1Desc3: "典型 rollout 数据结构为 <span class=\"math\">{input_ids, logprobs, loss_mask, rewards, advantages, versions}</span>。其中 <span class=\"math\">input_ids</span> 是 prompt+response 拼接；<span class=\"math\">logprobs</span> 记录生成策略下每个 token 的对数概率；<span class=\"math\">loss_mask</span> 对 prompt 置 0、对生成 token 置 1。",
-          sec1RolloutPacket: "<span class=\"math\">input_ids</span>: [\"123+456=?\", \"The\", \"answer\", \"is\", \"579\", \".\"]<br><span class=\"math\">logprobs</span>: [-0.12, -0.41, -0.35, -0.09, -0.22]<br><span class=\"math\">loss_mask</span>: [0,0,0,1,1,1,1,1] &nbsp; <span class=\"math\">rewards</span>: 1.0<br><span class=\"math\">advantages</span>: 由 GAE 计算的逐 token credit &nbsp; <span class=\"math\">versions</span>: [v2,v2,v2,v2,v2]",
-          sec1Desc4: "具体例子：用户提问“123+456=?” → 模型生成 “The answer is 579.” → 执行验证器比对正确答案 → <span class=\"math\">reward=1.0</span> → 通过 GAE 为每个 token 分配 advantage → 送入 PPO 做梯度更新。",
+          sec1Desc3: "典型 rollout 数据结构为 \\\\({input_ids, logprobs, loss_mask, rewards, advantages, versions}\\\\)。其中 \\\\(input_ids\\\\) 是 prompt+response 拼接；\\\\(logprobs\\\\) 记录生成策略下每个 token 的对数概率；\\\\(loss_mask\\\\) 对 prompt 置 0、对生成 token 置 1。",
+          sec1RolloutPacket: `{
+  "input_ids":   ["123+456=?", "The", "answer", "is", "579", "."],
+  "logprobs":    [-0.12, -0.41, -0.35, -0.09, -0.22],
+  "loss_mask":   [0, 0, 0, 1, 1, 1, 1, 1],
+  "rewards":     1.0,
+  "advantages":  [0.12, 0.34, 0.56, 0.78, 0.91],  # GAE credit
+  "versions":    ["v2", "v2", "v2", "v2", "v2"]
+}`,
+          sec1Desc4: "具体例子：用户提问“123+456=?” → 模型生成 “The answer is 579.” → 执行验证器比对正确答案 → \\\\(reward=1.0\\\\) → 通过 GAE 为每个 token 分配 advantage → 送入 PPO 做梯度更新。",
           sec1Desc5: "同步瓶颈非常直观：假设 512 张 GPU、一次 256 个 prompt，最长响应 8192 token、平均仅 2000 token。同步系统必须等 8192 token 的请求结束后才能进入下一步，绝大部分 GPU 在后半程空转。",
           sec1Desc6: "因此 AReaL 的核心优化目标不是“让单次生成更快”，而是让生成与训练持续重叠，避免被最慢样本拖住全局吞吐。",
           tlSyncTitle: "同步架构 (PPO)",
@@ -427,7 +445,7 @@
           sec2Desc3: "Reward Service 在编程任务中并不只是“打分模型”——而是会在沙箱中执行候选代码。以 countdown game 为例：先抽取等式，再检查数字是否且仅使用一次，随后执行算术并比对 target。数学任务则抽取最终答案并与标准答案比对。",
           sec2Desc4: "Training Buffer 是 FIFO 的 consume-once 队列（不是 replay buffer）：样本仅被训练一次，消费后立刻丢弃。这和经典离线 RL 的经验回放池有本质区别。",
           sec2Desc5: "Controller 内置 HTTP callback server 进行异步协调：rollout 完成后回调提交 trajectory，trainer 持续取数训练，权重更新后再广播回 rollout 集群。",
-          sec2Desc6: "训练微批次按 token 数动态切分，每个 microbatch 目标是 <span class=\"math\">32,768</span> tokens，而不是固定样本条数。这样能更稳定地吃满算力。",
+          sec2Desc6: "训练微批次按 token 数动态切分，每个 microbatch 目标是 \\\\(32,768\\\\) tokens，而不是固定样本条数。这样能更稳定地吃满算力。",
           nCtrlT: "采样控制器", nCtrlD: "Round-robin 调度，管理全局数据流与权重广播",
           nRollT: "可中断采样", nRollD: "按 Token 生成，支持中途重载权重",
           nRewT: "奖励服务", nRewD: "异步代码测试与环境交互",
@@ -441,24 +459,24 @@
           s2Anim7: "7. 训练完成，最新权重广播回控制器",
 
           sec3Head: "3. 可中断生成 (Interruptible Generation)",
-          sec3Desc1: "可中断生成的关键是 <span class=\"math\">versions</span> 字段：每个 token 都记录由哪个策略版本生成。若中途收到新权重，后续 token 会切换到新版本，形成同一轨迹中的多版本片段。",
+          sec3Desc1: "可中断生成的关键是 \\\\(versions\\\\) 字段：每个 token 都记录由哪个策略版本生成。若中途收到新权重，后续 token 会切换到新版本，形成同一轨迹中的多版本片段。",
           sec3Desc2: "当发生中断，已丢弃 token 对应的 KV cache 必须失效。保留前缀后，需要执行 re-prefill：对“prompt + 保留 token”重新前向一次，重建可继续解码的 KV 状态。",
-          sec3Desc3: "re-prefill 代价是 <span class=\"math\">O(n)</span>（<span class=\"math\">n</span> 为保留 token 数），看似多算了一次；但收益是后续更长的尾部 token 全部来自最新策略，降低 staleness。",
+          sec3Desc3: "re-prefill 代价是 \\\\(O(n)\\\\)（\\\\(n\\\\) 为保留 token 数），看似多算了一次；但收益是后续更长的尾部 token 全部来自最新策略，降低 staleness。",
           sec3Desc4: "工程上这是一种“用局部重算换全局新鲜度”的策略：短期增加少量前向成本，换取更稳定、更高效的长期训练吞吐。",
-          sec3Desc5: "因此 rollout 结果会出现版本切换，例如 <span class=\"math\">[v1,v1,v1,v2,v2,v2,...]</span>，而 Decoupled PPO 正是为这种混合版本轨迹设计。",
+          sec3Desc5: "因此 rollout 结果会出现版本切换，例如 \\\\([v1,v1,v1,v2,v2,v2,...]\\\\)，而 Decoupled PPO 正是为这种混合版本轨迹设计。",
           s3Anim1: "正常使用旧权重 (π_v1) 生成 Token...",
           s3Anim2: "⚡ 新权重到达！最后 3 个 Token 的 KV Cache 作废",
           s3Anim3: "使用新权重 (π_v2) 重新 Prefill 恢复状态...",
           s3Anim4: "继续生成后续 Token。代价：重新计算 3 个 Token，收益：更新鲜的权重",
 
           sec4Head: "4. 数据陈旧度：版本控制机制",
-          sec4Desc1: "陈旧度可以精确量化：若当前训练版本是 <span class=\"math\">v5</span>，某条轨迹由 <span class=\"math\">v2</span> 生成，则 staleness=<span class=\"math\">3</span>。当 <span class=\"math\">η=4</span> 时可用；若 <span class=\"math\">η=2</span> 则必须丢弃。",
-          sec4Desc2: "AReaL 引入了陈旧度阈值 <span class=\"math\">η</span>。其形式化约束定义为：",
-          sec4Desc3: "其中 <span class=\"math\">N<sub>r</sub></span> 是生成的总轨迹数，<span class=\"math\">B</span> 是训练批次大小，<span class=\"math\">i</span> 是当前策略版本，<span class=\"math\">η</span> 是最大陈旧度。当 <span class=\"math\">η = 0</span> 时，这退化为同步 RL。",
-          sec4Desc4: "经验证：编程任务中 <span class=\"math\">η = 4</span>，数学任务中 <span class=\"math\">η = 8</span>。超过阈值的数据从流式缓冲区自动剔除；该缓冲区仍保持 consume-once FIFO 语义。",
-          sec4Desc5: "StalenessManager 同时约束在途 rollout 容量：<span class=\"math\">capacity = min(concurrency_limit, (η + current_version + 1) × batch_size - active)</span>。版本增长时容量窗口扩大；活跃请求过多时会被反压。",
-          sec4CapacityMath: "staleness(v<sub>now</sub>, v<sub>traj</sub>) = v<sub>now</sub> - v<sub>traj</sub>，若 &gt; <span class=\"math\">η</span> 则 drop。<br>容量控制：<span class=\"math\">capacity = min(concurrency_limit, (η + current_version + 1) &times; batch_size - active)</span>",
-          sec4Desc6: "陈旧样本的危害来自重要性比值发散：当 <span class=\"math\">π_old</span> 与 <span class=\"math\">π_θ</span> 差异太大时，<span class=\"math\">π_θ/π_old</span> 方差急剧增大，梯度噪声上升并引发训练不稳定。",
+          sec4Desc1: "陈旧度可以精确量化：若当前训练版本是 \\\\(v5\\\\)，某条轨迹由 \\\\(v2\\\\) 生成，则 staleness=\\\\(3\\\\)。当 \\\\(η=4\\\\) 时可用；若 \\\\(η=2\\\\) 则必须丢弃。",
+          sec4Desc2: "AReaL 引入了陈旧度阈值 \\\\(η\\\\)。其形式化约束定义为：",
+          sec4Desc3: "其中 \\\\(N<sub>r</sub>\\\\) 是生成的总轨迹数，\\\\(B\\\\) 是训练批次大小，\\\\(i\\\\) 是当前策略版本，\\\\(η\\\\) 是最大陈旧度。当 \\\\(η = 0\\\\) 时，这退化为同步 RL。",
+          sec4Desc4: "经验证：编程任务中 \\\\(η = 4\\\\)，数学任务中 \\\\(η = 8\\\\)。超过阈值的数据从流式缓冲区自动剔除；该缓冲区仍保持 consume-once FIFO 语义。",
+          sec4Desc5: "StalenessManager 同时约束在途 rollout 容量：\\\\(capacity = min(concurrency_limit, (η + current_version + 1) × batch_size - active)\\\\)。版本增长时容量窗口扩大；活跃请求过多时会被反压。",
+          sec4CapacityMath: "staleness(v<sub>now</sub>, v<sub>traj</sub>) = v<sub>now</sub> - v<sub>traj</sub>，若 &gt; \\\\(η\\\\) 则 drop。<br>容量控制：\\\\(capacity = min(concurrency_limit, (η + current_version + 1) &times; batch_size - active)\\\\)",
+          sec4Desc6: "陈旧样本的危害来自重要性比值发散：当 \\\\(π_old\\\\) 与 \\\\(π_θ\\\\) 差异太大时，\\\\(π_θ/π_old\\\\) 方差急剧增大，梯度噪声上升并引发训练不稳定。",
           sec4TableTitle: "<strong>陈旧度消融实验 (AIME24)</strong>",
           sec4ThresholdHead: "阈值 (&eta;)",
           sec4NaiveHead: "朴素 PPO",
@@ -469,16 +487,18 @@
           sec4Row8Threshold: "8 (数学默认)",
 
           sec5Head: "5. Decoupled PPO：理论核心",
-          sec5Desc1: "步骤 1：标准 PPO 目标函数假设 <span class=\"math\">π<sub>old</sub></span> 是一个单一策略：",
-          sec5Desc2: "步骤 2：问题所在。在异步 AReaL 中，由于生成可中断，一条轨迹常由多个策略版本拼接而成，<span class=\"math\">π<sub>old</sub></span> 不再是单一策略。",
-          sec5Desc3: "步骤 3：朴素方法。对每个 token 使用其真实的生成策略 <span class=\"math\">π<sub>behav(t)</sub></span> 会造成错配：信任区域在不同 token 上的中心化策略不同，导致灾难性的不稳定性（如消融表中 η=4 所示）。",
-          sec5Desc4: "步骤 4：Decoupled PPO 把 trust region 的分母统一到 <span class=\"math\">π<sub>prox</sub></span>，而不是每个 token 自己的 <span class=\"math\">π<sub>behav</sub></span>。",
-          sec5Desc7: "代码中的核心损失写法是：先算 <span class=\"math\">ratio=exp(logprobs-proximal_logprobs)</span>，再做 clip，最后取未裁剪与裁剪目标的逐元素最大值。",
-          sec5LossCode: "ratio = exp(logprobs - proximal_logprobs)<br>clipped = clamp(ratio, 1-&epsilon;, 1+&epsilon;)<br>loss = max(-advantages &times; ratio, -advantages &times; clipped)",
-          sec5Desc5: "步骤 5：注意 ratio 对比的是 <span class=\"math\">π<sub>θ</sub>/π<sub>prox</sub></span>（非 <span class=\"math\">π<sub>θ</sub>/π<sub>behav</sub></span>）。异策略偏移由额外重要性权重 <span class=\"math\">π<sub>prox</sub>/π<sub>behav</sub></span> 负责修正。",
+          sec5Desc1: "步骤 1：标准 PPO 目标函数假设 \\\\(π<sub>old</sub>\\\\) 是一个单一策略：",
+          sec5Desc2: "步骤 2：问题所在。在异步 AReaL 中，由于生成可中断，一条轨迹常由多个策略版本拼接而成，\\\\(π<sub>old</sub>\\\\) 不再是单一策略。",
+          sec5Desc3: "步骤 3：朴素方法。对每个 token 使用其真实的生成策略 \\\\(π<sub>behav(t)</sub>\\\\) 会造成错配：信任区域在不同 token 上的中心化策略不同，导致灾难性的不稳定性（如消融表中 η=4 所示）。",
+          sec5Desc4: "步骤 4：Decoupled PPO 把 trust region 的分母统一到 \\\\(π<sub>prox</sub>\\\\)，而不是每个 token 自己的 \\\\(π<sub>behav</sub>\\\\)。",
+          sec5Desc7: "代码中的核心损失写法是：先算 \\\\(ratio=exp(logprobs-proximal_logprobs)\\\\)，再做 clip，最后取未裁剪与裁剪目标的逐元素最大值。",
+          sec5LossCode: `ratio = exp(logprobs - proximal_logprobs)
+clipped = clamp(ratio, 1 - ε, 1 + ε)
+loss = max(-advantages * ratio, -advantages * clipped)`,
+          sec5Desc5: "步骤 5：注意 ratio 对比的是 \\\\(π<sub>θ</sub>/π<sub>prox</sub>\\\\)（非 \\\\(π<sub>θ</sub>/π<sub>behav</sub>\\\\)）。异策略偏移由额外重要性权重 \\\\(π<sub>prox</sub>/π<sub>behav</sub>\\\\) 负责修正。",
           sec5Desc6: "步骤 6：这样可把“信任域稳定性”和“异策略校正”解耦：前者由近端分母保证，后者由校正权重承担。",
-          sec5Desc8: "步骤 7：当无法直接拿到 <span class=\"math\">π<sub>prox</sub></span> 时，可用对数线性插值近似，几乎零额外开销。",
-          sec5Loginterp: "log(&pi;<sub>prox</sub>) = (1-&alpha;) &middot; log(&pi;<sub>behav</sub>) + &alpha; &middot; log(&pi;<sub>&theta;</sub>)",
+          sec5Desc8: "步骤 7：当无法直接拿到 \\\\(π<sub>prox</sub>\\\\) 时，可用对数线性插值近似，几乎零额外开销。",
+          sec5Loginterp: "$$\\\\log(\\\\pi_{\\\\text{prox}}) = (1 - \\\\alpha) \\\\cdot \\\\log(\\\\pi_{\\\\text{behav}}) + \\\\alpha \\\\cdot \\\\log(\\\\pi_\\\\theta)$$",
           sec5ReplayNote: "<em>点击动画可重新播放</em>",
 
           sec6Head: "6. 关键对比",
@@ -536,9 +556,16 @@
           sec1Head: "1. The Cost of Synchronous RL",
           sec1Desc1: "LLM RL training is a tight loop: generate a response rollout, score it with reward/verification, then update weights with PPO. This loop repeats thousands of times during training.",
           sec1Desc2: "A rollout is not just text; it is a trainable token-level packet carrying probabilities, masks, credit assignment, and version metadata.",
-          sec1Desc3: "A typical packet is <span class=\"math\">{input_ids, logprobs, loss_mask, rewards, advantages, versions}</span>. <span class=\"math\">input_ids</span> concatenates prompt + response; <span class=\"math\">logprobs</span> stores per-token log-likelihoods under the generating policy; <span class=\"math\">loss_mask</span> is 0 on prompt tokens and 1 on generated tokens.",
-          sec1RolloutPacket: "<span class=\"math\">input_ids</span>: [\"123+456=?\", \"The\", \"answer\", \"is\", \"579\", \".\"]<br><span class=\"math\">logprobs</span>: [-0.12, -0.41, -0.35, -0.09, -0.22]<br><span class=\"math\">loss_mask</span>: [0,0,0,1,1,1,1,1] &nbsp; <span class=\"math\">rewards</span>: 1.0<br><span class=\"math\">advantages</span>: token-wise GAE credit &nbsp; <span class=\"math\">versions</span>: [v2,v2,v2,v2,v2]",
-          sec1Desc4: "Concrete example: user asks \"123+456=?\" → model outputs \"The answer is 579.\" → verifier executes check → <span class=\"math\">reward=1.0</span> → GAE computes token-level advantages → PPO update consumes the trajectory.",
+          sec1Desc3: "A typical packet is \\\\({input_ids, logprobs, loss_mask, rewards, advantages, versions}\\\\). \\\\(input_ids\\\\) concatenates prompt + response; \\\\(logprobs\\\\) stores per-token log-likelihoods under the generating policy; \\\\(loss_mask\\\\) is 0 on prompt tokens and 1 on generated tokens.",
+          sec1RolloutPacket: `{
+  "input_ids":   ["123+456=?", "The", "answer", "is", "579", "."],
+  "logprobs":    [-0.12, -0.41, -0.35, -0.09, -0.22],
+  "loss_mask":   [0, 0, 0, 1, 1, 1, 1, 1],
+  "rewards":     1.0,
+  "advantages":  [0.12, 0.34, 0.56, 0.78, 0.91],  # GAE credit
+  "versions":    ["v2", "v2", "v2", "v2", "v2"]
+}`,
+          sec1Desc4: "Concrete example: user asks \"123+456=?\" → model outputs \"The answer is 579.\" → verifier executes check → \\\\(reward=1.0\\\\) → GAE computes token-level advantages → PPO update consumes the trajectory.",
           sec1Desc5: "Sync bottleneck with numbers: 512 GPUs, batch of 256 prompts, longest response 8192 tokens while average is 2000. Everyone must wait for the 8192-token straggler before advancing.",
           sec1Desc6: "So the real optimization target is continuous overlap between generation and training, not just faster single-request decoding.",
           tlSyncTitle: "Sync Architecture (PPO)",
@@ -553,7 +580,7 @@
           sec2Desc3: "Reward Service is concrete execution, not vague scoring. For coding tasks it runs sandboxed checks (e.g., countdown game: extract equation, verify each number used once, evaluate arithmetic, compare to target). For math tasks it extracts final answer and validates against ground truth.",
           sec2Desc4: "Training Buffer is a FIFO consume-once queue (not a replay buffer). Each trajectory is used exactly once and then discarded.",
           sec2Desc5: "The Controller hosts an HTTP callback server: rollouts push finished trajectories asynchronously, trainers pull continuously, and new weights are broadcast back without global stop-the-world sync.",
-          sec2Desc6: "Microbatches are token-budgeted and dynamically packed: each microbatch targets <span class=\"math\">32,768</span> tokens, not a fixed sample count.",
+          sec2Desc6: "Microbatches are token-budgeted and dynamically packed: each microbatch targets \\\\(32,768\\\\) tokens, not a fixed sample count.",
           nCtrlT: "Rollout Controller", nCtrlD: "Round-robin scheduling, manages global data flow",
           nRollT: "Interruptible Rollout", nRollD: "Token-by-token generation, supports mid-flight weight reload",
           nRewT: "Reward Service", nRewD: "Async code execution and environment interaction",
@@ -567,24 +594,24 @@
           s2Anim7: "7. Training complete, new weights broadcast back",
 
           sec3Head: "3. Interruptible Generation",
-          sec3Desc1: "The crucial field is <span class=\"math\">versions</span>: each token records which policy version generated it. After interruption, subsequent tokens are generated by a newer policy version.",
+          sec3Desc1: "The crucial field is \\\\(versions\\\\): each token records which policy version generated it. After interruption, subsequent tokens are generated by a newer policy version.",
           sec3Desc2: "When interruption happens, KV cache for discarded suffix tokens is invalidated. Re-prefill rebuilds cache by rerunning forward pass on prompt + kept tokens.",
-          sec3Desc3: "Cost is <span class=\"math\">O(n)</span> forward compute for <span class=\"math\">n</span> kept tokens; benefit is that all following tokens come from fresher policy weights.",
+          sec3Desc3: "Cost is \\\\(O(n)\\\\) forward compute for \\\\(n\\\\) kept tokens; benefit is that all following tokens come from fresher policy weights.",
           sec3Desc4: "This is a compute tradeoff: small local recomputation to reduce global policy staleness and improve downstream gradient quality.",
-          sec3Desc5: "Hence trajectories naturally become mixed-version token streams, e.g., <span class=\"math\">[v1,v1,v1,v2,v2,...]</span>, which motivates Decoupled PPO.",
+          sec3Desc5: "Hence trajectories naturally become mixed-version token streams, e.g., \\\\([v1,v1,v1,v2,v2,...]\\\\), which motivates Decoupled PPO.",
           s3Anim1: "Normal generation using old weights (π_v1)...",
           s3Anim2: "⚡ New weights arrive! Last 3 tokens' KV cache discarded",
           s3Anim3: "Re-prefilling with new weights (π_v2) to restore state...",
           s3Anim4: "Continuing generation. Cost: 3 tokens recomputed. Benefit: fresher weights",
 
           sec4Head: "4. Data Staleness: Version Control",
-          sec4Desc1: "Staleness is concrete: if current model is <span class=\"math\">v5</span> and a trajectory came from <span class=\"math\">v2</span>, staleness is 3. With <span class=\"math\">η=4</span> it is usable; with <span class=\"math\">η=2</span> it is discarded.",
-          sec4Desc2: "AReaL introduces a staleness threshold <span class=\"math\">η</span>. The formal constraint is defined as:",
-          sec4Desc3: "where <span class=\"math\">N<sub>r</sub></span> is the total generated trajectories, <span class=\"math\">B</span> is the training batch size, <span class=\"math\">i</span> is the current policy version, and <span class=\"math\">η</span> is the max staleness. When <span class=\"math\">η = 0</span>, this degenerates to synchronous RL.",
-          sec4Desc4: "Empirically validated: <span class=\"math\">η = 4</span> for coding tasks and <span class=\"math\">η = 8</span> for math tasks. Data older than <span class=\"math\">η</span> is dropped from the consume-once FIFO stream.",
-          sec4Desc5: "The StalenessManager also gates in-flight rollouts: <span class=\"math\">capacity = min(concurrency_limit, (η + current_version + 1) × batch_size - active)</span>.",
-          sec4CapacityMath: "staleness(v<sub>now</sub>, v<sub>traj</sub>) = v<sub>now</sub> - v<sub>traj</sub>; drop if &gt; <span class=\"math\">η</span>.<br>Capacity: <span class=\"math\">capacity = min(concurrency_limit, (η + current_version + 1) &times; batch_size - active)</span>",
-          sec4Desc6: "Why stale data hurts: the importance ratio <span class=\"math\">π<sub>θ</sub>/π<sub>old</sub></span> diverges when policies drift apart, causing high-variance gradients and unstable optimization.",
+          sec4Desc1: "Staleness is concrete: if current model is \\\\(v5\\\\) and a trajectory came from \\\\(v2\\\\), staleness is 3. With \\\\(η=4\\\\) it is usable; with \\\\(η=2\\\\) it is discarded.",
+          sec4Desc2: "AReaL introduces a staleness threshold \\\\(η\\\\). The formal constraint is defined as:",
+          sec4Desc3: "where \\\\(N<sub>r</sub>\\\\) is the total generated trajectories, \\\\(B\\\\) is the training batch size, \\\\(i\\\\) is the current policy version, and \\\\(η\\\\) is the max staleness. When \\\\(η = 0\\\\), this degenerates to synchronous RL.",
+          sec4Desc4: "Empirically validated: \\\\(η = 4\\\\) for coding tasks and \\\\(η = 8\\\\) for math tasks. Data older than \\\\(η\\\\) is dropped from the consume-once FIFO stream.",
+          sec4Desc5: "The StalenessManager also gates in-flight rollouts: \\\\(capacity = min(concurrency_limit, (η + current_version + 1) × batch_size - active)\\\\).",
+          sec4CapacityMath: "staleness(v<sub>now</sub>, v<sub>traj</sub>) = v<sub>now</sub> - v<sub>traj</sub>; drop if &gt; \\\\(η\\\\).<br>Capacity: \\\\(capacity = min(concurrency_limit, (η + current_version + 1) &times; batch_size - active)\\\\)",
+          sec4Desc6: "Why stale data hurts: the importance ratio \\\\(π<sub>θ</sub>/π<sub>old</sub>\\\\) diverges when policies drift apart, causing high-variance gradients and unstable optimization.",
           sec4TableTitle: "<strong>Staleness Ablation (AIME24)</strong>",
           sec4ThresholdHead: "Threshold (&eta;)",
           sec4NaiveHead: "Naive PPO",
@@ -595,16 +622,18 @@
           sec4Row8Threshold: "8 (Math default)",
 
           sec5Head: "5. Decoupled PPO: Core Theory",
-          sec5Desc1: "Step 1: Standard PPO objective assumes <span class=\"math\">π<sub>old</sub></span> is a single policy:",
-          sec5Desc2: "Step 2: In async AReaL, interruptible generation means one trajectory can be stitched from multiple policy versions, so <span class=\"math\">π<sub>old</sub></span> is effectively a mixture.",
-          sec5Desc3: "Step 3: Naive approach. Using each token's actual behavior policy <span class=\"math\">π<sub>behav(t)</sub></span> creates a mismatch: the trust region is centered at different policies for different tokens, causing catastrophic instability (as seen in the table at η=4).",
-          sec5Desc4: "Step 4: Decoupled PPO unifies the trust-region denominator with <span class=\"math\">π<sub>prox</sub></span> instead of per-token <span class=\"math\">π<sub>behav</sub></span>.",
-          sec5Desc7: "Code-level objective uses: ratio from <span class=\"math\">logprobs - proximal_logprobs</span>, clip by <span class=\"math\">1\u00b1ε</span>, then tokenwise max between unclipped and clipped losses.",
-          sec5LossCode: "ratio = exp(logprobs - proximal_logprobs)<br>clipped = clamp(ratio, 1-&epsilon;, 1+&epsilon;)<br>loss = max(-advantages &times; ratio, -advantages &times; clipped)",
-          sec5Desc5: "Step 5: Note the ratio is <span class=\"math\">π<sub>θ</sub>/π<sub>prox</sub></span>, not <span class=\"math\">π<sub>θ</sub>/π<sub>behav</sub></span>. Off-policy correction is handled by separate weight <span class=\"math\">π<sub>prox</sub>/π<sub>behav</sub></span>.",
+          sec5Desc1: "Step 1: Standard PPO objective assumes \\\\(π<sub>old</sub>\\\\) is a single policy:",
+          sec5Desc2: "Step 2: In async AReaL, interruptible generation means one trajectory can be stitched from multiple policy versions, so \\\\(π<sub>old</sub>\\\\) is effectively a mixture.",
+          sec5Desc3: "Step 3: Naive approach. Using each token's actual behavior policy \\\\(π<sub>behav(t)</sub>\\\\) creates a mismatch: the trust region is centered at different policies for different tokens, causing catastrophic instability (as seen in the table at η=4).",
+          sec5Desc4: "Step 4: Decoupled PPO unifies the trust-region denominator with \\\\(π<sub>prox</sub>\\\\) instead of per-token \\\\(π<sub>behav</sub>\\\\).",
+          sec5Desc7: "Code-level objective uses: ratio from \\\\(logprobs - proximal_logprobs\\\\), clip by \\\\(1\u00b1ε\\\\), then tokenwise max between unclipped and clipped losses.",
+          sec5LossCode: `ratio = exp(logprobs - proximal_logprobs)
+clipped = clamp(ratio, 1 - ε, 1 + ε)
+loss = max(-advantages * ratio, -advantages * clipped)`,
+          sec5Desc5: "Step 5: Note the ratio is \\\\(π<sub>θ</sub>/π<sub>prox</sub>\\\\), not \\\\(π<sub>θ</sub>/π<sub>behav</sub>\\\\). Off-policy correction is handled by separate weight \\\\(π<sub>prox</sub>/π<sub>behav</sub>\\\\).",
           sec5Desc6: "Step 6: This decouples stability (single proximal trust center) from correction (importance weighting).",
           sec5Desc8: "Step 7: A cheap approximation is log-linear interpolation, which avoids an extra forward pass.",
-          sec5Loginterp: "log(&pi;<sub>prox</sub>) = (1-&alpha;) &middot; log(&pi;<sub>behav</sub>) + &alpha; &middot; log(&pi;<sub>&theta;</sub>)",
+          sec5Loginterp: "$$\\\\log(\\\\pi_{\\\\text{prox}}) = (1 - \\\\alpha) \\\\cdot \\\\log(\\\\pi_{\\\\text{behav}}) + \\\\alpha \\\\cdot \\\\log(\\\\pi_\\\\theta)$$",
           sec5ReplayNote: "<em>Click animation to replay</em>",
 
           sec6Head: "6. Key Comparisons",
@@ -659,6 +688,16 @@
 
       let currentLang = "zh";
 
+            function highlightPython(code) {
+        return code
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/(#[^\n]*)/g, '<span class="cm">$1</span>')
+          .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g, '<span class="str">$1</span>')
+          .replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>')
+          .replace(/\b(def|return|if|elif|else|for|while|import|from|class|with|as|in|not|and|or|True|False|None)\b/g, '<span class="kw">$1</span>')
+          .replace(/\b(exp|clamp|max|min|print|len|range|sum)\b(?=\s*\()/g, '<span class="fn">$1</span>');
+      }
+
       function updateI18n() {
         const L = LABELS[currentLang];
         document.getElementById('lang-toggle').textContent = currentLang === 'en' ? '中文' : 'EN';
@@ -670,7 +709,8 @@
         document.getElementById('sec1-desc1').innerHTML = L.sec1Desc1;
         document.getElementById('sec1-desc2').innerHTML = L.sec1Desc2;
         document.getElementById('sec1-desc3').innerHTML = L.sec1Desc3;
-        document.getElementById('sec1-rollout-packet').innerHTML = L.sec1RolloutPacket;
+        document.getElementById('sec1-rollout-packet').textContent = L.sec1RolloutPacket;
+        document.getElementById('sec1-rollout-packet').innerHTML = highlightPython(document.getElementById('sec1-rollout-packet').innerHTML);
         document.getElementById('sec1-desc4').innerHTML = L.sec1Desc4;
         document.getElementById('sec1-desc5').innerHTML = L.sec1Desc5;
         document.getElementById('sec1-desc6').innerHTML = L.sec1Desc6;
@@ -723,7 +763,8 @@
         document.getElementById('sec5-desc3').innerHTML = L.sec5Desc3;
         document.getElementById('sec5-desc4').innerHTML = L.sec5Desc4;
         document.getElementById('sec5-desc7').innerHTML = L.sec5Desc7;
-        document.getElementById('sec5-loss-code').innerHTML = L.sec5LossCode;
+        document.getElementById('sec5-loss-code').textContent = L.sec5LossCode;
+        document.getElementById('sec5-loss-code').innerHTML = highlightPython(document.getElementById('sec5-loss-code').innerHTML);
         document.getElementById('sec5-desc5').innerHTML = L.sec5Desc5;
         document.getElementById('sec5-desc6').innerHTML = L.sec5Desc6;
         document.getElementById('sec5-desc8').innerHTML = L.sec5Desc8;
@@ -766,12 +807,34 @@
         document.getElementById('sec7-authors-label').innerHTML = L.sec7AuthorsLabel;
         document.getElementById('sec7-authors-value').innerHTML = L.sec7AuthorsValue;
         document.getElementById('sec7-desc2').innerHTML = L.sec7Desc2;
+        if (typeof renderMathInElement !== 'undefined') {
+          renderMathInElement(document.body, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '\\(', right: '\\)', display: false}
+            ],
+            throwOnError: false
+          });
+        }
+
       }
 
       document.getElementById('lang-toggle').addEventListener('click', () => {
         currentLang = currentLang === 'zh' ? 'en' : 'zh';
         updateI18n();
       });
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof renderMathInElement !== 'undefined') {
+          renderMathInElement(document.body, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '\\(', right: '\\)', display: false}
+            ],
+            throwOnError: false
+          });
+        }
+      });
+
 
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const animVisible = {

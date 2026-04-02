@@ -236,23 +236,33 @@
       .glow { box-shadow: 0 0 6px 2px rgba(255,255,255,0.8); z-index: 10; border: 1px solid #fff; }
       .title-label { font-family: "Courier New", Courier, monospace; font-weight: bold; font-size: 16px; letter-spacing: 2px; }
       .stats-label { font-family: var(--font-sans); font-size: 12px; color: var(--ink-light); }
+      .comm-pill { font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: #1a5276; background: rgba(40,116,166,0.1); border: 1px solid rgba(40,116,166,0.25); border-radius: 12px; padding: 3px 12px; letter-spacing: 0.3px; white-space: nowrap; }
       .footer-label { font-family: var(--font-serif); font-style: italic; font-size: 16px; color: var(--ink); }
       
       sub { font-size: 0.7em; }
 
+      .compare-mobile { display: none; font-family: var(--font-sans); font-size: 0.82em; }
+      .compare-mobile .cm-header { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-bottom: 2px solid var(--ink); padding-bottom: 4px; margin-bottom: 6px; font-family: var(--font-headline); font-weight: 700; font-size: 0.8em; letter-spacing: 0.5px; text-transform: uppercase; }
+      .compare-mobile .cm-header span:first-child { text-align: left; }
+      .compare-mobile .cm-header span:not(:first-child) { text-align: right; }
+      .compare-mobile .cm-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; padding: 4px 0; border-bottom: 1px solid rgba(43,26,21,0.1); align-items: baseline; }
+      .compare-mobile .cm-row:last-child { border-bottom: none; }
+      .compare-mobile .cm-label { font-weight: 600; color: var(--ink); font-size: 0.9em; }
+      .compare-mobile .cm-val { text-align: right; }
+      .compare-mobile .cm-bad { color: #c0392b; }
+      .compare-mobile .cm-mid { color: #7f6b00; }
+      .compare-mobile .cm-good { color: #1a7a3a; font-weight: 600; }
+
       @media (max-width: 768px) {
         body { padding: 2rem 1rem; }
         .newspaper { padding: 2rem 2rem; max-width: 100%; }
-        .stage-wrapper { height: 400px; overflow-x: auto; }
-        #stage-3 { height: 580px; }
+        .stage-wrapper { overflow-x: auto; }
         .stamp { transform: rotate(15deg) scale(0.7); transform-origin: top right; }
       }
 
       @media (max-width: 480px) {
         body { padding: 1rem 0.5rem; }
         .newspaper { padding: 1.5rem 1rem; }
-        .stage-wrapper { height: 320px; }
-        #stage-3 { height: 450px; }
         .masthead::before, .masthead::after,
         .dateline::before, .dateline::after,
         .stamp,
@@ -260,8 +270,8 @@
         .key-stats { flex-wrap: wrap; flex-direction: column; }
         .key-stats div { border-right: none; border-bottom: 1px solid rgba(43,26,21,0.2); padding-bottom: 10px; margin-bottom: 10px; }
         .key-stats div:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
-        .compare-table { display: block; overflow-x: auto; font-size: 0.75em; }
-        .compare-table th, .compare-table td { padding: 4px 6px; }
+        .compare-table { display: none; }
+        .compare-mobile { display: block; }
         .code-box { font-size: 10px; overflow-x: auto; }
         .cell-html { font-size: 10px; }
         .cell-text { font-size: 9px; }
@@ -357,48 +367,59 @@ optimizer.step()  # only sampled W updated   # Phase 4
           <tbody>
             <tr>
               <td class="row-label">Weight Memory 显存 / GPU</td>
-              <td class="bad">W: 19.07 GB<br><small>Full C&times;d on every GPU<br>每张卡存全部 C&times;d</small></td>
-              <td class="mid">W: 298 MB<br><small>C/N columns per GPU<br>每卡存 C/N 列</small></td>
-              <td class="good">W: 298 MB<br><small>Same as Model Parallel<br>同 Model Parallel</small></td>
+              <td class="bad" data-label="Data Parallel">W: 19.07 GB<br><small>Full C&times;d on every GPU<br>每张卡存全部 C&times;d</small></td>
+              <td class="mid" data-label="Model Parallel">W: 298 MB<br><small>C/N columns per GPU<br>每卡存 C/N 列</small></td>
+              <td class="good" data-label="PartialFC (r=0.1)">W: 298 MB<br><small>Same as Model Parallel<br>同 Model Parallel</small></td>
             </tr>
             <tr>
               <td class="row-label">Logits Memory 显存</td>
-              <td class="bad">BS&times;C = 156 GB<br><small>All classes<br>全量类别</small></td>
-              <td class="mid">BS&times;C/N = 2.44 GB<br><small>Sharded but still large<br>分片后仍大</small></td>
-              <td class="good">BS&times;C&middot;r/N = 250 MB<br><small>Sampled subset only<br>仅采样子集</small></td>
+              <td class="bad" data-label="Data Parallel">BS&times;C = 156 GB<br><small>All classes<br>全量类别</small></td>
+              <td class="mid" data-label="Model Parallel">BS&times;C/N = 2.44 GB<br><small>Sharded but still large<br>分片后仍大</small></td>
+              <td class="good" data-label="PartialFC (r=0.1)">BS&times;C&middot;r/N = 250 MB<br><small>Sampled subset only<br>仅采样子集</small></td>
             </tr>
             <tr>
               <td class="row-label">Phase 1<br><small>AllGather Features<br>AllGather 特征</small></td>
-              <td>—</td>
-              <td>384 KB / GPU</td>
-              <td>384 KB / GPU</td>
+              <td data-label="Data Parallel">&mdash;</td>
+              <td data-label="Model Parallel">384 KB / GPU</td>
+              <td data-label="PartialFC (r=0.1)">384 KB / GPU</td>
             </tr>
             <tr>
               <td class="row-label">Phase 3<br><small>Softmax Comm<br>Softmax 通信</small></td>
-              <td>—</td>
-              <td>32 KB<br><small>2 scalars / sample<br>每样本仅2个标量</small></td>
-              <td>32 KB<br><small>2 scalars / sample<br>每样本仅2个标量</small></td>
+              <td data-label="Data Parallel">&mdash;</td>
+              <td data-label="Model Parallel">32 KB<br><small>2 scalars / sample<br>每样本仅2个标量</small></td>
+              <td data-label="PartialFC (r=0.1)">32 KB<br><small>2 scalars / sample<br>每样本仅2个标量</small></td>
             </tr>
             <tr>
               <td class="row-label">Phase 4<br><small>Gradient Sync<br>梯度同步</small></td>
-              <td class="bad">2&times;|W| &asymp; 38 GB<br><small>Full AllReduce<br>全量 AllReduce</small></td>
-              <td>505 MB<br><small>AllReduce feature grads<br>AllReduce 特征梯度</small></td>
-              <td>488 MB<br><small>AllReduce sampled grads<br>AllReduce 采样梯度</small></td>
+              <td class="bad" data-label="Data Parallel">2&times;|W| &asymp; 38 GB<br><small>Full AllReduce<br>全量 AllReduce</small></td>
+              <td data-label="Model Parallel">505 MB<br><small>AllReduce feature grads<br>AllReduce 特征梯度</small></td>
+              <td data-label="PartialFC (r=0.1)">488 MB<br><small>AllReduce sampled grads<br>AllReduce 采样梯度</small></td>
             </tr>
             <tr>
               <td class="row-label">Total Comm / step<br><small>总通信量 / step</small></td>
-              <td class="bad">~38 GB</td>
-              <td class="mid">~1.01 GB</td>
-              <td class="good">~0.98 GB</td>
+              <td class="bad" data-label="Data Parallel">~38 GB</td>
+              <td class="mid" data-label="Model Parallel">~1.01 GB</td>
+              <td class="good" data-label="PartialFC (r=0.1)">~0.98 GB</td>
             </tr>
             <tr>
               <td class="row-label">Throughput 吞吐量</td>
-              <td class="bad">OOM<br><small>Cannot train 10M classes<br>10M 类无法训练</small></td>
-              <td class="mid">4,840 img/s<br><small>64 GPUs</small></td>
-              <td class="good">17,819 img/s<br><small>64 GPUs &middot; 3.7&times; speedup<br>3.7&times; 加速</small></td>
+              <td class="bad" data-label="Data Parallel">OOM<br><small>Cannot train 10M classes<br>10M 类无法训练</small></td>
+              <td class="mid" data-label="Model Parallel">4,840 img/s<br><small>64 GPUs</small></td>
+              <td class="good" data-label="PartialFC (r=0.1)">17,819 img/s<br><small>64 GPUs &middot; 3.7&times; speedup<br>3.7&times; 加速</small></td>
             </tr>
           </tbody>
         </table>
+
+        <div class="compare-mobile">
+          <div class="cm-header"><span></span><span>DP</span><span>PFC</span></div>
+          <div class="cm-row"><span class="cm-label">W / GPU</span><span class="cm-val cm-bad">19 GB</span><span class="cm-val cm-good">298 MB</span></div>
+          <div class="cm-row"><span class="cm-label">Logits</span><span class="cm-val cm-bad">156 GB</span><span class="cm-val cm-good">250 MB</span></div>
+          <div class="cm-row"><span class="cm-label">AllGather</span><span class="cm-val">—</span><span class="cm-val">384 KB</span></div>
+          <div class="cm-row"><span class="cm-label">Softmax</span><span class="cm-val">—</span><span class="cm-val">32 KB</span></div>
+          <div class="cm-row"><span class="cm-label">Grad Sync</span><span class="cm-val cm-bad">38 GB</span><span class="cm-val">488 MB</span></div>
+          <div class="cm-row"><span class="cm-label">Total / step</span><span class="cm-val cm-bad">~38 GB</span><span class="cm-val cm-good">~0.98 GB</span></div>
+          <div class="cm-row"><span class="cm-label">Throughput</span><span class="cm-val cm-bad">OOM</span><span class="cm-val cm-good">17.8k img/s</span></div>
+        </div>
         
         <p style="text-align: center; font-size: 0.85em; color: var(--ink-light); margin-top: 10px;">
           * Based on N=64 GPUs, BS=64/GPU, feature_dim=512, C=10M, sample_rate=0.1<br>以 N=64 GPUs, BS=64/GPU, feature_dim=512, C=10M, sample_rate=0.1 为例
@@ -621,7 +642,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
 
         // --- Flowing data particles (colored dots traveling down) ---
         const particleStartY = commY + 35;
-        const gmY = 360;
+        const gmY = 300;
         const particleEndY = gmY - 25;
         if (t > 1.5 && t < 4.5) {
           for (let g = 0; g < NUM_GPU; g++) {
@@ -685,7 +706,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
         }
 
         if (t > 3.0) {
-          placeHTML('📡 Comm 通信量: AllGather (N-1)×BS×d = 3×64×512 ≈ 384KB / GPU', stageW / 2, stageH - 70, { className: 'stats-label', color: '#2874a6' });
+          placeHTML('AllGather &asymp; 384 KB / GPU', stageW / 2, stageH - (NUM_GPU <= 2 ? 90 : 80), { className: 'comm-pill' });
         }
 
         drawFooter('Phase 1 &middot; AllGather &mdash; Collect embeddings from all GPUs', stageW, stageH);
@@ -719,7 +740,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
           placeHTML(`class ${rangeStart}w ~ ${rangeEnd}w`, cx, wcY - 12, { color: 'var(--ink-light)', className: 'stats-label' });
           
           for (let d = 0; d < DIM; d++) {
-            placeHTML(`d<sub>${d}</sub>`, gx, wcY + d * rowHeight + 5, { color: 'var(--ink-light)' });
+            if (!(NUM_GPU <= 2 && g === NUM_GPU - 1)) placeHTML(`d<sub>${d}</sub>`, gx, wcY + d * rowHeight + 5, { color: 'var(--ink-light)' });
             for (let cCol = 0; cCol < WC_VISIBLE_COLS; cCol++) {
               const c = getCell();
               c.className = `cell wc${g}`;
@@ -748,7 +769,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
                 }
               }
             }
-            placeHTML(`&hellip; ${(CLASSES_PER_GPU/10000).toFixed(0)}w cols`, mx + WC_VISIBLE_COLS * (cellSize + cellGap) + 40, wcY + d * rowHeight + 5, { color: 'var(--ink-light)' });
+            if (NUM_GPU > 2) placeHTML(`&hellip; ${(CLASSES_PER_GPU/10000).toFixed(0)}w cols`, mx + WC_VISIBLE_COLS * (cellSize + cellGap) + 40, wcY + d * rowHeight + 5, { color: 'var(--ink-light)' });
           }
         }
       }
@@ -762,7 +783,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
         drawHeader('SAMPLE CLASS CENTERS', `Each GPU holds ${(CLASSES_PER_GPU/1000000).toFixed(1)}M class centers &middot; dim=${DIM} &middot; Total: 10M identities`, stageW);
         const gLayout = computeGpuLayout(stageW, totalS);
         drawGpuBaseLayout(renderer, stageW, gLayout, 0, false);
-        placeHTML('📡 Comm 通信量: 0 (Local storage, no communication 本地存储，无需通信)', stageW / 2, stageH - 70, { className: 'stats-label', color: '#2874a6' });
+        placeHTML('Comm: 0 &mdash; local storage only', stageW / 2, stageH - (NUM_GPU <= 2 ? 90 : 80), { className: 'comm-pill' });
         drawFooter('Phase 2 &middot; Class Centers &mdash; Each GPU holds a partition of the weight matrix', stageW, stageH);
       }
 
@@ -777,16 +798,24 @@ optimizer.step()  # only sampled W updated   # Phase 4
         drawGpuBaseLayout(renderer, stageW, gLayout, t, true);
         
         if (t > 2.8) {
-          const legendY = stageH - 125;
-          const legendX = stageW/2 - 120;
-          const noCenter = 'translateY(-50%)';
-          placeHTML(`<div style="display:inline-block;width:10px;height:10px;background:#1e8449;border-radius:1px;margin-right:5px;vertical-align:middle;"></div> Positive (y<sub>i</sub> = sample's label)`, legendX, legendY, { transform: noCenter });
-          placeHTML(`<div style="display:inline-block;width:10px;height:10px;background:#a0a0a0;border-radius:1px;margin-right:5px;vertical-align:middle;"></div> Negative buffer`, legendX, legendY + 20, { transform: noCenter });
-          placeHTML(`<div style="display:inline-block;width:10px;height:10px;background:#8d7b6b;border-radius:1px;margin-right:5px;vertical-align:middle;"></div> Not sampled`, legendX, legendY + 40, { transform: noCenter });
+          if (NUM_GPU <= 2) {
+            // Mobile: compact single-line legend
+            const legendY = stageH - 120;
+            const noCenter = 'translateY(-50%)';
+            const dotStyle = 'display:inline-block;width:8px;height:8px;border-radius:1px;margin-right:3px;vertical-align:middle;';
+            placeHTML(`<span style="${dotStyle}background:#1e8449;"></span>Pos&ensp;<span style="${dotStyle}background:#a0a0a0;"></span>Neg&ensp;<span style="${dotStyle}background:#8d7b6b;"></span>Skip`, stageW / 2, legendY, { transform: 'translate(-50%,-50%)', className: 'stats-label' });
+          } else {
+            const legendY = stageH - 125;
+            const legendX = stageW/2 - 120;
+            const noCenter = 'translateY(-50%)';
+            placeHTML(`<div style="display:inline-block;width:10px;height:10px;background:#1e8449;border-radius:1px;margin-right:5px;vertical-align:middle;"></div> Positive (y<sub>i</sub> = sample's label)`, legendX, legendY, { transform: noCenter });
+            placeHTML(`<div style="display:inline-block;width:10px;height:10px;background:#a0a0a0;border-radius:1px;margin-right:5px;vertical-align:middle;"></div> Negative buffer`, legendX, legendY + 20, { transform: noCenter });
+            placeHTML(`<div style="display:inline-block;width:10px;height:10px;background:#8d7b6b;border-radius:1px;margin-right:5px;vertical-align:middle;"></div> Not sampled`, legendX, legendY + 40, { transform: noCenter });
+          }
         }
         
         if (t > 2.0) {
-          placeHTML('📡 Comm 通信量: 0 (Local sampling, no communication 本地采样，无需通信)', stageW / 2, stageH - 70, { className: 'stats-label', color: '#2874a6' });
+          placeHTML('Comm: 0 &mdash; local sampling only', stageW / 2, stageH - 70, { className: 'comm-pill' });
         }
         
         drawFooter('Phase 3 &middot; Sampling &mdash; Select positive + random negative class centers', stageW, stageH);
@@ -812,7 +841,8 @@ optimizer.step()  # only sampled W updated   # Phase 4
         const p3ArrowY = p3YLabelY + 16; // 212
         const p3LogitsLabelY = p3ArrowY + 12; // 224
         const p3LogitsY = p3LogitsLabelY + 12; // 236
-        const p3LogitsBottomY = p3LogitsY + totalS * logitRowStep; // 236 + 192 = 428
+        const logitDisplayRows = 16;  // Always show 16 rows for consistent layout
+        const p3LogitsBottomY = p3LogitsY + logitDisplayRows * logitRowStep;
         const p3SoftmaxY = p3LogitsBottomY + 18; // 446
         const p3LossY = p3SoftmaxY + 100; // 546
 
@@ -916,9 +946,9 @@ optimizer.step()  # only sampled W updated   # Phase 4
               placeHTML(`logits<sub>${g}</sub> [${totalS}&times;K]`, cx, p3LogitsLabelY, { opacity: Math.max(skeletonOp, logitsOp > 0 ? logitsOp : 0), className: 'stats-label' });
             }
 
-            for (let r = 0; r < totalS; r++) {
+            for (let r = 0; r < logitDisplayRows; r++) {
               // Row label only on GPU0
-              if (g === 0 && effectiveOp > 0) {
+              if (g === 0 && effectiveOp > 0 && r < totalS) {
                 const labelOp = effectiveOp * 0.5;
                 placeHTML(`x<sub>${r}</sub>`, gx + 2, p3LogitsY + r * logitRowStep + 2, { color: sampleColors[r], opacity: labelOp });
               }
@@ -931,7 +961,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
                 c.style.height = `${logitRowStep - 2}px`;
 
                 // Is this the target cell?
-                const isTarget = sampleLabelGpu[r] === g && sampleTargetCol[r] === cCol;
+                const isTarget = r < totalS && sampleLabelGpu[r] === g && sampleTargetCol[r] === cCol;
 
                 if (isTarget && t > 2.4) {
                   // Target logit: staggered reveal per GPU
@@ -1024,7 +1054,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
         }
 
         if (t > 5.5) {
-          placeHTML('📡 Comm 通信量: AllReduce 2×BS_total×4B = 2×4096×4 ≈ 32KB (only 2 scalars/sample 仅2个标量/样本)', stageW / 2, p3LossY + 45, { className: 'stats-label', color: '#2874a6' });
+          placeHTML('AllReduce &asymp; 32 KB &middot; 2 scalars / sample', stageW / 2, p3LossY + 45, { className: 'comm-pill' });
         }
 
         drawFooter('Phase 4 &middot; Forward &mdash; Per-GPU partial logit computation with distributed softmax', stageW, stageH);
@@ -1035,54 +1065,126 @@ optimizer.step()  # only sampled W updated   # Phase 4
         const stageW = stageEl.clientWidth;
         const stageH = stageEl.clientHeight;
         if (stageW === 0) return;
+        const isMob = NUM_GPU <= 2;
 
-        drawHeader('BACKWARD & UPDATE', `Gradients flow back &middot; AllReduce across GPUs &middot; Only sampled weights updated`, stageW);
-        
-        const lossY = 130;
-        placeHTML('ℒ = -log(softmax)', stageW/2, lossY, { transform: 'translate(-50%,-50%) scale(1.2)' });
-        placeHTML('▼<br>▼', stageW/2, lossY + 30, { color: '#c0392b' });
-        
+        drawHeader('BACKWARD & UPDATE', isMob ? 'grad = prob &minus; onehot &middot; AllReduce &middot; update sampled W' : 'Gradients flow back &middot; AllReduce across GPUs &middot; Only sampled weights updated', stageW);
+
+        // ─── A) Gradient shortcut insight ───
+        const insightY = 95;
+        const insightOp = Math.min(1, t / 0.8);
+        placeHTML('&part;&Lscr; / &part;logit = softmax(logit) &minus; onehot(y)', stageW / 2, insightY, { opacity: insightOp, transform: 'translate(-50%,-50%) scale(1.05)' });
+
+        if (t > 0.6) {
+          const tagOp = Math.min(1, (t - 0.6) / 0.5);
+          if (isMob) {
+            placeHTML('No loss scalar needed &mdash; grad computed directly from prob', stageW / 2, insightY + 18, { opacity: tagOp, className: 'stats-label', color: '#1e8449' });
+          } else {
+            placeHTML('Key insight: no need to compute scalar loss &mdash; gradient is obtained directly from the probability vector', stageW / 2, insightY + 20, { opacity: tagOp, className: 'stats-label', color: '#1e8449' });
+          }
+        }
+
+        // ─── B) Visual: prob vector → subtract onehot → grad ───
+        const vecY = insightY + (isMob ? 42 : 48);
+        const vecCols = isMob ? 5 : 8;
+        const vecCellW = 28;
+        const vecTotalW = vecCols * vecCellW;
+
+        if (t > 1.0) {
+          const vOp = Math.min(1, (t - 1.0) / 0.6);
+
+          // prob vector
+          const probX = stageW / 2 - vecTotalW - (isMob ? 20 : 40);
+          placeHTML('prob', probX + vecTotalW / 2, vecY - 12, { opacity: vOp, className: 'stats-label' });
+          for (let i = 0; i < vecCols; i++) {
+            const c = getCell();
+            c.style.left = `${probX + i * vecCellW}px`;
+            c.style.top = `${vecY}px`;
+            c.style.width = `${vecCellW - 2}px`;
+            c.style.height = '14px';
+            c.style.borderRadius = '2px';
+            c.style.opacity = vOp;
+            c.className = i === 2 ? 'cell s2' : 'cell neg-buf';
+            c.style.opacity = vOp * (i === 2 ? 1 : 0.4);
+          }
+
+          // minus sign
+          placeHTML('&minus;', stageW / 2 - (isMob ? 8 : 20), vecY + 5, { opacity: vOp, transform: 'translate(-50%,-50%) scale(1.3)' });
+
+          // onehot vector
+          const oneX = stageW / 2 + (isMob ? 4 : 0);
+          placeHTML('onehot', oneX + vecTotalW / 2, vecY - 12, { opacity: vOp, className: 'stats-label' });
+          for (let i = 0; i < vecCols; i++) {
+            const c = getCell();
+            c.style.left = `${oneX + i * vecCellW}px`;
+            c.style.top = `${vecY}px`;
+            c.style.width = `${vecCellW - 2}px`;
+            c.style.height = '14px';
+            c.style.borderRadius = '2px';
+            c.style.opacity = vOp;
+            if (i === 2) {
+              c.className = 'cell s2';
+            } else {
+              c.className = 'cell';
+              c.style.background = 'rgba(0,0,0,0.06)';
+              c.style.border = '1px dashed rgba(0,0,0,0.15)';
+            }
+          }
+        }
+
+        // ─── C) Arrow down to GPU grids ───
+        const arrowDownY = vecY + 28;
+        if (t > 1.8) {
+          const aOp = Math.min(1, (t - 1.8) / 0.3);
+          placeHTML('= grad &nbsp; &darr;', stageW / 2, arrowDownY, { opacity: aOp, color: '#c0392b' });
+        }
+
+        // ─── D) Per-GPU gradient grids + AllReduce ───
         const gLayout = computeGpuLayout(stageW, totalS);
-        const topY = lossY + 90;
-        
+        const topY = arrowDownY + 28;
+        const gpuCenters = [];
+
         for (let g = 0; g < NUM_GPU; g++) {
           const gx = gLayout.gpuXPositions[g];
           const cx = gx + gLayout.groupWidth / 2;
-          
+          gpuCenters.push(cx);
+
           placeHTML(`GPU<sub>${g}</sub>`, cx, topY, { color: gpuColors[g] });
-          
-          const gradOpacity = Math.max(0, Math.min(1, (t - 1.0) / 0.5));
-          for(let i=0; i<3; i++) {
-            for(let j=0; j<8; j++) {
+
+          const gradOpacity = Math.max(0, Math.min(1, (t - 2.0) / 0.5));
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 8; j++) {
               const c = getCell();
-              c.className = `cell s${(g*BS + j)%totalS}`;
-              c.style.left = `${cx - 48 + j*(cellSize+cellGap)}px`;
-              c.style.top = `${topY + 25 + i*rowHeight}px`;
+              c.className = `cell s${(g * BS + j) % totalS}`;
+              c.style.left = `${cx - 48 + j * (cellSize + cellGap)}px`;
+              c.style.top = `${topY + 22 + i * rowHeight}px`;
               c.style.opacity = gradOpacity;
             }
           }
-          
-          if (g < NUM_GPU - 1 && t > 2.0) {
-            const arrowX = cx + gLayout.groupWidth / 2 + gLayout.gapBetweenGroups / 2;
-            const flow = Math.sin(t * 5 + g) > 0 ? '&harr;' : '&harr;';
-            placeHTML(flow, arrowX, topY + 35, { color: '#8e44ad', transform: 'translate(-50%,-50%) scale(1.5)' });
-            placeHTML('AllReduce', arrowX, topY + 15, { color: 'var(--ink-light)' });
+
+          if (g < NUM_GPU - 1 && t > 2.8) {
+            const arrowX = (cx + (gLayout.gpuXPositions[g + 1] + gLayout.groupWidth / 2)) / 2;
+            const pulse = (Math.sin(t * 5 + g) + 1) / 2;
+            placeHTML('&harr;', arrowX, topY + 32, { color: '#8e44ad', transform: `translate(-50%,-50%) scale(${1.2 + pulse * 0.3})` });
+            placeHTML('AllReduce', arrowX, topY + 12, { color: 'var(--ink-light)', className: 'stats-label' });
           }
-          
-          const wcY = topY + 120;
-          const rangeStart = g * CLASSES_PER_GPU / 10000;
-          const rangeEnd = (g + 1) * CLASSES_PER_GPU / 10000;
-          placeHTML(`W<sub>local</sub> Update`, cx, wcY - 25);
-          placeHTML(`class ${rangeStart}w ~ ${rangeEnd}w`, cx, wcY - 8, { color: 'var(--ink-light)', className: 'stats-label' });
-          
-          const mx = cx - (WC_VISIBLE_COLS*(cellSize+cellGap))/2;
+
+          // ─── E) W_local update section ───
+          const wcY = topY + 100;
+          placeHTML(`W<sub>local</sub> Update`, cx, wcY - 22);
+          if (!isMob) {
+            const rangeStart = g * CLASSES_PER_GPU / 10000;
+            const rangeEnd = (g + 1) * CLASSES_PER_GPU / 10000;
+            placeHTML(`class ${rangeStart}w ~ ${rangeEnd}w`, cx, wcY - 6, { color: 'var(--ink-light)', className: 'stats-label' });
+          }
+
+          const mx = cx - (WC_VISIBLE_COLS * (cellSize + cellGap)) / 2;
           for (let d = 0; d < DIM; d++) {
             for (let cCol = 0; cCol < WC_VISIBLE_COLS; cCol++) {
               const c = getCell();
               c.className = `cell wc${g}`;
               c.style.left = `${mx + cCol * (cellSize + cellGap)}px`;
               c.style.top = `${wcY + d * rowHeight}px`;
-              
+
               if (t > 3.5) {
                 const positives = [];
                 for (let si = 0; si < totalS; si++) {
@@ -1100,16 +1202,18 @@ optimizer.step()  # only sampled W updated   # Phase 4
             }
           }
         }
-        
+
+        // ─── F) Summary ───
         if (t > 4.5) {
-          placeHTML('Only sampled subset receives gradient updates (Step Complete)', stageW/2, topY + 240, { color: '#1e8449', transform: 'translate(-50%,-50%) scale(1.1)' });
+          const sumOp = Math.min(1, (t - 4.5) / 0.5);
+          placeHTML('Only sampled W updated &middot; Step complete', stageW / 2, topY + 175, { color: '#1e8449', opacity: sumOp, transform: 'translate(-50%,-50%) scale(1.05)' });
         }
-        
+
         if (t > 2.5) {
-          placeHTML('📡 Comm 通信量: AllReduce (C×r/N)×d×4B = 250K×512×4 ≈ 488MB / GPU', stageW / 2, stageH - 70, { className: 'stats-label', color: '#2874a6' });
+          placeHTML('AllReduce &asymp; 488 MB / GPU', stageW / 2, stageH - 70, { className: 'comm-pill' });
         }
-        
-        drawFooter('Phase 5 &middot; Backward &mdash; Gradient synchronization and selective weight update', stageW, stageH);
+
+        drawFooter('Phase 5 &middot; Backward &mdash; grad = prob &minus; onehot, no scalar loss needed', stageW, stageH);
       }
 
       // === Visibility-based animation optimization ===
