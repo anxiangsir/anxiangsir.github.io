@@ -1,934 +1,624 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YaRN: 大语言模型上下文窗口扩展</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YaRN: LLM Context Window Extension</title>
+    <meta name="description" content="YaRN: Yet another RoPE extensioN method" />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-dark: #030508;
-            --bg-panel: #0a0e17;
-            --text-main: #e2e8f0;
-            --text-dim: #94a3b8;
-            --cyan: #00F0FF;
-            --magenta: #FF0055;
-            --orange: #FFaa00;
-            --font-body: 'Noto Sans SC', sans-serif;
-            --font-math: 'JetBrains Mono', monospace;
-        }
+      :root {
+        --bg: #ffffff;
+        --bg-alt: #f8f9fa;
+        --text: #1a1a2e;
+        --text-secondary: #555;
+        --accent: #2563eb;
+        --border: #e2e8f0;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-math: "JetBrains Mono", monospace;
+        --color-keep: #c0392b;
+        --color-trans: #d4a017;
+        --color-inter: #2471a3;
+      }
+      .site-nav { max-width: 860px; margin: 0 auto 1rem; padding: 0 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-sans); font-size: 0.85em; flex-wrap: wrap; }
+      .site-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 600; letter-spacing: 0.02em; padding: 2px 4px; }
+      .site-nav a:hover { color: var(--accent); text-decoration: underline; }
+      .site-nav .nav-sep { color: var(--border); user-select: none; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-serif);
+        line-height: 1.5;
+        padding: 2rem 1rem;
+      }
+      .article {
+        max-width: 860px;
+        margin: 0 auto;
+        background: var(--bg);
+        padding: 0 1rem 3rem;
+        position: relative;
+      }
+      .masthead { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2.5rem; position: relative; }
+      .masthead-title {
+        font-family: var(--font-headline); font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin: 0 0 10px; color: var(--text);
+      }
+      .masthead-sub { font-size: 1rem; font-family: var(--font-sans); margin-bottom: 10px; color: var(--text-secondary); }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+      .lang-toggle {
+        position: absolute; top: 10px; right: 10px; z-index: 40; font-family: var(--font-sans); padding: 6px 16px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; color: var(--text-secondary); font-weight: bold; border-radius: 20px; font-size: 0.85rem; transition: all 0.2s;
+      }
+      .lang-toggle:hover { background: var(--bg-alt); color: var(--text); border-color: var(--text-secondary); }
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: var(--font-body);
-            overflow-x: hidden;
-            line-height: 1.6;
-            scroll-behavior: smooth;
-        }
+      .stage-wrapper {
+        width: 100%; height: 400px; position: relative; border: 1px solid var(--border); border-radius: 8px;
+        overflow: hidden; margin: 0 auto 35px;
+        background: var(--bg-alt);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        display: flex; justify-content: center; align-items: center; flex-direction: column;
+      }
+      
+      .phase-heading {
+        font-family: var(--font-headline); font-size: 1.5rem; font-weight: 700; text-align: left; margin: 2.5rem 0 1rem; border-top: 2px solid var(--border); padding-top: 1.5rem; color: var(--text);
+      }
+      .phase-desc {
+        font-family: var(--font-serif); font-size: 1.05rem; text-align: left; max-width: none; margin: 0 0 15px; color: var(--text-secondary); line-height: 1.75;
+      }
 
-        /* Typography & Math */
-        h1, h2, h3 {
-            font-weight: 900;
-            line-height: 1.2;
-            margin-bottom: 1rem;
-        }
+      .math { font-family: var(--font-math); background: var(--bg-alt); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.95em; border: 1px solid var(--border); color: var(--text); }
+      .math-block { display: block; text-align: center; font-family: var(--font-math); font-size: 1.1rem; padding: 1.5rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); }
 
-        h2 {
-            font-size: 2.5rem;
-            background: linear-gradient(to right, var(--cyan), var(--text-main));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+      .controls { padding: 15px 20px; background: var(--bg-alt); border-top: 1px solid var(--border); width: 100%; display: flex; align-items: center; justify-content: space-between; position: absolute; bottom: 0; left: 0; z-index: 10; font-family: var(--font-sans); }
+      .control-group { display: flex; flex-direction: column; width: 100%; gap: 8px; }
+      .control-label { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: bold; color: var(--text); margin-bottom: 5px; }
+      input[type=range] { -webkit-appearance: none; width: 100%; height: 8px; background: var(--border); border-radius: 4px; outline: none; }
+      input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); margin-top: -8px; }
+      input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: var(--border); border-radius: 4px; }
+      input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+      input[type=range]::-moz-range-track { height: 8px; background: var(--border); border-radius: 4px; border: none; }
 
-        p {
-            font-size: 1.1rem;
-            font-weight: 300;
-            margin-bottom: 1.5rem;
-            color: var(--text-dim);
-        }
+      .key-stats { display: flex; justify-content: space-around; text-align: center; margin: 25px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 15px 0; font-family: var(--font-headline); font-weight: bold; color: var(--text); }
+      .key-stats div { flex: 1; border-right: 1px solid var(--border); }
+      .key-stats div:last-child { border-right: none; }
+      .key-stats span { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px; font-family: var(--font-sans); }
 
-        .math {
-            font-family: var(--font-math);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            color: var(--cyan);
-            font-size: 0.95em;
-        }
-        
-        .math-block {
-            display: block;
-            text-align: center;
-            font-family: var(--font-math);
-            font-size: 1.3rem;
-            padding: 1.5rem;
-            background: rgba(0, 240, 255, 0.03);
-            border-left: 3px solid var(--cyan);
-            margin: 2rem 0;
-            letter-spacing: 1px;
-        }
+      .hero-content { text-align: left; padding: 1rem 0 2rem; }
+      .hero-text { font-size: 1.1rem; max-width: none; margin: 0; color: var(--text-secondary); line-height: 1.6; }
 
-        /* Layout */
-        .container {
-            position: relative;
-            width: 100%;
-        }
+      .viz-layer { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 80px); pointer-events: none; }
+      
+      .rope-legend { position: absolute; bottom: 15px; left: 20px; font-family: var(--font-sans); font-size: 0.85rem; display: flex; flex-direction: column; gap: 5px; z-index: 10; background: rgba(255, 255, 255, 0.9); padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+      .rope-legend-item { display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: bold; }
+      .rope-legend-color { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--border); }
+      .rope-m-counter { position: absolute; top: 15px; right: 20px; font-family: var(--font-math); font-size: 1rem; font-weight: bold; z-index: 10; color: var(--text); background: rgba(255, 255, 255, 0.9); padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+      .ntk-bar {
+        background-color: var(--color-keep);
+        width: 100%; height: 100%;
+      }
 
-        section {
-            position: relative;
-            min-height: 100vh;
-            width: 100vw;
-            display: flex;
-            align-items: center;
-            padding: 4rem 10vw;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .content-left {
-            flex: 1;
-            z-index: 10;
-            padding-right: 4rem;
-            max-width: 50%;
-        }
-
-        .canvas-container {
-            flex: 1;
-            height: 60vh;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: radial-gradient(circle at center, rgba(10, 14, 23, 0.8) 0%, rgba(3, 5, 8, 0) 70%);
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        /* UI Controls */
-        .controls {
-            position: absolute;
-            bottom: -2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(10, 14, 23, 0.9);
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            backdrop-filter: blur(10px);
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-            z-index: 20;
-            width: 80%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            flex: 1;
-        }
-
-        .control-label {
-            font-family: var(--font-math);
-            font-size: 0.9rem;
-            color: var(--cyan);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: var(--cyan);
-            cursor: pointer;
-            margin-top: -6px;
-            box-shadow: 0 0 10px var(--cyan);
-        }
-
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-        }
-
-        /* Fixed Nav */
-        .nav-dots {
-            position: fixed;
-            right: 2rem;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            z-index: 100;
-        }
-
-        .nav-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .nav-dot.active {
-            background: var(--cyan);
-            box-shadow: 0 0 10px var(--cyan);
-            transform: scale(1.5);
-        }
-
-        .nav-dot::before {
-            content: attr(data-title);
-            position: absolute;
-            right: 25px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255,255,255,0);
-            font-size: 0.8rem;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-            font-family: var(--font-math);
-        }
-
-        .nav-dot:hover::before {
-            color: var(--text-main);
-        }
-
-        /* Tooltip */
-        .tooltip-trigger {
-            border-bottom: 1px dashed var(--orange);
-            cursor: help;
-            position: relative;
-        }
-        
-        .tooltip-trigger:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%) translateY(-10px);
-            background: var(--bg-panel);
-            color: var(--orange);
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            border: 1px solid var(--orange);
-            font-family: var(--font-math);
-            font-size: 0.85rem;
-            white-space: nowrap;
-            z-index: 100;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        /* Hero */
-        #hero {
-            flex-direction: column;
-            justify-content: center;
-            text-align: center;
-            padding: 0;
-        }
-
-        .hero-title {
-            font-size: 5rem;
-            font-weight: 900;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            position: relative;
-            z-index: 10;
-            text-transform: uppercase;
-            letter-spacing: -2px;
-        }
-
-        .hero-subtitle {
-            font-size: 1.5rem;
-            color: var(--text-dim);
-            font-family: var(--font-math);
-            z-index: 10;
-        }
-
-        #hero-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            opacity: 0.4;
-        }
-
-        /* Section 6 Specific */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            margin-top: 3rem;
-            width: 100%;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 2rem;
-            border-radius: 16px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--cyan);
-            box-shadow: 0 10px 30px rgba(0,240,255,0.1);
-        }
-
-        .stat-num {
-            font-size: 3rem;
-            font-family: var(--font-math);
-            color: var(--cyan);
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: var(--text-dim);
-            font-size: 1rem;
-        }
-
-        /* Animations */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 1s ease, transform 1s ease;
-        }
-
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
+      @media (max-width: 768px) {
+        body { padding: 1rem; }
+        .article { padding: 0 1rem 2rem; max-width: 100%; }
+        .stage-wrapper { height: 320px; }
+        .lang-toggle { right: 10px; top: 10px; }
+      }
+      @media (max-width: 480px) {
+        body { padding: 0.5rem; }
+        .article { padding: 0 0.5rem 1.5rem; }
+        .stage-wrapper { height: 280px; }
+        .key-stats { flex-wrap: wrap; flex-direction: column; }
+        .key-stats div { border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; }
+        .key-stats div:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/partial_fc.html">PFC</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/llava_onevision2.html">OV2</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+    </nav>
+    <div class="article">
+      <button type="button" class="lang-toggle" id="lang-toggle">EN</button>
+      
+      <header class="masthead">
+        <h1 class="masthead-title">YaRN</h1>
+        <div class="masthead-sub" id="hero-subtitle">Yet another RoPE extensioN method</div>
+      </header>
 
-    <div class="nav-dots">
-        <div class="nav-dot active" data-target="hero" data-title="开始"></div>
-        <div class="nav-dot" data-target="sec-rope" data-title="1. RoPE 基础"></div>
-        <div class="nav-dot" data-target="sec-wavelength" data-title="2. 波长与上下文"></div>
-        <div class="nav-dot" data-target="sec-pi" data-title="3. PI 的问题"></div>
-        <div class="nav-dot" data-target="sec-ntk" data-title="4. NTK-by-parts"></div>
-        <div class="nav-dot" data-target="sec-attention" data-title="5. 注意力缩放"></div>
-        <div class="nav-dot" data-target="sec-summary" data-title="6. 总结"></div>
+      <div class="hero-content">
+        <p class="hero-text" id="hero-text">
+          大型语言模型（LLM）的上下文窗口正在极速扩张。<br>
+          YaRN 提供了一种优雅且计算零开销的方法，<br>
+          通过动态调整旋转位置编码（RoPE），将上下文长度扩展数倍。
+        </p>
+      </div>
+
+      <h3 class="phase-heading" id="sec1-heading">1. RoPE 旋转位置编码基础</h3>
+      <p class="phase-desc" id="sec1-desc">
+        在理解 YaRN 之前，我们必须先理解 RoPE。RoPE 将词向量的元素两两分组，并在复平面上进行旋转，旋转的角度与该词在句子中的绝对位置 <span class="math">m</span> 成正比。
+      </p>
+      <div class="math-block">
+        f(x, m, &theta;<sub>d</sub>) = e<sup>im&theta;<sub>d</sub></sup> x
+      </div>
+      <p class="phase-desc" id="sec1-desc2">
+        关键在于，不同维度 <span class="math">d</span> 拥有不同的旋转频率 <span class="math">&theta;<sub>d</sub></span>：<br>
+        <strong>低维度（小 d）</strong>旋转极快，捕捉局部的相对距离；<br><strong>高维度（大 d）</strong>旋转极慢，几乎静止，编码宏观的绝对位置信息。
+      </p>
+      <div class="math-block">
+        &theta;<sub>d</sub> = 10000<sup>-2d/|D|</sup>
+      </div>
+      <div class="stage-wrapper" style="height: 300px;">
+        <div class="viz-layer" id="rope-layer" style="height: 100%;">
+          <svg width="100%" height="100%" id="svg-rope">
+            <title>RoPE Visualization</title>
+            <g id="rope-grid"></g>
+            <g id="rope-vectors"></g>
+          </svg>
+          <div class="rope-legend">
+            <div class="rope-legend-item"><div class="rope-legend-color" style="background: var(--color-keep);"></div>d=0 (Fast)</div>
+            <div class="rope-legend-item"><div class="rope-legend-color" style="background: var(--color-trans);"></div>d=8</div>
+            <div class="rope-legend-item"><div class="rope-legend-color" style="background: var(--color-inter);"></div>d=16</div>
+            <div class="rope-legend-item"><div class="rope-legend-color" style="background: var(--text-secondary);"></div>d=24 (Slow)</div>
+          </div>
+          <div class="rope-m-counter" id="rope-m-counter">m = 0</div>
+        </div>
+      </div>
+      <h3 class="phase-heading" id="sec2-heading">2. 波长与上下文长度</h3>
+      <p class="phase-desc" id="sec2-desc">
+        旋转频率 <span class="math">&theta;<sub>d</sub></span> 决定了该维度在序列中需要多少个 Token 才能完成一次完整的 2&pi; 旋转。我们将这个跨度称为<strong>波长 (Wavelength)</strong> <span class="math">&lambda;<sub>d</sub></span>。
+      </p>
+      <div class="math-block">
+        &lambda;<sub>d</sub> = 2&pi; / &theta;<sub>d</sub>
+      </div>
+      <div class="stage-wrapper">
+        <div class="viz-layer" id="wavelength-layer">
+          <svg width="100%" height="100%" id="svg-wavelength">
+            <title>Wavelength Chart</title>
+            <line id="wl-axis-x" stroke="var(--text)" stroke-width="2"/>
+            <line id="wl-axis-y" stroke="var(--text)" stroke-width="2"/>
+            <line id="wl-threshold" stroke="var(--color-trans)" stroke-width="2" stroke-dasharray="5,5"/>
+            <path id="wl-path" fill="rgba(37, 99, 235, 0.1)" stroke="var(--accent)" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span id="lbl-l-text">预训练上下文长度 (L)</span>
+              <span id="label-L">4096</span>
+            </div>
+            <input type="range" id="slider-L" min="1024" max="16384" step="1024" value="4096">
+          </div>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="sec3-heading">3. 线性插值 (PI) 的灾难</h3>
+      <p class="phase-desc" id="sec3-desc">
+        要扩展上下文到 <span class="math">s&middot;L</span>，最直接的方法是 <strong>Position Interpolation (PI)</strong>：把所有位置坐标缩小为 <span class="math">m/s</span>。在频域上，这等于把所有频率压缩为 <span class="math">&theta;<sub>d</sub>/s</span>。<br><br>但这对高频维度（低 d）是灾难性的。高频维度原本用来区分非常近的 Token，将它们硬性拉伸后，相邻 Token 的相对角度差变得过小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。
+      </p>
+      <div class="stage-wrapper">
+        <div class="viz-layer" id="pi-layer">
+          <svg width="100%" height="100%" id="svg-pi">
+            <title>Position Interpolation Chart</title>
+          </svg>
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span id="lbl-s-pi">缩放比例 (s)</span>
+              <span id="label-s-pi">1x</span>
+            </div>
+            <input type="range" id="slider-s-pi" min="1" max="16" step="0.5" value="1">
+          </div>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="sec4-heading">4. YaRN 核心：分段 NTK 插值</h3>
+      <p class="phase-desc" id="sec4-desc">
+        YaRN 的精髓在于 <strong>NTK-by-parts</strong>：不要一刀切地缩放。引入比值 <span class="math">r = L / &lambda;<sub>d</sub></span>，并定义两个阈值 <span class="math">&alpha;=1, &beta;=32</span>：<br><br>
+        <span style="color: var(--color-keep); font-weight: bold;">■ 高频 (r &gt; &beta;)</span>：波长远小于L。完全不插值，保持原样。<br>
+        <span style="color: var(--color-trans); font-weight: bold;">■ 中频 (&alpha; &lt; r &lt; &beta;)</span>：使用斜坡函数平滑过渡。<br>
+        <span style="color: var(--color-inter); font-weight: bold;">■ 低频 (r &lt; &alpha;)</span>：波长大于L。执行 PI 线性插值 (除以s)。
+      </p>
+      <div class="math-block">
+        h(&theta;<sub>d</sub>) = (1-&gamma;(r)) &middot; &theta;<sub>d</sub>/s + &gamma;(r) &middot; &theta;<sub>d</sub>
+      </div>
+      <div class="stage-wrapper">
+        <div class="viz-layer" id="ntk-layer" style="display:flex; align-items:flex-end; justify-content:space-between; padding: 20px;">
+          <!-- Bars generated via JS -->
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span id="lbl-s-ntk">目标扩展倍数 (s)</span>
+              <span id="label-s-ntk">16x</span>
+            </div>
+            <input type="range" id="slider-s-ntk" min="1" max="32" step="1" value="16">
+          </div>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="sec5-heading">5. 注意力缩放 (Attention Scaling)</h3>
+      <p class="phase-desc" id="sec5-desc">
+        YaRN 发现，在插值后，注意力的 Logits 分布会发生变动（平均长度变大导致方差改变）。为了修正这种温度偏差，YaRN 在注意力计算后乘以一个极小但关键的缩放系数：
+      </p>
+      <div class="math-block">
+        t = ( 0.1 &middot; ln(s) + 1 )<sup>-2</sup>
+      </div>
+      <div class="stage-wrapper" style="height: 300px;">
+        <div class="viz-layer" id="attention-layer">
+          <svg width="100%" height="100%" id="svg-attention">
+            <title>Attention Scaling Chart</title>
+            <path id="att-path" fill="none" stroke="var(--text)" stroke-width="3"/>
+            <circle id="att-dot" r="6" fill="var(--color-keep)"/>
+            <text id="att-text" font-family="var(--font-math)" font-size="14" fill="var(--text-secondary)"></text>
+          </svg>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="sec6-heading">6. YaRN 方法总结</h3>
+      <div class="key-stats">
+        <div>128k<span id="stat1-lbl">无缝支持的上下文长度</span></div>
+        <div>10x<span id="stat2-lbl">微调 Token 量降低</span></div>
+        <div>2.5x<span id="stat3-lbl">所需训练步数减少</span></div>
+      </div>
+
     </div>
 
-    <!-- Hero Section -->
-    <section id="hero">
-        <canvas id="hero-canvas"></canvas>
-        <h1 class="hero-title fade-in">YaRN</h1>
-        <p class="hero-subtitle fade-in">Yet another RoPE extensioN method</p>
-        <p class="fade-in" style="margin-top: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-            大型语言模型（LLM）的上下文窗口正在极速扩张。<br>
-            YaRN 提供了一种优雅且计算零开销的方法，<br>
-            通过动态调整旋转位置编码（RoPE），将上下文长度扩展数倍。
-        </p>
-    </section>
-
-    <!-- Section 1: RoPE -->
-    <section id="sec-rope">
-        <div class="content-left fade-in">
-            <h2>1. RoPE 旋转位置编码基础</h2>
-            <p>在理解 YaRN 之前，我们必须先理解 <span class="tooltip-trigger" data-tooltip="Rotary Position Embedding">RoPE</span>。RoPE 将词向量的元素两两分组，并在复平面上进行旋转，旋转的角度与该词在句子中的绝对位置 <span class="math">m</span> 成正比。</p>
-            <div class="math-block">
-                f(x, m, &theta;<sub>d</sub>) = e<sup>im&theta;<sub>d</sub></sup> x
-            </div>
-            <p>关键在于，不同维度 <span class="math">d</span> 拥有不同的旋转频率 <span class="math">&theta;<sub>d</sub></span>：</p>
-            <div class="math-block" style="font-size: 1.1rem; padding: 1rem;">
-                &theta;<sub>d</sub> = 10000<sup>-2d/|D|</sup>
-            </div>
-            <p><strong>低维度（小 d）</strong>旋转极快，捕捉局部的相对距离；<br><strong>高维度（大 d）</strong>旋转极慢，几乎静止，编码宏观的绝对位置信息。</p>
-        </div>
-        <div class="canvas-container fade-in">
-            <canvas id="canvas-rope"></canvas>
-        </div>
-    </section>
-
-    <!-- Section 2: Wavelength -->
-    <section id="sec-wavelength">
-        <div class="content-left fade-in">
-            <h2>2. 波长与上下文长度</h2>
-            <p>旋转频率 <span class="math">&theta;<sub>d</sub></span> 决定了该维度在序列中需要多少个 Token 才能完成一次完整的 2&pi; 旋转。我们将这个跨度称为<strong>波长 (Wavelength)</strong> <span class="math">&lambda;<sub>d</sub></span>。</p>
-            <div class="math-block" style="font-size: 1.1rem;">
-                &lambda;<sub>d</sub> = 2&pi; / &theta;<sub>d</sub> = 2&pi; &middot; 10000<sup>2d/|D|</sup>
-            </div>
-            <p>当波长 <span class="math">&lambda; &lt; L</span> (预训练长度) 时，网络能完整看到该维度的旋转周期，它主要学习<strong>相对位置</strong>。<br>
-               当 <span class="math">&lambda; &gt; L</span> 时，周期未完成，网络将其视为<strong>绝对位置</strong>标识。</p>
-        </div>
-        <div class="canvas-container fade-in">
-            <canvas id="canvas-wavelength"></canvas>
-            <div class="controls">
-                <div class="control-group">
-                    <div class="control-label">
-                        <span>预训练上下文长度 (L)</span>
-                        <span id="label-L">4096</span>
-                    </div>
-                    <input type="range" id="slider-L" min="1024" max="16384" step="1024" value="4096">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section 3: PI -->
-    <section id="sec-pi">
-        <div class="content-left fade-in">
-            <h2>3. 线性插值 (PI) 的灾难</h2>
-            <p>要扩展上下文到 <span class="math">s&middot;L</span>，最直接的方法是 <strong>Position Interpolation (PI)</strong>：把所有位置坐标缩小为 <span class="math">m/s</span>。在频域上，这等于把所有频率压缩为 <span class="math">&theta;<sub>d</sub>/s</span>。</p>
-            <p>但这对高频维度（低 d）是灾难性的。高频维度原本用来区分非常近的 Token，将它们硬性拉伸后，相邻 Token 的相对角度差变得过小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。</p>
-        </div>
-        <div class="canvas-container fade-in">
-            <canvas id="canvas-pi"></canvas>
-            <div class="controls">
-                <div class="control-group">
-                    <div class="control-label">
-                        <span>缩放比例 (s)</span>
-                        <span id="label-s-pi">1x</span>
-                    </div>
-                    <input type="range" id="slider-s-pi" min="1" max="16" step="0.5" value="1">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section 4: NTK-by-parts -->
-    <section id="sec-ntk">
-        <div class="content-left fade-in">
-            <h2>4. YaRN 核心：分段 NTK 插值</h2>
-            <p>YaRN 的精髓在于 <strong>NTK-by-parts</strong>：不要一刀切地缩放。引入比值 <span class="math">r = L / &lambda;<sub>d</sub></span>，并定义两个阈值 <span class="math">&alpha;=1, &beta;=32</span>：</p>
-            <ul style="color: var(--text-dim); margin-left: 1.5rem; margin-bottom: 1.5rem;">
-                <li><strong style="color: var(--magenta)">高频 (r > &beta;)</strong>：波长远小于L。完全不插值，保持原样。</li>
-                <li><strong style="color: var(--cyan)">低频 (r < &alpha;)</strong>：波长大于L。执行 PI 线性插值 (除以s)。</li>
-                <li><strong style="color: var(--orange)">中频 (&alpha; < r < &beta;)</strong>：使用斜坡函数 <span class="math">&gamma;(r)</span> 平滑过渡。</li>
-            </ul>
-            <div class="math-block" style="font-size: 1rem; padding: 1rem;">
-                h(&theta;<sub>d</sub>) = (1-&gamma;(r)) &middot; &theta;<sub>d</sub>/s + &gamma;(r) &middot; &theta;<sub>d</sub>
-            </div>
-        </div>
-        <div class="canvas-container fade-in">
-            <canvas id="canvas-ntk"></canvas>
-            <div class="controls">
-                <div class="control-group">
-                    <div class="control-label">
-                        <span>目标扩展倍数 (s)</span>
-                        <span id="label-s-ntk">16x</span>
-                    </div>
-                    <input type="range" id="slider-s-ntk" min="1" max="32" step="1" value="16">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section 5: Attention Scaling -->
-    <section id="sec-attention">
-        <div class="content-left fade-in">
-            <h2>5. 注意力缩放 (Attention Scaling)</h2>
-            <p>YaRN 发现，在插值后，注意力的 Logits 分布会发生变动（平均长度变大导致方差改变）。为了修正这种温度偏差，YaRN 在注意力计算后乘以一个极小但关键的缩放系数：</p>
-            <div class="math-block">
-                t = ( 0.1 &middot; ln(s) + 1 )<sup>-2</sup>
-            </div>
-            <p>在 Attention 机制中，我们将 logits 乘以 <span class="math">&radic;(1/t)</span>。这个看似微小的温度调整，有效降低了困惑度 (Perplexity)，并且在推理时<strong>计算开销完全为零</strong>。</p>
-        </div>
-        <div class="canvas-container fade-in">
-            <canvas id="canvas-attention"></canvas>
-        </div>
-    </section>
-
-    <!-- Section 6: Summary -->
-    <section id="sec-summary">
-        <div class="container fade-in">
-            <h2 style="text-align: center; margin-bottom: 3rem;">YaRN 方法总结</h2>
-            
-            <div style="display: flex; justify-content: center; align-items: center; gap: 2rem; margin-bottom: 4rem;">
-                <div style="padding: 1.5rem; background: rgba(255,0,85,0.1); border: 1px solid var(--magenta); border-radius: 8px; font-family: var(--font-math); color: var(--text-main);">
-                    NTK-by-parts 插值<br><span style="font-size: 0.8em; color: var(--text-dim);">完美保留高频相对位置</span>
-                </div>
-                <div style="font-size: 2rem; color: var(--text-dim);">+</div>
-                <div style="padding: 1.5rem; background: rgba(0,240,255,0.1); border: 1px solid var(--cyan); border-radius: 8px; font-family: var(--font-math); color: var(--text-main);">
-                    Attention Scaling<br><span style="font-size: 0.8em; color: var(--text-dim);">修正分布熵变</span>
-                </div>
-                <div style="font-size: 2rem; color: var(--text-dim);">=</div>
-                <div style="padding: 1.5rem; background: rgba(255,170,0,0.1); border: 1px solid var(--orange); border-radius: 8px; font-family: var(--font-math); color: var(--orange); font-weight: bold; font-size: 1.5rem;">
-                    YaRN
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-num">128k</div>
-                    <div class="stat-label">无缝支持的上下文长度 (LLaMA)</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-num">10x</div>
-                    <div class="stat-label">微调所需 Token 量显著降低</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-num">2.5x</div>
-                    <div class="stat-label">所需训练步数减少</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <script>
-        // --- Core Utilities ---
-        const DIMS = 64; // Representation dimensions for viz
-        const BASE = 10000;
+      const LABELS = {
+        en: {
+          heroSub: "Yet another RoPE extensioN method",
+          heroText: "Large Language Model (LLM) context windows are expanding rapidly.<br>YaRN provides an elegant, zero-compute-overhead method<br>to multiply context length dynamically by adjusting Rotary Position Embeddings (RoPE).",
+          sec1Head: "1. RoPE: Rotary Position Embedding Basics",
+          sec1Desc: "Before YaRN, we must understand RoPE. It pairs elements of word vectors and rotates them in the complex plane. The rotation angle is proportional to the absolute position <span class=\"math\">m</span> in the sequence.",
+          sec1Desc2: "Crucially, different dimensions <span class=\"math\">d</span> have different rotation frequencies <span class=\"math\">&theta;<sub>d</sub></span>:<br><strong>Low dimensions (small d)</strong> rotate rapidly, capturing local distances;<br><strong>High dimensions (large d)</strong> rotate extremely slowly, encoding macroscopic absolute positions.",
+          sec2Head: "2. Wavelength & Context Length",
+          sec2Desc: "The rotation frequency <span class=\"math\">&theta;<sub>d</sub></span> determines how many tokens a dimension needs to complete a full 2&pi; rotation. We call this span the <strong>Wavelength</strong> <span class=\"math\">&lambda;<sub>d</sub></span>.",
+          lblLText: "Pre-training Context Length (L)",
+          sec3Head: "3. The Position Interpolation Disaster",
+          sec3Desc: "To extend the context to <span class=\"math\">s&middot;L</span>, the most direct method is <strong>Position Interpolation (PI)</strong>: scale all coordinates by <span class=\"math\">m/s</span>. In the frequency domain, this compresses all frequencies to <span class=\"math\">&theta;<sub>d</sub>/s</span>.<br><br>But this is disastrous for high-frequency dimensions (low d). They are meant to distinguish very close tokens. Stretching them forces the relative angles to become too small, making the model 'nearsighted' and losing fine-grained relative resolution.",
+          lblSPi: "Scale Ratio (s)",
+          sec4Head: "4. YaRN Core: NTK-by-Parts Interpolation",
+          sec4Desc: "The essence of YaRN is <strong>NTK-by-parts</strong>: don't scale uniformly. Introduce the ratio <span class=\"math\">r = L / &lambda;<sub>d</sub></span>, with thresholds <span class=\"math\">&alpha;=1, &beta;=32</span>:<br><br><span style=\"color: var(--color-keep); font-weight: bold;\">■ High freq (r &gt; &beta;)</span>: Wavelength &lt;&lt; L. Do not interpolate, keep as is.<br><span style=\"color: var(--color-trans); font-weight: bold;\">■ Mid freq (&alpha; &lt; r &lt; &beta;)</span>: Smooth transition via ramp function.<br><span style=\"color: var(--color-inter); font-weight: bold;\">■ Low freq (r &lt; &alpha;)</span>: Wavelength &gt; L. Apply PI (divide by s).",
+          lblSNtk: "Target Extension Scale (s)",
+          sec5Head: "5. Attention Scaling",
+          sec5Desc: "YaRN found that after interpolation, the attention logits distribution shifts (larger average length alters variance). To correct this temperature bias, YaRN multiplies attention by a critical scaling factor:",
+          sec6Head: "6. YaRN Method Summary",
+          stat1Lbl: "Seamlessly Supported Context",
+          stat2Lbl: "Reduction in Fine-Tuning Tokens",
+          stat3Lbl: "Fewer Training Steps Required"
+        },
+        zh: {
+          heroSub: "Yet another RoPE extensioN method",
+          heroText: "大型语言模型（LLM）的上下文窗口正在极速扩张。<br>YaRN 提供了一种优雅且计算零开销的方法，<br>通过动态调整旋转位置编码（RoPE），将上下文长度扩展数倍。",
+          sec1Head: "1. RoPE 旋转位置编码基础",
+          sec1Desc: "在理解 YaRN 之前，我们必须先理解 RoPE。RoPE 将词向量的元素两两分组，并在复平面上进行旋转，旋转的角度与该词在句子中的绝对位置 <span class=\"math\">m</span> 成正比。",
+          sec1Desc2: "关键在于，不同维度 <span class=\"math\">d</span> 拥有不同的旋转频率 <span class=\"math\">&theta;<sub>d</sub></span>：<br><strong>低维度（小 d）</strong>旋转极快，捕捉局部的相对距离；<br><strong>高维度（大 d）</strong>旋转极慢，几乎静止，编码宏观的绝对位置信息。",
+          sec2Head: "2. 波长与上下文长度",
+          sec2Desc: "旋转频率 <span class=\"math\">&theta;<sub>d</sub></span> 决定了该维度在序列中需要多少个 Token 才能完成一次完整的 2&pi; 旋转。我们将这个跨度称为<strong>波长 (Wavelength)</strong> <span class=\"math\">&lambda;<sub>d</sub></span>。",
+          lblLText: "预训练上下文长度 (L)",
+          sec3Head: "3. 线性插值 (PI) 的灾难",
+          sec3Desc: "要扩展上下文到 <span class=\"math\">s&middot;L</span>，最直接的方法是 <strong>Position Interpolation (PI)</strong>：把所有位置坐标缩小为 <span class=\"math\">m/s</span>。在频域上，这等于把所有频率压缩为 <span class=\"math\">&theta;<sub>d</sub>/s</span>。<br><br>但这对高频维度（低 d）是灾难性的。高频维度原本用来区分非常近的 Token，将它们硬性拉伸后，相邻 Token 的相对角度差变得过小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。",
+          lblSPi: "缩放比例 (s)",
+          sec4Head: "4. YaRN 核心：分段 NTK 插值",
+          sec4Desc: "YaRN 的精髓在于 <strong>NTK-by-parts</strong>：不要一刀切地缩放。引入比值 <span class=\"math\">r = L / &lambda;<sub>d</sub></span>，并定义两个阈值 <span class=\"math\">&alpha;=1, &beta;=32</span>：<br><br><span style=\"color: var(--color-keep); font-weight: bold;\">■ 高频 (r &gt; &beta;)</span>: 波长远小于L。完全不插值，保持原样。<br><span style=\"color: var(--color-trans); font-weight: bold;\">■ 中频 (&alpha; &lt; r &lt; &beta;)</span>: 使用斜坡函数平滑过渡。<br><span style=\"color: var(--color-inter); font-weight: bold;\">■ 低频 (r &lt; &alpha;)</span>: 波长大于L。执行 PI 线性插值 (除以s)。",
+          lblSNtk: "目标扩展倍数 (s)",
+          sec5Head: "5. 注意力缩放 (Attention Scaling)",
+          sec5Desc: "YaRN 发现，在插值后，注意力的 Logits 分布会发生变动（平均长度变大导致方差改变）。为了修正这种温度偏差，YaRN 在注意力计算后乘以一个极小但关键的缩放系数：",
+          sec6Head: "6. YaRN 方法总结",
+          stat1Lbl: "无缝支持的上下文长度",
+          stat2Lbl: "微调 Token 量降低",
+          stat3Lbl: "所需训练步数减少"
+        }
+      };
+
+      let currentLang = 'zh';
+      const langToggleBtn = document.getElementById('lang-toggle');
+
+      function updateI18n() {
+        const L = LABELS[currentLang];
+        langToggleBtn.textContent = currentLang === 'en' ? '中文' : 'EN';
         
-        function getTheta(d) {
-            return Math.pow(BASE, -2 * d / DIMS);
-        }
+        document.getElementById('hero-subtitle').innerHTML = L.heroSub;
+        document.getElementById('hero-text').innerHTML = L.heroText;
+        document.getElementById('sec1-heading').innerHTML = L.sec1Head;
+        document.getElementById('sec1-desc').innerHTML = L.sec1Desc;
+        document.getElementById('sec1-desc2').innerHTML = L.sec1Desc2;
+        document.getElementById('sec2-heading').innerHTML = L.sec2Head;
+        document.getElementById('sec2-desc').innerHTML = L.sec2Desc;
+        document.getElementById('lbl-l-text').innerHTML = L.lblLText;
+        document.getElementById('sec3-heading').innerHTML = L.sec3Head;
+        document.getElementById('sec3-desc').innerHTML = L.sec3Desc;
+        document.getElementById('lbl-s-pi').innerHTML = L.lblSPi;
+        document.getElementById('sec4-heading').innerHTML = L.sec4Head;
+        document.getElementById('sec4-desc').innerHTML = L.sec4Desc;
+        document.getElementById('lbl-s-ntk').innerHTML = L.lblSNtk;
+        document.getElementById('sec5-heading').innerHTML = L.sec5Head;
+        document.getElementById('sec5-desc').innerHTML = L.sec5Desc;
+        document.getElementById('sec6-heading').innerHTML = L.sec6Head;
+        document.getElementById('stat1-lbl').innerHTML = L.stat1Lbl;
+        document.getElementById('stat2-lbl').innerHTML = L.stat2Lbl;
+        document.getElementById('stat3-lbl').innerHTML = L.stat3Lbl;
+      }
 
-        // --- Intersection Observer for Animations ---
-        const faders = document.querySelectorAll('.fade-in');
-        const appearOptions = { threshold: 0.2, rootMargin: "0px 0px -50px 0px" };
-        const appearOnScroll = new IntersectionObserver(function(entries, observer) {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) return;
-                entry.target.classList.add('visible');
-                observer.unobserve(entry.target);
-            });
-        }, appearOptions);
-        faders.forEach(fader => appearOnScroll.observe(fader));
+      langToggleBtn.addEventListener('click', () => {
+        currentLang = currentLang === 'en' ? 'zh' : 'en';
+        updateI18n();
+      });
 
-        // --- Navigation Dots ---
-        const sections = document.querySelectorAll('section');
-        const navDots = document.querySelectorAll('.nav-dot');
+      // Math constants
+      const DIMS = 64;
+      const BASE = 10000;
+      function getTheta(d) { return BASE ** (-2 * d / DIMS); }
+
+      let time = 0;
+
+      // 1. RoPE Visualization
+      const ropeLayer = document.getElementById('svg-rope');
+      const ropeGrid = document.getElementById('rope-grid');
+      const ropeVectors = document.getElementById('rope-vectors');
+      const ropeMCounter = document.getElementById('rope-m-counter');
+      const ropeDims = [0, 8, 16, 24];
+      const ropeColors = ['var(--color-keep)', 'var(--color-trans)', 'var(--color-inter)', 'var(--text-secondary)'];
+      const ropeElements = [];
+
+      function initRope() {
+        if (!ropeLayer) return;
+        ropeGrid.innerHTML = '';
+        ropeVectors.innerHTML = '';
+        ropeElements.length = 0;
+
+        const w = ropeLayer.clientWidth || window.innerWidth * 0.8;
+        const h = ropeLayer.clientHeight || 300;
+        const cx = w / 2;
+        const cy = h / 2;
+        const maxRadius = Math.min(w, h) / 2 - 20;
+
+        // Draw grid lines
+        const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        ['x', 'y'].forEach(axis => {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', axis === 'x' ? 0 : cx);
+          line.setAttribute('y1', axis === 'y' ? 0 : cy);
+          line.setAttribute('x2', axis === 'x' ? w : cx);
+          line.setAttribute('y2', axis === 'y' ? h : cy);
+          line.setAttribute('stroke', 'var(--border)');
+          line.setAttribute('stroke-width', '1');
+          line.setAttribute('stroke-dasharray', '4,4');
+          gridGroup.appendChild(line);
+        });
+        ropeGrid.appendChild(gridGroup);
+
+        // Draw circles and vectors
+        ropeDims.forEach((d, i) => {
+          const radius = maxRadius * (1 - i * 0.2);
+          
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', cx);
+          circle.setAttribute('cy', cy);
+          circle.setAttribute('r', radius);
+          circle.setAttribute('fill', 'none');
+          circle.setAttribute('stroke', ropeColors[i]);
+          circle.setAttribute('stroke-width', '1');
+          circle.setAttribute('stroke-opacity', '0.3');
+          circle.setAttribute('stroke-dasharray', '2,4');
+          ropeGrid.appendChild(circle);
+
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', cx);
+          line.setAttribute('y1', cy);
+          line.setAttribute('stroke', ropeColors[i]);
+          line.setAttribute('stroke-width', '2');
+
+          const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          dot.setAttribute('r', '5');
+          dot.setAttribute('fill', ropeColors[i]);
+          dot.setAttribute('stroke', 'var(--bg)');
+          dot.setAttribute('stroke-width', '1.5');
+
+          ropeVectors.appendChild(line);
+          ropeVectors.appendChild(dot);
+          ropeElements.push({ d, radius, cx, cy, line, dot });
+        });
+      }
+      initRope();
+
+      // 2. Wavelength Visualization
+      const sliderL = document.getElementById('slider-L');
+      const labelL = document.getElementById('label-L');
+      const svgWl = document.getElementById('svg-wavelength');
+      const wlPath = document.getElementById('wl-path');
+      const wlThresh = document.getElementById('wl-threshold');
+
+      // 3. PI Visualization
+      const sliderPi = document.getElementById('slider-s-pi');
+      const labelPi = document.getElementById('label-s-pi');
+      const svgPi = document.getElementById('svg-pi');
+
+      // 4. NTK Visualization
+      const sliderNtk = document.getElementById('slider-s-ntk');
+      const labelNtk = document.getElementById('label-s-ntk');
+      const ntkLayer = document.getElementById('ntk-layer');
+      
+      for(let d=0; d<DIMS/2; d++) {
+        const bar = document.createElement('div');
+        bar.className = 'ntk-bar';
+        bar.style.width = '2.5%';
+        bar.style.margin = '0 1px';
+        bar.style.transition = 'height 0.2s';
+        ntkLayer.appendChild(bar);
+      }
+      const ntkBars = document.querySelectorAll('.ntk-bar');
+
+      // 5. Attention Visualization
+      const svgAtt = document.getElementById('svg-attention');
+      const attPath = document.getElementById('att-path');
+      const attDot = document.getElementById('att-dot');
+      const attText = document.getElementById('att-text');
+
+      function updateWavelength() {
+        const L_val = parseInt(sliderL.value, 10);
+        labelL.textContent = L_val;
         
-        window.addEventListener('scroll', () => {
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                if (scrollY >= sectionTop - 300) {
-                    current = section.getAttribute('id');
-                }
-            });
-            navDots.forEach(dot => {
-                dot.classList.remove('active');
-                if (dot.getAttribute('data-target') === current) {
-                    dot.classList.add('active');
-                }
-            });
-        });
-
-        navDots.forEach(dot => {
-            dot.addEventListener('click', () => {
-                document.getElementById(dot.getAttribute('data-target')).scrollIntoView();
-            });
-        });
-
-        // --- Global Animation Loop ---
-        let time = 0;
-        const canvases = {};
-
-        function setupCanvas(id) {
-            const canvas = document.getElementById(id);
-            if (!canvas) return null;
-            const ctx = canvas.getContext('2d');
-            const rect = canvas.parentElement.getBoundingClientRect();
-            canvas.width = rect.width * 2; // High DPI
-            canvas.height = rect.height * 2;
-            ctx.scale(2, 2);
-            return { canvas, ctx, width: rect.width, height: rect.height };
+        const w = svgWl.clientWidth || window.innerWidth * 0.8;
+        const h = svgWl.clientHeight || 300;
+        
+        const pad = 20;
+        const maxLambda = 2 * Math.PI * BASE;
+        
+        let pathStr = `M ${pad},${h-pad} `;
+        for(let d=0; d<DIMS/2; d++) {
+          const lambda = 2 * Math.PI / getTheta(d);
+          const x = pad + (d / (DIMS/2 - 1)) * (w - pad*2);
+          const MathLog = Math.log;
+          const y = h - pad - (MathLog(lambda) / MathLog(maxLambda)) * (h - pad*2);
+          pathStr += `L ${x},${y} `;
         }
+        pathStr += `L ${w-pad},${h-pad} Z`;
+        wlPath.setAttribute('d', pathStr);
+        
+        const yL = h - pad - (Math.log(L_val) / Math.log(maxLambda)) * (h - pad*2);
+        wlThresh.setAttribute('y1', yL);
+        wlThresh.setAttribute('y2', yL);
+        wlThresh.setAttribute('x1', pad);
+        wlThresh.setAttribute('x2', w-pad);
+        
+        document.getElementById('wl-axis-x').setAttribute('x1', pad);
+        document.getElementById('wl-axis-x').setAttribute('y1', h-pad);
+        document.getElementById('wl-axis-x').setAttribute('x2', w-pad);
+        document.getElementById('wl-axis-x').setAttribute('y2', h-pad);
+        
+        document.getElementById('wl-axis-y').setAttribute('x1', pad);
+        document.getElementById('wl-axis-y').setAttribute('y1', h-pad);
+        document.getElementById('wl-axis-y').setAttribute('x2', pad);
+        document.getElementById('wl-axis-y').setAttribute('y2', pad);
+      }
 
-        function drawLoop() {
-            time += 0.016; // Approx 60fps
-            
-            if (canvases.hero) drawHero(canvases.hero);
-            if (canvases.rope) drawRope(canvases.rope);
-            if (canvases.wavelength) drawWavelength(canvases.wavelength);
-            if (canvases.pi) drawPI(canvases.pi);
-            if (canvases.ntk) drawNTK(canvases.ntk);
-            if (canvases.attention) drawAttention(canvases.attention);
-
-            requestAnimationFrame(drawLoop);
-        }
-
-        // Initialize Canvases
-        window.addEventListener('load', () => {
-            canvases.hero = setupCanvas('hero-canvas');
-            canvases.rope = setupCanvas('canvas-rope');
-            canvases.wavelength = setupCanvas('canvas-wavelength');
-            canvases.pi = setupCanvas('canvas-pi');
-            canvases.ntk = setupCanvas('canvas-ntk');
-            canvases.attention = setupCanvas('canvas-attention');
-            requestAnimationFrame(drawLoop);
+      function updateNTK() {
+        const s_ntk = parseInt(sliderNtk.value, 10);
+        labelNtk.textContent = `${s_ntk}x`;
+        
+        const L = 4096;
+        const alpha = 1, beta = 32;
+        
+        ntkBars.forEach((bar, d) => {
+          const lambda = 2 * Math.PI / getTheta(d);
+          const r = L / lambda;
+          
+          let gamma, color;
+          if (r < alpha) { gamma = 0; color = 'var(--color-inter)'; }
+          else if (r > beta) { gamma = 1; color = 'var(--color-keep)'; }
+          else { gamma = (r - alpha) / (beta - alpha); color = 'var(--color-trans)'; }
+          
+          const ratio = (1 - gamma) * (1 / s_ntk) + gamma;
+          bar.style.height = `${ratio * 100}%`;
+          bar.style.backgroundColor = color;
         });
+      }
 
-        // Handle Resize
-        window.addEventListener('resize', () => {
-            Object.keys(canvases).forEach(k => {
-                const c = document.getElementById(canvases[k].canvas.id);
-                const rect = c.parentElement.getBoundingClientRect();
-                c.width = rect.width * 2;
-                c.height = rect.height * 2;
-                canvases[k].ctx.scale(2, 2);
-                canvases[k].width = rect.width;
-                canvases[k].height = rect.height;
-            });
-        });
-
-
-        // --- Specific Animations ---
-
-        // 0. Hero Background
-        const particles = Array.from({length: 50}, () => ({
-            x: Math.random(), y: Math.random(),
-            r: Math.random() * 2 + 1,
-            speed: Math.random() * 0.5 + 0.1,
-            angle: Math.random() * Math.PI * 2
-        }));
-
-        function drawHero({ctx, width, height}) {
-            ctx.clearRect(0, 0, width, height);
-            ctx.fillStyle = 'rgba(0, 240, 255, 0.5)';
-            particles.forEach(p => {
-                p.angle += p.speed * 0.02;
-                const px = width * p.x + Math.cos(p.angle) * 20;
-                const py = height * p.y + Math.sin(p.angle) * 20;
-                ctx.beginPath();
-                ctx.arc(px, py, p.r, 0, Math.PI * 2);
-                ctx.fill();
-            });
+      function updateAttentionPath() {
+        const w = svgAtt.clientWidth || window.innerWidth * 0.8;
+        const h = svgAtt.clientHeight || 300;
+        const pad = 30;
+        
+        let pathStr = '';
+        for(let s=1; s<=64; s+=1) {
+          const val = 0.1 * Math.log(s) + 1;
+          const x = pad + (s/64) * (w - pad*2);
+          const y = h - pad - ((val - 1) / 0.5) * (h - pad*2);
+          if(s===1) pathStr += `M ${x},${y} `;
+          else pathStr += `L ${x},${y} `;
         }
+        attPath.setAttribute('d', pathStr);
+      }
 
-        // 1. RoPE (Rotating Vectors)
-        function drawRope({ctx, width, height}) {
-            ctx.clearRect(0, 0, width, height);
-            const cx = width / 2;
-            const cy = height / 2;
-            const dimsToShow = [0, 8, 16, 24]; // Show 4 dimensions
-            const colors = ['#FF0055', '#FFaa00', '#00F0FF', '#94a3b8'];
-            const rMax = Math.min(width, height) * 0.35;
-
-            // M shifts forward over time to simulate position moving
-            const m = (time * 10) % 50; 
-
-            dimsToShow.forEach((d, i) => {
-                const theta = getTheta(d);
-                const angle = m * theta; // m * theta_d
-                const radius = rMax - i * 30;
-
-                // Orbit circle
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                // Vector
-                const vx = cx + Math.cos(angle) * radius;
-                const vy = cy + Math.sin(angle) * radius;
-                
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(vx, vy);
-                ctx.strokeStyle = colors[i];
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Point
-                ctx.beginPath();
-                ctx.arc(vx, vy, 5, 0, Math.PI * 2);
-                ctx.fillStyle = colors[i];
-                ctx.fill();
-
-                // Label
-                ctx.fillStyle = colors[i];
-                ctx.font = '12px JetBrains Mono';
-                ctx.fillText(`d=${d}`, cx + radius + 10, cy - 10 + i*15);
-            });
+      function animationLoop() {
+        time += 0.016;
+        
+        // RoPE Vectors
+        const m = (time * 10) % 50;
+        if (ropeMCounter) {
+          ropeMCounter.textContent = `m = ${Math.floor(m)}`;
         }
-
-        // 2. Wavelength
-        let L_val = 4096;
-        document.getElementById('slider-L').addEventListener('input', (e) => {
-            L_val = e.target.value;
-            document.getElementById('label-L').innerText = L_val;
+        ropeElements.forEach((el, i) => {
+          const angle = m * getTheta(el.d);
+          const x2 = el.cx + el.radius * Math.cos(angle);
+          const y2 = el.cy + el.radius * Math.sin(angle);
+          el.line.setAttribute('x2', x2);
+          el.line.setAttribute('y2', y2);
+          el.dot.setAttribute('cx', x2);
+          el.dot.setAttribute('cy', y2);
         });
-
-        function drawWavelength({ctx, width, height}) {
-            ctx.clearRect(0, 0, width, height);
-            
-            const padding = 40;
-            const w = width - padding * 2;
-            const h = height - padding * 2;
-            
-            // Draw Axes
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, height - padding);
-            ctx.lineTo(width - padding, height - padding);
-            ctx.stroke();
-
-            // Labels
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '12px Noto Sans SC';
-            ctx.fillText('维度 d', width - padding - 20, height - padding + 20);
-            ctx.fillText('波长 λ', padding - 30, padding - 10);
-
-            // Calculate points
-            const points = [];
-            const maxLambda = 2 * Math.PI * Math.pow(BASE, 1); // d=|D|/2
-            
-            for (let d = 0; d < DIMS/2; d++) {
-                const lambda = 2 * Math.PI / getTheta(d);
-                const x = padding + (d / (DIMS/2)) * w;
-                // Log scale for Y to fit visually
-                const y = height - padding - (Math.log(lambda) / Math.log(maxLambda)) * h;
-                points.push({x, y, lambda, d});
+        
+        // PI Waves
+        const wPi = svgPi.clientWidth || window.innerWidth * 0.8;
+        const hPi = svgPi.clientHeight || 300;
+        if(wPi > 0) {
+          const s_pi = parseFloat(sliderPi.value);
+          labelPi.textContent = `${s_pi}x`;
+          const freqs = [0.1, 0.05, 0.01];
+          const colors = ['var(--color-keep)', 'var(--color-trans)', 'var(--color-inter)'];
+          
+          let paths = '';
+          freqs.forEach((f, i) => {
+            const yOffset = hPi * 0.25 * (i + 1);
+            let d = `M 0,${yOffset} `;
+            for(let x=0; x<wPi; x+=10) {
+              const y = yOffset + Math.sin((x - time*50) * f / s_pi) * 20;
+              d += `L ${x},${y} `;
             }
-
-            // Draw L Line
-            const yL = height - padding - (Math.log(L_val) / Math.log(maxLambda)) * h;
-            ctx.beginPath();
-            ctx.moveTo(padding, yL);
-            ctx.lineTo(width - padding, yL);
-            ctx.strokeStyle = '#FFaa00';
-            ctx.setLineDash([5, 5]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            ctx.fillStyle = '#FFaa00';
-            ctx.fillText(`L = ${L_val}`, width - padding - 60, yL - 10);
-
-            // Draw Curve with gradient fill
-            ctx.beginPath();
-            ctx.moveTo(points[0].x, height - padding);
-            points.forEach(p => ctx.lineTo(p.x, p.y));
-            ctx.lineTo(points[points.length-1].x, height - padding);
-            
-            const grad = ctx.createLinearGradient(0, padding, 0, height - padding);
-            grad.addColorStop(0, 'rgba(0, 240, 255, 0.4)'); // Absolute region
-            grad.addColorStop(1, 'rgba(255, 0, 85, 0.4)'); // Relative region
-            ctx.fillStyle = grad;
-            ctx.fill();
-
-            // Outline
-            ctx.beginPath();
-            points.forEach((p, i) => {
-                if(i===0) ctx.moveTo(p.x, p.y);
-                else ctx.lineTo(p.x, p.y);
-            });
-            ctx.strokeStyle = '#00F0FF';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            paths += `<path d="${d}" fill="none" stroke="${colors[i]}" stroke-width="2"/>`;
+          });
+          svgPi.innerHTML = paths;
         }
 
-        // 3. PI Stretching
-        let s_pi = 1;
-        document.getElementById('slider-s-pi').addEventListener('input', (e) => {
-            s_pi = parseFloat(e.target.value);
-            document.getElementById('label-s-pi').innerText = s_pi + 'x';
-        });
-
-        function drawPI({ctx, width, height}) {
-            ctx.clearRect(0, 0, width, height);
-            
-            const freqs = [0.1, 0.05, 0.01]; // High to low frequency
-            const colors = ['#FF0055', '#FFaa00', '#00F0FF'];
-            const startY = height / 4;
-            const gap = height / 4;
-
-            freqs.forEach((f, i) => {
-                const yOffset = startY + i * gap;
-                
-                // Base line
-                ctx.beginPath();
-                ctx.moveTo(0, yOffset);
-                ctx.lineTo(width, yOffset);
-                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-                ctx.stroke();
-
-                // Draw compressed wave (PI)
-                ctx.beginPath();
-                for(let x=0; x<width; x++) {
-                    const y = yOffset + Math.sin((x - time*50) * f / s_pi) * 30;
-                    if(x===0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.strokeStyle = colors[i];
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Draw original wave faint
-                if (s_pi > 1) {
-                    ctx.beginPath();
-                    for(let x=0; x<width; x++) {
-                        const y = yOffset + Math.sin((x - time*50) * f) * 30;
-                        if(x===0) ctx.moveTo(x, y);
-                        else ctx.lineTo(x, y);
-                    }
-                    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = '#fff';
-                ctx.font = '10px JetBrains Mono';
-                ctx.fillText(`Freq: ${f} -> ${(f/s_pi).toFixed(4)}`, 10, yOffset - 35);
-            });
+        // Attention Dot
+        const wAtt = svgAtt.clientWidth || window.innerWidth * 0.8;
+        const hAtt = svgAtt.clientHeight || 300;
+        if(wAtt > 0) {
+          const pad = 30;
+          const animS = 1 + (Math.sin(time * 0.5) + 1) * 16;
+          const animVal = 0.1 * Math.log(animS) + 1;
+          const dotX = pad + (animS/64) * (wAtt - pad*2);
+          const dotY = hAtt - pad - ((animVal - 1) / 0.5) * (hAtt - pad*2);
+          attDot.setAttribute('cx', dotX);
+          attDot.setAttribute('cy', dotY);
+          attText.setAttribute('x', dotX + 10);
+          attText.setAttribute('y', dotY - 10);
+          attText.textContent = `s=${animS.toFixed(1)} \u2192 ${animVal.toFixed(3)}`;
         }
 
-        // 4. NTK-by-parts
-        let s_ntk = 16;
-        document.getElementById('slider-s-ntk').addEventListener('input', (e) => {
-            s_ntk = parseInt(e.target.value);
-            document.getElementById('label-s-ntk').innerText = s_ntk + 'x';
-        });
+        requestAnimationFrame(animationLoop);
+      }
 
-        function drawNTK({ctx, width, height}) {
-            ctx.clearRect(0, 0, width, height);
-            
-            const alpha = 1, beta = 32;
-            const L = 4096;
-            const padding = 40;
-            const barWidth = (width - padding * 2) / (DIMS/2) - 2;
-            
-            for (let d = 0; d < DIMS/2; d++) {
-                const theta = getTheta(d);
-                const lambda = 2 * Math.PI / theta;
-                const r = L / lambda;
-                
-                let gamma;
-                let color;
-                
-                if (r < alpha) { // Low freq -> PI
-                    gamma = 0;
-                    color = '#00F0FF'; // Cyan
-                } else if (r > beta) { // High freq -> Extrapolate
-                    gamma = 1;
-                    color = '#FF0055'; // Magenta
-                } else { // Mid freq -> Interpolate
-                    gamma = (r - alpha) / (beta - alpha);
-                    // Interpolate color roughly
-                    color = '#FFaa00'; // Orange
-                }
+      // Init
+      sliderL.addEventListener('input', updateWavelength);
+      sliderNtk.addEventListener('input', updateNTK);
+      window.addEventListener('resize', () => {
+        initRope();
+        updateWavelength();
+        updateAttentionPath();
+      });
 
-                // h(theta) / theta = ratio. 
-                // If gamma=0 (PI), ratio = 1/s. 
-                // If gamma=1 (None), ratio = 1.
-                const ratio = (1 - gamma) * (1 / s_ntk) + gamma;
-                
-                const x = padding + d * (barWidth + 2);
-                const maxH = height - padding * 2;
-                const barH = ratio * maxH;
-                const y = height - padding - barH;
-
-                ctx.fillStyle = color;
-                ctx.fillRect(x, y, barWidth, barH);
-                
-                // Draw base line showing 1/s
-                ctx.fillStyle = 'rgba(255,255,255,0.1)';
-                ctx.fillRect(x, height - padding - (1/s_ntk)*maxH, barWidth, 2);
-            }
-
-            // Legend & Labels
-            ctx.font = '13px Noto Sans SC, sans-serif';
-            ctx.fillStyle = '#FF0055';
-            ctx.fillText('■ 保持原样 (r > β=32)', padding, padding);
-            ctx.fillStyle = '#FFaa00';
-            ctx.fillText('■ 平滑过渡 (α < r < β)', padding, padding + 22);
-            ctx.fillStyle = '#00F0FF';
-            ctx.fillText('■ 完全插值 (r < α=1)', padding, padding + 44);
-            
-            ctx.font = '11px Noto Sans SC, sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            ctx.fillText('维度 d →', width - padding - 50, height - 10);
-            ctx.fillText('↑ 频率缩放比 (1=不变, 低=压缩更多)', padding, height - 10);
-        }
-
-        // 5. Attention Scaling Graph
-        function drawAttention({ctx, width, height}) {
-            ctx.clearRect(0, 0, width, height);
-            const padding = 50;
-            
-            // Axes
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, height - padding);
-            ctx.lineTo(width - padding, height - padding);
-            ctx.stroke();
-            
-            // Plot sqrt(1/t) = 0.1 * ln(s) + 1
-            ctx.beginPath();
-            for(let s=1; s<=64; s+=1) {
-                const val = 0.1 * Math.log(s) + 1;
-                const x = padding + (s/64) * (width - padding*2);
-                const y = height - padding - ((val - 1) / 0.5) * (height - padding*2);
-                
-                if(s===1) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.strokeStyle = '#00F0FF';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            // Label
-            ctx.fillStyle = '#fff';
-            ctx.font = '14px JetBrains Mono, monospace';
-            ctx.fillText('√(1/t) = 0.1·ln(s) + 1', width/2 - 80, padding + 20);
-            ctx.font = '12px Noto Sans SC, sans-serif';
-            ctx.fillStyle = '#94a3b8';
-            ctx.fillText('扩展倍数 (s): 1 → 64', width - 180, height - padding + 25);
-            ctx.save();
-            ctx.translate(padding - 10, height/2 + 40);
-            ctx.rotate(-Math.PI/2);
-            ctx.fillText('缩放系数 √(1/t)', 0, 0);
-            ctx.restore();
-            
-            // Draw current value indicator dot
-            const animS = 1 + (Math.sin(time * 0.5) + 1) * 16; // Oscillating s value
-            const animVal = 0.1 * Math.log(animS) + 1;
-            const dotX = padding + (animS/64) * (width - padding*2);
-            const dotY = height - padding - ((animVal - 1) / 0.5) * (height - padding*2);
-            ctx.beginPath();
-            ctx.arc(dotX, dotY, 6, 0, Math.PI * 2);
-            ctx.fillStyle = '#00F0FF';
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = '11px JetBrains Mono, monospace';
-            ctx.fillText(`s=${animS.toFixed(1)} → ${animVal.toFixed(3)}`, dotX + 10, dotY - 10);
-        }
+      // Run initial render after brief timeout to let CSS layout finish
+      setTimeout(() => {
+        updateI18n();
+        updateWavelength();
+        updateNTK();
+        updateAttentionPath();
+        animationLoop();
+      }, 100);
 
     </script>
-</body>
+  </body>
 </html>

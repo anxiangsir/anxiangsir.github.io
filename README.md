@@ -19,9 +19,7 @@ anxiangsir.github.io/
 │   ├── llava_onevision2.html  #   LLaVA-OneVision2 codec animation
 │   ├── blog.html              #   Blog index
 │   ├── publications.html      #   Publications page
-│   ├── yarn.html              #   YaRN visualization
-│   └── blog/
-│       └── partialfc.html     #   PartialFC explainer article
+│   └── yarn.html              #   YaRN visualization
 │
 ├── api/                       # Backend — Vercel serverless functions (Python)
 │   ├── chat.py                #   Chat API endpoint

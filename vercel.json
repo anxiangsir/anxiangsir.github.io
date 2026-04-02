@@ -31,10 +31,6 @@
       "source": "/yarn.html",
       "destination": "/pages/yarn.html"
     },
-    {
-      "source": "/blog/partialfc.html",
-      "destination": "/pages/blog/partialfc.html"
-    }
   ],
   "headers": [
     {
