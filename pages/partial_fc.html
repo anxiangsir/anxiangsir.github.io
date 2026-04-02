@@ -411,12 +411,9 @@ optimizer.step()  # only sampled W updated   # Phase 4
       const cellSize = 10;
       const rowHeight = 18;
       const cellGap = 2;
-      const NUM_GPU = 4;
       const BS = 4;
       const DIM = 3;
-      const totalS = NUM_GPU * BS;
       const TOTAL_CLASSES = 10000000;
-      const CLASSES_PER_GPU = TOTAL_CLASSES / NUM_GPU;
       const WC_VISIBLE_COLS = 10;
       const SAMPLED_COLS = 8;  // Fixed buffer size per GPU: positives + negatives = SAMPLED_COLS (uniform across GPUs)
       const rowLabelOffsetX = 20;
@@ -431,10 +428,16 @@ optimizer.step()  # only sampled W updated   # Phase 4
       const wcColors = ['#8d7b6b', '#8d7b6b', '#8d7b6b', '#8d7b6b'];
       const negBufColor = '#a0a0a0';
 
-      // For each sample x_i, which GPU holds its positive class center (label y_i).
-      // y_i is NOT necessarily on the same GPU as x_i — class centers are partitioned by class ID.
-      // sampleLabelGpu[i] = GPU index that holds the class center for sample i's label.
-      const sampleLabelGpu = [2, 0, 3, 1, 0, 3, 2, 0, 1, 3, 0, 2, 3, 1, 2, 0];
+      let NUM_GPU, totalS, CLASSES_PER_GPU, sampleLabelGpu;
+      function initConfig() {
+        const isMobile = window.innerWidth < 768;
+        NUM_GPU = isMobile ? 2 : 4;
+        totalS = NUM_GPU * BS;
+        CLASSES_PER_GPU = TOTAL_CLASSES / NUM_GPU;
+        sampleLabelGpu = isMobile 
+          ? [1, 0, 1, 0, 0, 1, 0, 1]
+          : [2, 0, 3, 1, 0, 3, 2, 0, 1, 3, 0, 2, 3, 1, 2, 0];
+      }
 
       function computeGpuLayout(stageW, numSampleCols) {
         const matW = numSampleCols * cellSize + (numSampleCols - 1) * cellGap;
@@ -677,7 +680,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
           // Label appears after all blocks assembled (t > 2.5 + 3*0.4 + 0.5 = 4.2)
           if (t > 4.0) {
             const labelOpacity = Math.min(1, (t - 4.0) / 0.5);
-            placeHTML(`[x<sub>0</sub>,x<sub>1</sub>,&hellip;,x<sub>15</sub>]`, gmCenter, gmY - 20, { opacity: labelOpacity });
+            placeHTML(`[x<sub>0</sub>,x<sub>1</sub>,&hellip;,x<sub>${totalS-1}</sub>]`, gmCenter, gmY - 20, { opacity: labelOpacity });
           }
         }
 
@@ -696,7 +699,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
           const cx = gx + gLayout.groupWidth / 2;
           
           placeHTML(`GPU<sub>${g}</sub>`, cx, gpuLabelY, { color: gpuColors[g] });
-          placeHTML(`[x<sub>0</sub>,x<sub>1</sub>,&hellip;,x<sub>15</sub>]`, cx, sampleLabelY);
+          placeHTML(`[x<sub>0</sub>,x<sub>1</sub>,&hellip;,x<sub>${totalS-1}</sub>]`, cx, sampleLabelY);
           
           const mx = gx + rowLabelOffsetX;
           for (let d = 0; d < DIM; d++) {
@@ -756,7 +759,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
         const stageH = stageEl.clientHeight;
         if (stageW === 0) return;
 
-        drawHeader('SAMPLE CLASS CENTERS', `Each GPU holds 2.5M class centers &middot; dim=${DIM} &middot; Total: 10M identities`, stageW);
+        drawHeader('SAMPLE CLASS CENTERS', `Each GPU holds ${(CLASSES_PER_GPU/1000000).toFixed(1)}M class centers &middot; dim=${DIM} &middot; Total: 10M identities`, stageW);
         const gLayout = computeGpuLayout(stageW, totalS);
         drawGpuBaseLayout(renderer, stageW, gLayout, 0, false);
         placeHTML('📡 Comm 通信量: 0 (Local storage, no communication 本地存储，无需通信)', stageW / 2, stageH - 70, { className: 'stats-label', color: '#2874a6' });
@@ -1052,7 +1055,7 @@ optimizer.step()  # only sampled W updated   # Phase 4
           for(let i=0; i<3; i++) {
             for(let j=0; j<8; j++) {
               const c = getCell();
-              c.className = `cell s${(g*4 + j)%16}`;
+              c.className = `cell s${(g*BS + j)%totalS}`;
               c.style.left = `${cx - 48 + j*(cellSize+cellGap)}px`;
               c.style.top = `${topY + 25 + i*rowHeight}px`;
               c.style.opacity = gradOpacity;
@@ -1123,6 +1126,19 @@ optimizer.step()  # only sampled W updated   # Phase 4
           if (entry.isIntersecting) phaseRenderedStatic[idx] = false;
         });
       }, { threshold: 0 });
+      
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          initConfig();
+          for (let i = 0; i < 5; i++) {
+            phaseRenderedStatic[i] = false;
+          }
+        }, 300);
+      });
+      
+      initConfig();
 
       for (let i = 0; i < 5; i++) {
         const el = document.getElementById(`stage-${i}`);
