@@ -688,8 +688,8 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
 
       let currentLang = "zh";
 
-            function highlightPython(code) {
-        return code
+      function highlightPython(raw) {
+        return raw
           .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
           .replace(/(#[^\n]*)/g, '<span class="cm">$1</span>')
           .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g, '<span class="str">$1</span>')
@@ -709,8 +709,7 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
         document.getElementById('sec1-desc1').innerHTML = L.sec1Desc1;
         document.getElementById('sec1-desc2').innerHTML = L.sec1Desc2;
         document.getElementById('sec1-desc3').innerHTML = L.sec1Desc3;
-        document.getElementById('sec1-rollout-packet').textContent = L.sec1RolloutPacket;
-        document.getElementById('sec1-rollout-packet').innerHTML = highlightPython(document.getElementById('sec1-rollout-packet').innerHTML);
+        document.getElementById('sec1-rollout-packet').innerHTML = highlightPython(L.sec1RolloutPacket);
         document.getElementById('sec1-desc4').innerHTML = L.sec1Desc4;
         document.getElementById('sec1-desc5').innerHTML = L.sec1Desc5;
         document.getElementById('sec1-desc6').innerHTML = L.sec1Desc6;
@@ -763,8 +762,7 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
         document.getElementById('sec5-desc3').innerHTML = L.sec5Desc3;
         document.getElementById('sec5-desc4').innerHTML = L.sec5Desc4;
         document.getElementById('sec5-desc7').innerHTML = L.sec5Desc7;
-        document.getElementById('sec5-loss-code').textContent = L.sec5LossCode;
-        document.getElementById('sec5-loss-code').innerHTML = highlightPython(document.getElementById('sec5-loss-code').innerHTML);
+        document.getElementById('sec5-loss-code').innerHTML = highlightPython(L.sec5LossCode);
         document.getElementById('sec5-desc5').innerHTML = L.sec5Desc5;
         document.getElementById('sec5-desc6').innerHTML = L.sec5Desc6;
         document.getElementById('sec5-desc8').innerHTML = L.sec5Desc8;
