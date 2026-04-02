@@ -1,11 +1,5 @@
 {
   "framework": null,
-  "functions": {
-    "api/chat.py":     { "runtime": "vercel-python@3.x" },
-    "api/scholar.py":  { "runtime": "vercel-python@3.x" },
-    "api/chat_log.py": { "runtime": "vercel-python@3.x" },
-    "api/sessions.py": { "runtime": "vercel-python@3.x" }
-  },
   "rewrites": [
     {
       "source": "/api/chat-log",
