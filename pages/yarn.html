@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YaRN: 大语言模型上下文窗口扩展</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #030508;
+            --bg-panel: #0a0e17;
+            --text-main: #e2e8f0;
+            --text-dim: #94a3b8;
+            --cyan: #00F0FF;
+            --magenta: #FF0055;
+            --orange: #FFaa00;
+            --font-body: 'Noto Sans SC', sans-serif;
+            --font-math: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        /* Typography & Math */
+        h1, h2, h3 {
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, var(--cyan), var(--text-main));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            font-size: 1.1rem;
+            font-weight: 300;
+            margin-bottom: 1.5rem;
+            color: var(--text-dim);
+        }
+
+        .math {
+            font-family: var(--font-math);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            color: var(--cyan);
+            font-size: 0.95em;
+        }
+        
+        .math-block {
+            display: block;
+            text-align: center;
+            font-family: var(--font-math);
+            font-size: 1.3rem;
+            padding: 1.5rem;
+            background: rgba(0, 240, 255, 0.03);
+            border-left: 3px solid var(--cyan);
+            margin: 2rem 0;
+            letter-spacing: 1px;
+        }
+
+        /* Layout */
+        .container {
+            position: relative;
+            width: 100%;
+        }
+
+        section {
+            position: relative;
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            padding: 4rem 10vw;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .content-left {
+            flex: 1;
+            z-index: 10;
+            padding-right: 4rem;
+            max-width: 50%;
+        }
+
+        .canvas-container {
+            flex: 1;
+            height: 60vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, rgba(10, 14, 23, 0.8) 0%, rgba(3, 5, 8, 0) 70%);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* UI Controls */
+        .controls {
+            position: absolute;
+            bottom: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 14, 23, 0.9);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            z-index: 20;
+            width: 80%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .control-label {
+            font-family: var(--font-math);
+            font-size: 0.9rem;
+            color: var(--cyan);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--cyan);
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        /* Fixed Nav */
+        .nav-dots {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-dot.active {
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+            transform: scale(1.5);
+        }
+
+        .nav-dot::before {
+            content: attr(data-title);
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0);
+            font-size: 0.8rem;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-family: var(--font-math);
+        }
+
+        .nav-dot:hover::before {
+            color: var(--text-main);
+        }
+
+        /* Tooltip */
+        .tooltip-trigger {
+            border-bottom: 1px dashed var(--orange);
+            cursor: help;
+            position: relative;
+        }
+        
+        .tooltip-trigger:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background: var(--bg-panel);
+            color: var(--orange);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--orange);
+            font-family: var(--font-math);
+            font-size: 0.85rem;
+            white-space: nowrap;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        /* Hero */
+        #hero {
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding: 0;
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--cyan), var(--magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-dim);
+            font-family: var(--font-math);
+            z-index: 10;
+        }
+
+        #hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.4;
+        }
+
+        /* Section 6 Specific */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+            width: 100%;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--cyan);
+            box-shadow: 0 10px 30px rgba(0,240,255,0.1);
+        }
+
+        .stat-num {
+            font-size: 3rem;
+            font-family: var(--font-math);
+            color: var(--cyan);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="nav-dots">
+        <div class="nav-dot active" data-target="hero" data-title="开始"></div>
+        <div class="nav-dot" data-target="sec-rope" data-title="1. RoPE 基础"></div>
+        <div class="nav-dot" data-target="sec-wavelength" data-title="2. 波长与上下文"></div>
+        <div class="nav-dot" data-target="sec-pi" data-title="3. PI 的问题"></div>
+        <div class="nav-dot" data-target="sec-ntk" data-title="4. NTK-by-parts"></div>
+        <div class="nav-dot" data-target="sec-attention" data-title="5. 注意力缩放"></div>
+        <div class="nav-dot" data-target="sec-summary" data-title="6. 总结"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="hero">
+        <canvas id="hero-canvas"></canvas>
+        <h1 class="hero-title fade-in">YaRN</h1>
+        <p class="hero-subtitle fade-in">Yet another RoPE extensioN method</p>
+        <p class="fade-in" style="margin-top: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            大型语言模型（LLM）的上下文窗口正在极速扩张。<br>
+            YaRN 提供了一种优雅且计算零开销的方法，<br>
+            通过动态调整旋转位置编码（RoPE），将上下文长度扩展数倍。
+        </p>
+    </section>
+
+    <!-- Section 1: RoPE -->
+    <section id="sec-rope">
+        <div class="content-left fade-in">
+            <h2>1. RoPE 旋转位置编码基础</h2>
+            <p>在理解 YaRN 之前，我们必须先理解 <span class="tooltip-trigger" data-tooltip="Rotary Position Embedding">RoPE</span>。RoPE 将词向量的元素两两分组，并在复平面上进行旋转，旋转的角度与该词在句子中的绝对位置 <span class="math">m</span> 成正比。</p>
+            <div class="math-block">
+                f(x, m, &theta;<sub>d</sub>) = e<sup>im&theta;<sub>d</sub></sup> x
+            </div>
+            <p>关键在于，不同维度 <span class="math">d</span> 拥有不同的旋转频率 <span class="math">&theta;<sub>d</sub></span>：</p>
+            <div class="math-block" style="font-size: 1.1rem; padding: 1rem;">
+                &theta;<sub>d</sub> = 10000<sup>-2d/|D|</sup>
+            </div>
+            <p><strong>低维度（小 d）</strong>旋转极快，捕捉局部的相对距离；<br><strong>高维度（大 d）</strong>旋转极慢，几乎静止，编码宏观的绝对位置信息。</p>
+        </div>
+        <div class="canvas-container fade-in">
+            <canvas id="canvas-rope"></canvas>
+        </div>
+    </section>
+
+    <!-- Section 2: Wavelength -->
+    <section id="sec-wavelength">
+        <div class="content-left fade-in">
+            <h2>2. 波长与上下文长度</h2>
+            <p>旋转频率 <span class="math">&theta;<sub>d</sub></span> 决定了该维度在序列中需要多少个 Token 才能完成一次完整的 2&pi; 旋转。我们将这个跨度称为<strong>波长 (Wavelength)</strong> <span class="math">&lambda;<sub>d</sub></span>。</p>
+            <div class="math-block" style="font-size: 1.1rem;">
+                &lambda;<sub>d</sub> = 2&pi; / &theta;<sub>d</sub> = 2&pi; &middot; 10000<sup>2d/|D|</sup>
+            </div>
+            <p>当波长 <span class="math">&lambda; &lt; L</span> (预训练长度) 时，网络能完整看到该维度的旋转周期，它主要学习<strong>相对位置</strong>。<br>
+               当 <span class="math">&lambda; &gt; L</span> 时，周期未完成，网络将其视为<strong>绝对位置</strong>标识。</p>
+        </div>
+        <div class="canvas-container fade-in">
+            <canvas id="canvas-wavelength"></canvas>
+            <div class="controls">
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>预训练上下文长度 (L)</span>
+                        <span id="label-L">4096</span>
+                    </div>
+                    <input type="range" id="slider-L" min="1024" max="16384" step="1024" value="4096">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: PI -->
+    <section id="sec-pi">
+        <div class="content-left fade-in">
+            <h2>3. 线性插值 (PI) 的灾难</h2>
+            <p>要扩展上下文到 <span class="math">s&middot;L</span>，最直接的方法是 <strong>Position Interpolation (PI)</strong>：把所有位置坐标缩小为 <span class="math">m/s</span>。在频域上，这等于把所有频率压缩为 <span class="math">&theta;<sub>d</sub>/s</span>。</p>
+            <p>但这对高频维度（低 d）是灾难性的。高频维度原本用来区分非常近的 Token，将它们硬性拉伸后，相邻 Token 的相对角度差变得过小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。</p>
+        </div>
+        <div class="canvas-container fade-in">
+            <canvas id="canvas-pi"></canvas>
+            <div class="controls">
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>缩放比例 (s)</span>
+                        <span id="label-s-pi">1x</span>
+                    </div>
+                    <input type="range" id="slider-s-pi" min="1" max="16" step="0.5" value="1">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: NTK-by-parts -->
+    <section id="sec-ntk">
+        <div class="content-left fade-in">
+            <h2>4. YaRN 核心：分段 NTK 插值</h2>
+            <p>YaRN 的精髓在于 <strong>NTK-by-parts</strong>：不要一刀切地缩放。引入比值 <span class="math">r = L / &lambda;<sub>d</sub></span>，并定义两个阈值 <span class="math">&alpha;=1, &beta;=32</span>：</p>
+            <ul style="color: var(--text-dim); margin-left: 1.5rem; margin-bottom: 1.5rem;">
+                <li><strong style="color: var(--magenta)">高频 (r > &beta;)</strong>：波长远小于L。完全不插值，保持原样。</li>
+                <li><strong style="color: var(--cyan)">低频 (r < &alpha;)</strong>：波长大于L。执行 PI 线性插值 (除以s)。</li>
+                <li><strong style="color: var(--orange)">中频 (&alpha; < r < &beta;)</strong>：使用斜坡函数 <span class="math">&gamma;(r)</span> 平滑过渡。</li>
+            </ul>
+            <div class="math-block" style="font-size: 1rem; padding: 1rem;">
+                h(&theta;<sub>d</sub>) = (1-&gamma;(r)) &middot; &theta;<sub>d</sub>/s + &gamma;(r) &middot; &theta;<sub>d</sub>
+            </div>
+        </div>
+        <div class="canvas-container fade-in">
+            <canvas id="canvas-ntk"></canvas>
+            <div class="controls">
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>目标扩展倍数 (s)</span>
+                        <span id="label-s-ntk">16x</span>
+                    </div>
+                    <input type="range" id="slider-s-ntk" min="1" max="32" step="1" value="16">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Attention Scaling -->
+    <section id="sec-attention">
+        <div class="content-left fade-in">
+            <h2>5. 注意力缩放 (Attention Scaling)</h2>
+            <p>YaRN 发现，在插值后，注意力的 Logits 分布会发生变动（平均长度变大导致方差改变）。为了修正这种温度偏差，YaRN 在注意力计算后乘以一个极小但关键的缩放系数：</p>
+            <div class="math-block">
+                t = ( 0.1 &middot; ln(s) + 1 )<sup>-2</sup>
+            </div>
+            <p>在 Attention 机制中，我们将 logits 乘以 <span class="math">&radic;(1/t)</span>。这个看似微小的温度调整，有效降低了困惑度 (Perplexity)，并且在推理时<strong>计算开销完全为零</strong>。</p>
+        </div>
+        <div class="canvas-container fade-in">
+            <canvas id="canvas-attention"></canvas>
+        </div>
+    </section>
+
+    <!-- Section 6: Summary -->
+    <section id="sec-summary">
+        <div class="container fade-in">
+            <h2 style="text-align: center; margin-bottom: 3rem;">YaRN 方法总结</h2>
+            
+            <div style="display: flex; justify-content: center; align-items: center; gap: 2rem; margin-bottom: 4rem;">
+                <div style="padding: 1.5rem; background: rgba(255,0,85,0.1); border: 1px solid var(--magenta); border-radius: 8px; font-family: var(--font-math); color: var(--text-main);">
+                    NTK-by-parts 插值<br><span style="font-size: 0.8em; color: var(--text-dim);">完美保留高频相对位置</span>
+                </div>
+                <div style="font-size: 2rem; color: var(--text-dim);">+</div>
+                <div style="padding: 1.5rem; background: rgba(0,240,255,0.1); border: 1px solid var(--cyan); border-radius: 8px; font-family: var(--font-math); color: var(--text-main);">
+                    Attention Scaling<br><span style="font-size: 0.8em; color: var(--text-dim);">修正分布熵变</span>
+                </div>
+                <div style="font-size: 2rem; color: var(--text-dim);">=</div>
+                <div style="padding: 1.5rem; background: rgba(255,170,0,0.1); border: 1px solid var(--orange); border-radius: 8px; font-family: var(--font-math); color: var(--orange); font-weight: bold; font-size: 1.5rem;">
+                    YaRN
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-num">128k</div>
+                    <div class="stat-label">无缝支持的上下文长度 (LLaMA)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">10x</div>
+                    <div class="stat-label">微调所需 Token 量显著降低</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">2.5x</div>
+                    <div class="stat-label">所需训练步数减少</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // --- Core Utilities ---
+        const DIMS = 64; // Representation dimensions for viz
+        const BASE = 10000;
+        
+        function getTheta(d) {
+            return Math.pow(BASE, -2 * d / DIMS);
+        }
+
+        // --- Intersection Observer for Animations ---
+        const faders = document.querySelectorAll('.fade-in');
+        const appearOptions = { threshold: 0.2, rootMargin: "0px 0px -50px 0px" };
+        const appearOnScroll = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            });
+        }, appearOptions);
+        faders.forEach(fader => appearOnScroll.observe(fader));
+
+        // --- Navigation Dots ---
+        const sections = document.querySelectorAll('section');
+        const navDots = document.querySelectorAll('.nav-dot');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 300) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navDots.forEach(dot => {
+                dot.classList.remove('active');
+                if (dot.getAttribute('data-target') === current) {
+                    dot.classList.add('active');
+                }
+            });
+        });
+
+        navDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                document.getElementById(dot.getAttribute('data-target')).scrollIntoView();
+            });
+        });
+
+        // --- Global Animation Loop ---
+        let time = 0;
+        const canvases = {};
+
+        function setupCanvas(id) {
+            const canvas = document.getElementById(id);
+            if (!canvas) return null;
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width * 2; // High DPI
+            canvas.height = rect.height * 2;
+            ctx.scale(2, 2);
+            return { canvas, ctx, width: rect.width, height: rect.height };
+        }
+
+        function drawLoop() {
+            time += 0.016; // Approx 60fps
+            
+            if (canvases.hero) drawHero(canvases.hero);
+            if (canvases.rope) drawRope(canvases.rope);
+            if (canvases.wavelength) drawWavelength(canvases.wavelength);
+            if (canvases.pi) drawPI(canvases.pi);
+            if (canvases.ntk) drawNTK(canvases.ntk);
+            if (canvases.attention) drawAttention(canvases.attention);
+
+            requestAnimationFrame(drawLoop);
+        }
+
+        // Initialize Canvases
+        window.addEventListener('load', () => {
+            canvases.hero = setupCanvas('hero-canvas');
+            canvases.rope = setupCanvas('canvas-rope');
+            canvases.wavelength = setupCanvas('canvas-wavelength');
+            canvases.pi = setupCanvas('canvas-pi');
+            canvases.ntk = setupCanvas('canvas-ntk');
+            canvases.attention = setupCanvas('canvas-attention');
+            requestAnimationFrame(drawLoop);
+        });
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            Object.keys(canvases).forEach(k => {
+                const c = document.getElementById(canvases[k].canvas.id);
+                const rect = c.parentElement.getBoundingClientRect();
+                c.width = rect.width * 2;
+                c.height = rect.height * 2;
+                canvases[k].ctx.scale(2, 2);
+                canvases[k].width = rect.width;
+                canvases[k].height = rect.height;
+            });
+        });
+
+
+        // --- Specific Animations ---
+
+        // 0. Hero Background
+        const particles = Array.from({length: 50}, () => ({
+            x: Math.random(), y: Math.random(),
+            r: Math.random() * 2 + 1,
+            speed: Math.random() * 0.5 + 0.1,
+            angle: Math.random() * Math.PI * 2
+        }));
+
+        function drawHero({ctx, width, height}) {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.5)';
+            particles.forEach(p => {
+                p.angle += p.speed * 0.02;
+                const px = width * p.x + Math.cos(p.angle) * 20;
+                const py = height * p.y + Math.sin(p.angle) * 20;
+                ctx.beginPath();
+                ctx.arc(px, py, p.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // 1. RoPE (Rotating Vectors)
+        function drawRope({ctx, width, height}) {
+            ctx.clearRect(0, 0, width, height);
+            const cx = width / 2;
+            const cy = height / 2;
+            const dimsToShow = [0, 8, 16, 24]; // Show 4 dimensions
+            const colors = ['#FF0055', '#FFaa00', '#00F0FF', '#94a3b8'];
+            const rMax = Math.min(width, height) * 0.35;
+
+            // M shifts forward over time to simulate position moving
+            const m = (time * 10) % 50; 
+
+            dimsToShow.forEach((d, i) => {
+                const theta = getTheta(d);
+                const angle = m * theta; // m * theta_d
+                const radius = rMax - i * 30;
+
+                // Orbit circle
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Vector
+                const vx = cx + Math.cos(angle) * radius;
+                const vy = cy + Math.sin(angle) * radius;
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(vx, vy);
+                ctx.strokeStyle = colors[i];
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Point
+                ctx.beginPath();
+                ctx.arc(vx, vy, 5, 0, Math.PI * 2);
+                ctx.fillStyle = colors[i];
+                ctx.fill();
+
+                // Label
+                ctx.fillStyle = colors[i];
+                ctx.font = '12px JetBrains Mono';
+                ctx.fillText(`d=${d}`, cx + radius + 10, cy - 10 + i*15);
+            });
+        }
+
+        // 2. Wavelength
+        let L_val = 4096;
+        document.getElementById('slider-L').addEventListener('input', (e) => {
+            L_val = e.target.value;
+            document.getElementById('label-L').innerText = L_val;
+        });
+
+        function drawWavelength({ctx, width, height}) {
+            ctx.clearRect(0, 0, width, height);
+            
+            const padding = 40;
+            const w = width - padding * 2;
+            const h = height - padding * 2;
+            
+            // Draw Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Noto Sans SC';
+            ctx.fillText('维度 d', width - padding - 20, height - padding + 20);
+            ctx.fillText('波长 λ', padding - 30, padding - 10);
+
+            // Calculate points
+            const points = [];
+            const maxLambda = 2 * Math.PI * Math.pow(BASE, 1); // d=|D|/2
+            
+            for (let d = 0; d < DIMS/2; d++) {
+                const lambda = 2 * Math.PI / getTheta(d);
+                const x = padding + (d / (DIMS/2)) * w;
+                // Log scale for Y to fit visually
+                const y = height - padding - (Math.log(lambda) / Math.log(maxLambda)) * h;
+                points.push({x, y, lambda, d});
+            }
+
+            // Draw L Line
+            const yL = height - padding - (Math.log(L_val) / Math.log(maxLambda)) * h;
+            ctx.beginPath();
+            ctx.moveTo(padding, yL);
+            ctx.lineTo(width - padding, yL);
+            ctx.strokeStyle = '#FFaa00';
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.fillStyle = '#FFaa00';
+            ctx.fillText(`L = ${L_val}`, width - padding - 60, yL - 10);
+
+            // Draw Curve with gradient fill
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, height - padding);
+            points.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.lineTo(points[points.length-1].x, height - padding);
+            
+            const grad = ctx.createLinearGradient(0, padding, 0, height - padding);
+            grad.addColorStop(0, 'rgba(0, 240, 255, 0.4)'); // Absolute region
+            grad.addColorStop(1, 'rgba(255, 0, 85, 0.4)'); // Relative region
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Outline
+            ctx.beginPath();
+            points.forEach((p, i) => {
+                if(i===0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.strokeStyle = '#00F0FF';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // 3. PI Stretching
+        let s_pi = 1;
+        document.getElementById('slider-s-pi').addEventListener('input', (e) => {
+            s_pi = parseFloat(e.target.value);
+            document.getElementById('label-s-pi').innerText = s_pi + 'x';
+        });
+
+        function drawPI({ctx, width, height}) {
+            ctx.clearRect(0, 0, width, height);
+            
+            const freqs = [0.1, 0.05, 0.01]; // High to low frequency
+            const colors = ['#FF0055', '#FFaa00', '#00F0FF'];
+            const startY = height / 4;
+            const gap = height / 4;
+
+            freqs.forEach((f, i) => {
+                const yOffset = startY + i * gap;
+                
+                // Base line
+                ctx.beginPath();
+                ctx.moveTo(0, yOffset);
+                ctx.lineTo(width, yOffset);
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.stroke();
+
+                // Draw compressed wave (PI)
+                ctx.beginPath();
+                for(let x=0; x<width; x++) {
+                    const y = yOffset + Math.sin((x - time*50) * f / s_pi) * 30;
+                    if(x===0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.strokeStyle = colors[i];
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw original wave faint
+                if (s_pi > 1) {
+                    ctx.beginPath();
+                    for(let x=0; x<width; x++) {
+                        const y = yOffset + Math.sin((x - time*50) * f) * 30;
+                        if(x===0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px JetBrains Mono';
+                ctx.fillText(`Freq: ${f} -> ${(f/s_pi).toFixed(4)}`, 10, yOffset - 35);
+            });
+        }
+
+        // 4. NTK-by-parts
+        let s_ntk = 16;
+        document.getElementById('slider-s-ntk').addEventListener('input', (e) => {
+            s_ntk = parseInt(e.target.value);
+            document.getElementById('label-s-ntk').innerText = s_ntk + 'x';
+        });
+
+        function drawNTK({ctx, width, height}) {
+            ctx.clearRect(0, 0, width, height);
+            
+            const alpha = 1, beta = 32;
+            const L = 4096;
+            const padding = 40;
+            const barWidth = (width - padding * 2) / (DIMS/2) - 2;
+            
+            for (let d = 0; d < DIMS/2; d++) {
+                const theta = getTheta(d);
+                const lambda = 2 * Math.PI / theta;
+                const r = L / lambda;
+                
+                let gamma;
+                let color;
+                
+                if (r < alpha) { // Low freq -> PI
+                    gamma = 0;
+                    color = '#00F0FF'; // Cyan
+                } else if (r > beta) { // High freq -> Extrapolate
+                    gamma = 1;
+                    color = '#FF0055'; // Magenta
+                } else { // Mid freq -> Interpolate
+                    gamma = (r - alpha) / (beta - alpha);
+                    // Interpolate color roughly
+                    color = '#FFaa00'; // Orange
+                }
+
+                // h(theta) / theta = ratio. 
+                // If gamma=0 (PI), ratio = 1/s. 
+                // If gamma=1 (None), ratio = 1.
+                const ratio = (1 - gamma) * (1 / s_ntk) + gamma;
+                
+                const x = padding + d * (barWidth + 2);
+                const maxH = height - padding * 2;
+                const barH = ratio * maxH;
+                const y = height - padding - barH;
+
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, barWidth, barH);
+                
+                // Draw base line showing 1/s
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.fillRect(x, height - padding - (1/s_ntk)*maxH, barWidth, 2);
+            }
+
+            // Legend & Labels
+            ctx.font = '13px Noto Sans SC, sans-serif';
+            ctx.fillStyle = '#FF0055';
+            ctx.fillText('■ 保持原样 (r > β=32)', padding, padding);
+            ctx.fillStyle = '#FFaa00';
+            ctx.fillText('■ 平滑过渡 (α < r < β)', padding, padding + 22);
+            ctx.fillStyle = '#00F0FF';
+            ctx.fillText('■ 完全插值 (r < α=1)', padding, padding + 44);
+            
+            ctx.font = '11px Noto Sans SC, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.fillText('维度 d →', width - padding - 50, height - 10);
+            ctx.fillText('↑ 频率缩放比 (1=不变, 低=压缩更多)', padding, height - 10);
+        }
+
+        // 5. Attention Scaling Graph
+        function drawAttention({ctx, width, height}) {
+            ctx.clearRect(0, 0, width, height);
+            const padding = 50;
+            
+            // Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Plot sqrt(1/t) = 0.1 * ln(s) + 1
+            ctx.beginPath();
+            for(let s=1; s<=64; s+=1) {
+                const val = 0.1 * Math.log(s) + 1;
+                const x = padding + (s/64) * (width - padding*2);
+                const y = height - padding - ((val - 1) / 0.5) * (height - padding*2);
+                
+                if(s===1) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = '#00F0FF';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px JetBrains Mono, monospace';
+            ctx.fillText('√(1/t) = 0.1·ln(s) + 1', width/2 - 80, padding + 20);
+            ctx.font = '12px Noto Sans SC, sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('扩展倍数 (s): 1 → 64', width - 180, height - padding + 25);
+            ctx.save();
+            ctx.translate(padding - 10, height/2 + 40);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText('缩放系数 √(1/t)', 0, 0);
+            ctx.restore();
+            
+            // Draw current value indicator dot
+            const animS = 1 + (Math.sin(time * 0.5) + 1) * 16; // Oscillating s value
+            const animVal = 0.1 * Math.log(animS) + 1;
+            const dotX = padding + (animS/64) * (width - padding*2);
+            const dotY = height - padding - ((animVal - 1) / 0.5) * (height - padding*2);
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#00F0FF';
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = '11px JetBrains Mono, monospace';
+            ctx.fillText(`s=${animS.toFixed(1)} → ${animVal.toFixed(3)}`, dotX + 10, dotY - 10);
+        }
+
+    </script>
+</body>
+</html>

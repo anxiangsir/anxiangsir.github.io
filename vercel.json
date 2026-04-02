@@ -1,9 +1,39 @@
 {
   "framework": null,
+  "functions": {
+    "api/chat.py":     { "runtime": "vercel-python@3.x" },
+    "api/scholar.py":  { "runtime": "vercel-python@3.x" },
+    "api/chat_log.py": { "runtime": "vercel-python@3.x" },
+    "api/sessions.py": { "runtime": "vercel-python@3.x" }
+  },
   "rewrites": [
     {
       "source": "/api/chat-log",
       "destination": "/api/chat_log"
+    },
+    {
+      "source": "/partial_fc.html",
+      "destination": "/pages/partial_fc.html"
+    },
+    {
+      "source": "/llava_onevision2.html",
+      "destination": "/pages/llava_onevision2.html"
+    },
+    {
+      "source": "/blog.html",
+      "destination": "/pages/blog.html"
+    },
+    {
+      "source": "/publications.html",
+      "destination": "/pages/publications.html"
+    },
+    {
+      "source": "/yarn.html",
+      "destination": "/pages/yarn.html"
+    },
+    {
+      "source": "/blog/partialfc.html",
+      "destination": "/pages/blog/partialfc.html"
     }
   ],
   "headers": [

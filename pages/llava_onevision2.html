@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Xiang An - LLaVA-OneVision2</title>
+    <meta name="description" content="Xiang An - Research Scientist and Team Lead at GlintLab" />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --paper: #e9dbce;
+        --ink: #261a15;
+        --ink-light: #4a362a;
+        --font-masthead: "UnifrakturMaguntia", "Old English Text MT", "Engravers MT", serif;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      .site-nav { max-width: 1200px; margin: 0 auto 1rem; padding: 0 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-sans); font-size: 0.85em; flex-wrap: wrap; }
+      .site-nav a { color: #ccc; text-decoration: none; font-weight: 600; letter-spacing: 0.02em; padding: 2px 4px; }
+      .site-nav a:hover { color: #fff; text-decoration: underline; }
+      .site-nav .nav-sep { color: #555; user-select: none; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-serif);
+        line-height: 1.5;
+        padding: 3rem 2rem;
+      }
+      .newspaper {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: var(--paper);
+        background-image:
+          linear-gradient(90deg, transparent 49.5%, rgba(0,0,0,0.025) 50%, rgba(255,255,255,0.08) 50.5%, transparent 51%),
+          linear-gradient(90deg, transparent 24.5%, rgba(0,0,0,0.015) 25%, rgba(255,255,255,0.04) 25.5%, transparent 26%),
+          linear-gradient(90deg, transparent 74.5%, rgba(0,0,0,0.015) 75%, rgba(255,255,255,0.04) 75.5%, transparent 76%),
+          linear-gradient(180deg, transparent 32.5%, rgba(0,0,0,0.015) 33%, rgba(255,255,255,0.03) 33.5%, transparent 34%),
+          linear-gradient(180deg, transparent 65.5%, rgba(0,0,0,0.015) 66%, rgba(255,255,255,0.03) 66.5%, transparent 67%),
+          linear-gradient(180deg, rgba(255, 248, 238, 0.4) 0%, rgba(120, 76, 46, 0.05) 100%),
+          radial-gradient(ellipse at center, transparent 40%, rgba(139, 90, 43, 0.25) 100%),
+          radial-gradient(circle at 18% 14%, rgba(92, 56, 29, 0.08), transparent 18%),
+          radial-gradient(circle at 82% 11%, rgba(110, 70, 42, 0.1), transparent 16%),
+          radial-gradient(circle at 13% 82%, rgba(120, 78, 45, 0.07), transparent 20%),
+          radial-gradient(circle at 10% 20%, rgba(200, 160, 120, 0.15), transparent 40%),
+          radial-gradient(circle at 90% 80%, rgba(180, 130, 90, 0.2), transparent 50%),
+          radial-gradient(circle at 45% 75%, rgba(120, 80, 50, 0.04), transparent 25%),
+          radial-gradient(circle at 75% 35%, rgba(100, 60, 40, 0.05), transparent 20%),
+          url('data:image/svg+xml;utf8,<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" opacity="0.06" filter="url(%23n)"/></svg>');
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), inset 0 0 50px rgba(100, 60, 30, 0.2);
+        padding: 3rem 3.5rem;
+        position: relative;
+      }
+      .newspaper::before {
+        content: "";
+        position: absolute;
+        top: 15px; left: 15px; right: 15px; bottom: 15px;
+        border: 1px solid rgba(43, 29, 22, 0.3);
+        outline: 1px solid rgba(43, 29, 22, 0.1);
+        outline-offset: -4px;
+        pointer-events: none;
+        z-index: 20;
+      }
+      .newspaper::after {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background:
+          linear-gradient(90deg, rgba(0,0,0,0.06), transparent 8%, transparent 92%, rgba(0,0,0,0.06)),
+          linear-gradient(180deg, rgba(255,255,255,0.08), transparent 10%, transparent 90%, rgba(70,40,20,0.08));
+        box-shadow: inset 0 0 120px rgba(70, 40, 20, 0.35);
+        pointer-events: none;
+        z-index: 10;
+      }
+      .corner-ornament {
+        position: absolute;
+        width: 35px; height: 35px;
+        border: 2px solid rgba(43, 29, 22, 0.4);
+        z-index: 25; pointer-events: none;
+      }
+      .corner-ornament.top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
+      .corner-ornament.top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
+      .corner-ornament.bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
+      .corner-ornament.bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+      .corner-ornament::before {
+        content: "❈"; position: absolute; color: rgba(43, 29, 22, 0.5); font-size: 1.1rem;
+      }
+      .corner-ornament.top-left::before { top: -2px; left: 3px; transform: rotate(-45deg); }
+      .corner-ornament.top-right::before { top: -2px; right: 3px; transform: rotate(45deg); }
+      .corner-ornament.bottom-left::before { bottom: -2px; left: 3px; transform: rotate(-135deg); }
+      .corner-ornament.bottom-right::before { bottom: -2px; right: 3px; transform: rotate(135deg); }
+
+      .masthead { text-align: center; border-bottom: 6px double var(--ink); padding-bottom: 10px; margin-bottom: 30px; position: relative; }
+      .masthead::before, .masthead::after { content: "✦ ✦ ✦"; position: absolute; top: 58px; font-size: 0.8rem; letter-spacing: 4px; opacity: 0.65; }
+      .masthead::before { left: 6px; } .masthead::after { right: 6px; }
+      .dateline {
+        border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); padding: 8px 0;
+        font-size: 0.85em; text-transform: uppercase; letter-spacing: 2px; display: flex;
+        justify-content: space-between; font-family: var(--font-sans); margin-bottom: 15px; font-weight: 600; position: relative;
+      }
+      .dateline::before, .dateline::after { content: "★"; position: absolute; top: 50%; transform: translateY(-50%); font-size: 0.8em; }
+      .dateline::before { left: 30%; } .dateline::after { right: 30%; }
+      .masthead-title {
+        font-family: var(--font-headline); font-size: clamp(50px, 8vw, 90px); font-weight: 900; line-height: 1; margin: 5px 0 10px;
+        text-shadow: 1px 1px 0 rgba(255,255,255,0.7), 2px 2px 0 rgba(0,0,0,0.18), 4px 4px 0 rgba(90,55,30,0.12), 0 0 16px rgba(255,248,220,0.2); letter-spacing: -1px;
+      }
+      .masthead-sub { font-size: 1.1em; letter-spacing: 6px; font-weight: 700; font-family: var(--font-headline); text-transform: uppercase; margin-bottom: 10px; color: var(--ink); }
+
+      .stamp {
+        position: absolute; top: 25px; right: 35px; width: 90px; height: 90px; border: 4px double #5c1818; border-radius: 50%;
+        box-shadow: inset 0 0 0 2px rgba(92, 24, 24, 0.28), 0 1px 4px rgba(0,0,0,0.12); display: flex; align-items: center; justify-content: center;
+        text-align: center; font-family: var(--font-headline); font-size: 0.75rem; font-weight: 900; color: #5c1818; text-transform: uppercase;
+        transform: rotate(15deg); opacity: 0.7; mix-blend-mode: multiply; z-index: 30;
+      }
+      .stamp span { display: block; transform: rotate(-10deg); line-height: 1.2; }
+
+      .headline {
+        font-family: var(--font-headline); font-size: clamp(28px, 4vw, 36px); font-weight: 900; line-height: 1.1; text-align: center;
+        margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0; text-wrap: balance;
+      }
+
+      .stage-wrapper {
+        width: 100%; height: 600px; position: relative; border: 4px double var(--ink); outline: 1px solid var(--ink); outline-offset: 3px;
+        overflow: hidden; margin: 0 auto 35px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(84,53,31,0.06)), rgba(0, 0, 0, 0.05);
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.2), inset 0 0 50px rgba(112,74,42,0.14);
+      }
+      .stage-wrapper::after {
+        content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 30px;
+        background: linear-gradient(to top, rgba(233, 219, 206, 1), transparent); pointer-events: none; z-index: 5;
+      }
+      .lang-toggle {
+        position: absolute; top: 10px; right: 12px; z-index: 30;
+        font-family: var(--font-sans); font-size: 0.75rem; font-weight: 700;
+        padding: 4px 10px; cursor: pointer; letter-spacing: 0.5px;
+        background: rgba(233, 219, 206, 0.85); color: var(--ink);
+        border: 1.5px solid var(--ink); border-radius: 3px;
+        backdrop-filter: blur(4px); transition: background 0.2s;
+      }
+      .lang-toggle:hover { background: rgba(43, 29, 22, 0.12); }
+      .phase-heading {
+        font-family: var(--font-headline);
+        font-size: clamp(22px, 3vw, 28px);
+        font-weight: 700;
+        text-align: center;
+        margin: 30px 0 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-top: 1px solid rgba(43,29,22,0.3);
+        padding-top: 20px;
+      }
+      .phase-desc {
+        font-family: var(--font-serif);
+        font-size: 1.15em;
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 15px;
+        color: var(--ink);
+        line-height: 1.6;
+      }
+
+
+      /* 3D Scene Styles */
+      .scene-3d {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        perspective: 1500px;
+        display: flex; align-items: center; justify-content: center;
+        transform-style: preserve-3d;
+        overflow: visible;
+      }
+      .volume-container {
+        position: absolute;
+        transform-style: preserve-3d;
+      }
+      .cell {
+        position: absolute;
+        transform-style: preserve-3d;
+        will-change: transform, opacity;
+      }
+      .face {
+        position: absolute;
+        box-sizing: border-box;
+        width: 100%; height: 100%;
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+      .face.front { transform: translateZ(calc(var(--psize) / 2)); }
+      .face.right { transform: rotateY(90deg) translateZ(calc(var(--psize) / 2)); }
+      .face.top   { transform: rotateX(90deg) translateZ(calc(var(--psize) / 2)); }
+      
+      .cell-html { position: absolute; font-family: "Courier New", Courier, monospace; font-size: 14px; white-space: nowrap; color: var(--ink); font-weight: bold; transform: translate(-50%, -50%); text-align: center; }
+      .cell-html small { font-size: 0.88em; opacity: 0.9; }
+
+      
+      sub { font-size: 0.7em; }
+
+      @media (max-width: 768px) {
+        body { padding: 2rem 1rem; }
+        .newspaper { padding: 2rem 2rem; max-width: 100%; }
+        .stage-wrapper { height: 450px; overflow: hidden; }
+        .stamp { transform: rotate(15deg) scale(0.7); transform-origin: top right; }
+      }
+
+      @media (max-width: 480px) {
+        body { padding: 1rem 0.5rem; }
+        .newspaper { padding: 1.5rem 1rem; }
+        .stage-wrapper { height: 500px; }
+        .cell-html { font-size: 11px; }
+        .title-label { font-size: 12px; }
+        .footer-label { font-size: 12px; }
+        .stats-label { font-size: 10px; }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/partial_fc.html">PFC</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/llava_onevision2.html">OV2</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+    </nav>
+    <div class="newspaper">
+      <div class="corner-ornament top-left"></div>
+      <div class="corner-ornament top-right"></div>
+      <div class="corner-ornament bottom-left"></div>
+      <div class="corner-ornament bottom-right"></div>
+      <div class="stamp"><span>Prophet<br>Exclusive</span></div>
+      <header class="masthead">
+        <h1 class="masthead-title">LLaVA-OneVision</h1>
+        <div class="masthead-sub">The Leading Voice in Magical Tech</div>
+      </header>
+
+      <h2 class="headline">Codec-Aligned Sparse Vision Encoding for Video Understanding</h2>
+
+      <h3 class="phase-heading">Video &rarr; 3D Vision Transformer Pipeline</h3>
+      <p class="phase-desc">HEVC codec decomposition &rarr; sparse patch selection &rarr; OneVision-Encoder</p>
+      <div class="stage-wrapper" id="stage-0">
+        <div class="scene-3d">
+          <div class="volume-container" id="volume-container"></div>
+        </div>
+        <button type="button" class="lang-toggle" id="lang-toggle">中文</button>
+      </div>
+
+      <h3 class="phase-heading" id="phase2-heading">Multi-Modal Vision Input</h3>
+      <p class="phase-desc" id="phase2-desc">Image, uniform frames, or codec-aligned tokens &mdash; all feed the same Vision Transformer via RoPE3D</p>
+      <div class="stage-wrapper" id="stage-1">
+        <div class="scene-3d">
+          <div class="volume-container" id="volume-container-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const cellTemplate = document.createElement('div');
+      cellTemplate.className = 'cell';
+      cellTemplate.style.setProperty('--psize', `${16}px`);
+      cellTemplate.style.width = cellTemplate.style.height = `${16}px`;
+      cellTemplate.innerHTML = '<div class="face front"></div><div class="face top"></div><div class="face right"></div>';
+
+      function createStageRenderer(stageEl) {
+        const cellPool = [];
+        let cellPoolIdx = 0;
+        const textPool = [];
+        let textPoolIdx = 0;
+
+        function resetPool() { cellPoolIdx = 0; }
+        function getCell(parentEl = stageEl) {
+          let c;
+          if (cellPoolIdx < cellPool.length) {
+            c = cellPool[cellPoolIdx++];
+            c.style.display = '';
+          } else {
+            c = cellTemplate.cloneNode(true);
+            parentEl.appendChild(c);
+            cellPool.push(c);
+            cellPoolIdx++;
+          }
+          if (c.parentNode !== parentEl) parentEl.appendChild(c);
+          return c;
+        }
+        function hideUnused() {
+          for (let i = cellPoolIdx; i < cellPool.length; i++) {
+            cellPool[i].style.display = 'none';
+          }
+        }
+
+        function resetTextPool() { textPoolIdx = 0; }
+        function getPoolTextNode() {
+          if (textPoolIdx < textPool.length) {
+            const el = textPool[textPoolIdx++];
+            el.style.display = '';
+            el.className = 'cell-html';
+            el.style.color = 'var(--ink)';
+            el.style.opacity = '1';
+            el.style.transform = 'translate(-50%, -50%)';
+            el.style.background = '';
+            el.style.zIndex = '';
+            el.style.width = '';
+            el.style.height = '';
+            el.style.lineHeight = '';
+            el.style.textAlign = '';
+            el.style.border = '';
+            el.style.borderRadius = '';
+            el.style.boxShadow = '';
+            el.style.padding = '';
+            el.style.fontWeight = '';
+            el.style.fontSize = '';
+            el.style.letterSpacing = '';
+            el.style.backgroundImage = '';
+            el.style.backgroundSize = '';
+            el.style.whiteSpace = '';
+            el.style.borderLeft = '';
+            el.style.borderTop = '';
+            return el;
+          }
+          const el = document.createElement('div');
+          el.className = 'cell-html';
+          stageEl.appendChild(el);
+          textPool.push(el);
+          textPoolIdx++;
+          return el;
+        }
+        function placeHTML(html, x, y, opts = {}) {
+          const el = getPoolTextNode();
+          el.innerHTML = html;
+          el.style.left = `${x}px`;
+          el.style.top = `${y}px`;
+          if (opts.className) el.className += ' ' + opts.className;
+          if (opts.color) el.style.color = opts.color;
+          if (opts.opacity !== undefined) el.style.opacity = opts.opacity;
+          if (opts.transform) el.style.transform = opts.transform;
+          if (opts.zIndex) el.style.zIndex = opts.zIndex;
+          return el;
+        }
+        function hideUnusedText() {
+          for (let i = textPoolIdx; i < textPool.length; i++) {
+            textPool[i].style.display = 'none';
+          }
+        }
+
+        return { resetPool, resetTextPool, getCell, placeHTML, hideUnused, hideUnusedText, stageEl };
+      }
+
+      const stages = [];
+      const el = document.getElementById(`stage-0`);
+      if (el) stages.push(createStageRenderer(el));
+      // ── Easing functions ──
+      const easeOutBack = t => {
+        const c1 = 1.70158, c3 = c1 + 1;
+        return 1 + c3 * (t - 1) ** 3 + c1 * (t - 1) ** 2;
+      };
+      const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+
+      // ── Constants (module scope) ──
+      const GRID_ROWS = 3, GRID_COLS = 3, PATCH_SIZE = 16, GAP = 2, Z_GAP = 8;
+      const HALF_PATCH = PATCH_SIZE / 2;
+      const LINE_WIDTH = 280;
+      const LINE_START_X = -LINE_WIDTH / 2;
+      const CYCLE_DURATION = 20;
+      const FLY_SCALE_TARGET = 8 / PATCH_SIZE; // shrink factor during fly-out
+
+      // ── Color presets ──
+      const COLOR_I = { h: 45, s: 90, l: 55, a: 0.85 };
+      const COLOR_P = { h: 210, s: 70, l: 50, a: 0.7 };
+
+      // ── Cube configurations (data-driven) ──
+      const CUBES = [
+        { frames: 24, gopLen: 6, yOffset: -120, lineY: -100, totalKept: 72, sparse: true },
+        { frames: 8,  gopLen: 0, yOffset: 120,  lineY: 100,  totalKept: 72, sparse: false },
+      ];
+
+      // ── Seeded PRNG ──
+      function mulberry32(a) {
+        return function() {
+          a |= 0; a = a + 0x6D2B79F5 | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = t + Math.imul(t ^ (t >>> 7), 61 | t) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      // ── Pre-compute keep map for top cube (Uint8Array for fast lookup) ──
+      // Budget: totalKept - (I-frames × 9) patches spread across P-frames
+      const keepMap = (() => {
+        const cfg = CUBES[0];
+        const size = GRID_ROWS * GRID_COLS * cfg.frames;
+        const map = new Uint8Array(size);
+        const nI = Math.floor(cfg.frames / cfg.gopLen);
+        const pTotal = cfg.totalKept - nI * 9;
+        const nP = cfg.frames - nI;
+        let budgetLeft = pTotal, framesLeft = nP;
+        for (let z = 0; z < cfg.frames; z++) {
+          const isI = cfg.gopLen > 0 && (z % cfg.gopLen === 0);
+          if (isI) {
+            for (let i = 0; i < 9; i++) map[i + z * 9] = 1;
+          } else {
+            const keepN = Math.min(9, Math.round(budgetLeft / framesLeft));
+            budgetLeft -= keepN;
+            framesLeft--;
+            const rng = mulberry32(z * 7919 + 13);
+            const idx = [0,1,2,3,4,5,6,7,8];
+            for (let i = 8; i > 0; i--) {
+              const j = Math.floor(rng() * (i + 1));
+              const tmp = idx[i]; idx[i] = idx[j]; idx[j] = tmp;
+            }
+            for (let k = 0; k < keepN; k++) map[idx[k] + z * 9] = 1;
+          }
+        }
+        return map;
+      })();
+
+      // ── Pre-compute per-patch static data for each cube ──
+      // { stagger, zPosBase, isI, keep, flatIdx } per patch
+      const cubePatchData = CUBES.map(cfg => {
+        const patches = [];
+        let tokenIdx = 0;
+        for (let z = 0; z < cfg.frames; z++) {
+          const isI = cfg.gopLen > 0 ? (z % cfg.gopLen === 0) : true;
+          const zPosBase = (z - cfg.frames / 2) * Z_GAP;
+          for (let y = 0; y < GRID_ROWS; y++) {
+            for (let x = 0; x < GRID_COLS; x++) {
+              const keep = cfg.sparse ? (keepMap[x + y * 3 + z * 9] === 1) : true;
+              patches.push({
+                x, y, z,
+                stagger: z * 0.03 + y * 0.02 + x * 0.01,
+                zPosBase,
+                isI,
+                keep,
+                flatIdx: keep ? tokenIdx : -1,
+                depthBright: 1 - (z / cfg.frames) * 0.15,
+              });
+              if (keep) tokenIdx++;
+            }
+          }
+        }
+        return patches;
+      });
+
+      const cubeTokenSpacing = CUBES.map(cfg => LINE_WIDTH / Math.max(1, cfg.totalKept - 1));
+
+      // ── Cached DOM references ──
+      const volContainerEl = document.getElementById('volume-container');
+
+      // ── i18n labels ──
+      const LABELS = {
+        en: {
+          cubeTop: 'Codec-Aligned Encoding',
+          cubeBot: 'Uniform Sampling',
+          patternTop: '<small>IPPPPP \u00d7 4 \u2192 24 frames</small>',
+          patternBot: '<small>I \u00d7 8 \u2192 8 frames</small>',
+          tokensTop: '72 tokens',
+          tokensBot: '72 tokens',
+          insight: '<b>Same token budget \u2014 3\u00d7 more temporal coverage</b>',
+          panel2Title: 'RoPE3D Positional Encoding \u2192 Transformer',
+          panel2Heading: 'Multi-Modal Vision Input',
+          panel2Desc: 'Image, uniform frames, or codec-aligned tokens \u2014 all feed the same Vision Transformer via RoPE3D',
+          panel2Transformer: 'Vision Transformer (24L)',
+          modeImage: 'Image',
+          descImage: '1 frame \u2192 9 patches',
+          modeUniform: 'Uniform',
+          descUniform: '8 frames \u2192 32 tokens',
+          modeCodec: 'Codec',
+          descCodec: '24 frames, I+P \u2192 32 tokens',
+        },
+        zh: {
+          cubeTop: '\u7f16\u89e3\u7801\u5bf9\u9f50\u7f16\u7801',
+          cubeBot: '\u5747\u5300\u91c7\u6837',
+          patternTop: '<small>IPPPPP \u00d7 4 \u2192 24 \u5e27</small>',
+          patternBot: '<small>I \u00d7 8 \u2192 8 \u5e27</small>',
+          tokensTop: '72 \u4e2a token',
+          tokensBot: '72 \u4e2a token',
+          insight: '<b>\u76f8\u540c token \u9884\u7b97 \u2014 3 \u500d\u65f6\u95f4\u8986\u76d6</b>',
+          panel2Title: 'RoPE3D \u4f4d\u7f6e\u7f16\u7801 \u2192 Transformer',
+          panel2Heading: '\u591a\u6a21\u6001\u89c6\u89c9\u8f93\u5165',
+          panel2Desc: '\u56fe\u7247\u3001\u5747\u5300\u62bd\u5e27\u3001\u7f16\u89e3\u7801 token \u2014 \u901a\u8fc7 RoPE3D \u8f93\u5165\u540c\u4e00\u4e2a Vision Transformer',
+          panel2Transformer: 'Vision Transformer (24L)',
+          modeImage: '\u56fe\u7247',
+          descImage: '1 \u5e27 \u2192 9 \u4e2a\u5757',
+          modeUniform: '\u5747\u5300\u62bd\u5e27',
+          descUniform: '8 \u5e27 \u2192 32 tokens',
+          modeCodec: '\u7f16\u89e3\u7801',
+          descCodec: '24 \u5e27, I+P \u2192 32 tokens',
+        },
+      };
+      let currentLang = 'en';
+      const langToggleBtn = document.getElementById('lang-toggle');
+      langToggleBtn.addEventListener('click', () => {
+        currentLang = currentLang === 'en' ? 'zh' : 'en';
+        langToggleBtn.textContent = currentLang === 'en' ? '\u4e2d\u6587' : 'EN';
+        const L = LABELS[currentLang];
+        const h2El = document.getElementById('phase2-heading');
+        const descEl = document.getElementById('phase2-desc');
+        if (h2El) h2El.textContent = L.panel2Heading;
+        if (descEl) descEl.textContent = L.panel2Desc;
+      });
+
+      // ── Timeline helpers ──
+      const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+
+      function renderCubes(getCell, tCascade, tSlice, tSparse, tFly, flyEased, rotX, rotY) {
+        for (let ci = 0; ci < CUBES.length; ci++) {
+          const cfg = CUBES[ci];
+          const patches = cubePatchData[ci];
+          const tokenSpacing = cubeTokenSpacing[ci];
+
+          for (let pi = 0; pi < patches.length; pi++) {
+            const p = patches[pi];
+
+            // Cascade (staggered entrance)
+            const localCascade = clamp01(tCascade * 1.5 - p.stagger);
+            if (localCascade <= 0) continue;
+
+            // Sparse skip (fully faded non-kept patches)
+            const localSparse = clamp01(tSparse * 1.5 - p.stagger);
+            if (!p.keep && localSparse >= 1) continue;
+
+            // Slice (gap between patches)
+            const localSlice = clamp01(tSlice * 1.2 - p.stagger);
+            const sliceEase = localSlice > 0 ? easeOutBack(localSlice) : 0;
+
+            // Position
+            const cx = (p.x - GRID_COLS / 2) * (PATCH_SIZE + GAP * sliceEase);
+            const cy = (p.y - GRID_ROWS / 2) * (PATCH_SIZE + GAP * sliceEase) + cfg.yOffset;
+            let op = localCascade;
+            let scalePatch = 1;
+            let desaturate = 0;
+            let zPos = p.zPosBase + (1 - localCascade) * 200;
+
+            // Sparse fade-out (top cube P-frame discards only)
+            if (cfg.sparse && !p.keep && localSparse > 0) {
+              const fadeOut = easeInOutCubic(localSparse);
+              scalePatch = 1 - fadeOut;
+              op = localCascade * (1 - fadeOut);
+              desaturate = localSparse;
+              zPos -= fadeOut * 10;
+            }
+
+            // Color
+            let fH, fS, fL, fA;
+            if (cfg.sparse && !p.isI) {
+              fH = COLOR_P.h; fS = COLOR_P.s; fL = COLOR_P.l; fA = COLOR_P.a;
+            } else {
+              fH = COLOR_I.h; fS = COLOR_I.s; fL = COLOR_I.l; fA = COLOR_I.a;
+            }
+            if (desaturate > 0) fS *= (1 - desaturate);
+
+            // Fly-out to horizontal token line
+            const localFly = clamp01(tFly * 1.5 - p.stagger);
+            const flyEase = easeInOutCubic(localFly);
+            let flyX = cx, flyY = cy, flyZ = zPos;
+            let patchRotX = 0, patchRotY = 0;
+
+            if (p.keep && localFly > 0) {
+              const targetX = Math.min(LINE_START_X + p.flatIdx * tokenSpacing, LINE_START_X + LINE_WIDTH);
+              flyX = cx + (targetX - cx) * flyEase;
+              flyY = cy + (cfg.lineY - cy) * flyEase;
+              flyZ = zPos * (1 - flyEase);
+              patchRotY = -rotY * flyEase;
+              patchRotX = -rotX * flyEase;
+              scalePatch += (FLY_SCALE_TARGET - scalePatch) * flyEase;
+            }
+
+            // Skip invisible
+            if (op < 0.05 || scalePatch <= 0) continue;
+
+            // ── DOM: get cell, init faces once, then only update dynamic props ──
+            const c = getCell(volContainerEl);
+
+            // Dynamic: transform + opacity (2 writes instead of 15)
+            c.style.transform = `translate3d(${flyX - HALF_PATCH}px,${flyY - HALF_PATCH}px,${flyZ}px) rotateX(${patchRotX}deg) rotateY(${patchRotY}deg) scale(${scalePatch})`;
+            c.style.opacity = op;
+
+            // Face colors (only when color actually varies — always write for simplicity,
+            // but skip filter/border computation when slice hasn't started)
+            const bright = p.depthBright;
+            const front = c.children[0], top = c.children[1], right = c.children[2];
+            front.style.cssText = `background:hsla(${fH},${fS}%,${fL}%,${fA});filter:brightness(${bright});border:1px solid rgba(0,0,0,${0.15 + 0.15 * localSlice})`;
+            top.style.cssText = `background:hsla(${fH},${Math.max(0,fS-10)}%,${Math.min(95,fL+15)}%,${fA});filter:brightness(${bright*1.1});border:1px solid rgba(255,255,255,${0.15 + 0.2 * localSlice})`;
+            right.style.cssText = `background:hsla(${fH},${Math.max(0,fS-5)}%,${Math.max(10,fL-12)}%,${fA});filter:brightness(${bright*0.85});border:1px solid rgba(0,0,0,${0.15 + 0.15 * localSlice})`;
+          }
+        }
+      }
+
+      function renderLabels(placeHTML, stageW, stageH, tCascade, tSlice, tFly) {
+        const L = LABELS[currentLang];
+        const labelOpCascade = clamp01((tCascade - 0.5) * 2);
+        const labelOpSlice = clamp01((tSlice - 0.3) * 2);
+        const labelOpFly = clamp01((tFly - 0.5) * 2);
+        const labelOpInsight = clamp01((tFly - 0.8) * 5);
+        const labelCx = stageW * 0.5;
+        const labelCy = stageH / 2;
+        const isMobile = stageW < 520;
+
+        if (isMobile) {
+          // Mobile: all labels centered, stacked above/below cubes
+          // Top cube center ≈ labelCy-120, bottom ≈ labelCy+120; cubes ~54px tall
+          const topLabY = labelCy - 190;
+          const botLabY = labelCy + 190;
+          if (labelOpCascade > 0) {
+            placeHTML(L.cubeTop, labelCx, topLabY, { opacity: labelOpCascade });
+            placeHTML(L.cubeBot, labelCx, botLabY, { opacity: labelOpCascade });
+          }
+          if (labelOpSlice > 0) {
+            placeHTML(L.patternTop, labelCx, topLabY + 16, { opacity: labelOpSlice });
+            placeHTML(L.patternBot, labelCx, botLabY + 16, { opacity: labelOpSlice });
+          }
+          if (labelOpFly > 0) {
+            placeHTML(L.tokensTop, labelCx, topLabY + 32, { opacity: labelOpFly });
+            placeHTML(L.tokensBot, labelCx, botLabY + 32, { opacity: labelOpFly });
+          }
+          if (labelOpInsight > 0) {
+            placeHTML(L.insight, labelCx, botLabY + 52, { opacity: labelOpInsight });
+          }
+        } else {
+          // Desktop: labels on left/right sides of cubes
+          const leftX = labelCx - 220;
+          const rightX = labelCx + 165;
+          if (labelOpCascade > 0) {
+            placeHTML(L.cubeTop, leftX, labelCy - 100, { opacity: labelOpCascade });
+            placeHTML(L.cubeBot, leftX, labelCy + 100, { opacity: labelOpCascade });
+          }
+          if (labelOpSlice > 0) {
+            placeHTML(L.patternTop, leftX, labelCy - 82, { opacity: labelOpSlice });
+            placeHTML(L.patternBot, leftX, labelCy + 118, { opacity: labelOpSlice });
+          }
+          if (labelOpFly > 0) {
+            placeHTML(L.tokensTop, rightX, labelCy - 100, { opacity: labelOpFly });
+            placeHTML(L.tokensBot, rightX, labelCy + 100, { opacity: labelOpFly });
+          }
+          if (labelOpInsight > 0) {
+            placeHTML(L.insight, labelCx, labelCy + 170, { opacity: labelOpInsight });
+          }
+        }
+      }
+
+      // ── Main render function ──
+      function renderPipeline(renderer, t) {
+        const { getCell, placeHTML, stageEl } = renderer;
+        const stageW = stageEl.clientWidth;
+        const stageH = stageEl.clientHeight;
+        if (stageW === 0 || !volContainerEl) return;
+
+        const cycleTime = t % CYCLE_DURATION;
+
+        // Timeline phases
+        const tCascade = clamp01(cycleTime / 3);
+        const tSlice   = clamp01((cycleTime - 3) / 2);
+        const tSparse  = clamp01((cycleTime - 5) / 4);
+        const tFly     = clamp01((cycleTime - 9) / 5);
+
+        // Camera — cache eased fly value (used 3+ times)
+        const flyEased = easeInOutCubic(tFly);
+        const flyDamp = 1 - flyEased;
+        const rotY = (30 + Math.sin(cycleTime * Math.PI / 10) * 15) * flyDamp;
+        const rotX = (-15 + Math.sin(cycleTime * Math.PI / 5) * 5) * flyDamp;
+        const camScale = 1 - flyEased * 0.15;
+
+        volContainerEl.style.transform = `translate(-50%, -50%) scale(${camScale}) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        volContainerEl.style.left = `${stageW * 0.5}px`;
+        volContainerEl.style.top = `${stageH / 2}px`;
+
+        // ── Cubes ──
+        renderCubes(getCell, tCascade, tSlice, tSparse, tFly, flyEased, rotX, rotY);
+
+        // ── Labels ──
+        renderLabels(placeHTML, stageW, stageH, tCascade, tSlice, tFly);
+      }
+      const el2 = document.getElementById('stage-1');
+      if (el2) stages.push(createStageRenderer(el2));
+
+      const volContainerEl2 = document.getElementById('volume-container-2');
+
+      // Image mode: 1 frame, 3×3 grid = 9 tokens, all I-frame
+      const tokensImage = [];
+      for (let y = 0; y < Math.min(GRID_ROWS, 3); y++)
+        for (let x = 0; x < Math.min(GRID_COLS, 3); x++)
+          tokensImage.push({ x, y, z: 0, isI: true });
+
+      // Uniform mode: 8 frames, 3×3 = 72, take first 32, all I-frame
+      const tokensUniform = [];
+      for (let z = 0; z < 8; z++)
+        for (let y = 0; y < Math.min(GRID_ROWS, 3); y++)
+          for (let x = 0; x < Math.min(GRID_COLS, 3); x++)
+            tokensUniform.push({ x, y, z, isI: true });
+      tokensUniform.length = Math.min(tokensUniform.length, 32); // truncate
+
+      // Codec mode: already computed
+      const tokensCodec = cubePatchData[0].filter(p => p.keep).slice(0, 32);
+      function renderPipeline2(renderer, t) {
+        const { getCell, placeHTML, stageEl } = renderer;
+        const stageW = stageEl.clientWidth;
+        const stageH = stageEl.clientHeight;
+        if (stageW === 0 || !volContainerEl2) return;
+
+        const cycleTime = t % 15;
+        const tPulse = cycleTime > 7 ? Math.sin((cycleTime - 7) * 1.5) * 0.03 : 0;
+
+        const L = LABELS[currentLang];
+        const mob = stageW < 520;
+        const cx = stageW / 2;
+
+        // \u2500\u2500 Measurements \u2500\u2500
+        const pPx = mob ? 11 : 16;
+        const tGap = mob ? 1 : 2;
+        const pScale = pPx / PATCH_SIZE;
+        const N_MAX = 32;
+        const totalW = N_MAX * pPx + (N_MAX - 1) * tGap;
+        const rowStartX = cx - totalW / 2;
+
+        const vitW = Math.min(totalW + 60, stageW - 30);
+        const vitH = mob ? 44 : 56;
+        const vitPadTop = mob ? 6 : 10;
+        const vitFullH = vitH + 14;  // includes RoPE3D sub-label
+
+        const labelH = mob ? 14 : 20;
+        const gapTI = mob ? 4 : 7;
+        const rSpc = mob ? 10 : 13;
+        const idxH = 3 * rSpc;
+        const rowH = labelH + pPx + gapTI + idxH;
+        const rowGap = mob ? 10 : 18;
+        const connH = mob ? 16 : 24;              // vertical connector height
+        const orH = mob ? 12 : 16;                 // 'or' separator height
+
+        const totalH = vitFullH + connH + (3 * rowH) + (2 * (rowGap + orH));
+        const y0 = Math.max(8, (stageH - totalH) / 2);
+
+        volContainerEl2.style.transform = 'translate(-50%, -50%)';
+        volContainerEl2.style.left = `${cx}px`;
+        volContainerEl2.style.top = '0px';
+
+        // \u2500\u2500 (1) ViT Box \u2014 visible from the start \u2500\u2500
+        const tViT = clamp01(cycleTime / 1);
+        const allLoaded = clamp01((cycleTime - 7) / 1);
+        const vitBottomY = y0 + vitFullH;
+        if (tViT > 0) {
+          const vitCy = y0 + vitFullH / 2;
+          const slide = (1 - easeInOutCubic(tViT)) * 20;
+          // Glow pulse when all rows are loaded
+          const glowStr = allLoaded > 0 ? (6 + Math.sin(cycleTime * 2) * 4) : 0;
+          const glowShadow = allLoaded > 0
+            ? `0 0 ${glowStr}px rgba(139,90,43,${0.15 * allLoaded}), 0 6px 16px rgba(38,26,21,0.15), inset 0 2px 0 rgba(255,255,255,0.6)`
+            : '0 6px 16px rgba(38,26,21,0.15), inset 0 2px 0 rgba(255,255,255,0.6)';
+          const vitEl = placeHTML(`<b>${L.panel2Transformer}</b><br><span style='font-size:${mob ? 11 : 13}px;opacity:0.7;letter-spacing:0.5px;font-weight:600'>RoPE3D (t, h, w)</span>`, cx, vitCy, { opacity: tViT, transform: `translate(-50%, calc(-50% + ${slide}px))`, color: 'var(--ink)' });
+          vitEl.style.width = `${vitW}px`;
+          vitEl.style.height = `${vitFullH}px`;
+          vitEl.style.lineHeight = `${mob ? 16 : 20}px`;
+          vitEl.style.textAlign = 'center';
+          vitEl.style.fontSize = mob ? '15px' : '18px';
+          vitEl.style.letterSpacing = '1px';
+          vitEl.style.borderRadius = '8px';
+          vitEl.style.boxShadow = glowShadow;
+          vitEl.style.border = '2px solid var(--ink)';
+          vitEl.style.padding = `${vitPadTop}px 0 0`;
+          vitEl.style.backgroundImage = 'radial-gradient(rgba(38,26,21,0.1) 1px, transparent 1px), linear-gradient(135deg, rgba(245,240,235,0.95) 0%, rgba(225,210,195,0.95) 100%)';
+          vitEl.style.backgroundSize = '6px 6px, 100% 100%';
+        }
+
+        // \u2500\u2500 (2) Single vertical connector: ViT \u2192 rows \u2500\u2500
+        const tConn = clamp01((cycleTime - 0.8) / 0.8);
+        if (tConn > 0) {
+          const connTop = vitBottomY + 2;
+          const connBot = vitBottomY + connH;
+          const connMid = (connTop + connBot) / 2;
+          const grow = easeInOutCubic(tConn);
+          const drawH = connH * grow;
+          // Vertical dashed line
+          const lineEl = placeHTML('', cx, connMid, { opacity: tConn * 0.35, transform: 'translate(-50%, -50%)' });
+          lineEl.style.width = '0px';
+          lineEl.style.height = `${drawH}px`;
+          lineEl.style.borderLeft = '2px dashed rgba(43,29,22,0.3)';
+          // Small downward arrow at bottom
+          if (grow > 0.8) {
+            const arrEl = placeHTML('\u25BC', cx, connBot, { opacity: (grow - 0.8) * 5 * 0.5, transform: 'translate(-50%, -50%)', color: 'var(--ink-light)' });
+            arrEl.style.fontSize = mob ? '8px' : '10px';
+          }
+        }
+
+        // \u2500\u2500 (3) Token rows (Image \u2192 Uniform \u2192 Codec) \u2500\u2500
+        let currentY = vitBottomY + connH;
+
+        const rowData = [
+          { label: L.modeImage, desc: L.descImage, N: 9, tokens: tokensImage, accent: '#8b5a2b', tCasc: clamp01((cycleTime - 1.5) / 2), total: 9 },
+          { label: L.modeUniform, desc: L.descUniform, N: 32, tokens: tokensUniform, accent: '#2e5e1e', tCasc: clamp01((cycleTime - 3) / 2), total: 32 },
+          { label: L.modeCodec, desc: L.descCodec, N: 32, tokens: tokensCodec, accent: '#1a3a6e', tCasc: clamp01((cycleTime - 4.5) / 2), isCodec: true, total: 32 }
+        ];
+
+        for (let r = 0; r < 3; r++) {
+          const row = rowData[r];
+          const N = row.N;
+          const rOp = row.tCasc;
+
+          // Subtle Background
+          if (rOp > 0) {
+            const bgEl = placeHTML('', cx, currentY + rowH / 2, { opacity: rOp * 0.8, transform: 'translate(-50%, -50%)' });
+            bgEl.style.width = `${totalW + (mob ? 16 : 60)}px`;
+            bgEl.style.height = `${rowH + (mob ? 6 : 10)}px`;
+            bgEl.style.background = 'rgba(0,0,0,0.03)';
+            bgEl.style.borderRadius = mob ? '4px' : '6px';
+            bgEl.style.borderLeft = `3px solid ${row.accent}`;
+          }
+
+          // Label with simplified description
+          if (rOp > 0) {
+            const lblY = currentY + labelH / 2;
+            const lblEl = placeHTML(`<span style='display:inline-block;width:${mob ? 8 : 10}px;height:${mob ? 8 : 10}px;background:${row.accent};border-radius:2px;margin-right:${mob ? 4 : 6}px;vertical-align:middle'></span><b>${row.label}</b> <span style='opacity:0.55;font-weight:normal;margin-left:${mob ? 3 : 6}px;font-size:0.85em'>${row.desc}</span>`, rowStartX, lblY, { opacity: rOp, transform: 'translate(0, -50%)', color: row.accent });
+            lblEl.style.fontSize = mob ? '12px' : '15px';
+            lblEl.style.whiteSpace = 'nowrap';
+
+            // I/P Legend for Codec row
+            if (row.isCodec) {
+              const legEl = placeHTML(
+                `<span style='display:inline-block;width:8px;height:8px;background:hsl(${COLOR_I.h},${COLOR_I.s}%,${COLOR_I.l}%);border-radius:2px;vertical-align:middle;margin-right:3px'></span><small>I</small>` +
+                `<span style='display:inline-block;width:8px;height:8px;background:hsl(${COLOR_P.h},${COLOR_P.s}%,${COLOR_P.l}%);border-radius:2px;vertical-align:middle;margin:0 3px 0 8px'></span><small>P</small>`,
+                rowStartX + totalW, lblY, { opacity: rOp, transform: 'translate(-100%, -50%)', color: 'var(--ink)' });
+              legEl.style.fontSize = mob ? '10px' : '12px';
+            }
+          }
+
+          const rowCenterY = currentY + labelH + pPx / 2;
+
+          // Tokens (3D cubes)
+          for (let i = 0; i < N; i++) {
+            const p = row.tokens[i];
+            const lc = clamp01(row.tCasc * 2 - (i / N_MAX));
+            if (lc <= 0) continue;
+
+            const tx = rowStartX + i * (pPx + tGap) + pPx / 2 - cx;
+            const ez = (1 - easeOutBack(lc)) * 100;
+            const breathe = tPulse * (1 + (i % 4) * 0.3);
+            const sc = pScale + breathe;
+
+            const c = getCell(volContainerEl2);
+            c.style.transform = `translate3d(${tx - HALF_PATCH}px,${rowCenterY - HALF_PATCH}px,${ez}px) scale(${sc})`;
+            c.style.opacity = lc;
+
+            const clr = p.isI ? COLOR_I : COLOR_P;
+            const { h: fH, s: fS, l: fL, a: fA } = clr;
+            const front = c.children[0], top2 = c.children[1], right2 = c.children[2];
+            front.style.cssText = `background:hsla(${fH},${fS}%,${fL}%,${fA});border:1px solid rgba(0,0,0,0.2)`;
+            top2.style.cssText = `background:hsla(${fH},${Math.max(0,fS-10)}%,${Math.min(95,fL+15)}%,${fA});border:1px solid rgba(255,255,255,0.2)`;
+            right2.style.cssText = `background:hsla(${fH},${Math.max(0,fS-5)}%,${Math.max(10,fL-12)}%,${fA});border:1px solid rgba(0,0,0,0.2)`;
+          }
+
+          // Count Annotation
+          if (row.tCasc > 0.8) {
+            const annX = rowStartX + N * (pPx + tGap) + (mob ? 4 : 8);
+            const annOp = Math.min((row.tCasc - 0.8) * 5, 0.6);
+            const annEl = placeHTML(`\u2192${row.total}`, annX, rowCenterY, { opacity: annOp, transform: 'translate(0, -50%)', color: 'var(--ink)' });
+            annEl.style.fontSize = mob ? '10px' : '13px';
+          }
+
+          // RoPE3D Indices (t, h, w)
+          const idxBaseY = rowCenterY + pPx / 2 + gapTI;
+          const dimColors = ['#8b2500', '#2e5e1e', '#1a3a6e'];
+          const dims = ['t', 'h', 'w'];
+          const getVal = (p, d) => d === 0 ? p.z : d === 1 ? p.y : p.x;
+          const tIdx = clamp01((row.tCasc - 0.3) * 1.5);
+
+          if (tIdx > 0) {
+            for (let d = 0; d < 3; d++) {
+              const dy = idxBaseY + d * rSpc;
+
+              const hEl = placeHTML(`<b>${dims[d]}:</b>`, rowStartX - (mob ? 3 : 6), dy, { opacity: tIdx, transform: 'translate(-100%, -50%)', color: dimColors[d] });
+              hEl.style.fontSize = mob ? '8px' : '11px';
+
+              for (let i = 0; i < N; i++) {
+                const iOp = clamp01(tIdx * 2 - (i / N_MAX));
+                if (iOp <= 0) continue;
+                const tcx = rowStartX + i * (pPx + tGap) + pPx / 2;
+                const valEl = placeHTML(`${getVal(row.tokens[i], d)}`, tcx, dy, { opacity: iOp, transform: 'translate(-50%, -50%)', color: dimColors[d] });
+                valEl.style.fontSize = mob ? '8px' : '11px';
+              }
+            }
+          }
+
+          currentY += rowH;
+
+          // \u2500\u2500 'or' separator between rows \u2500\u2500
+          if (r < 2) {
+            const nextRowOp = rowData[r + 1].tCasc;
+            const sepOp = Math.min(rOp, nextRowOp > 0 ? 1 : rOp) * 0.35;
+            if (sepOp > 0) {
+              const sepY = currentY + (rowGap + orH) / 2;
+              // Dashed line
+              const dashEl = placeHTML('', cx, sepY, { opacity: sepOp, transform: 'translate(-50%, -50%)' });
+              dashEl.style.width = `${Math.min(totalW * 0.6, stageW * 0.5)}px`;
+              dashEl.style.height = '0px';
+              dashEl.style.borderTop = '1px dashed rgba(43,29,22,0.2)';
+              // 'or' pill
+              const orEl = placeHTML('<i>or</i>', cx, sepY, { opacity: sepOp * 1.5, transform: 'translate(-50%, -50%)', color: 'var(--ink-light)' });
+              orEl.style.fontSize = mob ? '10px' : '13px';
+              orEl.style.background = 'var(--paper)';
+              orEl.style.padding = '0 6px';
+            }
+            currentY += rowGap + orH;
+          }
+        }
+      }
+
+      const phaseVisible = [true, true];
+      const visObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const idx = parseInt(entry.target.id.replace('stage-', ''), 10);
+          if(!isNaN(idx)) phaseVisible[idx] = entry.isIntersecting;
+        });
+      }, { threshold: 0 });
+
+      if (el) visObserver.observe(el);
+      if (el2) visObserver.observe(el2);
+
+      let startTime = 0;
+      const phaseRenders = [renderPipeline, renderPipeline2];
+      const phaseDurations = [20, 15];
+
+      function loop(now) {
+        if (!startTime) startTime = now;
+        const t = (now - startTime) / 1000;
+
+        if (stages[0] && phaseVisible[0]) {
+          const phaseT = t % phaseDurations[0];
+          stages[0].resetPool();
+          stages[0].resetTextPool();
+          phaseRenders[0](stages[0], phaseT);
+          stages[0].hideUnused();
+          stages[0].hideUnusedText();
+        }
+
+        if (stages[1] && phaseVisible[1]) {
+          const phaseT = t % phaseDurations[1];
+          stages[1].resetPool();
+          stages[1].resetTextPool();
+          phaseRenders[1](stages[1], phaseT);
+          stages[1].hideUnused();
+          stages[1].hideUnusedText();
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>

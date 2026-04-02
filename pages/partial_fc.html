@@ -1,0 +1,1166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Xiang An - PartialFC</title>
+    <meta name="description" content="Xiang An - Research Scientist and Team Lead at GlintLab" />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" />
+    <style>
+      :root {
+        --paper: #e9dbce;
+        --ink: #261a15;
+        --ink-light: #4a362a;
+        --font-masthead: "UnifrakturMaguntia", "Old English Text MT", "Engravers MT", serif;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      .site-nav { max-width: 1200px; margin: 0 auto 1rem; padding: 0 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-sans); font-size: 0.85em; flex-wrap: wrap; }
+      .site-nav a { color: #ccc; text-decoration: none; font-weight: 600; letter-spacing: 0.02em; padding: 2px 4px; }
+      .site-nav a:hover { color: #fff; text-decoration: underline; }
+      .site-nav .nav-sep { color: #555; user-select: none; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-serif);
+        line-height: 1.5;
+        padding: 3rem 2rem;
+      }
+      .newspaper {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: var(--paper);
+        background-image:
+          linear-gradient(90deg, transparent 49.5%, rgba(0,0,0,0.025) 50%, rgba(255,255,255,0.08) 50.5%, transparent 51%),
+          linear-gradient(90deg, transparent 24.5%, rgba(0,0,0,0.015) 25%, rgba(255,255,255,0.04) 25.5%, transparent 26%),
+          linear-gradient(90deg, transparent 74.5%, rgba(0,0,0,0.015) 75%, rgba(255,255,255,0.04) 75.5%, transparent 76%),
+          linear-gradient(180deg, transparent 32.5%, rgba(0,0,0,0.015) 33%, rgba(255,255,255,0.03) 33.5%, transparent 34%),
+          linear-gradient(180deg, transparent 65.5%, rgba(0,0,0,0.015) 66%, rgba(255,255,255,0.03) 66.5%, transparent 67%),
+          linear-gradient(180deg, rgba(255, 248, 238, 0.4) 0%, rgba(120, 76, 46, 0.05) 100%),
+          radial-gradient(ellipse at center, transparent 40%, rgba(139, 90, 43, 0.25) 100%),
+          radial-gradient(circle at 18% 14%, rgba(92, 56, 29, 0.08), transparent 18%),
+          radial-gradient(circle at 82% 11%, rgba(110, 70, 42, 0.1), transparent 16%),
+          radial-gradient(circle at 13% 82%, rgba(120, 78, 45, 0.07), transparent 20%),
+          radial-gradient(circle at 10% 20%, rgba(200, 160, 120, 0.15), transparent 40%),
+          radial-gradient(circle at 90% 80%, rgba(180, 130, 90, 0.2), transparent 50%),
+          radial-gradient(circle at 45% 75%, rgba(120, 80, 50, 0.04), transparent 25%),
+          radial-gradient(circle at 75% 35%, rgba(100, 60, 40, 0.05), transparent 20%),
+          url('data:image/svg+xml;utf8,<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" opacity="0.06" filter="url(%23n)"/></svg>');
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), inset 0 0 50px rgba(100, 60, 30, 0.2);
+        padding: 3rem 3.5rem;
+        position: relative;
+      }
+      .newspaper::before {
+        content: "";
+        position: absolute;
+        top: 15px; left: 15px; right: 15px; bottom: 15px;
+        border: 1px solid rgba(43, 29, 22, 0.3);
+        outline: 1px solid rgba(43, 29, 22, 0.1);
+        outline-offset: -4px;
+        pointer-events: none;
+        z-index: 20;
+      }
+      .newspaper::after {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background:
+          linear-gradient(90deg, rgba(0,0,0,0.06), transparent 8%, transparent 92%, rgba(0,0,0,0.06)),
+          linear-gradient(180deg, rgba(255,255,255,0.08), transparent 10%, transparent 90%, rgba(70,40,20,0.08));
+        box-shadow: inset 0 0 120px rgba(70, 40, 20, 0.35);
+        pointer-events: none;
+        z-index: 10;
+      }
+      .corner-ornament {
+        position: absolute;
+        width: 35px; height: 35px;
+        border: 2px solid rgba(43, 29, 22, 0.4);
+        z-index: 25; pointer-events: none;
+      }
+      .corner-ornament.top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
+      .corner-ornament.top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
+      .corner-ornament.bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
+      .corner-ornament.bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+      .corner-ornament::before {
+        content: "❈"; position: absolute; color: rgba(43, 29, 22, 0.5); font-size: 1.1rem;
+      }
+      .corner-ornament.top-left::before { top: -2px; left: 3px; transform: rotate(-45deg); }
+      .corner-ornament.top-right::before { top: -2px; right: 3px; transform: rotate(45deg); }
+      .corner-ornament.bottom-left::before { bottom: -2px; left: 3px; transform: rotate(-135deg); }
+      .corner-ornament.bottom-right::before { bottom: -2px; right: 3px; transform: rotate(135deg); }
+
+      .masthead { text-align: center; border-bottom: 6px double var(--ink); padding-bottom: 10px; margin-bottom: 30px; position: relative; }
+      .masthead::before, .masthead::after { content: "✦ ✦ ✦"; position: absolute; top: 58px; font-size: 0.8rem; letter-spacing: 4px; opacity: 0.65; }
+      .masthead::before { left: 6px; } .masthead::after { right: 6px; }
+      .dateline {
+        border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); padding: 8px 0;
+        font-size: 0.85em; text-transform: uppercase; letter-spacing: 2px; display: flex;
+        justify-content: space-between; font-family: var(--font-sans); margin-bottom: 15px; font-weight: 600; position: relative;
+      }
+      .dateline::before, .dateline::after { content: "★"; position: absolute; top: 50%; transform: translateY(-50%); font-size: 0.8em; }
+      .dateline::before { left: 30%; } .dateline::after { right: 30%; }
+      .masthead-title {
+        font-family: var(--font-masthead); font-size: clamp(50px, 8vw, 90px); font-weight: normal; line-height: 1; margin: 5px 0 10px;
+        text-shadow: 1px 1px 0 rgba(255,255,255,0.55), 2px 2px 0 rgba(0,0,0,0.12), 4px 4px 0 rgba(90,55,30,0.08), 0 0 12px rgba(255,248,220,0.14); letter-spacing: -1px;
+      }
+      .masthead-sub { font-size: 1.1em; letter-spacing: 6px; font-weight: 700; font-family: var(--font-headline); text-transform: uppercase; margin-bottom: 10px; color: var(--ink); }
+
+      .stamp {
+        position: absolute; top: 25px; right: 35px; width: 90px; height: 90px; border: 4px double #5c1818; border-radius: 50%;
+        box-shadow: inset 0 0 0 2px rgba(92, 24, 24, 0.28), 0 1px 4px rgba(0,0,0,0.12); display: flex; align-items: center; justify-content: center;
+        text-align: center; font-family: var(--font-headline); font-size: 0.75rem; font-weight: 900; color: #5c1818; text-transform: uppercase;
+        transform: rotate(15deg); opacity: 0.7; mix-blend-mode: multiply; z-index: 30;
+      }
+      .stamp span { display: block; transform: rotate(-10deg); line-height: 1.2; }
+
+      .headline {
+        font-family: var(--font-headline); font-size: clamp(28px, 4vw, 36px); font-weight: 900; line-height: 1.1; text-align: center;
+        margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0; text-wrap: balance;
+      }
+
+      .stage-wrapper {
+        width: 100%; height: 500px; position: relative; border: 4px double var(--ink); outline: 1px solid var(--ink); outline-offset: 3px;
+        overflow: hidden; margin: 0 auto 35px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(84,53,31,0.06)), rgba(0, 0, 0, 0.05);
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.2), inset 0 0 50px rgba(112,74,42,0.14);
+      }
+      #stage-3 { height: 710px; }
+      .stage-wrapper::after {
+        content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 30px;
+        background: linear-gradient(to top, rgba(233, 219, 206, 1), transparent); pointer-events: none; z-index: 5;
+      }
+      .phase-heading {
+        font-family: var(--font-headline);
+        font-size: clamp(20px, 3vw, 28px);
+        font-weight: 700;
+        text-align: center;
+        margin: 30px 0 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-top: 1px solid rgba(43,29,22,0.3);
+        padding-top: 20px;
+      }
+      .phase-desc {
+        font-family: var(--font-serif);
+        font-size: 1.05em;
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 15px;
+        color: var(--ink-light);
+        line-height: 1.6;
+      }
+
+      .static-content { font-size: 1.05em; line-height: 1.6; padding: 0 10px; }
+      .static-content p { margin-bottom: 15px; }
+      .key-stats { display: flex; justify-content: space-around; text-align: center; margin: 25px 0; border-top: 1px dashed rgba(43,26,21,0.3); border-bottom: 1px dashed rgba(43,26,21,0.3); padding: 15px 0; font-family: var(--font-headline); font-weight: bold; }
+      .key-stats div { flex: 1; border-right: 1px solid rgba(43,26,21,0.2); }
+      .key-stats div:last-child { border-right: none; }
+      .key-stats span { display: block; font-size: 0.8em; text-transform: uppercase; color: var(--ink-light); margin-top: 5px; font-family: var(--font-sans); letter-spacing: 1px; }
+
+      .code-box {
+        background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.15); padding: 15px; margin: 20px 0; font-family: "Courier New", Courier, monospace;
+        font-size: 0.9em; overflow-x: auto; border-left: 4px solid var(--ink);
+        white-space: pre;
+      }
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-sans);
+        font-size: 0.88em;
+        margin: 10px 0;
+      }
+      .compare-table th, .compare-table td {
+        border: 1px solid rgba(43,26,21,0.25);
+        padding: 8px 10px;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .compare-table thead th {
+        background: rgba(43,26,21,0.08);
+        font-family: var(--font-headline);
+        font-weight: 700;
+        font-size: 0.95em;
+        letter-spacing: 1px;
+      }
+      .compare-table .row-label {
+        text-align: left;
+        font-weight: 700;
+        font-family: var(--font-headline);
+        background: rgba(43,26,21,0.04);
+        white-space: nowrap;
+      }
+      .compare-table small {
+        display: block;
+        font-size: 0.8em;
+        color: var(--ink-light);
+        margin-top: 2px;
+      }
+      .compare-table .bad { background: rgba(192,57,43,0.08); color: #c0392b; }
+      .compare-table .mid { background: rgba(211,84,0,0.06); }
+      .compare-table .good { background: rgba(30,132,73,0.08); color: #1e8449; font-weight: 600; }
+
+      /* Cell Styles */
+      .cell { position: absolute; width: 10px; height: 10px; border-radius: 1px; }
+      .cell-text { position: absolute; font-family: "Courier New", Courier, monospace; font-size: 12px; white-space: nowrap; color: var(--ink); font-weight: bold; transform: translate(-50%, -50%); }
+      .cell-html { position: absolute; font-family: "Courier New", Courier, monospace; font-size: 13px; white-space: nowrap; color: var(--ink); font-weight: bold; transform: translate(-50%, -50%); text-align: center; }
+
+      /* Sample Colors */
+      .s0 { background: #c0392b; }
+      .s1 { background: #2874a6; }
+      .s2 { background: #1e8449; }
+      .s3 { background: #d4ac0d; }
+      .s4 { background: #8e44ad; }
+      .s5 { background: #d35400; }
+      .s6 { background: #117a65; }
+      .s7 { background: #922b21; }
+      .s8 { background: #1a5276; }
+      .s9 { background: #b7950b; }
+      .s10 { background: #6c3483; }
+      .s11 { background: #e74c3c; }
+      .s12 { background: #148f77; }
+      .s13 { background: #7d3c98; }
+      .s14 { background: #2e86c1; }
+      .s15 { background: #a04000; }
+
+      /* Weight Colors */
+      .wc0, .wc1, .wc2, .wc3 { background: #8d7b6b; }
+      .neg-buf { background: #a0a0a0; }
+
+      .glow { box-shadow: 0 0 6px 2px rgba(255,255,255,0.8); z-index: 10; border: 1px solid #fff; }
+      .title-label { font-family: "Courier New", Courier, monospace; font-weight: bold; font-size: 16px; letter-spacing: 2px; }
+      .stats-label { font-family: var(--font-sans); font-size: 12px; color: var(--ink-light); }
+      .footer-label { font-family: var(--font-serif); font-style: italic; font-size: 16px; color: var(--ink); }
+      
+      sub { font-size: 0.7em; }
+
+      @media (max-width: 768px) {
+        body { padding: 2rem 1rem; }
+        .newspaper { padding: 2rem 2rem; max-width: 100%; }
+        .stage-wrapper { height: 400px; overflow-x: auto; }
+        #stage-3 { height: 580px; }
+        .stamp { transform: rotate(15deg) scale(0.7); transform-origin: top right; }
+      }
+
+      @media (max-width: 480px) {
+        body { padding: 1rem 0.5rem; }
+        .newspaper { padding: 1.5rem 1rem; }
+        .stage-wrapper { height: 320px; }
+        #stage-3 { height: 450px; }
+        .masthead::before, .masthead::after,
+        .dateline::before, .dateline::after,
+        .stamp,
+        .corner-ornament { display: none; }
+        .key-stats { flex-wrap: wrap; flex-direction: column; }
+        .key-stats div { border-right: none; border-bottom: 1px solid rgba(43,26,21,0.2); padding-bottom: 10px; margin-bottom: 10px; }
+        .key-stats div:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+        .compare-table { display: block; overflow-x: auto; font-size: 0.75em; }
+        .compare-table th, .compare-table td { padding: 4px 6px; }
+        .code-box { font-size: 10px; overflow-x: auto; }
+        .cell-html { font-size: 10px; }
+        .cell-text { font-size: 9px; }
+        .title-label { font-size: 12px; }
+        .footer-label { font-size: 12px; }
+        .stats-label { font-size: 10px; }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/partial_fc.html">PFC</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/llava_onevision2.html">OV2</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+    </nav>
+    <div class="newspaper">
+      <div class="corner-ornament top-left"></div>
+      <div class="corner-ornament top-right"></div>
+      <div class="corner-ornament bottom-left"></div>
+      <div class="corner-ornament bottom-right"></div>
+      <div class="stamp"><span>Prophet<br>Exclusive</span></div>
+      <header class="masthead">
+        <div class="dateline">
+          <span>Vol. CXCIV</span>
+          <span>⚡ &nbsp; Tuesday, March 31, 2026 &nbsp; ⚡</span>
+          <span>14 Sickles</span>
+        </div>
+        <h1 class="masthead-title">PartialFC</h1>
+        <div class="masthead-sub">The Leading Voice in Magical Tech</div>
+      </header>
+
+      <h2 class="headline">PartialFC: Training 10 Million Identities on a Single Machine</h2>
+
+      <h3 class="phase-heading">Phase 1: AllGather Embeddings</h3>
+      <p class="phase-desc">Each GPU computes feature embeddings for its local batch. To compute the global loss, embeddings from all GPUs are gathered together.</p>
+      <div class="stage-wrapper" id="stage-0"></div>
+
+      <h3 class="phase-heading">Phase 2: Class Center Partitioning</h3>
+      <p class="phase-desc">The massive 10M-class weight matrix is partitioned across GPUs. Each GPU holds approximately 2.5M class centers.</p>
+      <div class="stage-wrapper" id="stage-1"></div>
+
+      <h3 class="phase-heading">Phase 3: PartialFC Sampling</h3>
+      <p class="phase-desc">Instead of computing logits against all 2.5M local classes, each GPU samples the positive classes plus a small random negative subset.</p>
+      <div class="stage-wrapper" id="stage-2"></div>
+
+      <h3 class="phase-heading">Phase 4: Forward Pass</h3>
+      <p class="phase-desc">The similarity between normalized embeddings and sampled weight centers is calculated, followed by ArcFace angular margin.</p>
+      <div class="stage-wrapper" id="stage-3"></div>
+
+      <h3 class="phase-heading">Phase 5: Backward &amp; Update</h3>
+      <p class="phase-desc">Gradients flow backward, are synchronized via AllReduce, and only the sampled weight subset is updated.</p>
+      <div class="stage-wrapper" id="stage-4"></div>
+
+      <div class="static-content">
+        <div class="key-stats">
+          <div>10M+ Identities<span>Scalable Training</span></div>
+          <div>4&times; Memory Reduction<span>Partial Sampling</span></div>
+          <div>No Accuracy Loss<span>Proven at Scale</span></div>
+        </div>
+
+        <div class="code-box">
+# PartialFC Training Step
+embeddings = AllGather(local_embeddings)    # Phase 1
+sampled_W = sample(W_local, positive_ids)   # Phase 2
+logits = normalize(E) @ normalize(W_s).T    # Phase 3
+loss = ArcFace_CrossEntropy(logits, labels)  # Phase 3
+loss.backward()                              # Phase 4
+AllReduce(gradients)                         # Phase 4
+optimizer.step()  # only sampled W updated   # Phase 4
+        </div>
+
+        <p><em>References:</em><br>
+        - <a href="https://arxiv.org/abs/2203.15565" target="_blank">"Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC"</a> &mdash; arXiv:2203.15565 (CVPR 2022)<br>
+        - <a href="https://arxiv.org/abs/2010.05222" target="_blank">"Partial FC: Training 10 Million Identities on a Single Machine"</a> &mdash; arXiv:2010.05222</p>
+      </div>
+
+      <div class="static-content" style="margin-top: 30px;">
+        <h3 style="font-family: var(--font-headline); text-align: center; font-size: 1.3em; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">Communication &amp; Memory Comparison &middot; 通信量 &amp; 显存对比</h3>
+        
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Data Parallel</th>
+              <th>Model Parallel</th>
+              <th>PartialFC (r=0.1)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-label">Weight Memory 显存 / GPU</td>
+              <td class="bad">W: 19.07 GB<br><small>Full C&times;d on every GPU<br>每张卡存全部 C&times;d</small></td>
+              <td class="mid">W: 298 MB<br><small>C/N columns per GPU<br>每卡存 C/N 列</small></td>
+              <td class="good">W: 298 MB<br><small>Same as Model Parallel<br>同 Model Parallel</small></td>
+            </tr>
+            <tr>
+              <td class="row-label">Logits Memory 显存</td>
+              <td class="bad">BS&times;C = 156 GB<br><small>All classes<br>全量类别</small></td>
+              <td class="mid">BS&times;C/N = 2.44 GB<br><small>Sharded but still large<br>分片后仍大</small></td>
+              <td class="good">BS&times;C&middot;r/N = 250 MB<br><small>Sampled subset only<br>仅采样子集</small></td>
+            </tr>
+            <tr>
+              <td class="row-label">Phase 1<br><small>AllGather Features<br>AllGather 特征</small></td>
+              <td>—</td>
+              <td>384 KB / GPU</td>
+              <td>384 KB / GPU</td>
+            </tr>
+            <tr>
+              <td class="row-label">Phase 3<br><small>Softmax Comm<br>Softmax 通信</small></td>
+              <td>—</td>
+              <td>32 KB<br><small>2 scalars / sample<br>每样本仅2个标量</small></td>
+              <td>32 KB<br><small>2 scalars / sample<br>每样本仅2个标量</small></td>
+            </tr>
+            <tr>
+              <td class="row-label">Phase 4<br><small>Gradient Sync<br>梯度同步</small></td>
+              <td class="bad">2&times;|W| &asymp; 38 GB<br><small>Full AllReduce<br>全量 AllReduce</small></td>
+              <td>505 MB<br><small>AllReduce feature grads<br>AllReduce 特征梯度</small></td>
+              <td>488 MB<br><small>AllReduce sampled grads<br>AllReduce 采样梯度</small></td>
+            </tr>
+            <tr>
+              <td class="row-label">Total Comm / step<br><small>总通信量 / step</small></td>
+              <td class="bad">~38 GB</td>
+              <td class="mid">~1.01 GB</td>
+              <td class="good">~0.98 GB</td>
+            </tr>
+            <tr>
+              <td class="row-label">Throughput 吞吐量</td>
+              <td class="bad">OOM<br><small>Cannot train 10M classes<br>10M 类无法训练</small></td>
+              <td class="mid">4,840 img/s<br><small>64 GPUs</small></td>
+              <td class="good">17,819 img/s<br><small>64 GPUs &middot; 3.7&times; speedup<br>3.7&times; 加速</small></td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <p style="text-align: center; font-size: 0.85em; color: var(--ink-light); margin-top: 10px;">
+          * Based on N=64 GPUs, BS=64/GPU, feature_dim=512, C=10M, sample_rate=0.1<br>以 N=64 GPUs, BS=64/GPU, feature_dim=512, C=10M, sample_rate=0.1 为例
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // Constants
+      const cellSize = 10;
+      const rowHeight = 18;
+      const cellGap = 2;
+      const NUM_GPU = 4;
+      const BS = 4;
+      const DIM = 3;
+      const totalS = NUM_GPU * BS;
+      const TOTAL_CLASSES = 10000000;
+      const CLASSES_PER_GPU = TOTAL_CLASSES / NUM_GPU;
+      const WC_VISIBLE_COLS = 10;
+      const SAMPLED_COLS = 8;  // Fixed buffer size per GPU: positives + negatives = SAMPLED_COLS (uniform across GPUs)
+      const rowLabelOffsetX = 20;
+
+      const gpuColors = ['#c0392b', '#2874a6', '#1e8449', '#8e44ad'];
+      const sampleColors = [
+        '#c0392b','#2874a6','#1e8449','#d4ac0d',
+        '#8e44ad','#d35400','#117a65','#922b21',
+        '#1a5276','#b7950b','#6c3483','#e74c3c',
+        '#148f77','#7d3c98','#2e86c1','#a04000'
+      ];
+      const wcColors = ['#8d7b6b', '#8d7b6b', '#8d7b6b', '#8d7b6b'];
+      const negBufColor = '#a0a0a0';
+
+      // For each sample x_i, which GPU holds its positive class center (label y_i).
+      // y_i is NOT necessarily on the same GPU as x_i — class centers are partitioned by class ID.
+      // sampleLabelGpu[i] = GPU index that holds the class center for sample i's label.
+      const sampleLabelGpu = [2, 0, 3, 1, 0, 3, 2, 0, 1, 3, 0, 2, 3, 1, 2, 0];
+
+      function computeGpuLayout(stageW, numSampleCols) {
+        const matW = numSampleCols * cellSize + (numSampleCols - 1) * cellGap;
+        const matH = DIM * rowHeight;
+        const groupWidth = rowLabelOffsetX + matW;
+        const gapBetweenGroups = Math.max(20, Math.min(60, (stageW - NUM_GPU * groupWidth - 40) / (NUM_GPU - 1)));
+        const totalGroupsWidth = NUM_GPU * groupWidth + (NUM_GPU - 1) * gapBetweenGroups;
+        const startX = Math.round((stageW - totalGroupsWidth) / 2);
+        
+        const gpuXPositions = [];
+        for (let g = 0; g < NUM_GPU; g++) {
+          gpuXPositions.push(startX + g * (groupWidth + gapBetweenGroups));
+        }
+        return { matW, matH, groupWidth, gapBetweenGroups, totalGroupsWidth, startX, gpuXPositions };
+      }
+
+      function createStageRenderer(stageEl) {
+        const cellPool = [];
+        let cellPoolIdx = 0;
+        const textPool = [];
+        let textPoolIdx = 0;
+
+        function resetPool() { cellPoolIdx = 0; }
+        function getCell() {
+          if (cellPoolIdx < cellPool.length) {
+            const c = cellPool[cellPoolIdx++];
+            c.style.display = '';
+            c.className = 'cell';
+            c.style.opacity = '1';
+            c.style.background = '';
+            c.style.transform = '';
+            c.style.zIndex = '';
+            return c;
+          }
+          const c = document.createElement('div');
+          c.className = 'cell';
+          stageEl.appendChild(c);
+          cellPool.push(c);
+          cellPoolIdx++;
+          return c;
+        }
+        function hideUnused() {
+          for (let i = cellPoolIdx; i < cellPool.length; i++) {
+            cellPool[i].style.display = 'none';
+          }
+        }
+
+        function resetTextPool() { textPoolIdx = 0; }
+        function getPoolTextNode() {
+          if (textPoolIdx < textPool.length) {
+            const el = textPool[textPoolIdx++];
+            el.style.display = '';
+            el.className = 'cell-html';
+            el.style.color = 'var(--ink)';
+            el.style.opacity = '1';
+            el.style.transform = 'translate(-50%, -50%)';
+            el.style.background = '';
+            el.style.zIndex = '';
+            return el;
+          }
+          const el = document.createElement('div');
+          el.className = 'cell-html';
+          stageEl.appendChild(el);
+          textPool.push(el);
+          textPoolIdx++;
+          return el;
+        }
+        function placeHTML(html, x, y, opts = {}) {
+          const el = getPoolTextNode();
+          el.innerHTML = html;
+          el.style.left = `${x}px`;
+          el.style.top = `${y}px`;
+          if (opts.className) el.className += ' ' + opts.className;
+          if (opts.color) el.style.color = opts.color;
+          if (opts.opacity !== undefined) el.style.opacity = opts.opacity;
+          if (opts.transform) el.style.transform = opts.transform;
+          if (opts.zIndex) el.style.zIndex = opts.zIndex;
+          return el;
+        }
+        function hideUnusedText() {
+          for (let i = textPoolIdx; i < textPool.length; i++) {
+            textPool[i].style.display = 'none';
+          }
+        }
+
+        function drawHeader(title, stats, stageW) {
+          placeHTML(`◆ ${title} ◆`, stageW / 2, 40, { className: 'title-label' });
+          placeHTML(stats, stageW / 2, 65, { className: 'stats-label' });
+        }
+        function drawFooter(text, stageW, stageH) {
+          placeHTML(text, stageW / 2, stageH - 40, { className: 'footer-label' });
+        }
+
+        return { resetPool, resetTextPool, getCell, placeHTML, hideUnused, hideUnusedText, drawHeader, drawFooter, stageEl };
+      }
+
+      const stages = [];
+      for (let i = 0; i < 5; i++) {
+        const el = document.getElementById(`stage-${i}`);
+        if (el) stages.push(createStageRenderer(el));
+      }
+
+      const gpuTopY = 100;
+      const gpuLabelY = gpuTopY;
+      const sampleLabelY = gpuTopY + 25;
+      const matrixY = gpuTopY + 50;
+
+      function renderPhase0(renderer, t) {
+        const { getCell, placeHTML, drawHeader, drawFooter, stageEl } = renderer;
+        const stageW = stageEl.clientWidth;
+        const stageH = stageEl.clientHeight;
+        if (stageW === 0) return;
+
+        drawHeader('ALL-GATHER EMBEDDINGS', `bs=${BS} per GPU &middot; feature_dim=${DIM} &middot; ${NUM_GPU} GPUs &rarr; ${totalS} samples total`, stageW);
+        const layout = computeGpuLayout(stageW, BS);
+
+        // --- Phase timeline (6s loop) ---
+        // t=0~1.0: GPUs appear with local embeddings
+        // t=0.8~2.5: Communication arrows appear between GPUs
+        // t=1.5~3.5: "AllGather" label pulses
+        // t=2.5~4.5: Gathered matrix assembles progressively
+        // t=4.5~6.0: Full result holds
+
+        // GPU centers for arrow positioning
+        const gpuCenters = [];
+        for (let g = 0; g < NUM_GPU; g++) {
+          const gx = layout.gpuXPositions[g];
+          const cx = gx + layout.groupWidth / 2;
+          gpuCenters.push(cx);
+        }
+
+        // Draw GPUs with local embeddings
+        for (let g = 0; g < NUM_GPU; g++) {
+          const gx = layout.gpuXPositions[g];
+          const cx = gpuCenters[g];
+
+          placeHTML(`GPU<sub>${g}</sub>`, cx, gpuLabelY, { color: gpuColors[g] });
+
+          let sLabel = '[';
+          for (let i = 0; i < BS; i++) sLabel += `x<sub>${g * BS + i}</sub>${i < BS - 1 ? ',' : ''}`;
+          sLabel += ']';
+          placeHTML(sLabel, cx, sampleLabelY, { color: 'var(--ink)' });
+
+          const mx = gx + rowLabelOffsetX;
+          for (let d = 0; d < DIM; d++) {
+            placeHTML(`d<sub>${d}</sub>`, gx, matrixY + d * rowHeight + 5, { color: 'var(--ink-light)' });
+            for (let i = 0; i < BS; i++) {
+              const c = getCell();
+              c.className = `cell s${g * BS + i}`;
+              c.style.left = `${mx + i * (cellSize + cellGap)}px`;
+              c.style.top = `${matrixY + d * rowHeight}px`;
+            }
+          }
+        }
+
+        // --- Communication arrows between adjacent GPUs ---
+        const commY = matrixY + DIM * rowHeight + 15;
+        if (t > 0.8) {
+          const commOpacity = Math.min(1, (t - 0.8) / 0.5);
+          for (let g = 0; g < NUM_GPU - 1; g++) {
+            const arrowX = (gpuCenters[g] + gpuCenters[g + 1]) / 2;
+            // Pulsing arrow animation
+            const pulse = (Math.sin(t * 4 + g * 1.5) + 1) / 2;
+            const arrowScale = 1.2 + pulse * 0.4;
+            placeHTML('&harr;', arrowX, commY, {
+              color: gpuColors[g],
+              opacity: commOpacity,
+              transform: `translate(-50%,-50%) scale(${arrowScale})`
+            });
+          }
+          // AllGather label centered
+          if (t > 1.2) {
+            const labelOpacity = Math.min(1, (t - 1.2) / 0.5);
+            placeHTML('AllGather', stageW / 2, commY + 22, {
+              color: 'var(--ink-light)',
+              opacity: labelOpacity,
+              className: 'stats-label'
+            });
+          }
+        }
+
+        // --- Flowing data particles (colored dots traveling down) ---
+        const particleStartY = commY + 35;
+        const gmY = 360;
+        const particleEndY = gmY - 25;
+        if (t > 1.5 && t < 4.5) {
+          for (let g = 0; g < NUM_GPU; g++) {
+            const cx = gpuCenters[g];
+            // Staggered start per GPU
+            const gpuT = t - 1.5 - g * 0.3;
+            if (gpuT > 0) {
+              const progress = Math.min(1, gpuT / 1.2);
+              const py = particleStartY + (particleEndY - particleStartY) * progress;
+              const pOpacity = progress < 1 ? 1 : Math.max(0, 1 - (gpuT - 1.2) / 0.3);
+              // Draw a small colored block for each sample traveling down
+              const blockW = BS * (cellSize + cellGap);
+              const bx = cx - blockW / 2;
+              for (let i = 0; i < BS; i++) {
+                const c = getCell();
+                c.className = `cell s${g * BS + i}`;
+                c.style.left = `${bx + i * (cellSize + cellGap)}px`;
+                c.style.top = `${py}px`;
+                c.style.opacity = pOpacity;
+              }
+            }
+          }
+        }
+
+        // --- Gathered matrix assembles progressively ---
+        const gmTotalW = rowLabelOffsetX + totalS * cellSize + (totalS - 1) * cellGap;
+        const gmStartX = (stageW - gmTotalW) / 2;
+        const gmx = gmStartX + rowLabelOffsetX;
+        const gmCenter = gmStartX + gmTotalW / 2;
+
+        if (t > 2.5) {
+          // Progressive assembly: each GPU's block appears staggered
+          for (let g = 0; g < NUM_GPU; g++) {
+            const gpuAssembleT = t - 2.5 - g * 0.4;
+            if (gpuAssembleT <= 0) continue;
+            const blockOpacity = Math.min(1, gpuAssembleT / 0.5);
+
+            for (let d = 0; d < DIM; d++) {
+              for (let i = 0; i < BS; i++) {
+                const sIdx = g * BS + i;
+                const c = getCell();
+                c.className = `cell s${sIdx}`;
+                c.style.left = `${gmx + sIdx * (cellSize + cellGap)}px`;
+                c.style.top = `${gmY + d * rowHeight}px`;
+                c.style.opacity = blockOpacity;
+              }
+            }
+          }
+
+          // Dimension labels (appear with first block)
+          const dimLabelOpacity = Math.min(1, (t - 2.5) / 0.5);
+          for (let d = 0; d < DIM; d++) {
+            placeHTML(`d<sub>${d}</sub>`, gmStartX, gmY + d * rowHeight + 5, { color: 'var(--ink-light)', opacity: dimLabelOpacity });
+          }
+
+          // Label appears after all blocks assembled (t > 2.5 + 3*0.4 + 0.5 = 4.2)
+          if (t > 4.0) {
+            const labelOpacity = Math.min(1, (t - 4.0) / 0.5);
+            placeHTML(`[x<sub>0</sub>,x<sub>1</sub>,&hellip;,x<sub>15</sub>]`, gmCenter, gmY - 20, { opacity: labelOpacity });
+          }
+        }
+
+        if (t > 3.0) {
+          placeHTML('📡 Comm 通信量: AllGather (N-1)×BS×d = 3×64×512 ≈ 384KB / GPU', stageW / 2, stageH - 70, { className: 'stats-label', color: '#2874a6' });
+        }
+
+        drawFooter('Phase 1 &middot; AllGather &mdash; Collect embeddings from all GPUs', stageW, stageH);
+      }
+
+      function drawGpuBaseLayout(renderer, stageW, gLayout, t, showArrows=false) {
+        const { getCell, placeHTML } = renderer;
+        
+        for (let g = 0; g < NUM_GPU; g++) {
+          const gx = gLayout.gpuXPositions[g];
+          const cx = gx + gLayout.groupWidth / 2;
+          
+          placeHTML(`GPU<sub>${g}</sub>`, cx, gpuLabelY, { color: gpuColors[g] });
+          placeHTML(`[x<sub>0</sub>,x<sub>1</sub>,&hellip;,x<sub>15</sub>]`, cx, sampleLabelY);
+          
+          const mx = gx + rowLabelOffsetX;
+          for (let d = 0; d < DIM; d++) {
+            placeHTML(`d<sub>${d}</sub>`, gx, matrixY + d * rowHeight + 5, { color: 'var(--ink-light)' });
+            for (let i = 0; i < totalS; i++) {
+              const c = getCell();
+              c.className = `cell s${i}`;
+              c.style.left = `${mx + i * (cellSize + cellGap)}px`;
+              c.style.top = `${matrixY + d * rowHeight}px`;
+            }
+          }
+          
+          const wcY = matrixY + DIM * rowHeight + 70;
+          const rangeStart = g * CLASSES_PER_GPU / 10000;
+          const rangeEnd = (g + 1) * CLASSES_PER_GPU / 10000;
+          placeHTML(`W<sub>local</sub>`, cx, wcY - 30);
+          placeHTML(`class ${rangeStart}w ~ ${rangeEnd}w`, cx, wcY - 12, { color: 'var(--ink-light)', className: 'stats-label' });
+          
+          for (let d = 0; d < DIM; d++) {
+            placeHTML(`d<sub>${d}</sub>`, gx, wcY + d * rowHeight + 5, { color: 'var(--ink-light)' });
+            for (let cCol = 0; cCol < WC_VISIBLE_COLS; cCol++) {
+              const c = getCell();
+              c.className = `cell wc${g}`;
+              c.style.left = `${mx + cCol * (cellSize + cellGap)}px`;
+              c.style.top = `${wcY + d * rowHeight}px`;
+              
+              if (showArrows && t > 0.5) {
+                // Collect positive samples whose label falls on this GPU
+                const positives = [];
+                for (let si = 0; si < totalS; si++) {
+                  if (sampleLabelGpu[si] === g) positives.push(si);
+                }
+                // Remaining cols after positives are negative buffer
+                const numNeg = SAMPLED_COLS - positives.length;
+                
+                if (cCol < positives.length && t > 0.6) {
+                  const si = positives[cCol];
+                  c.className = `cell s${si}`;
+                  if (d === DIM - 1 && t > 1.4) {
+                    // Show y_i label below the W matrix
+                    const staggerY = (cCol % 2 === 1) ? 10 : 0;
+                    placeHTML(`y<sub>${si}</sub>`, mx + cCol * (cellSize + cellGap) + 5, wcY + DIM * rowHeight + 10 + staggerY, { color: sampleColors[si], zIndex: '20' });
+                  }
+                } else if (cCol >= positives.length && cCol < positives.length + numNeg && t > 2.0) {
+                  c.className = `cell neg-buf`;
+                }
+              }
+            }
+            placeHTML(`&hellip; ${(CLASSES_PER_GPU/10000).toFixed(0)}w cols`, mx + WC_VISIBLE_COLS * (cellSize + cellGap) + 40, wcY + d * rowHeight + 5, { color: 'var(--ink-light)' });
+          }
+        }
+      }
+
+      function renderPhase1(renderer, t) {
+        const { stageEl, drawHeader, drawFooter, placeHTML } = renderer;
+        const stageW = stageEl.clientWidth;
+        const stageH = stageEl.clientHeight;
+        if (stageW === 0) return;
+
+        drawHeader('SAMPLE CLASS CENTERS', `Each GPU holds 2.5M class centers &middot; dim=${DIM} &middot; Total: 10M identities`, stageW);
+        const gLayout = computeGpuLayout(stageW, totalS);
+        drawGpuBaseLayout(renderer, stageW, gLayout, 0, false);
+        placeHTML('📡 Comm 通信量: 0 (Local storage, no communication 本地存储，无需通信)', stageW / 2, stageH - 70, { className: 'stats-label', color: '#2874a6' });
+        drawFooter('Phase 2 &middot; Class Centers &mdash; Each GPU holds a partition of the weight matrix', stageW, stageH);
+      }
+
+      function renderPhase2(renderer, t) {
+        const { stageEl, drawHeader, drawFooter, placeHTML } = renderer;
+        const stageW = stageEl.clientWidth;
+        const stageH = stageEl.clientHeight;
+        if (stageW === 0) return;
+
+        drawHeader('SAMPLING (PARTIAL FC)', `Positive classes always sampled &middot; Random negative subset &middot; Reduces computation`, stageW);
+        const gLayout = computeGpuLayout(stageW, totalS);
+        drawGpuBaseLayout(renderer, stageW, gLayout, t, true);
+        
+        if (t > 2.8) {
+          const legendY = stageH - 125;
+          const legendX = stageW/2 - 120;
+          const noCenter = 'translateY(-50%)';
+          placeHTML(`<div style="display:inline-block;width:10px;height:10px;background:#1e8449;border-radius:1px;margin-right:5px;vertical-align:middle;"></div> Positive (y<sub>i</sub> = sample's label)`, legendX, legendY, { transform: noCenter });
+          placeHTML(`<div style="display:inline-block;width:10px;height:10px;background:#a0a0a0;border-radius:1px;margin-right:5px;vertical-align:middle;"></div> Negative buffer`, legendX, legendY + 20, { transform: noCenter });
+          placeHTML(`<div style="display:inline-block;width:10px;height:10px;background:#8d7b6b;border-radius:1px;margin-right:5px;vertical-align:middle;"></div> Not sampled`, legendX, legendY + 40, { transform: noCenter });
+        }
+        
+        if (t > 2.0) {
+          placeHTML('📡 Comm 通信量: 0 (Local sampling, no communication 本地采样，无需通信)', stageW / 2, stageH - 70, { className: 'stats-label', color: '#2874a6' });
+        }
+        
+        drawFooter('Phase 3 &middot; Sampling &mdash; Select positive + random negative class centers', stageW, stageH);
+      }
+
+      function renderPhase3(renderer, t) {
+        const { stageEl, drawHeader, drawFooter, placeHTML, getCell } = renderer;
+        const stageW = stageEl.clientWidth;
+        const stageH = stageEl.clientHeight;
+        if (stageW === 0) return;
+
+        drawHeader('FORWARD PASS (Per-GPU)', `Each GPU: normalize(\u00CA) &times; normalize(W<sub>sampled</sub>)<sup>T</sup> &rarr; partial logits &rarr; ArcFace &rarr; distributed softmax`, stageW);
+
+        // Layout constants
+        const gLayout = computeGpuLayout(stageW, WC_VISIBLE_COLS);
+        const logitRowStep = 12;
+        const p3GpuLabelY = 90;
+        const p3ComputeY = 108;
+        const p3WLabelY = 124;
+        const p3WY = 136;
+        const p3WBottomY = p3WY + DIM * rowHeight; // 136 + 54 = 190
+        const p3YLabelY = p3WBottomY + 6; // 196
+        const p3ArrowY = p3YLabelY + 16; // 212
+        const p3LogitsLabelY = p3ArrowY + 12; // 224
+        const p3LogitsY = p3LogitsLabelY + 12; // 236
+        const p3LogitsBottomY = p3LogitsY + totalS * logitRowStep; // 236 + 192 = 428
+        const p3SoftmaxY = p3LogitsBottomY + 18; // 446
+        const p3LossY = p3SoftmaxY + 100; // 546
+
+        // Pre-compute positives per GPU
+        const positivesPerGpu = [];
+        for (let g = 0; g < NUM_GPU; g++) {
+          const pos = [];
+          for (let si = 0; si < totalS; si++) {
+            if (sampleLabelGpu[si] === g) pos.push(si);
+          }
+          positivesPerGpu.push(pos);
+        }
+
+        // Compute per-sample: which GPU holds target, which column in that GPU's logits
+        const sampleTargetCol = new Array(totalS).fill(-1);
+        for (let si = 0; si < totalS; si++) {
+          const g = sampleLabelGpu[si];
+          sampleTargetCol[si] = positivesPerGpu[g].indexOf(si);
+        }
+
+        // Phase timing (8s loop)
+        // 0-1.2: W_sampled fades in
+        // 1.2-2.4: compute label + logits grid
+        // 2.4-4.0: target logits revealed + ArcFace margin
+        // 4.0-6.0: distributed softmax section
+        // 6.0-8.0: loss + hold
+
+        const gpuCenters = [];
+
+        for (let g = 0; g < NUM_GPU; g++) {
+          const gx = gLayout.gpuXPositions[g];
+          const cx = gx + gLayout.groupWidth / 2;
+          const mx = gx + rowLabelOffsetX;
+          gpuCenters.push(cx);
+          const positives = positivesPerGpu[g];
+          const numNeg = SAMPLED_COLS - positives.length;
+
+          // ─── A) GPU header ───
+          placeHTML(`GPU<sub>${g}</sub>`, cx, p3GpuLabelY, { color: gpuColors[g] });
+
+          // ─── B) Compute label ───
+          const computeOp = Math.max(0, Math.min(1, (t - 0.3) / 0.5));
+          placeHTML(`\u00CA &times; W<sub>s,${g}</sub><sup>T</sup>`, cx, p3ComputeY, { opacity: computeOp, className: 'stats-label' });
+
+          // ─── C) W_sampled,g (3×10 matrix) ───
+          const wOp = Math.min(1, t / 1.0);
+          placeHTML(`W<sub>sampled,${g}</sub>`, cx, p3WLabelY, { opacity: wOp });
+
+          for (let d = 0; d < DIM; d++) {
+            if (g === 0) {
+              placeHTML(`d<sub>${d}</sub>`, gx - 2, p3WY + d * rowHeight + 5, { color: 'var(--ink-light)', opacity: wOp });
+            }
+            for (let cCol = 0; cCol < WC_VISIBLE_COLS; cCol++) {
+              const c = getCell();
+              c.style.left = `${mx + cCol * (cellSize + cellGap)}px`;
+              c.style.top = `${p3WY + d * rowHeight}px`;
+              c.style.opacity = wOp;
+
+              if (cCol < positives.length) {
+                const si = positives[cCol];
+                c.className = `cell s${si}`;
+              } else if (cCol < positives.length + numNeg) {
+                c.className = `cell neg-buf`;
+              } else {
+                c.className = `cell wc${g}`;
+                c.style.opacity = wOp * 0.3;
+              }
+            }
+          }
+
+          // y_i labels under positive cols
+          if (t > 0.6) {
+            const ylOp = Math.min(1, (t - 0.6) / 0.4);
+            for (let ci = 0; ci < positives.length; ci++) {
+              const si = positives[ci];
+              const staggerY = (ci % 2 === 1) ? 10 : 0;
+              placeHTML(`y<sub>${si}</sub>`, mx + ci * (cellSize + cellGap) + 5, p3YLabelY + staggerY, { color: sampleColors[si], opacity: ylOp, zIndex: '20', className: 'stats-label' });
+            }
+            // neg labels
+            for (let ni = 0; ni < numNeg; ni++) {
+              const colIdx = positives.length + ni;
+              const staggerY = (colIdx % 2 === 1) ? 10 : 0;
+              placeHTML(`n<sub>${ni}</sub>`, mx + colIdx * (cellSize + cellGap) + 5, p3YLabelY + staggerY, { color: 'var(--ink-light)', opacity: ylOp * 0.6 });
+            }
+          }
+
+          // ─── D) Arrow ───
+          if (t > 1.2) {
+            const arrowOp = Math.min(1, (t - 1.2) / 0.3);
+            placeHTML('&darr;', cx, p3ArrowY, { opacity: arrowOp, color: gpuColors[g] });
+          }
+
+          // ─── E) Partial logits (16×10 compressed grid) ───
+          {
+            // Show grid skeleton from the start (dim), animate to full after t=1.4
+            const logitsOp = t > 1.4 ? Math.min(1, (t - 1.4) / 0.8) : 0;
+            const skeletonOp = t <= 1.4 ? Math.min(0.15, t / 1.0) : 0;
+            const effectiveOp = Math.max(skeletonOp, logitsOp);
+
+            if (effectiveOp > 0) {
+              placeHTML(`logits<sub>${g}</sub> [${totalS}&times;K]`, cx, p3LogitsLabelY, { opacity: Math.max(skeletonOp, logitsOp > 0 ? logitsOp : 0), className: 'stats-label' });
+            }
+
+            for (let r = 0; r < totalS; r++) {
+              // Row label only on GPU0
+              if (g === 0 && effectiveOp > 0) {
+                const labelOp = effectiveOp * 0.5;
+                placeHTML(`x<sub>${r}</sub>`, gx + 2, p3LogitsY + r * logitRowStep + 2, { color: sampleColors[r], opacity: labelOp });
+              }
+
+              for (let cCol = 0; cCol < WC_VISIBLE_COLS; cCol++) {
+                const c = getCell();
+                c.style.left = `${mx + cCol * (cellSize + cellGap)}px`;
+                c.style.top = `${p3LogitsY + r * logitRowStep}px`;
+                c.style.width = `${cellSize}px`;
+                c.style.height = `${logitRowStep - 2}px`;
+
+                // Is this the target cell?
+                const isTarget = sampleLabelGpu[r] === g && sampleTargetCol[r] === cCol;
+
+                if (isTarget && t > 2.4) {
+                  // Target logit: staggered reveal per GPU
+                  const stagger = g * 0.2;
+                  const targetOp = Math.min(1, (t - 2.4 - stagger) / 0.4);
+                  c.className = `cell s${r}`;
+                  c.style.opacity = targetOp;
+
+                  // ArcFace margin pulse (t=3.2-5.0)
+                  if (t > 3.2 && t < 5.0) {
+                    const pulse = (Math.sin((t - 3.2) * 6) + 1) / 2;
+                    if (pulse > 0.5) {
+                      c.className += ' glow';
+                    }
+                  }
+                } else {
+                  c.className = `cell neg-buf`;
+                  c.style.opacity = effectiveOp * 0.4;
+                }
+              }
+            }
+          }
+
+          // ─── F) ArcFace annotation ───
+          if (t > 3.2 && t < 6.0) {
+            const afOp = Math.min(1, (t - 3.2) / 0.4);
+            if (g === NUM_GPU - 1) {
+              placeHTML('cos(&theta;+m) applied<br>to target logits &rarr;', gx - 30, p3LogitsY + 6 * logitRowStep, { color: '#c0392b', opacity: afOp, className: 'stats-label', transform: 'translate(-100%,-50%)' });
+            }
+          }
+        }
+
+        // ─── G) Distributed Softmax Section ───
+        if (t > 4.0) {
+          const sfOp = Math.min(1, (t - 4.0) / 0.5);
+
+          // Divider line
+          placeHTML('&mdash;&mdash;&mdash;&mdash; Distributed Softmax (no AllGather of logits) &mdash;&mdash;&mdash;&mdash;', stageW / 2, p3SoftmaxY, { opacity: sfOp, className: 'stats-label' });
+
+          // Step 1: Per-GPU local max
+          for (let g = 0; g < NUM_GPU; g++) {
+            const cx = gpuCenters[g];
+            placeHTML(`max<sub>${g}</sub>`, cx, p3SoftmaxY + 20, { opacity: sfOp, color: gpuColors[g], className: 'stats-label' });
+          }
+
+          // AllReduce arrows for MAX
+          if (t > 4.5) {
+            const arOp = Math.min(1, (t - 4.5) / 0.4);
+            for (let g = 0; g < NUM_GPU - 1; g++) {
+              const midX = (gpuCenters[g] + gpuCenters[g + 1]) / 2;
+              const pulse = (Math.sin(t * 4 + g * 1.2) + 1) / 2;
+              placeHTML('&harr;', midX, p3SoftmaxY + 20, {
+                color: '#c0392b',
+                opacity: arOp,
+                transform: `translate(-50%,-50%) scale(${1.0 + pulse * 0.3})`
+              });
+            }
+            placeHTML('AllReduce(MAX) &rarr; global max M', stageW / 2, p3SoftmaxY + 38, { opacity: arOp, className: 'stats-label' });
+          }
+
+          // Step 2: Local exp sums + AllReduce SUM
+          if (t > 5.0) {
+            const s2Op = Math.min(1, (t - 5.0) / 0.4);
+            for (let g = 0; g < NUM_GPU; g++) {
+              const cx = gpuCenters[g];
+              placeHTML(`&sum;exp<sub>${g}</sub>`, cx, p3SoftmaxY + 54, { opacity: s2Op, color: gpuColors[g], className: 'stats-label' });
+            }
+            for (let g = 0; g < NUM_GPU - 1; g++) {
+              const midX = (gpuCenters[g] + gpuCenters[g + 1]) / 2;
+              const pulse = (Math.sin(t * 5 + g * 1.5) + 1) / 2;
+              placeHTML('&harr;', midX, p3SoftmaxY + 54, {
+                color: '#c0392b',
+                opacity: s2Op,
+                transform: `translate(-50%,-50%) scale(${1.0 + pulse * 0.3})`
+              });
+            }
+            placeHTML('AllReduce(SUM) &rarr; global denominator Z', stageW / 2, p3SoftmaxY + 70, { opacity: s2Op, className: 'stats-label' });
+          }
+        }
+
+        // ─── H) Loss ───
+        if (t > 5.5) {
+          const lossOp = Math.min(1, (t - 5.5) / 0.5);
+          placeHTML('\u2113 = &minus;log( exp(logit<sub>target</sub> &minus; M) / Z )', stageW / 2, p3LossY, { opacity: lossOp, transform: 'translate(-50%,-50%) scale(1.1)' });
+
+          if (t > 6.2) {
+            const l2Op = Math.min(1, (t - 6.2) / 0.4);
+            placeHTML('Key insight: logits stay on each GPU &middot; Only 2 scalars per sample are AllReduced', stageW / 2, p3LossY + 22, { opacity: l2Op, className: 'stats-label', color: '#1e8449' });
+          }
+        }
+
+        if (t > 5.5) {
+          placeHTML('📡 Comm 通信量: AllReduce 2×BS_total×4B = 2×4096×4 ≈ 32KB (only 2 scalars/sample 仅2个标量/样本)', stageW / 2, p3LossY + 45, { className: 'stats-label', color: '#2874a6' });
+        }
+
+        drawFooter('Phase 4 &middot; Forward &mdash; Per-GPU partial logit computation with distributed softmax', stageW, stageH);
+      }
+
+      function renderPhase4(renderer, t) {
+        const { stageEl, drawHeader, drawFooter, placeHTML, getCell } = renderer;
+        const stageW = stageEl.clientWidth;
+        const stageH = stageEl.clientHeight;
+        if (stageW === 0) return;
+
+        drawHeader('BACKWARD & UPDATE', `Gradients flow back &middot; AllReduce across GPUs &middot; Only sampled weights updated`, stageW);
+        
+        const lossY = 130;
+        placeHTML('ℒ = -log(softmax)', stageW/2, lossY, { transform: 'translate(-50%,-50%) scale(1.2)' });
+        placeHTML('▼<br>▼', stageW/2, lossY + 30, { color: '#c0392b' });
+        
+        const gLayout = computeGpuLayout(stageW, totalS);
+        const topY = lossY + 90;
+        
+        for (let g = 0; g < NUM_GPU; g++) {
+          const gx = gLayout.gpuXPositions[g];
+          const cx = gx + gLayout.groupWidth / 2;
+          
+          placeHTML(`GPU<sub>${g}</sub>`, cx, topY, { color: gpuColors[g] });
+          
+          const gradOpacity = Math.max(0, Math.min(1, (t - 1.0) / 0.5));
+          for(let i=0; i<3; i++) {
+            for(let j=0; j<8; j++) {
+              const c = getCell();
+              c.className = `cell s${(g*4 + j)%16}`;
+              c.style.left = `${cx - 48 + j*(cellSize+cellGap)}px`;
+              c.style.top = `${topY + 25 + i*rowHeight}px`;
+              c.style.opacity = gradOpacity;
+            }
+          }
+          
+          if (g < NUM_GPU - 1 && t > 2.0) {
+            const arrowX = cx + gLayout.groupWidth / 2 + gLayout.gapBetweenGroups / 2;
+            const flow = Math.sin(t * 5 + g) > 0 ? '&harr;' : '&harr;';
+            placeHTML(flow, arrowX, topY + 35, { color: '#8e44ad', transform: 'translate(-50%,-50%) scale(1.5)' });
+            placeHTML('AllReduce', arrowX, topY + 15, { color: 'var(--ink-light)' });
+          }
+          
+          const wcY = topY + 120;
+          const rangeStart = g * CLASSES_PER_GPU / 10000;
+          const rangeEnd = (g + 1) * CLASSES_PER_GPU / 10000;
+          placeHTML(`W<sub>local</sub> Update`, cx, wcY - 25);
+          placeHTML(`class ${rangeStart}w ~ ${rangeEnd}w`, cx, wcY - 8, { color: 'var(--ink-light)', className: 'stats-label' });
+          
+          const mx = cx - (WC_VISIBLE_COLS*(cellSize+cellGap))/2;
+          for (let d = 0; d < DIM; d++) {
+            for (let cCol = 0; cCol < WC_VISIBLE_COLS; cCol++) {
+              const c = getCell();
+              c.className = `cell wc${g}`;
+              c.style.left = `${mx + cCol * (cellSize + cellGap)}px`;
+              c.style.top = `${wcY + d * rowHeight}px`;
+              
+              if (t > 3.5) {
+                const positives = [];
+                for (let si = 0; si < totalS; si++) {
+                  if (sampleLabelGpu[si] === g) positives.push(si);
+                }
+                const numNeg = SAMPLED_COLS - positives.length;
+                if (cCol < positives.length + numNeg) {
+                  const pulse = Math.sin(t * 8) * 0.5 + 0.5;
+                  c.style.opacity = 0.5 + pulse * 0.5;
+                  if (pulse > 0.5) c.className += ' glow';
+                  if (cCol < positives.length) c.style.background = sampleColors[positives[cCol]];
+                  else c.className = 'cell neg-buf';
+                }
+              }
+            }
+          }
+        }
+        
+        if (t > 4.5) {
+          placeHTML('Only sampled subset receives gradient updates (Step Complete)', stageW/2, topY + 240, { color: '#1e8449', transform: 'translate(-50%,-50%) scale(1.1)' });
+        }
+        
+        if (t > 2.5) {
+          placeHTML('📡 Comm 通信量: AllReduce (C×r/N)×d×4B = 250K×512×4 ≈ 488MB / GPU', stageW / 2, stageH - 70, { className: 'stats-label', color: '#2874a6' });
+        }
+        
+        drawFooter('Phase 5 &middot; Backward &mdash; Gradient synchronization and selective weight update', stageW, stageH);
+      }
+
+      // === Visibility-based animation optimization ===
+      // Only animate phases that are visible in the viewport.
+      // Reduces CPU usage by 60-80% when scrolling through the page.
+      const phaseVisible = [true, true, true, true, true];
+      const phaseRenderedStatic = [false, false, false, false, false];
+
+      const visObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const idx = parseInt(entry.target.id.replace('stage-', ''), 10);
+          phaseVisible[idx] = entry.isIntersecting;
+          // When a phase becomes visible again, mark static as stale so it re-renders
+          if (entry.isIntersecting) phaseRenderedStatic[idx] = false;
+        });
+      }, { threshold: 0 });
+
+      for (let i = 0; i < 5; i++) {
+        const el = document.getElementById(`stage-${i}`);
+        if (el) visObserver.observe(el);
+      }
+
+      let startTime = 0;
+      const phaseRenders = [renderPhase0, renderPhase1, renderPhase2, renderPhase3, renderPhase4];
+      const phaseDurations = [6, 0, 6, 8, 8]; // 0 = static phase
+
+      function loop(now) {
+        if (!startTime) startTime = now;
+        const t = (now - startTime) / 1000;
+
+        for (let i = 0; i < 5; i++) {
+          if (!stages[i]) continue;
+
+          // Skip offscreen phases entirely
+          if (!phaseVisible[i]) continue;
+
+          // Static phases (duration=0): render once, then skip
+          if (phaseDurations[i] === 0) {
+            if (phaseRenderedStatic[i]) continue;
+            phaseRenderedStatic[i] = true;
+          }
+
+          const phaseT = phaseDurations[i] === 0 ? 0 : (t % phaseDurations[i]);
+          stages[i].resetPool();
+          stages[i].resetTextPool();
+          phaseRenders[i](stages[i], phaseT);
+          stages[i].hideUnused();
+          stages[i].hideUnusedText();
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>
