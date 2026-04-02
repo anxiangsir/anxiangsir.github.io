@@ -1,240 +1,457 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Xiang An - Blog</title>
-  <meta name="description" content="Xiang An's Blog - Research notes on face recognition, distributed training, and deep learning">
-  <link rel="shortcut icon" href="/assets/img/profile_pic.jpg">
-  <style>
-    :root {
-      --color-bg:           #f8f9fa;
-      --color-surface:      #ffffff;
-      --color-text:         #202122;
-      --color-muted:        #54595d;
-      --color-border:       #a2a9b1;
-      --color-border-soft:  #c8ccd1;
-      --color-border-light: #eaecf0;
-      --color-link:         #0645ad;
-      --color-link-vis:     #0b0080;
-      --color-accent:       #3366cc;
-      --color-accent-soft:  #cee0f2;
-      --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-      --font-body:  -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-      --font-ui:    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Xiang An - Blog</title>
+    <meta
+      name="description"
+      content="Xiang An's Blog - Research notes on face recognition, distributed training, and deep learning"
+    />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <style>
+      :root {
+        --color-bg: #f8f9fa;
+        --color-surface: #ffffff;
+        --color-surface-soft: #fafbfc;
+        --color-text: #202122;
+        --color-muted: #54595d;
+        --color-border: #a2a9b1;
+        --color-border-soft: #c8ccd1;
+        --color-border-light: #eaecf0;
+        --color-link: #0645ad;
+        --color-link-vis: #0b0080;
+        --color-accent: #3366cc;
+        --color-accent-soft: #cee0f2;
+        --font-heading:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+          sans-serif;
+        --font-body:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+          sans-serif;
+        --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
 
-    body {
-      font-family: var(--font-body);
-      font-size: 14.5px;
-      line-height: 1.65;
-      color: var(--color-text);
-      background: var(--color-bg);
-      padding: 12px 16px 24px;
-    }
+      body {
+        font-family: var(--font-body);
+        font-size: 14.5px;
+        line-height: 1.65;
+        color: var(--color-text);
+        background: var(--color-bg);
+        padding: 12px 16px 24px;
+      }
 
-    /* === HEADER === */
-    .wiki-header {
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-border);
-      position: sticky;
-      top: 0;
-      z-index: 200;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    .wiki-header-inner {
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 0 16px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .wiki-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .wiki-brand-sep {
-      color: var(--color-muted);
-      font-family: var(--font-ui);
-      font-size: 0.95em;
-      user-select: none;
-    }
-    .wiki-logo {
-      font-family: var(--font-ui);
-      font-size: 0.95em;
-      font-weight: 600;
-      color: var(--color-text);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .wiki-logo::before {
-      content: '';
-      display: inline-block;
-      width: 9px; height: 9px;
-      background: var(--color-accent);
-    }
-    .wiki-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .wiki-nav a {
-      font-family: var(--font-ui);
-      font-size: 0.95em;
-      color: var(--color-text);
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .wiki-nav a:hover { text-decoration: underline; }
+      /* === HEADER === */
+      .wiki-header {
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        position: sticky;
+        top: 0;
+        z-index: 200;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      }
+      .wiki-header-inner {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 16px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .wiki-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .wiki-brand-sep {
+        color: var(--color-muted);
+        font-family: var(--font-ui);
+        font-size: 0.95em;
+        user-select: none;
+      }
+      .wiki-logo {
+        font-family: var(--font-ui);
+        font-size: 0.95em;
+        font-weight: 600;
+        color: var(--color-text);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .wiki-logo::before {
+        content: "";
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        background: var(--color-accent);
+      }
+      .wiki-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .wiki-nav a {
+        font-family: var(--font-ui);
+        font-size: 0.95em;
+        color: var(--color-text);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .wiki-nav a:hover {
+        text-decoration: underline;
+      }
 
-    /* === CONTENT === */
-    .blog-container {
-      max-width: 820px;
-      margin: 0 auto;
-      padding: 32px 16px;
-    }
-    .blog-page-title {
-      font-family: var(--font-heading);
-      font-size: 1.95em;
-      font-weight: 400;
-      color: var(--color-text);
-      border-bottom: 1px solid var(--color-border);
-      padding-bottom: 6px;
-      margin-bottom: 24px;
-    }
+      /* === CONTENT === */
+      .blog-container {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 32px 16px;
+      }
+      .blog-page-title {
+        font-family: var(--font-heading);
+        font-size: 1.95em;
+        font-weight: 400;
+        color: var(--color-text);
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+      }
+      .blog-subtitle {
+        font-size: 1.05em;
+        color: var(--color-muted);
+        margin-top: -4px;
+        margin-bottom: 32px;
+      }
 
-    /* === TIMELINE === */
-    .blog-timeline {
-      list-style: none;
-    }
-    .blog-year {
-      font-family: var(--font-heading);
-      font-size: 1.3em;
-      font-weight: 600;
-      color: var(--color-muted);
-      margin: 28px 0 12px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid var(--color-border-light);
-    }
-    .blog-year:first-child {
-      margin-top: 0;
-    }
-    .blog-entry {
-      display: flex;
-      align-items: baseline;
-      gap: 16px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--color-border-light);
-    }
-    .blog-entry:last-child {
-      border-bottom: none;
-    }
-    .blog-date {
-      font-family: var(--font-ui);
-      font-size: 0.88em;
-      color: var(--color-muted);
-      white-space: nowrap;
-      min-width: 80px;
-    }
-    .blog-link {
-      font-size: 1.05em;
-      color: var(--color-link);
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .blog-link:visited {
-      color: var(--color-link-vis);
-    }
-    .blog-link:hover {
-      text-decoration: underline;
-    }
-    .blog-tag {
-      display: inline-block;
-      font-size: 0.75em;
-      font-family: var(--font-ui);
-      color: var(--color-accent);
-      background: var(--color-accent-soft);
-      padding: 1px 7px;
-      border-radius: 3px;
-      margin-left: 8px;
-      vertical-align: middle;
-      font-weight: 500;
-    }
-    .blog-summary {
-      font-size: 0.9em;
-      color: var(--color-muted);
-      margin-top: 2px;
-    }
-
-    /* === RESPONSIVE === */
-    @media (max-width: 600px) {
+      /* === TIMELINE === */
+      .blog-timeline {
+        list-style: none;
+      }
+      .blog-year {
+        font-family: var(--font-heading);
+        font-size: 1.3em;
+        font-weight: 600;
+        color: var(--color-muted);
+        margin: 32px 0 16px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--color-border-light);
+      }
+      .blog-year:first-child {
+        margin-top: 0;
+      }
       .blog-entry {
-        flex-direction: column;
-        gap: 2px;
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--color-border-light);
+        background: var(--color-surface);
+        border-left: 3px solid var(--color-border);
+        transition:
+          border-left-color 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+      }
+      .blog-entry:last-child {
+        border-bottom: none;
       }
       .blog-date {
-        min-width: unset;
+        font-family: var(--font-ui);
+        font-size: 0.88em;
+        color: var(--color-muted);
+        white-space: nowrap;
+        min-width: 80px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
       }
-    }
-      .wiki-header-inner { height: auto; padding: 8px 16px; flex-wrap: wrap; justify-content: center; gap: 6px; }
-      .wiki-brand { justify-content: center; gap: 6px; }
-      .wiki-nav { gap: 6px; justify-content: center; }
-  </style>
-</head>
-<body>
-  <header class="wiki-header">
-    <div class="wiki-header-inner">
-      <div class="wiki-brand">
-        <a href="/" class="wiki-logo">Home</a>
-        <span class="wiki-brand-sep">|</span>
-        <nav class="wiki-nav">
-          <a href="/pages/partial_fc.html">PFC</a>
+      .blog-link {
+        font-size: 1.05em;
+        color: var(--color-link);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-block;
+        transition: transform 0.15s ease;
+      }
+      .blog-link:visited {
+        color: var(--color-link-vis);
+      }
+      .blog-link:hover {
+        text-decoration: underline;
+      }
+      .blog-tag {
+        display: inline-block;
+        font-size: 0.75em;
+        font-family: var(--font-ui);
+        color: var(--color-accent);
+        background: var(--color-accent-soft);
+        padding: 0 6px;
+        border: 1px solid var(--color-accent);
+        border-radius: 3px;
+        margin-left: 8px;
+        vertical-align: middle;
+        font-weight: 500;
+        transition: background 0.15s;
+      }
+      .blog-summary {
+        font-size: 0.9em;
+        color: var(--color-muted);
+        margin-top: 6px;
+        line-height: 1.5;
+      }
+
+      /* === NEW FEATURES === */
+      .blog-type {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffc107;
+        border-radius: 10px;
+        padding: 1px 8px;
+        font-size: 0.72em;
+        font-weight: 600;
+        margin-left: 8px;
+        vertical-align: middle;
+        display: inline-block;
+      }
+      .blog-reading-time {
+        font-size: 0.82em;
+        color: var(--color-muted);
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+      .blog-entry.featured {
+        border-left: 3px solid var(--color-accent);
+        background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-accent-soft) 100%);
+        padding: 20px 20px;
+        margin-bottom: 4px;
+      }
+      .blog-entry.featured .blog-link {
+        font-size: 1.15em;
+        font-weight: 600;
+      }
+      .blog-entry.featured .blog-summary {
+        font-size: 0.95em;
+        color: var(--color-text);
+      }
+      .blog-pinned {
+        font-size: 0.75em;
+        color: var(--color-accent);
+        font-weight: 600;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .blog-filters {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+      .blog-filter-btn {
+        font-family: var(--font-ui);
+        font-size: 0.85em;
+        font-weight: 500;
+        padding: 4px 14px;
+        border: 1px solid var(--color-border-soft);
+        border-radius: 16px;
+        background: var(--color-surface);
+        color: var(--color-muted);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .blog-filter-btn:hover {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+      }
+      .blog-filter-btn.active {
+        background: var(--color-accent);
+        color: #fff;
+        border-color: var(--color-accent);
+      }
+      .blog-footer {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 24px 16px;
+        text-align: center;
+        font-family: var(--font-ui);
+        font-size: 0.85em;
+        color: var(--color-muted);
+        border-top: 1px solid var(--color-border-light);
+      }
+      .blog-footer a {
+        color: var(--color-link);
+        text-decoration: none;
+      }
+      .blog-footer a:hover {
+        text-decoration: underline;
+      }
+      .blog-footer-sep {
+        margin: 0 6px;
+        color: var(--color-border-soft);
+      }
+      /* === HOVER EFFECTS === */
+      @media (hover: hover) {
+        .blog-entry:hover {
+          border-left-color: var(--color-accent);
+          background: var(--color-surface-soft);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .blog-entry:hover .blog-link {
+          transform: translateX(2px);
+        }
+        .blog-entry:hover .blog-tag {
+          background: #e2effa;
+        }
+      }
+
+      /* === RESPONSIVE === */
+      @media (max-width: 600px) {
+        .blog-entry {
+          flex-direction: column;
+          gap: 4px;
+        }
+        .blog-date {
+          min-width: unset;
+        }
+        .wiki-header-inner {
+          height: auto;
+          padding: 8px 16px;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 6px;
+        }
+        .wiki-brand {
+          justify-content: center;
+          gap: 6px;
+        }
+        .wiki-nav {
+          gap: 6px;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="wiki-header">
+      <div class="wiki-header-inner">
+        <div class="wiki-brand">
+          <a href="/" class="wiki-logo">Home</a>
           <span class="wiki-brand-sep">|</span>
-          <a href="/pages/llava_onevision2.html">OV2</a>
-          <span class="wiki-brand-sep">|</span>
-          <a href="/pages/blog.html">Blog</a>
-        </nav>
+          <nav class="wiki-nav">
+            <a href="/pages/partial_fc.html">PFC</a>
+            <span class="wiki-brand-sep">|</span>
+            <a href="/pages/llava_onevision2.html">OV2</a>
+            <span class="wiki-brand-sep">|</span>
+            <a href="/pages/blog.html">Blog</a>
+          </nav>
+        </div>
       </div>
+    </header>
+
+    <div class="blog-container">
+      <h1 class="blog-page-title">Blog</h1>
+      <p class="blog-subtitle">Research notes and interactive visualizations</p>
+
+      <div class="blog-filters">
+        <button type="button" class="blog-filter-btn active" data-filter="all">All</button>
+        <button type="button" class="blog-filter-btn" data-filter="llm">LLM</button>
+        <button type="button" class="blog-filter-btn" data-filter="training">Training</button>
+        <button type="button" class="blog-filter-btn" data-filter="vision">Vision</button>
+      </div>
+      <h2 class="blog-year">2026</h2>
+      <ul class="blog-timeline">
+        <li class="blog-entry featured" data-category="llm vision">
+          <span class="blog-date">Apr 1, 2026</span>
+          <div>
+            <span class="blog-pinned">📌 Latest</span>
+            <a class="blog-link" href="/pages/llava_onevision2.html">LLaVA-OneVision2</a>
+            <span class="blog-type">Interactive Viz</span>
+            <span class="blog-tag">Multimodal LLM</span>
+            <span class="blog-tag">Vision-Language</span>
+            <span class="blog-reading-time">~3 min</span>
+            <p class="blog-summary">
+              Interactive visualization of LLaVA-OneVision2 architecture —
+              codec-aligned sampling and RoPE3D token processing.
+            </p>
+          </div>
+        </li>
+        <li class="blog-entry" data-category="training">
+          <span class="blog-date">Apr 1, 2026</span>
+          <div>
+            <a class="blog-link" href="/pages/partial_fc.html">Understanding PartialFC: Ultra-Large-Scale Parallel Classification</a>
+            <span class="blog-type">Interactive Viz</span>
+            <span class="blog-tag">Distributed Training</span>
+            <span class="blog-tag">Contrastive Learning</span>
+            <span class="blog-reading-time">~5 min</span>
+            <p class="blog-summary">
+              A brief introduction to the PartialFC algorithm — how partial
+              class center sampling makes ultra-large-scale parallel
+              classification feasible.
+            </p>
+          </div>
+        </li>
+        <li class="blog-entry" data-category="llm">
+          <span class="blog-date">Mar 24, 2026</span>
+          <div>
+            <a class="blog-link" href="/pages/yarn.html">YaRN: Efficient Context Window Extension for LLMs</a>
+            <span class="blog-type">Interactive Viz</span>
+            <span class="blog-tag">LLM</span>
+            <span class="blog-tag">RoPE Scaling</span>
+            <span class="blog-reading-time">~4 min</span>
+            <p class="blog-summary">
+              Interactive visualization of YaRN (Yet another RoPE extensioN) —
+              extending LLM context windows via NTK-aware interpolation and
+              attention scaling.
+            </p>
+          </div>
+        </li>
+      </ul>
     </div>
-  </header>
 
-  <div class="blog-container">
-    <h1 class="blog-page-title">Blog</h1>
+    <footer class="blog-footer">
+      <a href="/">Home</a>
+      <span class="blog-footer-sep">·</span>
+      <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>
+      <span class="blog-footer-sep">·</span>
+      <a href="https://scholar.google.com.hk/citations?hl=en&user=1ckaPgwAAAAJ" target="_blank">Google Scholar</a>
+      <span class="blog-footer-sep">·</span>
+      <a href="mailto:anxiangsir@outlook.com">Email</a>
+    </footer>
 
-    <h2 class="blog-year">2026</h2>
-    <ul class="blog-timeline">
-      <li class="blog-entry">
-        <span class="blog-date">Apr 1</span>
-        <div>
-          <a class="blog-link" href="/pages/llava_onevision2.html">LLaVA-OneVision2</a>
-          <span class="blog-tag">Multimodal LLM</span>
-          <span class="blog-tag">Vision-Language</span>
-        </div>
-      </li>
-      <li class="blog-entry">
-        <span class="blog-date">Apr 1</span>
-        <div>
-          <a class="blog-link" href="/pages/partial_fc.html">Understanding PartialFC: Ultra-Large-Scale Parallel Classification</a>
-          <span class="blog-tag">Distributed Training</span>
-          <span class="blog-tag">Contrastive Learning</span>
-          <p class="blog-summary">A brief introduction to the PartialFC algorithm — how partial class center sampling makes ultra-large-scale parallel classification feasible.</p>
-        </div>
-      </li>
-      <li class="blog-entry">
-        <span class="blog-date">Mar 24</span>
-        <div>
-          <a class="blog-link" href="/pages/yarn.html">YaRN: Efficient Context Window Extension for LLMs</a>
-          <span class="blog-tag">LLM</span>
-          <span class="blog-tag">RoPE Scaling</span>
-          <p class="blog-summary">Interactive visualization of YaRN (Yet another RoPE extensioN) — extending LLM context windows via NTK-aware interpolation and attention scaling.</p>
-        </div>
-      </li>
-    </ul>
-  </div>
-</body>
+    <script>
+      document.querySelectorAll('.blog-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.blog-filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const filter = btn.dataset.filter;
+          document.querySelectorAll('.blog-entry').forEach(entry => {
+            if (filter === 'all' || entry.dataset.category.split(' ').includes(filter)) {
+              entry.style.display = '';
+            } else {
+              entry.style.display = 'none';
+            }
+          });
+          // Also hide year headers if all entries under them are hidden
+          document.querySelectorAll('.blog-year').forEach(year => {
+            const next = year.nextElementSibling;
+            if (next && next.tagName === 'UL') {
+              const visible = next.querySelectorAll('.blog-entry:not([style*="display: none"])');
+              year.style.display = visible.length > 0 ? '' : 'none';
+            }
+          });
+        });
+      });
+    </script>
+  </body>
 </html>
