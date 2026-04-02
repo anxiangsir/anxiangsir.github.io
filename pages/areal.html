@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AReaL: A Fully Asynchronous RL Training System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-alt: #f8f9fa;
+        --text: #1a1a2e;
+        --text-secondary: #555;
+        --accent: #2563eb;
+        --border: #e2e8f0;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif:
+          "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino,
+          serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-math: "JetBrains Mono", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: var(--font-serif);
+        font-size: 1.15rem;
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .site-nav {
+        padding: 1.5rem 2rem;
+        font-family: var(--font-sans);
+        font-size: 0.9rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+
+      .site-nav a {
+        color: var(--text);
+        text-decoration: none;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        transition: color 0.2s;
+      }
+
+      .site-nav a:hover {
+        color: var(--accent);
+      }
+
+      .nav-sep {
+        color: var(--border);
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+      }
+
+      .header-top {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 2rem;
+      }
+
+      .lang-toggle {
+        background: none;
+        border: 1px solid var(--border);
+        padding: 0.4rem 0.8rem;
+        font-family: var(--font-sans);
+        font-size: 0.85rem;
+        cursor: pointer;
+        border-radius: 4px;
+        color: var(--text);
+        transition: all 0.2s;
+      }
+
+      .lang-toggle:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: var(--font-headline);
+        color: var(--text);
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-top: 0;
+      }
+      h2 {
+        font-size: 1.8rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.5rem;
+      }
+      h3 {
+        font-size: 1.4rem;
+      }
+
+      p {
+        margin-bottom: 1.5rem;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.2s;
+      }
+
+      a:hover {
+        border-bottom-color: var(--accent);
+      }
+
+      .key-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 3rem 0;
+        padding: 2rem;
+        background: var(--bg-alt);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        font-family: var(--font-sans);
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-val {
+        display: block;
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+        font-family: var(--font-headline);
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      /* Animated Architecture Diagram */
+      .stage-wrapper {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        background: var(--bg);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        margin-bottom: 1rem;
+      }
+
+      .arch-stage {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .arch-node {
+        position: absolute;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 2px solid;
+        background: #fff;
+        font-family: var(--font-sans);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        z-index: 10;
+        width: 180px;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      #node-controller {
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      #node-rollout {
+        top: 160px;
+        left: 20px;
+      }
+      #node-reward {
+        top: 160px;
+        right: 20px;
+      }
+      #node-trainer {
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .node-title {
+        font-weight: bold;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+      }
+      .node-desc {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        line-height: 1.2;
+      }
+
+      .node-blue {
+        border-color: #93c5fd;
+        background: #eff6ff;
+      }
+      .node-blue .node-title {
+        color: #1e3a8a;
+      }
+      .node-green {
+        border-color: #86efac;
+        background: #f0fdf4;
+      }
+      .node-green .node-title {
+        color: #14532d;
+      }
+      .node-yellow {
+        border-color: #fde047;
+        background: #fefce8;
+      }
+      .node-yellow .node-title {
+        color: #713f12;
+      }
+      .node-purple {
+        border-color: #d8b4fe;
+        background: #faf5ff;
+      }
+      .node-purple .node-title {
+        color: #581c87;
+      }
+
+      /* SVG Paths */
+      .arch-paths {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+      .arch-paths line {
+        stroke: var(--border);
+        stroke-width: 2;
+        stroke-dasharray: 4 4;
+      }
+
+      .data-packet {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        z-index: 5;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+      }
+
+      .packet-purple {
+        background: #d8b4fe;
+        box-shadow: 0 0 8px #d8b4fe;
+      }
+      .packet-blue {
+        background: #93c5fd;
+        box-shadow: 0 0 8px #93c5fd;
+      }
+      .packet-green {
+        background: #86efac;
+        box-shadow: 0 0 8px #86efac;
+      }
+      .packet-yellow {
+        background: #fde047;
+        box-shadow: 0 0 8px #fde047;
+      }
+
+      .step-indicator {
+        padding: 1rem;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        text-align: center;
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        font-weight: bold;
+        color: var(--text);
+        min-height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.3s;
+      }
+
+      /* PPO Visualization */
+      .ppo-stage {
+        position: relative;
+        width: 100%;
+        height: 250px;
+        background: var(--bg);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        font-family: var(--font-sans);
+      }
+      .ppo-track {
+        width: 80%;
+        height: 40px;
+        background: var(--border);
+        border-radius: 20px;
+        display: flex;
+        overflow: hidden;
+        position: relative;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .ppo-segment {
+        height: 100%;
+        width: 0%;
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .seg-v1 {
+        background: #3b82f6;
+      } /* Blue */
+      .seg-v2 {
+        background: #8b5cf6;
+      } /* Purple */
+      .seg-v3 {
+        background: #10b981;
+      } /* Green */
+
+      .ppo-labels {
+        width: 80%;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        height: 20px;
+      }
+      .ppo-formula-display {
+        margin-top: 30px;
+        padding: 10px 20px;
+        background: var(--bg-alt);
+        border-radius: 6px;
+        font-family: var(--font-math);
+        font-size: 1.1rem;
+        border: 1px solid var(--border);
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      .highlight-red {
+        color: #ef4444;
+        font-weight: bold;
+      }
+      .highlight-green {
+        color: #10b981;
+        font-weight: bold;
+      }
+      .lightning {
+        position: absolute;
+        font-size: 1.5rem;
+        top: -25px;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      /* Math */
+      .math {
+        font-family: var(--font-math);
+        font-size: 0.95em;
+        background: var(--bg-alt);
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+      }
+
+      .math-block {
+        font-family: var(--font-math);
+        display: block;
+        background: var(--bg-alt);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: 8px;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        text-align: center;
+        font-size: 1rem;
+        color: var(--text);
+      }
+
+      ul {
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      li {
+        margin-bottom: 0.5rem;
+      }
+
+      .references {
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
+        .arch-grid {
+          grid-template-columns: 1fr;
+        }
+        .arrow-icon {
+          display: none;
+        } /* Hide arrows on mobile stack */
+        h1 {
+          font-size: 2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/partial_fc.html">PFC</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/llava_onevision2.html">OV2</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+    </nav>
+
+    <div class="container">
+      <div class="header-top">
+        <button type="button" class="lang-toggle" id="lang-btn">English</button>
+      </div>
+
+      <h1 id="title"></h1>
+      <p
+        id="subtitle"
+        style="
+          color: var(--text-secondary);
+          font-family: var(--font-sans);
+          margin-top: -1rem;
+          font-size: 0.95rem;
+        "
+      ></p>
+
+      <div class="key-stats">
+        <div class="stat-item">
+          <span class="stat-val">2.77×</span>
+          <span class="stat-label" id="stat1-label"></span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val">512</span>
+          <span class="stat-label" id="stat2-label"></span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val">5,000+</span>
+          <span class="stat-label" id="stat3-label"></span>
+        </div>
+      </div>
+
+      <h2 id="h-intro"></h2>
+      <p id="p-intro-1"></p>
+      <p id="p-intro-2"></p>
+
+      <h2 id="h-problem"></h2>
+      <p id="p-problem-1"></p>
+      <p id="p-problem-2"></p>
+
+      <h2 id="h-arch"></h2>
+      <p id="p-arch-1"></p>
+
+      <div class="arch-diagram-wrapper">
+        <div class="arch-diagram-title" id="arch-diag-title"></div>
+        <div class="stage-wrapper arch-stage" id="arch-stage">
+          <svg class="arch-paths" id="arch-paths">
+            <title>Architecture data flow paths</title>
+          </svg>
+
+          <div class="arch-node node-purple" id="node-controller">
+            <div class="node-title" id="arch-n1-t"></div>
+            <div class="node-desc" id="arch-n1-d"></div>
+          </div>
+          <div class="arch-node node-blue" id="node-rollout">
+            <div class="node-title" id="arch-n2-t"></div>
+            <div class="node-desc" id="arch-n2-d"></div>
+            <div
+              id="rollout-progress"
+              style="
+                width: 0%;
+                height: 4px;
+                background: #2563eb;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                border-radius: 0 0 0 8px;
+              "
+            ></div>
+          </div>
+          <div class="arch-node node-green" id="node-reward">
+            <div class="node-title" id="arch-n4-t"></div>
+            <div class="node-desc" id="arch-n4-d"></div>
+          </div>
+          <div class="arch-node node-yellow" id="node-trainer">
+            <div class="node-title" id="arch-n3-t"></div>
+            <div class="node-desc" id="arch-n3-d"></div>
+          </div>
+        </div>
+        <div class="step-indicator" id="arch-step-text"></div>
+      </div>
+
+      <h2 id="h-adv"></h2>
+      <ul id="l-adv"></ul>
+
+      <h2 id="h-chal1"></h2>
+      <p id="p-chal1"></p>
+
+      <h2 id="h-chal2"></h2>
+      <p id="p-chal2-1"></p>
+      <div class="math-block">
+        J(θ) = E[min(u<sub style="font-size: 0.7em">t</sub
+        ><sup style="font-size: 0.7em">prox</sup>(θ)·A<sub
+          style="font-size: 0.7em"
+          >t</sub
+        >, clip(u<sub style="font-size: 0.7em">t</sub
+        ><sup style="font-size: 0.7em">prox</sup>(θ), 1-ε, 1+ε)·A<sub
+          style="font-size: 0.7em"
+          >t</sub
+        >)]<br /><br />
+        <span style="font-size: 0.85em; color: var(--text-secondary)"
+          >u<sub style="font-size: 0.7em">t</sub
+          ><sup style="font-size: 0.7em">prox</sup> = π<sub
+            style="font-size: 0.7em"
+            >θ</sub
+          >
+          / π<sub style="font-size: 0.7em">prox</sub></span
+        >
+      </div>
+
+      <div class="ppo-viz-wrapper">
+        <div class="ppo-stage">
+          <div class="ppo-labels">
+            <span id="ppo-l1" style="opacity: 0">π_v1</span>
+            <span id="ppo-l2" style="opacity: 0">π_v2</span>
+            <span id="ppo-l3" style="opacity: 0">π_v3</span>
+          </div>
+          <div class="ppo-track" id="ppo-track">
+            <div class="ppo-segment seg-v1" id="seg-v1"></div>
+            <div class="ppo-segment seg-v2" id="seg-v2"></div>
+            <div class="ppo-segment seg-v3" id="seg-v3"></div>
+            <div class="lightning" id="light-1">⚡</div>
+            <div class="lightning" id="light-2">⚡</div>
+          </div>
+          <div class="ppo-formula-display" id="ppo-formula-display"></div>
+        </div>
+        <div class="step-indicator" id="ppo-step-text"></div>
+      </div>
+      <p id="p-chal2-2"></p>
+
+      <div class="references">
+        <h3 id="h-ref"></h3>
+        <ul id="l-ref"></ul>
+      </div>
+    </div>
+
+    <script>
+      const LABELS = {
+        zh: {
+          title: "AReaL: 全异步强化学习训练系统",
+          subtitle:
+            "由清华大学交叉信息研究院与蚂蚁集团联合推出 | NeurIPS 2025, arXiv:2505.24298",
+          "stat1-label": "相对同步RL提速",
+          "stat2-label": "GPU线性扩展",
+          "stat3-label": "GitHub Stars",
+
+          "h-intro": "简介与概览",
+          "p-intro-1":
+            "AReaL 是一个专为大语言模型（LLM）推理和智能体训练打造的<b>全异步强化学习训练系统</b>。随着深度思考模型（如 o1）和复杂智能体的兴起，传统的同步 RLHF（基于人类反馈的强化学习）或 PPO 系统在训练效率上面临巨大瓶颈。",
+          "p-intro-2":
+            "通过在算法与系统层面的深度协同设计，AReaL 彻底打破了生成和训练节点之间的同步壁垒，让集群中的所有 GPU 保持时刻满载运转。",
+
+          "h-problem": "问题剖析：同步强化学习的低效",
+          "p-problem-1":
+            "传统的大规模 RL 系统采用同步架构。在这种架构下，模型需要先生成一批回复（Rollout），再集中计算奖励，最后进行梯度更新。这引入了致命的<b>“掉队者问题”（Straggler Problem）</b>。",
+          "p-problem-2":
+            "由于大模型生成的回复长度参差不齐，整个系统必须停下来等待最慢的那个请求完成。在此期间，负责训练的 GPU 处于闲置状态；而在训练更新参数时，负责生成的 GPU 同样无事可做。这种算力浪费在长序列推理任务中尤为严重。",
+
+          "h-arch": "核心架构：四大组件",
+          "p-arch-1":
+            "AReaL 创新性地将系统拆分为四个完全解耦的异步组件，数据在它们之间以流（Stream）的形式传递，不再有全局同步屏障。",
+
+          "arch-diag-title": "AReaL 系统数据流向",
+          "arch-n1-t": "采样控制器<br>(Rollout Controller)",
+          "arch-n1-d":
+            "连接各组件的枢纽，管理全局数据流，并负责触发和广播最新的模型权重更新。",
+          "arch-n2-t": "可中断采样节点<br>(Interruptible Rollout)",
+          "arch-n2-d":
+            "负责生成响应。支持生成中断：丢弃旧的 KV Cache，加载新权重后重新 Prefill 并继续解码。",
+          "arch-n3-t": "训练节点<br>(Trainer Workers)",
+          "arch-n3-d":
+            "从经验回放缓冲区持续获取数据，执行不间断的 PPO 梯度更新，不等待数据收集。",
+          "arch-n4-t": "奖励计算服务<br>(Reward Service)",
+          "arch-n4-d":
+            "异步执行环境交互或代码测试以计算奖励值，避免阻塞生成和训练进程。",
+
+          "arch-step-1": "步骤 1: 采样控制器向 Worker 分发 Prompt",
+          "arch-step-2": "步骤 2: 采样节点持续生成 Token",
+          "arch-step-3": "步骤 3: 生成中途收到权重更新！(丢弃KV，重新Prefill)",
+          "arch-step-4": "步骤 4: 完成的响应被发送至奖励计算服务",
+          "arch-step-5": "步骤 5: 奖励计算服务异步评测",
+          "arch-step-6": "步骤 6: 携奖励的数据流向经验池 → 训练节点",
+          "arch-step-7": "步骤 7: 训练节点持续更新权重，并广播回控制器",
+
+          "h-adv": "全异步的核心优势",
+          "l-adv":
+            "<li><b>极致的性能飞跃</b>：在相同性能下，相比传统同步系统实现高达 <b>2.77倍</b> 的训练提速。</li><li><b>100% 硬件利用率</b>：消除同步等待，生成 GPU 与训练 GPU 同时且持续处于忙碌状态。</li><li><b>卓越的可扩展性</b>：在扩展至 512 张 GPU 时依然保持极佳的线性加速比。</li><li><b>无需批次同步</b>：彻底告别基于固定 Batch Size 的同步屏障限制。</li>",
+
+          "h-chal1": "挑战一：数据陈旧度 (Data Staleness)",
+          "p-chal1":
+            "在异步训练中，生成数据的模型版本可能已经落后于当前正在训练的模型版本。这就是所谓的“陈旧度”。AReaL 引入了<b>感知陈旧度训练（Staleness-Aware Training）</b>。系统设定一个最大允许陈旧度阈值 <span class='math'>η</span>。当重放缓冲区中的数据版本与当前模型版本的差距超过 <span class='math'>η</span> 时，该数据将被自动丢弃，以保证训练的稳定性。",
+
+          "h-chal2": "挑战二：不一致的策略版本",
+          "p-chal2-1":
+            "由于 AReaL 支持可中断的生成（Interruptible Generation），一条完整的轨迹（Trajectory）可能由多个不同的模型版本接力生成。传统的 PPO 算法假设整条轨迹来自单一的行为策略（Behavior Policy），这在异步系统中不再成立。为此，AReaL 提出了<b>解耦的 PPO 目标函数（Decoupled PPO Objective）</b>：",
+          "p-chal2-2":
+            "在这个新目标函数中，<span class='math'>π<sub>prox</sub></span> 是用于裁剪的参考策略（即最近一次同步的权重），而不是实际生成每个 token 的异构行为策略 <span class='math'>π<sub>behav</sub></span>。这一算法级的创新完美弥合了异步系统带来的理论鸿沟。",
+
+          "ppo-step-1": "一条由策略 π_v1 生成的轨迹...",
+          "ppo-step-2": "收到权重更新！生成被中断，使用 π_v2 继续",
+          "ppo-step-3": "再次收到权重更新！剩余 Token 使用 π_v3 生成",
+          "ppo-step-4": "传统 PPO 假设单一策略 (π_behav) ❌",
+          "ppo-step-5": "解耦 PPO 使用单一参考策略 (π_prox) ✓",
+
+          "h-ref": "总结与相关链接",
+          "l-ref":
+            "<li><b>论文</b>: <a href='https://arxiv.org/abs/2505.24298' target='_blank'>arXiv:2505.24298</a> (NeurIPS 2025)</li><li><b>GitHub 仓库</b>: <a href='https://github.com/inclusionAI/AReaL' target='_blank'>inclusionAI/AReaL</a></li><li><b>扩展阅读</b>: 欢迎查看我们的技术博客获取更多实现细节。</li>",
+        },
+        en: {
+          title: "AReaL: A Fully Asynchronous RL Training System",
+          subtitle:
+            "By Tsinghua IIIS & Ant Group | NeurIPS 2025, arXiv:2505.24298",
+          "stat1-label": "Speedup vs Sync RL",
+          "stat2-label": "Linear GPU Scaling",
+          "stat3-label": "GitHub Stars",
+
+          "h-intro": "Introduction & Overview",
+          "p-intro-1":
+            "AReaL is a <b>fully asynchronous reinforcement learning training system</b> tailored for LLM reasoning and agent training. With the rise of deep-thinking models (like o1) and complex agents, traditional synchronous RLHF/PPO systems face severe bottlenecks in training efficiency.",
+          "p-intro-2":
+            "Through deep co-design of both algorithms and systems, AReaL completely shatters the synchronization barriers between generation and training nodes, ensuring that all GPUs in the cluster remain fully utilized at all times.",
+
+          "h-problem": "The Problem: Synchronous RL is Slow",
+          "p-problem-1":
+            'Traditional large-scale RL systems adopt a synchronous architecture. The model must first generate a batch of responses (rollouts), centrally compute rewards, and finally perform gradient updates. This introduces the fatal <b>"straggler problem"</b>.',
+          "p-problem-2":
+            "Because the generated response lengths vary wildly across prompts, the entire system must halt and wait for the longest request to finish. During this time, training GPUs sit completely idle; conversely, while weights are being updated, generation GPUs are doing nothing. This waste of compute is especially severe in long-sequence reasoning tasks.",
+
+          "h-arch": "Architecture: Four Components",
+          "p-arch-1":
+            "AReaL innovatively decomposes the system into four fully decoupled asynchronous components. Data flows between them as streams without any global synchronization barriers.",
+
+          "arch-diag-title": "AReaL System Data Flow",
+          "arch-n1-t": "Rollout Controller",
+          "arch-n1-d":
+            "The central hub connecting all components. Manages global data flow and triggers/broadcasts weight updates.",
+          "arch-n2-t": "Interruptible Rollout Workers",
+          "arch-n2-d":
+            "Generates responses. Can be interrupted mid-generation to discard old KV cache, reload new weights, re-prefill, and continue decoding.",
+          "arch-n3-t": "Trainer Workers",
+          "arch-n3-d":
+            "Fetches data continuously from the replay buffer to execute non-stop PPO gradient updates without waiting for data collection.",
+          "arch-n4-t": "Reward Service",
+          "arch-n4-d":
+            "Asynchronously executes environments or code tests to compute rewards, preventing generation/training blockages.",
+
+          "arch-step-1":
+            "Step 1: Rollout Controller dispatches prompts to Workers",
+          "arch-step-2": "Step 2: Rollout Workers generate tokens continuously",
+          "arch-step-3":
+            "Step 3: Mid-generation weight interruption! (KV discarded, re-prefill)",
+          "arch-step-4": "Step 4: Completed responses sent to Reward Service",
+          "arch-step-5": "Step 5: Reward computed asynchronously",
+          "arch-step-6": "Step 6: Data flows to Replay Buffer → Trainer",
+          "arch-step-7":
+            "Step 7: Trainer updates weights continuously, broadcasting back",
+
+          "h-adv": "The Async Advantage",
+          "l-adv":
+            "<li><b>Massive Performance Leap</b>: Achieves a <b>2.77×</b> training speedup compared to traditional synchronous systems while maintaining identical performance.</li><li><b>100% Hardware Utilization</b>: Eliminates sync waits. Both generation and training GPUs stay continuously busy.</li><li><b>Exceptional Scalability</b>: Maintains excellent linear scaling up to 512 GPUs.</li><li><b>No Batch Synchronization</b>: Completely removes the barrier of fixed batch-size synchronization.</li>",
+
+          "h-chal1": "Challenge 1: Data Staleness",
+          "p-chal1":
+            "In asynchronous training, the model version that generated a trajectory might be several versions behind the current training model. This is known as \"staleness\". AReaL introduces <b>Staleness-Aware Training</b> with a max permitted staleness threshold <span class='math'>η</span>. Data in the replay buffer older than <span class='math'>η</span> versions is discarded to ensure training stability.",
+
+          "h-chal2": "Challenge 2: Inconsistent Policy Versions",
+          "p-chal2-1":
+            "Because AReaL supports Interruptible Generation, a single trajectory may contain segments generated by DIFFERENT model versions. Standard PPO assumes one behavior policy per trajectory, which no longer holds. Solution: AReaL proposes a <b>Decoupled PPO Objective</b>:",
+          "p-chal2-2":
+            "In this objective, <span class='math'>π<sub>prox</sub></span> is the reference policy used for clipping (the latest synced weights), rather than the actual heterogeneous behavior policy <span class='math'>π<sub>behav</sub></span> that generated each token. This algorithmic innovation perfectly bridges the theoretical gap created by the async system.",
+
+          "ppo-step-1": "A trajectory is being generated by policy π_v1...",
+          "ppo-step-2":
+            "Weight update arrives! Generation interrupted, continues with π_v2",
+          "ppo-step-3": "Another weight update! Remaining tokens use π_v3",
+          "ppo-step-4": "Standard PPO assumes single policy (π_behav) ❌",
+          "ppo-step-5": "Decoupled PPO uses single reference policy (π_prox) ✓",
+
+          "h-ref": "Summary & References",
+          "l-ref":
+            "<li><b>Paper</b>: <a href='https://arxiv.org/abs/2505.24298' target='_blank'>arXiv:2505.24298</a> (NeurIPS 2025)</li><li><b>GitHub Repository</b>: <a href='https://github.com/inclusionAI/AReaL' target='_blank'>inclusionAI/AReaL</a></li><li><b>Further Reading</b>: Check out our technical blogs for more implementation details.</li>",
+        },
+      };
+
+      let currentLang = "zh";
+
+      function updateI18n() {
+        const texts = LABELS[currentLang];
+        for (const key in texts) {
+          const el = document.getElementById(key);
+          if (el) {
+            el.innerHTML = texts[key];
+          }
+        }
+        document.getElementById("lang-btn").textContent =
+          currentLang === "zh" ? "English" : "中文";
+        document.documentElement.lang = currentLang;
+      }
+
+      // Animations Setup
+      function setupAnimations() {
+        const svgPaths = document.getElementById("arch-paths");
+        const controller = document.getElementById("node-controller");
+        const rollout = document.getElementById("node-rollout");
+        const reward = document.getElementById("node-reward");
+        const trainer = document.getElementById("node-trainer");
+
+        if (svgPaths && controller && rollout && reward && trainer) {
+          const updatePaths = () => {
+            const cRect = controller.getBoundingClientRect();
+            const rRect = rollout.getBoundingClientRect();
+            const rwRect = reward.getBoundingClientRect();
+            const tRect = trainer.getBoundingClientRect();
+            const stageRect = document
+              .getElementById("arch-stage")
+              .getBoundingClientRect();
+
+            const getCenter = (rect) => ({
+              x: rect.left - stageRect.left + rect.width / 2,
+              y: rect.top - stageRect.top + rect.height / 2,
+            });
+
+            const c = getCenter(cRect);
+            const r = getCenter(rRect);
+            const rw = getCenter(rwRect);
+            const t = getCenter(tRect);
+
+            svgPaths.innerHTML = `
+            <line x1="${c.x}" y1="${c.y}" x2="${r.x}" y2="${r.y}" />
+            <line x1="${r.x}" y1="${r.y}" x2="${rw.x}" y2="${rw.y}" />
+            <line x1="${rw.x}" y1="${rw.y}" x2="${t.x}" y2="${t.y}" />
+            <line x1="${t.x}" y1="${t.y}" x2="${c.x}" y2="${c.y}" />
+          `;
+          };
+          updatePaths();
+          window.addEventListener("resize", updatePaths);
+        }
+      }
+
+      let archStep = 1;
+      function playArchAnimation() {
+        const textEl = document.getElementById("arch-step-text");
+        if (!textEl) return;
+
+        textEl.style.opacity = "0";
+        setTimeout(() => {
+          textEl.innerHTML = LABELS[currentLang][`arch-step-${archStep}`] || "";
+          textEl.style.opacity = "1";
+        }, 300);
+
+        // Visual effects
+        const rolloutProgress = document.getElementById("rollout-progress");
+        const stage = document.getElementById("arch-stage");
+        const rollout = document.getElementById("node-rollout");
+
+        if (archStep === 1) {
+          createPacket(
+            stage,
+            "node-controller",
+            "node-rollout",
+            "packet-purple",
+          );
+          if (rolloutProgress) rolloutProgress.style.width = "0%";
+        } else if (archStep === 2) {
+          if (rolloutProgress) rolloutProgress.style.width = "50%";
+        } else if (archStep === 3) {
+          createPacket(
+            stage,
+            "node-controller",
+            "node-rollout",
+            "packet-purple",
+          );
+          if (rollout) {
+            rollout.style.borderColor = "#ef4444";
+            setTimeout(() => (rollout.style.borderColor = "#93c5fd"), 800);
+          }
+          if (rolloutProgress) {
+            rolloutProgress.style.width = "10%";
+            setTimeout(() => (rolloutProgress.style.width = "100%"), 500);
+          }
+        } else if (archStep === 4) {
+          createPacket(stage, "node-rollout", "node-reward", "packet-blue");
+        } else if (archStep === 5) {
+          const reward = document.getElementById("node-reward");
+          if (reward) {
+            reward.style.transform = "scale(1.05)";
+            setTimeout(() => (reward.style.transform = "scale(1)"), 500);
+          }
+        } else if (archStep === 6) {
+          createPacket(stage, "node-reward", "node-trainer", "packet-green");
+        } else if (archStep === 7) {
+          createPacket(
+            stage,
+            "node-trainer",
+            "node-controller",
+            "packet-yellow",
+          );
+        }
+
+        archStep = archStep >= 7 ? 1 : archStep + 1;
+        setTimeout(playArchAnimation, 3500);
+      }
+
+      function createPacket(stage, fromId, toId, className) {
+        const from = document.getElementById(fromId);
+        const to = document.getElementById(toId);
+        if (!from || !to || !stage) return;
+
+        const sRect = stage.getBoundingClientRect();
+        const fRect = from.getBoundingClientRect();
+        const tRect = to.getBoundingClientRect();
+
+        const packet = document.createElement("div");
+        packet.className = `data-packet ${className}`;
+        stage.appendChild(packet);
+
+        const startX = fRect.left - sRect.left + fRect.width / 2;
+        const startY = fRect.top - sRect.top + fRect.height / 2;
+        const endX = tRect.left - sRect.left + tRect.width / 2;
+        const endY = tRect.top - sRect.top + tRect.height / 2;
+
+        packet.style.left = startX + "px";
+        packet.style.top = startY + "px";
+        packet.style.opacity = "1";
+
+        const duration = 1500;
+        const startTime = performance.now();
+
+        function animate(time) {
+          let t = (time - startTime) / duration;
+          if (t > 1) t = 1;
+
+          // simple ease in out
+          const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+          packet.style.left = startX + (endX - startX) * ease + "px";
+          packet.style.top = startY + (endY - startY) * ease + "px";
+
+          if (t < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            packet.style.opacity = "0";
+            setTimeout(() => packet.remove(), 300);
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+
+      let ppoStep = 1;
+      function playPpoAnimation() {
+        const textEl = document.getElementById("ppo-step-text");
+        if (!textEl) return;
+
+        textEl.style.opacity = "0";
+        setTimeout(() => {
+          textEl.innerHTML = LABELS[currentLang][`ppo-step-${ppoStep}`] || "";
+          textEl.style.opacity = "1";
+        }, 300);
+
+        const s1 = document.getElementById("seg-v1");
+        const s2 = document.getElementById("seg-v2");
+        const s3 = document.getElementById("seg-v3");
+        const l1 = document.getElementById("ppo-l1");
+        const l2 = document.getElementById("ppo-l2");
+        const l3 = document.getElementById("ppo-l3");
+        const light1 = document.getElementById("light-1");
+        const light2 = document.getElementById("light-2");
+        const formula = document.getElementById("ppo-formula-display");
+
+        if (ppoStep === 1) {
+          s1.style.width = "30%";
+          s1.textContent = "π_v1";
+          s2.style.width = "0%";
+          s2.textContent = "";
+          s3.style.width = "0%";
+          s3.textContent = "";
+          l1.style.opacity = "1";
+          l2.style.opacity = "0";
+          l3.style.opacity = "0";
+          light1.style.opacity = "0";
+          light2.style.opacity = "0";
+          formula.style.opacity = "0";
+        } else if (ppoStep === 2) {
+          light1.style.opacity = "1";
+          light1.style.left = "30%";
+          s2.style.width = "40%";
+          s2.textContent = "π_v2";
+          l2.style.opacity = "1";
+        } else if (ppoStep === 3) {
+          light2.style.opacity = "1";
+          light2.style.left = "70%";
+          s3.style.width = "30%";
+          s3.textContent = "π_v3";
+          l3.style.opacity = "1";
+        } else if (ppoStep === 4) {
+          formula.innerHTML = `ratio = π_θ / <span class="highlight-red">π_behav</span>`;
+          formula.style.opacity = "1";
+        } else if (ppoStep === 5) {
+          formula.innerHTML = `ratio = π_θ / <span class="highlight-green">π_prox</span>`;
+          s1.style.background = "#10b981";
+          s2.style.background = "#10b981";
+          s3.style.background = "#10b981";
+          s1.textContent = "";
+          s2.textContent = "π_prox";
+          s3.textContent = "";
+        }
+
+        if (ppoStep === 5) {
+          ppoStep = 1;
+          setTimeout(() => {
+            // reset colors
+            s1.style.background = "";
+            s2.style.background = "";
+            s3.style.background = "";
+            playPpoAnimation();
+          }, 4000);
+        } else {
+          ppoStep++;
+          setTimeout(playPpoAnimation, 3500);
+        }
+      }
+
+      // Initialize
+      document.getElementById("lang-btn").addEventListener("click", () => {
+        currentLang = currentLang === "zh" ? "en" : "zh";
+        updateI18n();
+        // Update active animation steps text immediately
+        const archText = document.getElementById("arch-step-text");
+        if (archText)
+          archText.innerHTML =
+            LABELS[currentLang][
+              `arch-step-${archStep === 1 ? 7 : archStep - 1}`
+            ];
+        const ppoText = document.getElementById("ppo-step-text");
+        if (ppoText)
+          ppoText.innerHTML =
+            LABELS[currentLang][`ppo-step-${ppoStep === 1 ? 5 : ppoStep - 1}`];
+      });
+      updateI18n();
+
+      setTimeout(() => {
+        setupAnimations();
+        playArchAnimation();
+        playPpoAnimation();
+      }, 500);
+    </script>
+  </body>
+</html>
