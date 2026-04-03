@@ -318,7 +318,99 @@
             <option value="50">50 Steps</option>
           </select>
         </div>
+
+      <h3 class="phase-heading" id="fm-cps-heading"></h3>
+      <p class="phase-desc" id="fm-cps-desc1"></p>
+      <p class="phase-desc" id="fm-cps-desc2"></p>
+      <p class="phase-desc" id="fm-cps-desc3"></p>
+      <div class="math-block">
+        $$\bm{x}_{t-\Delta t} = \underbrace{(1-(t-\Delta t))}_{\text{signal coeff}} \hat{\bm{x}}_0 + (t-\Delta t)\underbrace{\cos\!\left(\frac{\eta\pi}{2}\right)}_{\text{predicted noise}} \hat{\bm{x}}_1 + (t-\Delta t)\underbrace{\sin\!\left(\frac{\eta\pi}{2}\right)}_{\text{fresh noise}} \bm{\epsilon}$$
       </div>
+      <p class="phase-desc" id="fm-cps-desc4"></p>
+
+      <div class="stage-wrapper">
+        <div class="controls" style="justify-content: center; gap: 30px;">
+          <div class="slider-container">
+            <span id="fm-cps-t-label" style="min-width:40px;">t=1.0</span>
+            <input type="range" id="fm-cps-t-slider" class="slider" min="0" max="1" step="0.01" value="1.0">
+          </div>
+          <div class="slider-container">
+            <span style="min-width:40px;">η=</span><span id="fm-cps-eta-val1">0.70</span>
+            <input type="range" id="fm-cps-eta-slider-1" class="slider" min="0" max="1" step="0.01" value="0.70">
+          </div>
+        </div>
+        <canvas id="fm-canvas-cps-coeff"></canvas>
+        <div class="stage-footer">
+          <span class="step-badge" style="background:var(--accent);color:white;padding:2px 8px;border-radius:10px;font-size:0.8em;margin-right:8px;">1</span>
+          <span id="fm-cps-anim1-text"></span>
+        </div>
+      </div>
+
+      <div class="stage-wrapper">
+        <canvas id="fm-canvas-cps-traj"></canvas>
+        <div class="stage-footer">
+          <span class="step-badge" style="background:var(--accent);color:white;padding:2px 8px;border-radius:10px;font-size:0.8em;margin-right:8px;">2</span>
+          <span id="fm-cps-anim2-text"></span>
+        </div>
+      </div>
+
+      <div class="stage-wrapper">
+        <canvas id="fm-canvas-cps-noise"></canvas>
+        <div class="stage-footer">
+          <span class="step-badge" style="background:var(--accent);color:white;padding:2px 8px;border-radius:10px;font-size:0.8em;margin-right:8px;">3</span>
+          <span id="fm-cps-anim3-text"></span>
+        </div>
+      </div>
+
+      <div class="stage-wrapper">
+        <div class="controls" style="justify-content: center;">
+          <div class="slider-container" style="flex:none; width: 300px;">
+            <span style="min-width:40px; font-weight:bold;">η = </span><span id="fm-cps-eta-val4" style="min-width:30px; display:inline-block; font-weight:bold; color:var(--accent);">0.50</span>
+            <input type="range" id="fm-cps-eta-slider-4" class="slider" min="0" max="1" step="0.01" value="0.5">
+          </div>
+          <div class="status-text" id="fm-cps-eta-status" style="text-align: left; margin-left: 20px; font-size: 0.9em;"></div>
+        </div>
+        <canvas id="fm-canvas-cps-eta"></canvas>
+        <div class="stage-footer">
+          <span class="step-badge" style="background:var(--accent);color:white;padding:2px 8px;border-radius:10px;font-size:0.8em;margin-right:8px;">4</span>
+          <span id="fm-cps-anim4-text"></span>
+        </div>
+      </div>
+
+      <p class="phase-desc" id="fm-cps-desc5"></p>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th id="fm-cps-th-method">Method</th>
+            <th id="fm-cps-th-stoch">Stochasticity</th>
+            <th id="fm-cps-th-artifacts">Noise Artifacts</th>
+            <th id="fm-cps-th-matches">Matches Scheduler</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:bold;">ODE (Euler)</td>
+            <td id="fm-cps-td-1-2">None</td>
+            <td id="fm-cps-td-1-3" style="color:var(--accent); font-weight:bold;">None</td>
+            <td id="fm-cps-td-1-4" style="color:var(--accent); font-weight:bold;">Yes</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold;">Flow-SDE</td>
+            <td id="fm-cps-td-2-2">Uncontrolled</td>
+            <td id="fm-cps-td-2-3" style="color:#ef4444; font-weight:bold;">Severe</td>
+            <td id="fm-cps-td-2-4" style="color:#ef4444; font-weight:bold;">No (Excess)</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; color:var(--accent);">CPS</td>
+            <td id="fm-cps-td-3-2" style="color:var(--accent); font-weight:bold;">Controlled (η)</td>
+            <td id="fm-cps-td-3-3" style="color:var(--accent); font-weight:bold;">None</td>
+            <td id="fm-cps-td-3-4" style="color:var(--accent); font-weight:bold;">Yes (Exact)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="phase-desc" style="font-size:0.85em; color:#888;">
+        Reference: Wang & Yu, "Coefficients-Preserving Sampling for Reinforcement Learning with Flow Matching," arXiv:2509.05952, 2025.
+      </p>
 
       <h3 class="phase-heading" id="fm-sec6-heading"></h3>
       <p class="phase-desc" id="fm-sec6-desc1"></p>
@@ -1143,6 +1235,16 @@ const FM_LABELS = {
           sec5Desc1: "生成图像即是在解 ODE。最简单的做法是前向欧拉法 (Euler Method)：",
           anim3Text: "欧拉法采样步数对比",
 
+          cpsHeading: "5.1 系数保持采样 (CPS)",
+          cpsDesc1: "上述欧拉法是确定性的 (ODE)，但在强化学习微调 (如 GRPO) 等场景中，我们需要随机性来探索不同的生成结果。最自然的做法是将 ODE 转换为 SDE（随机微分方程），加入随机噪声。然而，Wang & Yu (2025) 发现了一个严重问题——",
+          cpsDesc2: "<strong>Flow-SDE 会注入超出调度器预期的噪声。</strong>在每一步中，SDE 公式实际上是对真正「系数保持」公式的一阶泰勒近似，导致 $\\sigma_{total} \\geq t - \\Delta t$，即总噪声始终偏高。这种多余的噪声在生成的图像中表现为可见的噪点伪影 (artifacts)，严重干扰了奖励模型的评估。",
+          cpsDesc3: "受 DDIM 启发，他们提出了 <strong>系数保持采样 (Coefficients-Preserving Sampling, CPS)</strong>。其核心思想是利用三角恒等式 $\\cos^2\\theta + \\sin^2\\theta = 1$ 来精确分配噪声预算：",
+          cpsDesc4: "其中 $\\eta \\in [0, 1]$ 控制随机性强度。当 $\\eta = 0$ 时退化为确定性 ODE；当 $\\eta = 1$ 时具有最大随机性——但噪声水平始终严格等于调度器的预期值 $t - \\Delta t$。",
+          cpsAnim1Text: "系数分解对比：ODE / SDE / CPS",
+          cpsAnim2Text: "轨迹对比：ODE vs SDE vs CPS",
+          cpsAnim3Text: "噪声预算：SDE 多余噪声 vs CPS 精确匹配",
+          cpsAnim4Text: "η 参数探索器",
+          cpsDesc5: "下表总结了三种采样策略的核心区别：",
           sec6Heading: "6. Rectified Flow (整流与路径拉直)",
           sec6Desc1: "即便使用 CFM 训练，由于不同数据对 $(x_0, x_1)$ 的直线在空间中可能发生交叉，模型学习到的全局向量场仍然会有些弯曲。",
           sec6Desc2: "Rectified Flow (整流) 提出了一种优雅的解决方案：使用训练好的模型生成一批 (噪声, 生成图) 的配对数据，然后用这些数据**重新训练** (Reflow)。这相当于拉直了原本交叉弯曲的路径，使得 1-step 生成成为可能。",
@@ -1184,6 +1286,16 @@ const FM_LABELS = {
           sec5Desc1: "Generating an image is solving the ODE. The simplest approach is the forward Euler Method:",
           anim3Text: "Euler Sampling Steps Comparison",
 
+          cpsHeading: "5.1 Coefficients-Preserving Sampling (CPS)",
+          cpsDesc1: "The Euler method above is deterministic (ODE), but for RL fine-tuning (e.g., GRPO) we need stochasticity to explore diverse generations. The natural approach converts the ODE to an SDE by injecting random noise. However, Wang & Yu (2025) discovered a serious flaw—",
+          cpsDesc2: "<strong>Flow-SDE injects more noise than the scheduler intends.</strong> At each step, the SDE formula is actually a first-order Taylor approximation of the true coefficients-preserving form, resulting in $\\sigma_{total} \\geq t - \\Delta t$. This excess noise manifests as visible artifacts in generated images, severely misleading reward models during training.",
+          cpsDesc3: "Inspired by DDIM, they propose <strong>Coefficients-Preserving Sampling (CPS)</strong>. The key insight uses the trigonometric identity $\\cos^2\\theta + \\sin^2\\theta = 1$ to precisely allocate the noise budget:",
+          cpsDesc4: "Where $\\eta \\in [0, 1]$ controls stochastic strength. At $\\eta = 0$ it reduces to the deterministic ODE; at $\\eta = 1$ it provides maximum stochasticity—yet the noise level remains strictly equal to the scheduler's intended value $t - \\Delta t$.",
+          cpsAnim1Text: "Coefficient Decomposition: ODE / SDE / CPS",
+          cpsAnim2Text: "Trajectory Comparison: ODE vs SDE vs CPS",
+          cpsAnim3Text: "Noise Budget: SDE Excess vs CPS Exact Match",
+          cpsAnim4Text: "η Parameter Explorer",
+          cpsDesc5: "The table below summarizes the key differences among the three sampling strategies:",
           sec6Heading: "6. Rectified Flow (Straightening Paths)",
           sec6Desc1: "Even with CFM, straight paths for different $(x_0, x_1)$ pairs can cross in high-dimensional space, forcing the learned global vector field to curve to resolve conflicts.",
           sec6Desc2: "Rectified Flow introduces an elegant fix: use the trained model to generate a batch of (noise, generated_image) pairs, then **retrain** on these pairs (Reflow). This systematically straightens the transport paths, enabling 1-step generation.",
@@ -1232,6 +1344,32 @@ const FM_LABELS = {
         document.getElementById('fm-sec5-desc1').innerHTML = d.sec5Desc1;
         document.getElementById('fm-anim3-text').innerHTML = d.anim3Text;
         
+        document.getElementById('fm-cps-heading').innerHTML = d.cpsHeading;
+        document.getElementById('fm-cps-desc1').innerHTML = d.cpsDesc1;
+        document.getElementById('fm-cps-desc2').innerHTML = d.cpsDesc2;
+        document.getElementById('fm-cps-desc3').innerHTML = d.cpsDesc3;
+        document.getElementById('fm-cps-desc4').innerHTML = d.cpsDesc4;
+        document.getElementById('fm-cps-anim1-text').innerHTML = d.cpsAnim1Text;
+        document.getElementById('fm-cps-anim2-text').innerHTML = d.cpsAnim2Text;
+        document.getElementById('fm-cps-anim3-text').innerHTML = d.cpsAnim3Text;
+        document.getElementById('fm-cps-anim4-text').innerHTML = d.cpsAnim4Text;
+        document.getElementById('fm-cps-desc5').innerHTML = d.cpsDesc5;
+
+        document.getElementById('fm-cps-th-method').innerHTML = currentLang === 'zh' ? '方法' : 'Method';
+        document.getElementById('fm-cps-th-stoch').innerHTML = currentLang === 'zh' ? '随机性' : 'Stochasticity';
+        document.getElementById('fm-cps-th-artifacts').innerHTML = currentLang === 'zh' ? '噪点伪影' : 'Noise Artifacts';
+        document.getElementById('fm-cps-th-matches').innerHTML = currentLang === 'zh' ? '精确匹配调度器' : 'Matches Scheduler';
+
+        document.getElementById('fm-cps-td-1-2').innerHTML = currentLang === 'zh' ? '无' : 'None';
+        document.getElementById('fm-cps-td-1-3').innerHTML = currentLang === 'zh' ? '无' : 'None';
+        document.getElementById('fm-cps-td-1-4').innerHTML = currentLang === 'zh' ? '是' : 'Yes';
+        document.getElementById('fm-cps-td-2-2').innerHTML = currentLang === 'zh' ? '不可控' : 'Uncontrolled';
+        document.getElementById('fm-cps-td-2-3').innerHTML = currentLang === 'zh' ? '严重' : 'Severe';
+        document.getElementById('fm-cps-td-2-4').innerHTML = currentLang === 'zh' ? '否 (有超额噪声)' : 'No (Excess)';
+        document.getElementById('fm-cps-td-3-2').innerHTML = currentLang === 'zh' ? '可控 (η)' : 'Controlled (η)';
+        document.getElementById('fm-cps-td-3-3').innerHTML = currentLang === 'zh' ? '无' : 'None';
+        document.getElementById('fm-cps-td-3-4').innerHTML = currentLang === 'zh' ? '是 (精确匹配)' : 'Yes (Exact)';
+
         document.getElementById('fm-sec6-heading').innerHTML = d.sec6Heading;
         document.getElementById('fm-sec6-desc1').innerHTML = d.sec6Desc1;
         document.getElementById('fm-sec6-desc2').innerHTML = d.sec6Desc2;
@@ -1670,17 +1808,348 @@ const FM_LABELS = {
         
         requestAnimationFrame(loop4);
       }
+      // CPS Animation 1: Coefficient Decomposition Bar Chart
+      const c_cps1 = document.getElementById('fm-canvas-cps-coeff');
+      const s1_t = document.getElementById('fm-cps-t-slider');
+      const s1_eta = document.getElementById('fm-cps-eta-slider-1');
+      let cps1_t = 1.0;
+      function initCanvasCPS1() { resizeCanvas(c_cps1); }
+      function loopCPS1() {
+        const { w, h, ctx } = resizeCanvas(c_cps1);
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        if (document.activeElement !== s1_t) {
+            cps1_t -= 0.003;
+            if (cps1_t < 0) cps1_t = 1.0;
+            s1_t.value = cps1_t;
+        } else {
+            cps1_t = parseFloat(s1_t.value);
+        }
+        document.getElementById('fm-cps-t-label').innerText = `t=${cps1_t.toFixed(2)}`;
+        let eta = parseFloat(s1_eta.value);
+        document.getElementById('fm-cps-eta-val1').innerText = eta.toFixed(2);
+        
+        const barW = Math.min(100, w / 5);
+        const gap = (w - barW * 3) / 4;
+        const baseY = h - 60;
+        const maxH = h - 100;
+        
+        const sig = 1 - cps1_t;
+        const pred_ode = cps1_t;
+        const fresh_ode = 0;
+        
+        const pred_sde = cps1_t;
+        const fresh_sde = cps1_t * 0.4 * eta; // Simulated excess
+        
+        const pred_cps = cps1_t * Math.cos(eta * Math.PI / 2);
+        const fresh_cps = cps1_t * Math.sin(eta * Math.PI / 2);
+        
+        function drawBar(x, label, sigV, predV, freshV, showExcess) {
+            let y = baseY;
+            
+            let hSig = sigV * maxH;
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(x, y - hSig, barW, hSig);
+            if (hSig > 15) { ctx.fillStyle='white'; ctx.textAlign='center'; ctx.font='12px var(--font-sans)'; ctx.fillText('Signal', x+barW/2, y - hSig/2 + 4); }
+            y -= hSig;
+            
+            let hPred = predV * maxH;
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(x, y - hPred, barW, hPred);
+            if (hPred > 15) { ctx.fillStyle='white'; ctx.fillText('Pred Noise', x+barW/2, y - hPred/2 + 4); }
+            y -= hPred;
+            
+            let hFresh = freshV * maxH;
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(x, y - hFresh, barW, hFresh);
+            if (hFresh > 15) { ctx.fillStyle='white'; ctx.fillText('Fresh Noise', x+barW/2, y - hFresh/2 + 4); }
+            y -= hFresh;
+            
+            if (showExcess && (sigV + predV + freshV) > 1) {
+                let excess = (sigV + predV + freshV) - 1;
+                let hExc = excess * maxH;
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+                ctx.fillRect(x - 5, y, barW + 10, hExc);
+                ctx.fillStyle = '#ef4444';
+                ctx.font = 'bold 12px var(--font-sans)';
+                ctx.fillText('Excess!', x + barW/2, y - 5);
+            }
+            
+            ctx.fillStyle = 'var(--text-color, #1a1a2e)';
+            ctx.font = 'bold 16px var(--font-sans)';
+            ctx.fillText(label, x + barW/2, baseY + 25);
+        }
+        
+        drawBar(gap, 'ODE', sig, pred_ode, fresh_ode, false);
+        drawBar(gap*2 + barW, 'SDE', sig, pred_sde, fresh_sde, true);
+        drawBar(gap*3 + barW*2, 'CPS', sig, pred_cps, fresh_cps, false);
+        
+        requestAnimationFrame(loopCPS1);
+      }
+
+      // CPS Animation 2: Trajectories
+      const c_cps2 = document.getElementById('fm-canvas-cps-traj');
+      let cps2_particles = [];
+      let cps2_t = 0;
+      function initCanvasCPS2() {
+        cps2_particles = [];
+        for(let i=0; i<15; i++) {
+            cps2_particles.push({
+                x0: Math.random() * 60 - 30,
+                x1: Math.random() * 60 - 30,
+                noise1: Array.from({length: 100}, () => Math.random() - 0.5),
+                noise2: Array.from({length: 100}, () => Math.random() - 0.5)
+            });
+        }
+      }
+      function loopCPS2() {
+        const { w, h, ctx } = resizeCanvas(c_cps2);
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        cps2_t += 0.005;
+        if(cps2_t > 1.2) cps2_t = 0;
+        let t = Math.max(0, Math.min(1, cps2_t));
+        
+        const colW = w / 3;
+        const startY = 40;
+        const endY = h - 40;
+        
+        function drawTraj(col, label, isSDE, isCPS) {
+            let cx = col * colW + colW/2;
+            
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 16px var(--font-sans)';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, cx, 20);
+            
+            cps2_particles.forEach(p => {
+                let px = cx + p.x0 * (1-t) + p.x1 * t;
+                let py = startY + (endY - startY) * t;
+                
+                if (t > 0 && t < 1) {
+                    let noiseIdx = Math.floor(t * 99);
+                    if (isSDE) {
+                        px += p.noise1[noiseIdx] * 40 * t; 
+                    } else if (isCPS) {
+                        px += p.noise2[noiseIdx] * 25 * Math.sin(Math.PI * t);
+                    }
+                }
+                
+                ctx.fillStyle = isSDE ? 'rgba(239, 68, 68, 0.8)' : (isCPS ? 'rgba(16, 185, 129, 0.8)' : 'rgba(59, 130, 246, 0.8)');
+                ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI*2); ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(cx + p.x0, startY);
+                for(let i=1; i<=Math.floor(t*100); i++) {
+                    let ti = i/100;
+                    let tx = cx + p.x0 * (1-ti) + p.x1 * ti;
+                    let ty = startY + (endY - startY) * ti;
+                    if (isSDE) tx += p.noise1[i<100?i:99] * 40 * ti;
+                    else if (isCPS) tx += p.noise2[i<100?i:99] * 25 * Math.sin(Math.PI * ti);
+                    ctx.lineTo(tx, ty);
+                }
+                ctx.strokeStyle = isSDE ? 'rgba(239, 68, 68, 0.2)' : (isCPS ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)');
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+            
+            ctx.fillStyle = '#10b981';
+            cps2_particles.forEach(p => {
+                ctx.beginPath(); ctx.arc(cx + p.x1, endY, 4, 0, Math.PI*2); ctx.fill();
+            });
+        }
+        
+        drawTraj(0, 'ODE (η=0)', false, false);
+        drawTraj(1, 'SDE', true, false);
+        drawTraj(2, 'CPS (η=0.7)', false, true);
+        
+        requestAnimationFrame(loopCPS2);
+      }
+
+      // CPS Animation 3: Noise Budget
+      const c_cps3 = document.getElementById('fm-canvas-cps-noise');
+      let cps3_t = 0;
+      function initCanvasCPS3() { cps3_t = 0; }
+      function loopCPS3() {
+        const { w, h, ctx } = resizeCanvas(c_cps3);
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        cps3_t += 0.005;
+        if(cps3_t > 1.2) cps3_t = 0;
+        let t_prog = Math.max(0, Math.min(1, cps3_t));
+        
+        const pad = 40;
+        const plotW = w - pad * 2;
+        const plotH = h - pad * 2;
+        
+        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); ctx.lineTo(w-pad, h-pad);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#1a1a2e';
+        ctx.font = '12px var(--font-sans)';
+        ctx.textAlign = 'center';
+        ctx.fillText('t=1 (Data)', pad, h-pad + 15);
+        ctx.fillText('t=0 (Noise)', w-pad, h-pad + 15);
+        ctx.save();
+        ctx.translate(pad - 15, h/2);
+        ctx.rotate(-Math.PI/2);
+        ctx.fillText('Noise Level', 0, 0);
+        ctx.restore();
+        
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(pad, h-pad);
+        ctx.lineTo(w-pad, pad);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        let currentX = pad + t_prog * plotW;
+        
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(pad, h-pad);
+        for(let i=0; i<=t_prog * 100; i++) {
+            let ti = i/100;
+            let noise = Math.sqrt(ti*ti + 0.3*ti); 
+            ctx.lineTo(pad + ti * plotW, h-pad - noise * plotH);
+        }
+        ctx.stroke();
+        
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(pad, h-pad);
+        ctx.lineTo(currentX, h-pad - t_prog * plotH);
+        ctx.stroke();
+        
+        if (t_prog > 0) {
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(pad, h-pad);
+            for(let i=0; i<=t_prog * 100; i++) {
+                let ti = i/100;
+                let noise = Math.sqrt(ti*ti + 0.3*ti); 
+                ctx.lineTo(pad + ti * plotW, h-pad - noise * plotH);
+            }
+            for(let i=Math.floor(t_prog * 100); i>=0; i--) {
+                let ti = i/100;
+                ctx.lineTo(pad + ti * plotW, h-pad - ti * plotH);
+            }
+            ctx.fill();
+        }
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 14px var(--font-sans)';
+        ctx.fillText('SDE: Excess Noise', pad + 20, pad + 20);
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillText('CPS: Exact Match', pad + 20, pad + 40);
+        
+        requestAnimationFrame(loopCPS3);
+      }
+
+      // CPS Animation 4: Eta Explorer
+      const c_cps4 = document.getElementById('fm-canvas-cps-eta');
+      const s4_eta = document.getElementById('fm-cps-eta-slider-4');
+      const s4_val = document.getElementById('fm-cps-eta-val4');
+      const s4_status = document.getElementById('fm-cps-eta-status');
+      let cps4_particles = [];
+      let cps4_t = 0;
+      function initCanvasCPS4() {
+        cps4_particles = [];
+        for(let i=0; i<40; i++) {
+            cps4_particles.push({
+                x0: Math.random() * 200 - 100,
+                y0: Math.random() * 200 - 100,
+                x1: Math.cos(i/40 * Math.PI * 2) * 80,
+                y1: Math.sin(i/40 * Math.PI * 2) * 80,
+                noise: Array.from({length: 100}, () => ({x: Math.random()-0.5, y: Math.random()-0.5}))
+            });
+        }
+      }
+      function loopCPS4() {
+        const { w, h, ctx } = resizeCanvas(c_cps4);
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        cps4_t += 0.005;
+        if(cps4_t > 1.2) cps4_t = 0;
+        let t = Math.max(0, Math.min(1, cps4_t));
+        
+        let eta = parseFloat(s4_eta.value);
+        s4_val.innerText = eta.toFixed(2);
+        
+        if (eta === 0) s4_status.innerText = currentLang === 'zh' ? "多样性: 低 (ODE) | 噪点伪影: 无" : "Diversity: Low (ODE) | Artifacts: None";
+        else if (eta < 0.5) s4_status.innerText = currentLang === 'zh' ? "多样性: 中等 | 噪点伪影: 无" : "Diversity: Medium | Artifacts: None";
+        else s4_status.innerText = currentLang === 'zh' ? "多样性: 高 | 噪点伪影: 无" : "Diversity: High | Artifacts: None";
+        
+        let cx = w/2, cy = h/2;
+        
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(cx, cy, 80, 0, Math.PI*2); ctx.stroke();
+        
+        cps4_particles.forEach((p, idx) => {
+            let px = cx + p.x0 * (1-t) + p.x1 * t;
+            let py = cy + p.y0 * (1-t) + p.y1 * t;
+            
+            if (t > 0 && t < 1) {
+                let noiseIdx = Math.floor(t * 99);
+                let stochasticity = 60 * eta * Math.sin(Math.PI * t);
+                px += p.noise[noiseIdx].x * stochasticity;
+                py += p.noise[noiseIdx].y * stochasticity;
+            }
+            
+            ctx.beginPath();
+            ctx.moveTo(cx + p.x0, cy + p.y0);
+            for(let i=1; i<=Math.floor(t*100); i++) {
+                let ti = i/100;
+                let tx = cx + p.x0 * (1-ti) + p.x1 * ti;
+                let ty = cy + p.y0 * (1-ti) + p.y1 * ti;
+                let stoc = 60 * eta * Math.sin(Math.PI * ti);
+                tx += p.noise[i<100?i:99].x * stoc;
+                ty += p.noise[i<100?i:99].y * stoc;
+                ctx.lineTo(tx, ty);
+            }
+            ctx.strokeStyle = `hsla(${200 - eta*100}, 70%, 60%, 0.3)`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            
+            ctx.fillStyle = `hsl(${200 - eta*100}, 80%, 50%)`;
+            ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI*2); ctx.fill();
+        });
+        
+        requestAnimationFrame(loopCPS4);
+      }
+
       document.addEventListener('DOMContentLoaded', () => {
         initCanvas1(); loop1();
         initCanvas2(); loop2();
         initCanvas3(); loop3();
         initCanvas4(); loop4();
+        initCanvasCPS1(); loopCPS1();
+        initCanvasCPS2(); loopCPS2();
+        initCanvasCPS3(); loopCPS3();
+        initCanvasCPS4(); loopCPS4();
       });
       
       window.addEventListener('resize', () => {
         initCanvas1();
         initCanvas2();
         initCanvas4();
+        initCanvasCPS1();
+        initCanvasCPS2();
+        initCanvasCPS3();
+        initCanvasCPS4();
       });
     
 window.setLangFM = setLangFM;

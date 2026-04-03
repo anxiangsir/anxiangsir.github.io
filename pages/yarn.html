@@ -739,99 +739,6 @@
         overflow-x: auto;
         line-height: 1.6;
       }
-      /* 1. Box Shadows & Card Elevation */
-      .tldr-box { box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08); }
-      .intuition-box { box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1); }
-      .formula-breakdown { box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-      .code-walkthrough { box-shadow: 0 1px 4px rgba(16, 185, 129, 0.08); }
-      .playground-wrapper { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-      .table-scroll-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      }
-      .config-block { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-
-      /* 2. Scroll-Reveal Fade-In Animations */
-      .reveal {
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.6s ease, transform 0.6s ease;
-      }
-      .reveal.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      /* 4. Comparison Table Row Hover */
-      .comparison-table tbody tr {
-        transition: background-color 0.2s ease;
-      }
-      .comparison-table tbody tr:hover {
-        background-color: rgba(37, 99, 235, 0.06);
-      }
-
-      /* 5. Code Block Copy Button */
-      .code-block-wrapper {
-        position: relative;
-      }
-      .copy-btn {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: rgba(255,255,255,0.1);
-        color: #a6adc8;
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 4px;
-        padding: 4px 10px;
-        font-size: 0.75rem;
-        font-family: var(--font-sans);
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.2s, background 0.2s;
-        z-index: 5;
-      }
-      .code-block-wrapper:hover .copy-btn {
-        opacity: 1;
-      }
-      .copy-btn:hover {
-        background: rgba(255,255,255,0.2);
-      }
-      .copy-btn.copied {
-        color: #a6e3a1;
-        border-color: #a6e3a1;
-      }
-
-      /* 6. Formula Breakdown Transitions */
-      .formula-breakdown[open] summary {
-        border-bottom: 1px solid var(--border);
-      }
-      .formula-breakdown summary::marker {
-        color: var(--accent);
-      }
-      .formula-breakdown summary:hover {
-        background: rgba(37, 99, 235, 0.04);
-      }
-
-      /* 7. Smooth Scroll Behavior */
-      html { scroll-behavior: smooth; }
-
-      /* 8. Masthead Enhancement */
-      .masthead {
-        background: linear-gradient(135deg, rgba(37,99,235,0.03), rgba(37,99,235,0.01), transparent);
-        padding: 2rem 1rem 1.5rem;
-      }
-      .masthead-sub {
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-      }
-
-      /* 9. Slider Track Styling Enhancement */
-      input[type="range"] {
-        background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--val, 50%), var(--border) var(--val, 50%), var(--border) 100%);
-      }
 
       @media (max-width: 768px) {
         body {
@@ -867,15 +774,14 @@
           font-size: 1rem;
         }
         input[type="range"]::-webkit-slider-thumb {
-          width: 36px;
-          height: 36px;
-          margin-top: -14px;
+          width: 32px;
+          height: 32px;
+          margin-top: -12px;
         }
         input[type="range"]::-moz-range-thumb {
-          width: 36px;
-          height: 36px;
+          width: 32px;
+          height: 32px;
         }
-        .playground-wrapper { padding: 1rem; }
         .toc-sticky {
           display: none;
         }
@@ -904,11 +810,6 @@
         .article {
           padding: 0 0.5rem 1.5rem;
         }
-        .playground-wrapper { padding: 0.75rem; }
-        .playground-svg { height: 200px; }
-        .zone-display { font-size: 0.78rem; }
-        .comparison-table { font-size: 0.75rem; }
-        .comparison-table th, .comparison-table td { padding: 0.4rem 0.5rem; }
         .stage-wrapper {
           height: 280px;
         }
@@ -1516,7 +1417,6 @@
 
       <p class="phase-desc" id="sec7-desc">Below is a side-by-side comparison of the three main context extension methods, followed by real-world configurations:</p>
 
-      <div class="table-scroll-wrapper">
       <table class="comparison-table" id="comparison-table">
         <thead>
           <tr>
@@ -1536,7 +1436,6 @@
           <tr><td id="ct-r7c0">Perplexity at 128k</td><td id="ct-r7c1">High (degraded)</td><td id="ct-r7c2">Medium</td><td id="ct-r7c3">Low (best)</td></tr>
         </tbody>
       </table>
-      </div>
 
       <h4 class="phase-heading" style="border-top: none; padding-top: 0.5rem; font-size: 1.2rem;" id="sec7-config-heading">Real-World Configurations</h4>
       <p class="phase-desc" id="sec7-config-desc">Here's how YaRN is configured in popular models:</p>
@@ -2253,31 +2152,10 @@ model <span class="op">=</span> AutoModelForCausalLM.from_pretrained(
                 yarnPath += `${prefix}${x},${yarnY} `;
               }
 
-              let gridLines = '';
-              for (let i = 0.2; i <= 1.0; i += 0.2) {
-                const y = h - pad - i * (h - pad * 2);
-                gridLines += `<line x1="${pad}" y1="${y}" x2="${w-pad}" y2="${y}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4" opacity="0.3"/>`;
-                if (i === 0.5 || i === 1.0) {
-                  gridLines += `<text x="${pad-5}" y="${y+4}" text-anchor="end" font-size="10" fill="var(--text-secondary)">${i.toFixed(1)}</text>`;
-                }
-              }
-              gridLines += `<text x="${pad-5}" y="${h-pad+4}" text-anchor="end" font-size="10" fill="var(--text-secondary)">0</text>`;
-
-              const yarnFillPath = yarnPath + ` L ${w - pad},${h - pad} L ${pad},${h - pad} Z`;
-
-              svg.innerHTML = `
-                <defs>
-                  <linearGradient id="yarn-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="var(--color-inter)" stop-opacity="0.2" />
-                    <stop offset="100%" stop-color="var(--color-inter)" stop-opacity="0.0" />
-                  </linearGradient>
-                </defs>
-                ${gridLines}
-                <line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="var(--border)" stroke-width="1"/>
+              svg.innerHTML = `<line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="var(--border)" stroke-width="1"/>
                 <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h - pad}" stroke="var(--border)" stroke-width="1"/>
                 <text x="${w / 2}" y="${h - 5}" text-anchor="middle" font-size="11" fill="var(--text-secondary)" font-family="var(--font-sans)">Dimension d →</text>
                 <text x="10" y="${h / 2}" text-anchor="middle" font-size="11" fill="var(--text-secondary)" font-family="var(--font-sans)" transform="rotate(-90,10,${h / 2})">θ_new / θ_orig</text>
-                <path d="${yarnFillPath}" fill="url(#yarn-grad)" />
                 <path d="${piPath}" fill="none" stroke="var(--color-keep)" stroke-width="2.5" stroke-dasharray="6,3"/>
                 <path d="${ntkPath}" fill="none" stroke="var(--color-trans)" stroke-width="2.5" stroke-dasharray="2,2"/>
                 <path d="${yarnPath}" fill="none" stroke="var(--color-inter)" stroke-width="3"/>`;
@@ -2617,67 +2495,6 @@ model <span class="op">=</span> AutoModelForCausalLM.from_pretrained(
               updateActiveTOC();
               animationLoop();
             }, 100);
-
-            // --- UI Enhancements & Micro-interactions ---
-
-            // Scroll reveal
-            const revealObserver = new IntersectionObserver((entries) => {
-              entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                  entry.target.classList.add('visible');
-                }
-              });
-            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
-            document.querySelectorAll('.phase-heading, .intuition-box, .tldr-box, .math-block, .code-block-wrapper, .formula-breakdown, .code-walkthrough, .table-scroll-wrapper, .playground-wrapper, .config-block').forEach(el => {
-              el.classList.add('reveal');
-              revealObserver.observe(el);
-            });
-
-            // Code block copy button and wrapper
-            document.querySelectorAll('pre.code-block').forEach(pre => {
-              const wrapper = document.createElement('div');
-              wrapper.className = 'code-block-wrapper reveal';
-              pre.parentNode.insertBefore(wrapper, pre);
-              
-              const btn = document.createElement('button');
-              btn.className = 'copy-btn';
-              btn.textContent = 'Copy';
-              
-              wrapper.appendChild(btn);
-              wrapper.appendChild(pre);
-
-              // Reveal observing for the new wrapper
-              revealObserver.observe(wrapper);
-              pre.classList.remove('reveal');
-              revealObserver.unobserve(pre);
-
-              btn.addEventListener('click', () => {
-                const code = pre.textContent;
-                navigator.clipboard.writeText(code).then(() => {
-                  btn.textContent = '✓ Copied';
-                  btn.classList.add('copied');
-                  setTimeout(() => {
-                    btn.textContent = 'Copy';
-                    btn.classList.remove('copied');
-                  }, 2000);
-                });
-              });
-            });
-
-            // Auto-open first formula breakdown
-            const firstFB = document.querySelector('.formula-breakdown');
-            if (firstFB) firstFB.setAttribute('open', '');
-
-            // Slider track styling
-            function updateSliderTrack(slider) {
-              const val = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
-              slider.style.setProperty('--val', val + '%');
-            }
-            document.querySelectorAll('input[type="range"]').forEach(s => {
-              updateSliderTrack(s);
-              s.addEventListener('input', () => updateSliderTrack(s));
-            });
     </script>
   </body>
 </html>
