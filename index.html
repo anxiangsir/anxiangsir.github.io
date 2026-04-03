@@ -533,6 +533,87 @@
       transition: opacity 0.2s ease;
       white-space: nowrap;
     }
+    /* === CITATION MAP === */
+    .citation-map-container {
+      width: 100%;
+      border: 1px solid var(--color-border-light, #d8d8d8);
+      background: var(--color-surface);
+      border-radius: 4px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    .citation-map-container svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .citation-map-container svg path {
+      transition: fill 0.3s ease;
+      outline: none;
+    }
+    .citation-map-container svg path:hover {
+      stroke: var(--color-text);
+      stroke-width: 0.5px;
+      cursor: pointer;
+    }
+    .citation-bubble {
+      fill: rgba(224, 112, 32, 0.55);
+      stroke: rgba(179, 90, 26, 0.7);
+      stroke-width: 0.5;
+      cursor: pointer;
+      transition: fill-opacity 0.2s ease, r 0.2s ease;
+    }
+    .citation-bubble:hover {
+      fill: rgba(224, 112, 32, 0.85);
+      stroke: rgba(179, 90, 26, 1);
+      stroke-width: 1;
+    }
+    .citation-map-tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: var(--color-surface, #fff);
+      border: 1px solid var(--color-border, #a2a9b1);
+      border-radius: 4px;
+      padding: 8px 14px;
+      font-size: 0.85em;
+      color: var(--color-text, #202122);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      max-width: 320px;
+    }
+    .citation-map-tooltip .tooltip-country {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .citation-map-tooltip .tooltip-inst {
+      font-size: 0.9em;
+      color: var(--color-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .citation-map-legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 0.82em;
+      color: var(--color-muted);
+      flex-wrap: wrap;
+    }
+    .citation-map-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .citation-map-legend-swatch {
+      width: 14px;
+      height: 14px;
+      border: 1px solid var(--color-border-soft);
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
@@ -569,6 +650,8 @@
           </ol>
         </li>
         <li><a href="#external-links">External Links</a></li>
+        <li><a href="#visitor-map">Visitor Map</a></li>
+        <li><a href="#citation-map">Citation Map</a></li>
       </ol>
     </aside>
 
@@ -806,12 +889,18 @@
     </aside>
   </div>
 
-  <div class="wiki-wrapper" style="margin-top: 16px;">
-    <main class="wiki-content" style="max-width: 100%; padding-bottom: 24px;">
+  <div style="max-width: 960px; margin: 16px auto 0; padding: 0 20px;">
       <h2 id="visitor-map">Visitor Map <a class="section-anchor" href="#visitor-map">§</a></h2>
       <div id="visitor-stats" style="margin-bottom: 12px; font-weight: bold; color: var(--color-text);">Loading visitor data...</div>
       <div id="visitor-map-container" class="visitor-map-container"></div>
-    </main>
+  </div>
+
+  <div style="max-width: 960px; margin: 16px auto 0; padding: 0 20px;">
+      <h2 id="citation-map">Citation Map <a class="section-anchor" href="#citation-map">§</a></h2>
+      <p class="hatnote">City-level citing-author locations generated offline from <a href="https://www.semanticscholar.org/author/Xiang-An/2054941340" target="_blank">Semantic Scholar</a> + <a href="https://openalex.org/" target="_blank">OpenAlex</a>.</p>
+      <div id="citation-stats" style="margin-bottom: 12px; font-weight: bold; color: var(--color-text);">Loading citation data...</div>
+      <div id="citation-map-container" class="citation-map-container"></div>
+      <div id="citation-map-legend" class="citation-map-legend"></div>
   </div>
 
   <footer class="wiki-footer">
@@ -976,6 +1065,194 @@
       });
     })();
     // end of map script
+  </script>
+
+  <!-- Citation Map Integration -->
+  <script>
+    (function() {
+      var citMapContainer = document.getElementById('citation-map-container');
+      var citStatsContainer = document.getElementById('citation-stats');
+      var citLegendContainer = document.getElementById('citation-map-legend');
+
+      var citTooltip = document.createElement('div');
+      citTooltip.className = 'citation-map-tooltip';
+      document.body.appendChild(citTooltip);
+
+      // Color scale: warm orange for citations
+      function getCitColor(count) {
+        if (!count || count === 0) return '#e0e0e0';
+        if (count <= 2) return '#fde8d0';
+        if (count <= 5) return '#f5c495';
+        if (count <= 15) return '#e8a065';
+        if (count <= 30) return '#d07830';
+        return '#b35a1a';
+      }
+
+      var legendSteps = [
+        { label: '0', color: '#e0e0e0' },
+        { label: '1\u20132', color: '#fde8d0' },
+        { label: '3\u20135', color: '#f5c495' },
+        { label: '6\u201315', color: '#e8a065' },
+        { label: '16\u201330', color: '#d07830' },
+        { label: '30+', color: '#b35a1a' },
+      ];
+
+      function renderLegend() {
+        citLegendContainer.innerHTML = '<span>Citing authors:</span>' +
+          legendSteps.map(function(s) {
+            return '<span class="citation-map-legend-item">' +
+            '<span class="citation-map-legend-swatch" style="background:' + s.color + '"></span>' +
+            s.label + '</span>';
+          }).join('') +
+          '<span class="citation-map-legend-item" style="margin-left:8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(224,112,32,0.6);border:1px solid rgba(179,90,26,0.7);"></span>Cities</span>';
+      }
+
+      function showMarkerTooltip(marker) {
+        var html = '<div class="tooltip-country">' + marker.country + ' (' + marker.cc + '): ' + marker.count + ' citing author' + (marker.count > 1 ? 's' : '') + '</div>';
+        if (marker.institutions && marker.institutions.length > 0) {
+          marker.institutions.slice(0, 5).forEach(function(inst) {
+            html += '<div class="tooltip-inst">' + inst.name + ' (' + inst.count + ')</div>';
+          });
+          if (marker.institutions.length > 5) {
+            html += '<div class="tooltip-inst">... and ' + (marker.institutions.length - 5) + ' more</div>';
+          }
+        }
+        citTooltip.innerHTML = html;
+        citTooltip.style.opacity = '1';
+      }
+
+      function showCountryTooltip(info) {
+        var html = '<div class="tooltip-country">' + info.name + ': ' + info.count + ' citing author' + (info.count > 1 ? 's' : '') + '</div>';
+        citTooltip.innerHTML = html;
+        citTooltip.style.opacity = '1';
+      }
+
+      // Miller cylindrical projection: lat/lng -> SVG coordinates
+      // Calibrated from 21 small-country reference points against world-map.min.svg
+      function latLngToSvg(lat, lng) {
+        var x = 2.4359 * lng + 403.95;
+        var latRad = lat * Math.PI / 180;
+        var millerY = 1.25 * Math.log(Math.tan(Math.PI / 4 + 0.4 * latRad));
+        var y = -142.3090 * millerY + 530.16;
+        return { x: x, y: y };
+      }
+
+      async function initCitationMap() {
+        try {
+          // Load SVG (reuse the same world map)
+          var svgResponse = await fetch('/assets/img/world-map.min.svg');
+          if (!svgResponse.ok) throw new Error('Failed to load map SVG');
+          var svgText = await svgResponse.text();
+          citMapContainer.innerHTML = svgText;
+
+          var svgEl = citMapContainer.querySelector('svg');
+          if (svgEl) {
+            svgEl.setAttribute('viewBox', '30.767 241.591 784.077 458.627');
+            var allPaths = svgEl.querySelectorAll('path');
+            for (var i = 0; i < allPaths.length; i++) {
+              allPaths[i].style.fill = '#e0e0e0';
+            }
+          }
+
+          // Load citation data from static JSON
+          var dataResponse = await fetch('/data/citation_data.json');
+          if (!dataResponse.ok) throw new Error('Failed to load citation data');
+          var citData = await dataResponse.json();
+
+          if (!citData.total_citations || citData.total_citations === 0) {
+            citStatsContainer.textContent = 'Citation data not yet generated. Run scripts/generate_citation_data.py locally.';
+            renderLegend();
+            return;
+          }
+
+          citStatsContainer.textContent = citData.total_citations.toLocaleString() + ' citing authors from ' + citData.total_countries + ' countries, ' + citData.total_institutions + ' institutions';
+
+          // Step 1: Light country coloring as background context
+          var countries = citData.countries || {};
+          for (var code in countries) {
+            if (!countries.hasOwnProperty(code)) continue;
+            var info = countries[code];
+            var el = citMapContainer.querySelector('#' + code.toLowerCase());
+            if (!el) el = citMapContainer.querySelector('#' + code.toUpperCase());
+            if (el) {
+              var paths = el.tagName.toLowerCase() === 'path' ? [el] : Array.from(el.querySelectorAll('path'));
+              var bgColor = getCitColor(info.count);
+              for (var j = 0; j < paths.length; j++) {
+                paths[j].style.fill = bgColor;
+                paths[j].style.opacity = '0.6';
+                (function(pathEl, countryInfo) {
+                  pathEl.addEventListener('mouseenter', function() { showCountryTooltip(countryInfo); });
+                  pathEl.addEventListener('mousemove', function(e) {
+                    citTooltip.style.left = (e.clientX + 10) + 'px';
+                    citTooltip.style.top = (e.clientY + 10) + 'px';
+                  });
+                  pathEl.addEventListener('mouseleave', function() { citTooltip.style.opacity = '0'; });
+                })(paths[j], info);
+              }
+            }
+          }
+
+          // Step 2: City-level bubble overlay
+          var markers = citData.markers || [];
+          if (svgEl && markers.length > 0) {
+            var NS = 'http://www.w3.org/2000/svg';
+            var bubbleGroup = document.createElementNS(NS, 'g');
+            bubbleGroup.setAttribute('class', 'citation-bubbles');
+
+            // Sort ascending so large bubbles render on top
+            var sorted = markers.slice().sort(function(a, b) { return a.count - b.count; });
+
+            for (var k = 0; k < sorted.length; k++) {
+              var m = sorted[k];
+              var pos = latLngToSvg(m.lat, m.lng);
+
+              // Skip markers outside visible viewBox
+              if (pos.x < 30 || pos.x > 815 || pos.y < 241 || pos.y > 700) continue;
+
+              var radius = Math.max(1.5, Math.min(12, Math.sqrt(m.count) * 1.2));
+              var circle = document.createElementNS(NS, 'circle');
+              circle.setAttribute('cx', pos.x.toFixed(2));
+              circle.setAttribute('cy', pos.y.toFixed(2));
+              circle.setAttribute('r', radius.toFixed(2));
+              circle.setAttribute('class', 'citation-bubble');
+
+              (function(circleEl, markerData) {
+                circleEl.addEventListener('mouseenter', function() { showMarkerTooltip(markerData); });
+                circleEl.addEventListener('mousemove', function(e) {
+                  citTooltip.style.left = (e.clientX + 10) + 'px';
+                  citTooltip.style.top = (e.clientY + 10) + 'px';
+                });
+                circleEl.addEventListener('mouseleave', function() { citTooltip.style.opacity = '0'; });
+                circleEl.addEventListener('touchstart', function(e) {
+                  e.preventDefault();
+                  var touch = e.touches[0];
+                  showMarkerTooltip(markerData);
+                  citTooltip.style.left = (touch.clientX + 10) + 'px';
+                  citTooltip.style.top = (touch.clientY - 40) + 'px';
+                }, { passive: false });
+              })(circle, m);
+
+              bubbleGroup.appendChild(circle);
+            }
+
+            svgEl.appendChild(bubbleGroup);
+          }
+
+          renderLegend();
+        } catch (err) {
+          console.error('Citation map error:', err);
+          citStatsContainer.textContent = 'Citation map data currently unavailable';
+        }
+      }
+
+      initCitationMap();
+
+      document.addEventListener('touchstart', function(e) {
+        if (!e.target.closest('.citation-map-container')) {
+          citTooltip.style.opacity = '0';
+        }
+      });
+    })();
   </script>
 </body>
 </html>
