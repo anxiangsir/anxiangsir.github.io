@@ -511,6 +511,45 @@ $$\text{where } u_t^{\text{prox}}(\theta) = \frac{\pi_\theta(a_t | s_t)}{\textco
         </div>
       </details>
 
+      <h3 class="phase-heading" id="sec5a-heading"></h3>
+      <p class="phase-desc" id="sec5a-desc1"></p>
+      <div class="math-block">$$J_{\text{PPO}}(\theta) = \mathbb{E}\left[\min\left(u_t(\theta) \cdot \hat{A}_t,\; \text{clip}(u_t(\theta),\, 1{-}\epsilon,\, 1{+}\epsilon) \cdot \hat{A}_t\right)\right]$$
+$$\text{where } u_t(\theta) = \frac{\pi_\theta(a_t | s_t)}{\pi_{\text{old}}(a_t | s_t)}$$</div>
+      <p class="phase-desc" id="sec5a-var-theta"></p>
+      <p class="phase-desc" id="sec5a-var-pi-theta"></p>
+      <p class="phase-desc" id="sec5a-var-pi-old"></p>
+      <p class="phase-desc" id="sec5a-var-ut"></p>
+      <p class="phase-desc" id="sec5a-var-adv"></p>
+      <p class="phase-desc" id="sec5a-var-eps"></p>
+      <p class="phase-desc" id="sec5a-var-clip"></p>
+      <p class="phase-desc" id="sec5a-var-min"></p>
+      <p class="phase-desc" id="sec5a-var-jppo"></p>
+      <p class="phase-desc" id="sec5a-mech1"></p>
+      <p class="phase-desc" id="sec5a-mech2"></p>
+      <p class="phase-desc" id="sec5a-decoupled-title"></p>
+      <div class="math-block">$$J(\theta) = \mathbb{E}\left[\sum_t \frac{\textcolor{#27ae60}{\pi_{\text{prox}}}}{\textcolor{#c0392b}{\pi_{\text{behav}}}} \cdot \min\left(u_t^{\text{prox}} \cdot \hat{A}_t,\; \text{clip}(u_t^{\text{prox}},\, 1{-}\epsilon,\, 1{+}\epsilon) \cdot \hat{A}_t\right)\right]$$
+$$\text{where } u_t^{\text{prox}}(\theta) = \frac{\pi_\theta(a_t | s_t)}{\textcolor{#27ae60}{\pi_{\text{prox}}}(a_t | s_t)}$$</div>
+      <p class="phase-desc" id="sec5a-var-pi-prox"></p>
+      <p class="phase-desc" id="sec5a-var-pi-behav"></p>
+      <p class="phase-desc" id="sec5a-var-correction"></p>
+      <p class="phase-desc" id="sec5a-decouple-why"></p>
+
+      <h3 class="phase-heading" id="sec5b-heading"></h3>
+      <p class="phase-desc" id="sec5b-desc1"></p>
+      <div class="math-block">$$J_{\text{GRPO}}(\theta) = \mathbb{E}\left[\frac{1}{G}\sum_{i=1}^{G}\min\left(\rho_i(\theta)\hat{A}_i,\; \text{clip}(\rho_i(\theta),\, 1{-}\epsilon_{\text{clip}},\, 1{+}\epsilon_{\text{clip}})\hat{A}_i\right)\right]$$
+$$\rho_i(\theta)=\frac{\pi_\theta(o_i|q)}{\pi_{\text{old}}(o_i|q)},\quad \hat{A}_i = \frac{\tilde r_i - \mu_G}{\sigma_G},\quad \mu_G = \frac{1}{G}\sum_{j=1}^{G}\tilde r_j,\quad \sigma_G = \sqrt{\frac{1}{G}\sum_{j=1}^{G}(\tilde r_j-\mu_G)^2 + \delta}$$
+$$\tilde r_i = \text{reward\_scaling}\cdot r_i + \text{reward\_bias}$$</div>
+      <p class="phase-desc" id="sec5b-var-g"></p>
+      <p class="phase-desc" id="sec5b-var-ri"></p>
+      <p class="phase-desc" id="sec5b-var-mu-sigma"></p>
+      <p class="phase-desc" id="sec5b-var-adv"></p>
+      <p class="phase-desc" id="sec5b-var-rho"></p>
+      <p class="phase-desc" id="sec5b-var-eps"></p>
+      <p class="phase-desc" id="sec5b-var-reward-affine"></p>
+      <p class="phase-desc" id="sec5b-no-value"></p>
+      <p class="phase-desc" id="sec5b-vs-ppo"></p>
+      <p class="phase-desc" id="sec5b-why-math"></p>
+
       <h3 class="phase-heading" id="sec6-heading"></h3>
       <p class="phase-desc" id="sec6-desc1"></p>
       <table class="ablation-table" style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-family: var(--font-sans); text-align: left; border: 1px solid var(--border);">
@@ -698,6 +737,38 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec5Loginterp: "$$\log(\pi_{\text{prox}}) = (1 - \alpha) \cdot \log(\pi_{\text{behav}}) + \alpha \cdot \log(\pi_\theta)$$",
           sec5ReplayNote: "<em>点击动画可重新播放</em>",
 
+          sec5aHead: "5A. PPO 公式详解",
+          sec5aDesc1: "下面我们把 PPO 与 Decoupled PPO 的公式拆到“变量级别”来理解。建议把每个符号都看成一个工程旋钮：它不只是数学记号，而是直接决定训练是否稳定、是否高效、是否会突然崩掉。",
+          sec5aVarTheta: "\\(\\theta\\) — <strong>模型参数（policy weights）</strong>：它是我们真正优化的对象，包含策略网络里全部可训练权重。每一步梯度更新本质上都在移动 \\(\\theta\\)，从而改变“在状态 \\(s_t\\) 下给动作 \\(a_t\\) 多大概率”。如果学习率过大或梯度方差过高，\\(\\theta\\) 会在参数空间里剧烈跳动，导致策略分布突变和性能回退。",
+          sec5aVarPiTheta: "\\(\\pi_\\theta(a_t|s_t)\\) — <strong>当前策略概率</strong>：这是“更新后候选策略”对已采样动作的打分，决定当前模型想不想继续强化这个动作。它越大，意味着模型越倾向重复该行为；越小，意味着模型想抑制它。PPO 不是盲目增大它，而是通过比值和裁剪控制“增大/减小的幅度”，避免一次更新把分布改得面目全非。",
+          sec5aVarPiOld: "\\(\\pi_{\\text{old}}(a_t|s_t)\\) — <strong>旧策略/行为策略概率</strong>：它是采样这条数据时的参考分布，相当于“数据来自哪里”的坐标系。策略梯度若不对齐这个坐标系，会产生明显偏差。直观上，\\(\\pi_{\\text{old}}\\) 提供了更新前基线；没有它，你无法判断当前策略到底是“温和修正”还是“激进偏离”。",
+          sec5aVarUt: "\\(u_t(\\theta)=\\pi_\\theta/\\pi_{\\text{old}}\\) — <strong>重要性采样比值</strong>：这是 PPO 的核心放大器，测量“新策略相对旧策略把这个动作放大了多少倍”。当 \\(u_t\\gt 1\\) 时表示提高该动作概率，\\(u_t\\lt 1\\) 表示降低。它直接把策略变化映射到损失里，但也最容易失控：若分母很小或策略漂移太大，\\(u_t\\) 会爆炸，梯度噪声随之飙升。",
+          sec5aVarAdv: "\\(\\hat A_t\\) — <strong>优势函数估计（通常来自 GAE）</strong>：它回答“这个动作比当前平均水平好多少/差多少”。\\(\\hat A_t\\gt 0\\) 时我们希望提高动作概率，\\(\\hat A_t\\lt 0\\) 时希望压低。优势值本质上是信用分配信号：若估计偏差大、方差高，就会把更新方向带偏，所以实践中常配合归一化与截断来稳住训练。",
+          sec5aVarEps: "\\(\\epsilon\\) — <strong>裁剪范围（常见 0.2）</strong>：它定义可信更新区间 \\([1-\\epsilon, 1+\\epsilon]\\)。\\(\\epsilon\\) 太小会让学习过于保守，吞吐很高但进步慢；太大又会接近无约束策略梯度，容易出现“短期收益上升、长期训练崩溃”。因此它是稳定性与学习速度之间的关键折中超参数。",
+          sec5aVarClip: "\\(\\text{clip}(u_t,1-\\epsilon,1+\\epsilon)\\) — <strong>截断算子</strong>：它把过大的比值硬性压回区间边界。机制上，相当于给每个 token 的策略更新设置“保险丝”：超过阈值后，继续朝同方向放大不会再获得额外收益。这样可以显著抑制离群样本主导梯度，防止个别高方差样本把整次更新拉崩。",
+          sec5aVarMin: "\\(\\min(\\cdot,\\cdot)\\) — <strong>保守目标选择器</strong>：PPO 对“原始目标”和“裁剪后目标”取更保守的一支。它的妙处是方向自适应：当更新朝有利方向过冲时，目标会自动切到被截断的分支，阻止继续激进；当更新本来就克制时，仍允许按原始梯度学习。换句话说，\\(\\min\\) 把“软约束”变成了每个样本上的局部保护机制。",
+          sec5aVarJppo: "\\(J_{\\text{PPO}}(\\theta)\\) — <strong>PPO 总体目标</strong>：它是对所有时间步、样本的期望，综合了“改进策略”与“限制步长”两种需求。你可以把它看成一个受限优化近似：想提高回报，但不允许一步走太远。这个目标之所以在大模型 RL 中常用，是因为它在实现复杂度、数值稳定性和样本效率之间给出了实用平衡。",
+          sec5aMech1: "<strong>裁剪机制到底如何工作？</strong> 以 \\(\\hat A_t\\gt 0\\) 为例：模型倾向增大该动作概率，\\(u_t\\) 会往上走；一旦超过 \\(1+\\epsilon\\)，目标不再继续奖励更大的 \\(u_t\\)，梯度会显著减弱。对 \\(\\hat A_t\\lt 0\\) 则相反：若 \\(u_t\\) 过度减小，\\(1-\\epsilon\\) 边界会阻止进一步惩罚。两侧共同作用，形成“允许改进、拒绝暴冲”的更新带。",
+          sec5aMech2: "<strong>为什么这能防止破坏性更新？</strong> 在高维策略空间里，少量极端样本就可能诱导巨大参数步长，导致策略分布突然偏移、价值估计失配和训练振荡。PPO 的 clip+min 会主动削平这些极端样本的边际影响，把一次更新限制在可恢复的局部邻域。结果是：单步收益也许不激进，但多步迭代更可靠，整体收敛质量更高。",
+          sec5aDecoupledTitle: "<strong>Decoupled PPO 变体：把“稳定参考”与“无偏校正”拆开</strong>",
+          sec5aVarPiProx: "\\(\\pi_{\\text{prox}}\\) — <strong>近端参考策略（proximal policy）</strong>：它是 trust-region 的统一中心，所有 token 都相对它计算 \\(u_t^{\\text{prox}}=\\pi_\\theta/\\pi_{\\text{prox}}\\)。关键价值在于“中心统一”：即便一条轨迹由多版本拼接，优化器看到的局部几何仍一致，从而避免每个 token 各用各的参考分布。",
+          sec5aVarPiBehav: "\\(\\pi_{\\text{behav}}\\) — <strong>真实行为策略（behavior policy）</strong>：它是该 token 真正被采样出来时使用的策略，反映数据分布来源。在异步+可中断场景中，\\(\\pi_{\\text{behav}}\\) 往往是分段变化的。Decoupled PPO 不再让它直接充当 trust center，而是把它留给分布校正项，职责更清晰。",
+          sec5aVarCorrection: "\\(\\pi_{\\text{prox}}/\\pi_{\\text{behav}}\\) — <strong>重要性校正权重</strong>：该项负责把“来自行为分布的数据”重加权到“近端参考分布”下，减少 off-policy 偏差。若某 token 在 \\(\\pi_{\\text{behav}}\\) 下被过采样，权重会把其贡献压回去；反之则适度放大。它让 Decoupled PPO 在保持统一 trust region 的同时，仍维持统计上的合理校正。",
+          sec5aDecoupleWhy: "<strong>解耦的本质</strong>：标准做法把稳定性与无偏性都压在同一个分母上，在混合版本轨迹里容易互相冲突。Decoupled PPO 改成“两条通路”：\\(u_t^{\\text{prox}}\\) 只管局部步长稳定，\\(\\pi_{\\text{prox}}/\\pi_{\\text{behav}}\\) 只管分布偏移修正。这样 trust-region 的几何结构更一致，off-policy 校正也更可控，尤其适合 AReaL 的异步训练流。",
+
+          sec5bHead: "5B. GRPO 公式详解",
+          sec5bDesc1: "GRPO（Group Relative Policy Optimization）把“价值估计”从显式 value network 转移为“组内相对比较”。核心思想是：同一 prompt 一次采样多个答案，用组内统计量构造优势，从而在数学推理等可验证任务上获得更稳、更直接的学习信号。",
+          sec5bVarG: "\\(G\\) / <code>n_samples</code> — <strong>组大小</strong>：对每个问题一次采样 \\(G\\) 个候选答案，构成一个对比组。\\(G\\) 太小会让组统计不稳定，难以分辨“偶然好答案”；\\(G\\) 增大能降低方差，但会增加 rollout 与评测成本。工程上通常取 4 或 8，在信号质量与吞吐之间做折中。",
+          sec5bVarRi: "\\(r_i\\) — <strong>第 \\(i\\) 个候选答案的奖励</strong>：它来自 verifier/规则执行器，反映答案是否正确、格式是否合规、过程是否满足约束。对数学任务，这个奖励常比开放式偏好分更“硬”，离散性也更强。正因为奖励具备可验证性，GRPO 的组内比较才能稳定区分优劣样本。",
+          sec5bVarMuSigma: "\\(\\mu_G,\\sigma_G\\) — <strong>组内奖励均值与标准差</strong>：\\(\\mu_G\\) 给出该组总体水平，\\(\\sigma_G\\) 刻画组内区分度。若 \\(\\sigma_G\\) 很小，说明一组样本质量接近，学习信号会自然减弱，避免被噪声硬拉；若 \\(\\sigma_G\\) 较大，模型会更明确地强化相对优秀样本。加上小常数 \\(\\delta\\) 可防止除零并提升数值稳定性。",
+          sec5bVarAdv: "\\(\\hat A_i=(\\tilde r_i-\\mu_G)/\\sigma_G\\) — <strong>组相对优势</strong>：它不问“绝对分数高不高”，而问“在同组里是否更好”。这让梯度信号对题目难度、奖励尺度变化更鲁棒：即使某题整体都低分，组内最好样本仍可得到正向推动。换言之，GRPO 把信用分配锚定在局部竞争关系，而非全局值函数拟合。",
+          sec5bVarRho: "\\(\\rho_i(\\theta)=\\pi_\\theta/\\pi_{\\text{old}}\\) 与 \\(J_{\\text{GRPO}}\\) — <strong>带裁剪的策略梯度目标</strong>：GRPO 在优化形式上延续 PPO 的 ratio+clip 框架，因此仍保留更新稳定性的关键保护。不同点在于优势来源：PPO 常依赖 value network+GAE，GRPO 则使用组归一化优势。结果是训练管线更简洁，同时保留了近端更新的可控性。",
+          sec5bVarEps: "\\(\\epsilon_{\\text{clip}}\\) / <code>eps_clip</code> — <strong>GRPO 裁剪范围</strong>：在 AReaL 数学配置中常见更宽设置（如 0.4），因为组归一化后优势尺度更集中、方向更可解释。更宽并不代表放飞更新，而是允许模型在高置信度相对排序下走得更快。若设得过宽仍会引入不稳定，因此要与组大小、奖励噪声和 staleness 一起调参。",
+          sec5bVarRewardAffine: "\\(\\tilde r_i = \\text{reward\\_scaling}\\cdot r_i + \\text{reward\\_bias}\\) — <strong>奖励仿射变换</strong>：<code>reward_scaling</code> 决定梯度信号强度，过小会学习迟缓，过大可能放大噪声；<code>reward_bias</code> 用于平移奖励中心，帮助优势在数值上更均衡。两者不会改变组内排序本质，但会显著影响优化器看到的尺度与步长。",
+          sec5bNoValue: "<strong>为什么 GRPO 不需要 value network？</strong> 因为 baseline 由组内统计量 \\(\\mu_G\\) 隐式提供，方差归一化由 \\(\\sigma_G\\) 完成，原本由 value head 承担的“减方差角色”被组比较替代。这样省去了价值函数拟合误差与额外前向/反向开销，也避免 value-policy 训练不同步带来的噪声耦合。代价是必须一次采样多个候选，但在可并行 rollout 系统中通常可接受。",
+          sec5bVsPpo: "<strong>GRPO 与 PPO 的机制差异</strong>：PPO 的关键难点是把绝对奖励通过 value/GAE 转成稳定 advantage；GRPO 则直接在同题候选之间做相对排序，再送入 clip objective。前者更通用，后者在“可验证、可比较”的任务上信号更干净。对 AReaL 这类异步系统，GRPO 还能减少 value 网络维护成本，使训练路径更短。",
+          sec5bWhyMath: "<strong>为什么 AReaL 在数学任务偏好 GRPO？</strong> 数学题奖励通常由最终答案或规则校验给出，天然适合组内相对比较。GRPO 利用同题多解的对照，把“谁更接近正确推理”直接编码到优势中，往往比依赖 value 拟合更稳。再叠加 AReaL 的高吞吐异步采样，GRPO 能以较低工程复杂度获得更好的样本效率与最终准确率。",
+
           sec6Head: "6. 关键对比",
           sec6Desc1: "从系统层到优化目标，AReaL 的改动不是单点技巧，而是“异步执行 + 版本治理 + Decoupled PPO”三者协同。下表给出与同步系统的核心差异。",
           sec6ColFeature: "特性",
@@ -875,6 +946,38 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec5Desc8: "Step 7: A cheap approximation is log-linear interpolation, which avoids an extra forward pass.",
           sec5Loginterp: "$$\log(\pi_{\text{prox}}) = (1 - \alpha) \cdot \log(\pi_{\text{behav}}) + \alpha \cdot \log(\pi_\theta)$$",
           sec5ReplayNote: "<em>Click animation to replay</em>",
+
+          sec5aHead: "5A. PPO Formula Deep Dive",
+          sec5aDesc1: "Now we unpack PPO and Decoupled PPO at variable granularity. Treat every symbol as an engineering control knob: it is not just notation, it directly controls whether training is stable, efficient, or prone to collapse.",
+          sec5aVarTheta: "\\(\\theta\\) — <strong>model parameters</strong>: this is the object we actually optimize, i.e., all trainable weights of the policy network. Every gradient step moves \\(\\theta\\), which changes the probability assigned to action \\(a_t\\) under state \\(s_t\\). If step sizes are too aggressive or gradient variance is high, \\(\\theta\\) can jump abruptly in parameter space and cause sudden policy drift.",
+          sec5aVarPiTheta: "\\(\\pi_\\theta(a_t|s_t)\\) — <strong>current policy probability</strong>: this is the updated candidate policy's score for the sampled action. Larger values mean the model wants to reinforce that behavior; smaller values mean suppression. PPO does not blindly increase it — it controls update magnitude via ratios and clipping so one step cannot distort the full distribution.",
+          sec5aVarPiOld: "\\(\\pi_{\\text{old}}(a_t|s_t)\\) — <strong>old/behavior reference probability</strong>: this anchors where the data came from. Policy gradients without this reference become biased under distribution shift. Intuitively, \\(\\pi_{\\text{old}}\\) is the pre-update coordinate system: it tells us whether the new policy is making a mild correction or a dangerous leap.",
+          sec5aVarUt: "\\(u_t(\\theta)=\\pi_\\theta/\\pi_{\\text{old}}\\) — <strong>importance ratio</strong>: PPO's key amplifier that measures how much the new policy upweights/downweights the sampled action. \\(u_t\\gt 1\\) means increase, \\(u_t\\lt 1\\) means decrease. It translates policy change into optimization signal, but it is also where instability starts: if denominator probabilities are tiny or policies drift too far, \\(u_t\\) explodes and gradient variance follows.",
+          sec5aVarAdv: "\\(\\hat A_t\\) — <strong>advantage estimate (usually GAE-based)</strong>: it answers whether this action is better or worse than expected baseline performance. For \\(\\hat A_t\\gt 0\\), we should increase action probability; for \\(\\hat A_t\\lt 0\\), decrease it. Since \\(\\hat A_t\\) is a credit-assignment signal, poor estimation quality (bias or variance) directly contaminates update direction.",
+          sec5aVarEps: "\\(\\epsilon\\) — <strong>clip range (typically 0.2)</strong>: this defines the trusted ratio interval \\([1-\\epsilon, 1+\\epsilon]\\). Too small makes learning overly conservative; too large approaches unconstrained policy gradient and increases collapse risk. In practice, \\(\\epsilon\\) is a core tradeoff between local stability and optimization speed.",
+          sec5aVarClip: "\\(\\text{clip}(u_t,1-\\epsilon,1+\\epsilon)\\) — <strong>clipping operator</strong>: this hard-truncates extreme ratios back to a safe band. Mechanistically, it acts as a per-token fuse: once ratio passes threshold, pushing further in the same direction gives no extra objective gain. That prevents outlier samples from dominating a whole update.",
+          sec5aVarMin: "\\(\\min(\\cdot,\\cdot)\\) — <strong>conservative branch selector</strong>: PPO chooses the more pessimistic value between unclipped and clipped objectives. This gives directional adaptivity: if update is moderate, learning proceeds normally; if it overshoots in a seemingly beneficial direction, objective switches to the clipped branch and suppresses further aggression. So \\(\\min\\) is the local safeguard that makes clipping effective.",
+          sec5aVarJppo: "\\(J_{\\text{PPO}}(\\theta)\\) — <strong>full PPO objective</strong>: an expectation over tokens/samples that jointly encodes \"improve return\" and \"limit step size.\" You can view it as a practical constrained-optimization surrogate: seek reward improvements without moving policy too far in one update. This balance is why PPO remains widely used in large-scale RL for language models.",
+          sec5aMech1: "<strong>How clipping actually works</strong>: for \\(\\hat A_t\\gt 0\\), optimization wants larger \\(u_t\\); once \\(u_t\\gt 1+\\epsilon\\), additional increase is no longer rewarded. For \\(\\hat A_t\\lt 0\\), optimization wants smaller \\(u_t\\); once it goes below \\(1-\\epsilon\\), extra decrease is no longer rewarded. The two-sided boundary forms a controlled update corridor.",
+          sec5aMech2: "<strong>Why this prevents destructive updates</strong>: in high-dimensional policy space, a few extreme samples can induce huge parameter movement and sudden distribution drift. Clip+min flattens the marginal influence of such samples, keeping updates inside a recoverable local neighborhood. Individual steps may be less aggressive, but long-horizon convergence is substantially more reliable.",
+          sec5aDecoupledTitle: "<strong>Decoupled PPO variant: split trust-region stability from off-policy correction</strong>",
+          sec5aVarPiProx: "\\(\\pi_{\\text{prox}}\\) — <strong>proximal reference policy</strong>: the unified trust-region center used for all tokens via \\(u_t^{\\text{prox}}=\\pi_\\theta/\\pi_{\\text{prox}}\\). The key is consistency: even when one trajectory mixes multiple behavior versions, optimization geometry remains centered on one reference instead of drifting token by token.",
+          sec5aVarPiBehav: "\\(\\pi_{\\text{behav}}\\) — <strong>actual behavior policy</strong>: the policy that truly generated each token. In async interruptible rollout, this is often piecewise across versions. Decoupled PPO no longer uses it as trust center; it is reserved for distribution correction, making responsibilities explicit.",
+          sec5aVarCorrection: "\\(\\pi_{\\text{prox}}/\\pi_{\\text{behav}}\\) — <strong>importance correction weight</strong>: this reweights samples from behavior distribution toward proximal reference distribution to reduce off-policy bias. Tokens overrepresented under \\(\\pi_{\\text{behav}}\\) get downweighted; underrepresented ones get relatively upweighted. This preserves statistical correction while keeping trust-region geometry stable.",
+          sec5aDecoupleWhy: "<strong>Why decoupling matters</strong>: in mixed-version trajectories, using one denominator for both stability and correction causes conflicting pressures. Decoupled PPO creates two pathways: \\(u_t^{\\text{prox}}\\) handles local stability, \\(\\pi_{\\text{prox}}/\\pi_{\\text{behav}}\\) handles distribution correction. The result is better-conditioned optimization for AReaL-style asynchronous training.",
+
+          sec5bHead: "5B. GRPO Formula Deep Dive",
+          sec5bDesc1: "GRPO (Group Relative Policy Optimization) shifts variance reduction from an explicit value network to within-group relative comparison. Core idea: sample multiple answers for the same prompt, normalize rewards within that group, and optimize policy on that relative signal.",
+          sec5bVarG: "\\(G\\) / <code>n_samples</code> — <strong>group size</strong>: number of candidate responses sampled per prompt. If \\(G\\) is too small, group statistics are noisy and ranking is unstable; larger \\(G\\) reduces variance but increases rollout/evaluation cost. Practical settings (e.g., 4 or 8) balance signal quality and throughput.",
+          sec5bVarRi: "\\(r_i\\) — <strong>reward of the \\(i\\)-th candidate</strong>: obtained from verifier/rule execution, reflecting correctness and constraint satisfaction. In math tasks this reward is often sharper and more discrete than subjective preference scores. That verifier sharpness is exactly what makes group-relative comparison effective.",
+          sec5bVarMuSigma: "\\(\\mu_G,\\sigma_G\\) — <strong>group reward mean and standard deviation</strong>: \\(\\mu_G\\) captures group baseline quality, \\(\\sigma_G\\) captures separability among candidates. Small \\(\\sigma_G\\) implies similar candidate quality and naturally weakens update magnitude; large \\(\\sigma_G\\) strengthens preference for truly better responses. The small constant \\(\\delta\\) prevents divide-by-zero and improves numerical stability.",
+          sec5bVarAdv: "\\(\\hat A_i=(\\tilde r_i-\\mu_G)/\\sigma_G\\) — <strong>group-relative normalized advantage</strong>: it asks \"better than peers?\" instead of \"absolutely high reward?\" This makes training robust to problem-level difficulty and reward scale shifts. Even on hard prompts with uniformly low absolute rewards, best-in-group samples still get positive learning signal.",
+          sec5bVarRho: "\\(\\rho_i(\\theta)=\\pi_\\theta/\\pi_{\\text{old}}\\) and \\(J_{\\text{GRPO}}\\) — <strong>clipped policy gradient objective</strong>: GRPO keeps PPO's ratio+clip stability scaffold. The main mechanism change is the source of advantage: PPO often uses value network + GAE, while GRPO uses group-normalized relative rewards. So optimization remains proximal, but credit assignment becomes group-comparative.",
+          sec5bVarEps: "\\(\\epsilon_{\\text{clip}}\\) / <code>eps_clip</code> — <strong>clip range in GRPO</strong>: AReaL math setups often use wider values (e.g., 0.4) because normalized group-relative advantages are typically better scaled. Wider range does not mean uncontrolled updates; it allows faster movement when ranking confidence is high. It still must be tuned jointly with group size, reward noise, and staleness.",
+          sec5bVarRewardAffine: "\\(\\tilde r_i = \\text{reward\\_scaling}\\cdot r_i + \\text{reward\\_bias}\\) — <strong>reward affine transform</strong>: <code>reward_scaling</code> controls signal amplitude (too small slows learning, too large amplifies noise), while <code>reward_bias</code> recenters rewards for numerically healthier optimization. These terms keep ranking semantics but materially affect optimizer step magnitudes.",
+          sec5bNoValue: "<strong>Why no value network is needed</strong>: group mean \\(\\mu_G\\) acts as an implicit baseline and \\(\\sigma_G\\) performs in-group normalization, replacing much of value head's variance-reduction role. This removes value-function fitting error and extra forward/backward cost, and avoids policy-value desynchronization noise. The tradeoff is multi-sample rollout per prompt, which async systems can parallelize efficiently.",
+          sec5bVsPpo: "<strong>Mechanistic difference from PPO</strong>: PPO's challenge is converting absolute rewards into stable advantages through value estimation; GRPO directly ranks sibling candidates for the same prompt and normalizes that ranking signal. PPO is more general-purpose, while GRPO is often cleaner on tasks with strong verifiers. In AReaL, this also shortens the training path by removing value-network maintenance.",
+          sec5bWhyMath: "<strong>Why GRPO is preferred for math in AReaL</strong>: math rewards are typically verifier-driven and naturally comparable within a prompt. GRPO exploits this by turning same-question multi-sample contrast into direct optimization signal, often more stable than fitting a global value baseline. Combined with AReaL's high-throughput async rollout, it yields strong sample efficiency with lower system complexity.",
 
           sec6Head: "6. Key Comparisons",
           sec6Desc1: "AReaL is not a single trick; it couples system-level asynchrony, version/staleness governance, and a matching PPO objective. The table summarizes the operational differences.",
@@ -1065,6 +1168,38 @@ gen_backend: "sglang" # generation engine`,
         document.getElementById('sec5-desc8').innerHTML = L.sec5Desc8;
         document.getElementById('sec5-loginterp').innerHTML = L.sec5Loginterp;
         document.getElementById('sec5-replay-note').innerHTML = L.sec5ReplayNote;
+
+        document.getElementById('sec5a-heading').innerHTML = L.sec5aHead;
+        document.getElementById('sec5a-desc1').innerHTML = L.sec5aDesc1;
+        document.getElementById('sec5a-var-theta').innerHTML = L.sec5aVarTheta;
+        document.getElementById('sec5a-var-pi-theta').innerHTML = L.sec5aVarPiTheta;
+        document.getElementById('sec5a-var-pi-old').innerHTML = L.sec5aVarPiOld;
+        document.getElementById('sec5a-var-ut').innerHTML = L.sec5aVarUt;
+        document.getElementById('sec5a-var-adv').innerHTML = L.sec5aVarAdv;
+        document.getElementById('sec5a-var-eps').innerHTML = L.sec5aVarEps;
+        document.getElementById('sec5a-var-clip').innerHTML = L.sec5aVarClip;
+        document.getElementById('sec5a-var-min').innerHTML = L.sec5aVarMin;
+        document.getElementById('sec5a-var-jppo').innerHTML = L.sec5aVarJppo;
+        document.getElementById('sec5a-mech1').innerHTML = L.sec5aMech1;
+        document.getElementById('sec5a-mech2').innerHTML = L.sec5aMech2;
+        document.getElementById('sec5a-decoupled-title').innerHTML = L.sec5aDecoupledTitle;
+        document.getElementById('sec5a-var-pi-prox').innerHTML = L.sec5aVarPiProx;
+        document.getElementById('sec5a-var-pi-behav').innerHTML = L.sec5aVarPiBehav;
+        document.getElementById('sec5a-var-correction').innerHTML = L.sec5aVarCorrection;
+        document.getElementById('sec5a-decouple-why').innerHTML = L.sec5aDecoupleWhy;
+
+        document.getElementById('sec5b-heading').innerHTML = L.sec5bHead;
+        document.getElementById('sec5b-desc1').innerHTML = L.sec5bDesc1;
+        document.getElementById('sec5b-var-g').innerHTML = L.sec5bVarG;
+        document.getElementById('sec5b-var-ri').innerHTML = L.sec5bVarRi;
+        document.getElementById('sec5b-var-mu-sigma').innerHTML = L.sec5bVarMuSigma;
+        document.getElementById('sec5b-var-adv').innerHTML = L.sec5bVarAdv;
+        document.getElementById('sec5b-var-rho').innerHTML = L.sec5bVarRho;
+        document.getElementById('sec5b-var-eps').innerHTML = L.sec5bVarEps;
+        document.getElementById('sec5b-var-reward-affine').innerHTML = L.sec5bVarRewardAffine;
+        document.getElementById('sec5b-no-value').innerHTML = L.sec5bNoValue;
+        document.getElementById('sec5b-vs-ppo').innerHTML = L.sec5bVsPpo;
+        document.getElementById('sec5b-why-math').innerHTML = L.sec5bWhyMath;
 
         document.getElementById('sec6-heading').innerHTML = L.sec6Head;
         document.getElementById('sec6-desc1').innerHTML = L.sec6Desc1;
