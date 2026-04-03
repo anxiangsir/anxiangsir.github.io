@@ -2,14 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
     <script defer src="/_vercel/insights/script.js"></script>
     <title>YaRN: LLM Context Window Extension</title>
     <meta name="description" content="YaRN: Yet another RoPE extensioN method" />
     <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+    ></script>
+
     <style>
       :root {
         --bg: #ffffff;
@@ -26,17 +41,45 @@
         --color-trans: #d4a017;
         --color-inter: #2471a3;
       }
-      .site-nav { max-width: 860px; margin: 0 auto 1rem; padding: 0 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-sans); font-size: 0.85em; flex-wrap: wrap; }
-      .site-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 600; letter-spacing: 0.02em; padding: 2px 4px; }
-      .site-nav a:hover { color: var(--accent); text-decoration: underline; }
-      .site-nav .nav-sep { color: var(--border); user-select: none; }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
+      .site-nav {
+        max-width: 860px;
+        margin: 0 auto 1rem;
+        padding: 0 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--font-sans);
+        font-size: 0.85em;
+        flex-wrap: wrap;
+      }
+      .site-nav a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        padding: 2px 4px;
+      }
+      .site-nav a:hover {
+        color: var(--accent);
+        text-decoration: underline;
+      }
+      .site-nav .nav-sep {
+        color: var(--border);
+        user-select: none;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
       body {
         background: var(--bg);
         color: var(--text);
         font-family: var(--font-serif);
         line-height: 1.5;
         padding: 2rem 1rem;
+        -webkit-text-size-adjust: 100%;
       }
       .article {
         max-width: 860px;
@@ -45,80 +88,889 @@
         padding: 0 1rem 3rem;
         position: relative;
       }
-      .masthead { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2.5rem; position: relative; }
-      .masthead-title {
-        font-family: var(--font-headline); font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin: 0 0 10px; color: var(--text);
+      .masthead {
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2.5rem;
+        position: relative;
       }
-      .masthead-sub { font-size: 1rem; font-family: var(--font-sans); margin-bottom: 10px; color: var(--text-secondary); }
+      .masthead-title {
+        font-family: var(--font-headline);
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        font-weight: 900;
+        line-height: 1.1;
+        margin: 0 0 10px;
+        color: var(--text);
+      }
+      .masthead-sub {
+        font-size: 1rem;
+        font-family: var(--font-sans);
+        margin-bottom: 10px;
+        color: var(--text-secondary);
+      }
 
       .lang-toggle {
-        position: absolute; top: 10px; right: 10px; z-index: 40; font-family: var(--font-sans); padding: 6px 16px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; color: var(--text-secondary); font-weight: bold; border-radius: 20px; font-size: 0.85rem; transition: all 0.2s;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 40;
+        font-family: var(--font-sans);
+        padding: 6px 16px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-weight: bold;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        touch-action: manipulation;
       }
-      .lang-toggle:hover { background: var(--bg-alt); color: var(--text); border-color: var(--text-secondary); }
+      .lang-toggle:hover {
+        background: var(--bg-alt);
+        color: var(--text);
+        border-color: var(--text-secondary);
+      }
 
       .stage-wrapper {
-        width: 100%; height: 400px; position: relative; border: 1px solid var(--border); border-radius: 8px;
-        overflow: hidden; margin: 0 auto 35px;
+        width: 100%;
+        height: 400px;
+        position: relative;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 0 auto 35px;
         background: var(--bg-alt);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        display: flex; justify-content: center; align-items: center; flex-direction: column;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        contain: layout style paint;
       }
-      
+
       .phase-heading {
-        font-family: var(--font-headline); font-size: 1.5rem; font-weight: 700; text-align: left; margin: 2.5rem 0 1rem; border-top: 2px solid var(--border); padding-top: 1.5rem; color: var(--text);
+        font-family: var(--font-headline);
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: left;
+        margin: 2.5rem 0 1rem;
+        border-top: 2px solid var(--border);
+        padding-top: 1.5rem;
+        color: var(--text);
       }
       .phase-desc {
-        font-family: var(--font-serif); font-size: 1.05rem; text-align: left; max-width: none; margin: 0 0 15px; color: var(--text-secondary); line-height: 1.75;
+        font-family: var(--font-serif);
+        font-size: 1.05rem;
+        text-align: left;
+        max-width: none;
+        margin: 0 0 15px;
+        color: var(--text-secondary);
+        line-height: 1.75;
       }
 
-      .math { font-family: var(--font-math); background: var(--bg-alt); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.95em; border: 1px solid var(--border); color: var(--text); }
-      .math-block { display: block; text-align: center; font-family: var(--font-math); font-size: 1.1rem; padding: 1.5rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); }
+      .math {
+        font-family: var(--font-math);
+        background: var(--bg-alt);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.95em;
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .math-block {
+        display: block;
+        text-align: center;
+        padding: 1.5rem 1rem;
+        background: var(--bg-alt);
+        border-left: 3px solid var(--accent);
+        margin: 2rem 0;
+        border-radius: 4px;
+        color: var(--text);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
 
-      .controls { padding: 15px 20px; background: var(--bg-alt); border-top: 1px solid var(--border); width: 100%; display: flex; align-items: center; justify-content: space-between; position: absolute; bottom: 0; left: 0; z-index: 10; font-family: var(--font-sans); }
-      .control-group { display: flex; flex-direction: column; width: 100%; gap: 8px; }
-      .control-label { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: bold; color: var(--text); margin-bottom: 5px; }
-      input[type=range] { -webkit-appearance: none; width: 100%; height: 8px; background: var(--border); border-radius: 4px; outline: none; }
-      input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); margin-top: -8px; }
-      input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: var(--border); border-radius: 4px; }
-      input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-      input[type=range]::-moz-range-track { height: 8px; background: var(--border); border-radius: 4px; border: none; }
+      .code-block {
+        display: block;
+        background: #1e1e2e;
+        color: #cdd6f4;
+        font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+        font-size: 0.88rem;
+        line-height: 1.7;
+        padding: 1.25rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 8px;
+        border-left: 3px solid var(--accent);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: pre;
+        tab-size: 4;
+      }
+      .code-block code {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: inherit;
+        font-family: inherit;
+        color: inherit;
+      }
+      .code-block .kw {
+        color: #cba6f7;
+      }
+      .code-block .fn {
+        color: #89b4fa;
+      }
+      .code-block .str {
+        color: #a6e3a1;
+      }
+      .code-block .num {
+        color: #fab387;
+      }
+      .code-block .cm {
+        color: #6c7086;
+        font-style: italic;
+      }
+      .code-block .op {
+        color: #89dceb;
+      }
 
-      .key-stats { display: flex; justify-content: space-around; text-align: center; margin: 25px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 15px 0; font-family: var(--font-headline); font-weight: bold; color: var(--text); }
-      .key-stats div { flex: 1; border-right: 1px solid var(--border); }
-      .key-stats div:last-child { border-right: none; }
-      .key-stats span { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px; font-family: var(--font-sans); }
+      .controls {
+        padding: 15px 20px;
+        background: var(--bg-alt);
+        border-top: 1px solid var(--border);
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: 10;
+        font-family: var(--font-sans);
+      }
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+      }
+      .control-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: var(--text);
+        margin-bottom: 5px;
+      }
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 8px;
+        background: var(--border);
+        border-radius: 4px;
+        outline: none;
+        touch-action: manipulation;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        margin-top: -8px;
+        transition: transform 0.1s;
+      }
+      input[type="range"]::-webkit-slider-thumb:active {
+        transform: scale(1.1);
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 8px;
+        background: var(--border);
+        border-radius: 4px;
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transition: transform 0.1s;
+      }
+      input[type="range"]::-moz-range-thumb:active {
+        transform: scale(1.1);
+      }
+      input[type="range"]::-moz-range-track {
+        height: 8px;
+        background: var(--border);
+        border-radius: 4px;
+        border: none;
+      }
 
-      .hero-content { text-align: left; padding: 1rem 0 2rem; }
-      .hero-text { font-size: 1.1rem; max-width: none; margin: 0; color: var(--text-secondary); line-height: 1.6; }
+      .btn-play {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        transition: background 0.2s;
+        margin-left: 10px;
+        touch-action: manipulation;
+      }
+      .btn-play:hover {
+        background: #1d4ed8;
+      }
 
-      .viz-layer { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 80px); pointer-events: none; }
-      
-      .rope-legend { position: absolute; bottom: 15px; left: 20px; font-family: var(--font-sans); font-size: 0.85rem; display: flex; flex-direction: column; gap: 5px; z-index: 10; background: rgba(255, 255, 255, 0.9); padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-      .rope-legend-item { display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: bold; }
-      .rope-legend-color { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--border); }
-      .rope-m-counter { position: absolute; top: 15px; right: 20px; font-family: var(--font-math); font-size: 1rem; font-weight: bold; z-index: 10; color: var(--text); background: rgba(255, 255, 255, 0.9); padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+      .key-stats {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+        margin: 25px 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        padding: 15px 0;
+        font-family: var(--font-headline);
+        font-weight: bold;
+        color: var(--text);
+      }
+      .key-stats div {
+        flex: 1;
+        border-right: 1px solid var(--border);
+      }
+      .key-stats div:last-child {
+        border-right: none;
+      }
+      .key-stats span {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 5px;
+        font-family: var(--font-sans);
+      }
+
+      .hero-content {
+        text-align: left;
+        padding: 1rem 0 2rem;
+      }
+      .hero-text {
+        font-size: 1.1rem;
+        max-width: none;
+        margin: 0;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      .viz-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 80px);
+        pointer-events: none;
+      }
+
+      .rope-legend {
+        position: absolute;
+        bottom: 15px;
+        left: 20px;
+        font-family: var(--font-sans);
+        font-size: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      .rope-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text);
+        font-weight: bold;
+      }
+      .rope-legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+      }
+      .rope-m-counter {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-family: var(--font-math);
+        font-size: 1rem;
+        font-weight: bold;
+        z-index: 10;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+      }
       .ntk-bar {
         background-color: var(--color-keep);
-        width: 100%; height: 100%;
+        width: 100%;
+        height: 100%;
+        pointer-events: auto;
+        cursor: pointer;
+        will-change: height, background-color;
+        transition:
+          height 0.3s cubic-bezier(0.2, 0, 0, 1),
+          background-color 0.3s ease;
+      }
+
+      .ntk-tooltip {
+        position: absolute;
+        background: #1e1e2e;
+        color: #cdd6f4;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-family: var(--font-math);
+        font-size: 0.8rem;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(10px) translateX(-50%);
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+        z-index: 20;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      .ntk-tooltip.show {
+        opacity: 1;
+        transform: translateY(0) translateX(-50%);
+      }
+
+      /* Animated elements hints */
+      #svg-rope circle,
+      #svg-rope line {
+        will-change: transform, opacity;
+      }
+      #wl-path,
+      #wl-threshold {
+        transition:
+          d 0.3s ease,
+          y1 0.3s ease,
+          y2 0.3s ease;
+      }
+      #svg-pi path {
+        will-change: transform;
+      }
+      #att-dot {
+        transition:
+          cx 0.1s linear,
+          cy 0.1s linear;
+        will-change: cx, cy;
+      }
+      #att-text {
+        transition:
+          x 0.1s linear,
+          y 0.1s linear;
+        will-change: x, y;
+      }
+
+      /* === New Educational Features CSS === */
+      .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: var(--accent);
+        z-index: 999;
+        transition: width 0.1s;
+        width: 0%;
+      }
+      .tldr-box {
+        background: linear-gradient(135deg, #f0f7ff, #e8f4f8);
+        border: 1px solid var(--accent);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0 2rem;
+        position: relative;
+      }
+      .tldr-box h4 {
+        font-family: var(--font-headline);
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+      }
+      .tldr-box ul {
+        list-style: none;
+        padding: 0;
+      }
+      .tldr-box li {
+        padding: 0.4rem 0 0.4rem 1.5rem;
+        position: relative;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+      .tldr-box li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-weight: bold;
+      }
+      .toc-sticky {
+        position: fixed;
+        top: 60px;
+        left: max(10px, calc((100vw - 860px) / 2 - 220px));
+        width: 200px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+        z-index: 50;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: opacity 0.3s;
+      }
+      .toc-sticky a {
+        display: block;
+        padding: 0.3rem 0;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-left: 2px solid transparent;
+        padding-left: 0.5rem;
+        transition: all 0.2s;
+      }
+      .toc-sticky a:hover,
+      .toc-sticky a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+      }
+      .toc-mobile-toggle {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        border: none;
+        font-size: 1.2rem;
+        z-index: 60;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        touch-action: manipulation;
+      }
+      .intuition-box {
+        background: linear-gradient(135deg, #fffbeb, #fef3c7);
+        border: 1px solid #f59e0b;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        margin: 0 0 1rem;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        color: var(--text);
+      }
+      .intuition-box::before {
+        content: "💡";
+        font-size: 1.2rem;
+        margin-right: 0.5rem;
+      }
+      .formula-breakdown {
+        margin: 1rem 0 2rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .formula-breakdown summary {
+        padding: 0.75rem 1rem;
+        background: var(--bg-alt);
+        cursor: pointer;
+        font-family: var(--font-sans);
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .formula-breakdown table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+      }
+      .formula-breakdown th,
+      .formula-breakdown td {
+        padding: 0.5rem 1rem;
+        text-align: left;
+        border-top: 1px solid var(--border);
+      }
+      .formula-breakdown th {
+        background: var(--bg-alt);
+        font-family: var(--font-sans);
+        font-weight: 600;
+        width: 30%;
+      }
+      .formula-breakdown td {
+        color: var(--text-secondary);
+      }
+      .code-walkthrough {
+        margin: 0.5rem 0 2rem;
+        padding: 1rem 1.25rem;
+        background: var(--bg-alt);
+        border-radius: 8px;
+        border-left: 3px solid #10b981;
+        font-size: 0.9rem;
+        line-height: 1.7;
+      }
+      .code-walkthrough h5 {
+        font-family: var(--font-sans);
+        color: #10b981;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+      }
+      .code-walkthrough ol {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: var(--text-secondary);
+      }
+      .code-walkthrough li {
+        margin-bottom: 0.3rem;
+      }
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.9rem;
+        font-family: var(--font-sans);
+      }
+      .comparison-table th,
+      .comparison-table td {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        text-align: center;
+      }
+      .comparison-table th {
+        background: var(--accent);
+        color: white;
+        font-weight: 600;
+      }
+      .comparison-table td:first-child {
+        font-weight: 600;
+        text-align: left;
+        background: var(--bg-alt);
+      }
+      .comparison-table tr:nth-child(even) {
+        background: var(--bg-alt);
+      }
+      .playground-wrapper {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        background: var(--bg-alt);
+      }
+      .playground-controls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .playground-controls .control-group {
+        width: 100%;
+      }
+      .playground-svg {
+        width: 100%;
+        height: 250px;
+        background: var(--bg);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      .zone-display {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin-top: 1rem;
+        font-family: var(--font-sans);
+        font-size: 0.85rem;
+        text-align: center;
+      }
+      .zone-display div {
+        padding: 0.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+      }
+      .zone-keep {
+        background: rgba(192, 57, 43, 0.1);
+        color: var(--color-keep);
+      }
+      .zone-trans {
+        background: rgba(212, 160, 23, 0.1);
+        color: var(--color-trans);
+      }
+      .zone-inter {
+        background: rgba(36, 113, 163, 0.1);
+        color: var(--color-inter);
+      }
+      .config-block {
+        background: #1e1e2e;
+        color: #cdd6f4;
+        font-family: var(--font-math);
+        font-size: 0.85rem;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        overflow-x: auto;
+        line-height: 1.6;
+      }
+      /* 1. Box Shadows & Card Elevation */
+      .tldr-box { box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08); }
+      .intuition-box { box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1); }
+      .formula-breakdown { box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+      .code-walkthrough { box-shadow: 0 1px 4px rgba(16, 185, 129, 0.08); }
+      .playground-wrapper { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+      .table-scroll-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      }
+      .config-block { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+
+      /* 2. Scroll-Reveal Fade-In Animations */
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* 4. Comparison Table Row Hover */
+      .comparison-table tbody tr {
+        transition: background-color 0.2s ease;
+      }
+      .comparison-table tbody tr:hover {
+        background-color: rgba(37, 99, 235, 0.06);
+      }
+
+      /* 5. Code Block Copy Button */
+      .code-block-wrapper {
+        position: relative;
+      }
+      .copy-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(255,255,255,0.1);
+        color: #a6adc8;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 4px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        font-family: var(--font-sans);
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s, background 0.2s;
+        z-index: 5;
+      }
+      .code-block-wrapper:hover .copy-btn {
+        opacity: 1;
+      }
+      .copy-btn:hover {
+        background: rgba(255,255,255,0.2);
+      }
+      .copy-btn.copied {
+        color: #a6e3a1;
+        border-color: #a6e3a1;
+      }
+
+      /* 6. Formula Breakdown Transitions */
+      .formula-breakdown[open] summary {
+        border-bottom: 1px solid var(--border);
+      }
+      .formula-breakdown summary::marker {
+        color: var(--accent);
+      }
+      .formula-breakdown summary:hover {
+        background: rgba(37, 99, 235, 0.04);
+      }
+
+      /* 7. Smooth Scroll Behavior */
+      html { scroll-behavior: smooth; }
+
+      /* 8. Masthead Enhancement */
+      .masthead {
+        background: linear-gradient(135deg, rgba(37,99,235,0.03), rgba(37,99,235,0.01), transparent);
+        padding: 2rem 1rem 1.5rem;
+      }
+      .masthead-sub {
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+      }
+
+      /* 9. Slider Track Styling Enhancement */
+      input[type="range"] {
+        background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--val, 50%), var(--border) var(--val, 50%), var(--border) 100%);
       }
 
       @media (max-width: 768px) {
-        body { padding: 1rem; }
-        .article { padding: 0 1rem 2rem; max-width: 100%; }
-        .stage-wrapper { height: 320px; }
-        .lang-toggle { right: 10px; top: 10px; }
+        body {
+          padding: 1rem;
+        }
+        .article {
+          padding: 0 1rem 2rem;
+          max-width: 100%;
+        }
+        .stage-wrapper {
+          height: 320px;
+        }
+        .lang-toggle {
+          right: 10px;
+          top: 10px;
+        }
+        .code-block {
+          font-size: 0.78rem;
+          padding: 1rem;
+          margin: 1.5rem 0;
+        }
+        .math-block {
+          padding: 1rem 0.5rem;
+          font-size: 0.9rem;
+        }
+        .phase-heading {
+          font-size: 1.25rem;
+        }
+        .phase-desc {
+          font-size: 0.95rem;
+        }
+        .hero-text {
+          font-size: 1rem;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+          width: 36px;
+          height: 36px;
+          margin-top: -14px;
+        }
+        input[type="range"]::-moz-range-thumb {
+          width: 36px;
+          height: 36px;
+        }
+        .playground-wrapper { padding: 1rem; }
+        .toc-sticky {
+          display: none;
+        }
+        .toc-mobile-toggle {
+          display: block;
+        }
+        .playground-controls {
+          grid-template-columns: 1fr;
+        }
+        .comparison-table {
+          font-size: 0.8rem;
+        }
+        .comparison-table th,
+        .comparison-table td {
+          padding: 0.5rem;
+        }
+        .zone-display {
+          grid-template-columns: 1fr;
+        }
       }
+
       @media (max-width: 480px) {
-        body { padding: 0.5rem; }
-        .article { padding: 0 0.5rem 1.5rem; }
-        .stage-wrapper { height: 280px; }
-        .key-stats { flex-wrap: wrap; flex-direction: column; }
-        .key-stats div { border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; }
-        .key-stats div:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+        body {
+          padding: 0.5rem;
+        }
+        .article {
+          padding: 0 0.5rem 1.5rem;
+        }
+        .playground-wrapper { padding: 0.75rem; }
+        .playground-svg { height: 200px; }
+        .zone-display { font-size: 0.78rem; }
+        .comparison-table { font-size: 0.75rem; }
+        .comparison-table th, .comparison-table td { padding: 0.4rem 0.5rem; }
+        .stage-wrapper {
+          height: 280px;
+        }
+        .key-stats {
+          flex-wrap: wrap;
+          flex-direction: column;
+        }
+        .key-stats div {
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding-bottom: 10px;
+          margin-bottom: 10px;
+        }
+        .key-stats div:last-child {
+          border-bottom: none;
+          padding-bottom: 0;
+          margin-bottom: 0;
+        }
+        .code-block {
+          font-size: 0.72rem;
+        }
+        .phase-heading {
+          font-size: 1.1rem;
+        }
+        .phase-desc {
+          font-size: 0.9rem;
+        }
+        .masthead-title {
+          font-size: 2rem;
+        }
+        .lang-toggle {
+          padding: 4px 10px;
+        }
+        .rope-legend {
+          padding: 4px 8px;
+          font-size: 0.75rem;
+        }
+        .rope-m-counter {
+          font-size: 0.85rem;
+          padding: 4px 8px;
+        }
+        .tldr-box {
+          padding: 1rem;
+        }
+        .intuition-box {
+          padding: 1rem;
+          font-size: 0.88rem;
+        }
+        .formula-breakdown table {
+          font-size: 0.8rem;
+        }
+        .code-walkthrough {
+          padding: 0.75rem 1rem;
+          font-size: 0.85rem;
+        }
       }
     </style>
   </head>
   <body>
+    <div class="progress-bar" id="progress-bar"></div>
+    <nav class="toc-sticky" id="toc-sidebar"></nav>
+    <button type="button" class="toc-mobile-toggle" id="toc-mobile-btn" aria-label="Table of Contents">☰</button>
     <nav class="site-nav">
       <a href="/">Home</a>
       <span class="nav-sep">|</span>
@@ -130,7 +982,7 @@
     </nav>
     <div class="article">
       <button type="button" class="lang-toggle" id="lang-toggle">EN</button>
-      
+
       <header class="masthead">
         <h1 class="masthead-title">YaRN</h1>
         <div class="masthead-sub" id="hero-subtitle">Yet another RoPE extensioN method</div>
@@ -138,78 +990,181 @@
 
       <div class="hero-content">
         <p class="hero-text" id="hero-text">
-          大型语言模型（LLM）的上下文窗口正在极速扩张。<br>
-          YaRN 提供了一种优雅且计算零开销的方法，<br>
+          大型语言模型（LLM）的上下文窗口正在极速扩张。<br />
+          YaRN 提供了一种优雅且计算零开销的方法，<br />
           通过动态调整旋转位置编码（RoPE），将上下文长度扩展数倍。
         </p>
       </div>
 
+      <div class="tldr-box" id="tldr-box">
+        <h4 id="tldr-title">📖 TL;DR — What is YaRN?</h4>
+        <ul>
+          <li id="tldr-1">RoPE encodes position via rotation — low dims = local, high dims = global</li>
+          <li id="tldr-2">Position Interpolation (PI) scales all frequencies uniformly → destroys high-freq resolution</li>
+          <li id="tldr-3">YaRN's NTK-by-parts: keep high-freq, interpolate low-freq, smooth blend in between</li>
+          <li id="tldr-4">Dynamic scaling (s = seq_len / L) enables inference-time adaptation without fine-tuning</li>
+          <li id="tldr-5">Attention temperature correction fixes logit distribution shift after interpolation</li>
+        </ul>
+      </div>
+
+      <!-- Section 1 -->
+      <div class="intuition-box" id="intuition-sec1"><span id="intuition-sec1-text">Why do we need position encoding at all? Without it, a Transformer treats "The cat sat" and "sat The cat" identically. RoPE elegantly injects position by rotating each dimension at a unique frequency.</span></div>
       <h3 class="phase-heading" id="sec1-heading">1. RoPE 旋转位置编码基础</h3>
       <p class="phase-desc" id="sec1-desc">
-        在理解 YaRN 之前，我们必须先理解 RoPE。RoPE 将词向量的元素两两分组，并在复平面上进行旋转，旋转的角度与该词在句子中的绝对位置 <span class="math">m</span> 成正比。
+        在理解 YaRN 之前，我们必须先理解 RoPE。RoPE
+        将词向量的元素两两分组，并在复平面上进行旋转，旋转的角度与该词在句子中的绝对位置 $m$
+        成正比。不同维度 $d$ 拥有不同的旋转频率 $\theta_d$。
       </p>
+
       <div class="math-block">
-        f(x, m, &theta;<sub>d</sub>) = e<sup>im&theta;<sub>d</sub></sup> x
+        $$ f(x_m, m, \theta_d) = e^{im\theta_d} \cdot x_m $$ $$ \theta_d = b^{-2d/|D|} $$
       </div>
-      <p class="phase-desc" id="sec1-desc-complex">
-        更严谨地，将其写为复数形式的旋转（在 2D 子空间中）：
-      </p>
-      <div class="math-block">
-        f<sub>W</sub>(x<sub>m</sub>, m, &theta;<sub>d</sub>) = e<sup>im&theta;<sub>d</sub></sup> W x<sub>m</sub>
+
+      <details class="formula-breakdown" id="fb-sec1">
+        <summary id="fb-sec1-title">🔍 Symbol Breakdown</summary>
+        <table>
+          <tr><th>$f(x_m, m, \\theta_d)$</th><td id="fb-sec1-r1">The rotated embedding for token at position m, dimension d</td></tr>
+          <tr><th>$e^{im\\theta_d}$</th><td id="fb-sec1-r2">Complex rotation by angle m·θ_d (Euler's formula)</td></tr>
+          <tr><th>$x_m$</th><td id="fb-sec1-r3">Input embedding vector at position m</td></tr>
+          <tr><th>$\\theta_d = b^{-2d/|D|}$</th><td id="fb-sec1-r4">Rotation frequency for dimension d; decreases exponentially with d</td></tr>
+          <tr><th>$b = 10000$</th><td id="fb-sec1-r5">Base constant (controls frequency range)</td></tr>
+          <tr><th>$|D|$</th><td id="fb-sec1-r6">Total embedding dimension (e.g., 64)</td></tr>
+        </table>
+      </details>
+
+      <pre
+        class="code-block"
+      ><code id="code-sec1"><span class="cm"># RoPE: Rotary Position Embedding</span>
+<span class="kw">def</span> <span class="fn">rope_embed</span>(x, position_m, dim_d, base<span class="op">=</span><span class="num">10000</span>, D<span class="op">=</span><span class="num">64</span>):
+    <span class="cm"># 1. 计算当前维度的旋转频率</span>
+    theta_d <span class="op">=</span> base <span class="op">**</span> (<span class="op">-</span><span class="num">2</span> <span class="op">*</span> dim_d <span class="op">/</span> D)
+    
+    <span class="cm"># 2. 计算旋转角度</span>
+    angle <span class="op">=</span> position_m <span class="op">*</span> theta_d
+    cos_a, sin_a <span class="op">=</span> cos(angle), sin(angle)
+    
+    <span class="cm"># 3. 在 2D 子空间中应用复数旋转</span>
+    x_even_new <span class="op">=</span> x_even <span class="op">*</span> cos_a <span class="op">-</span> x_odd <span class="op">*</span> sin_a
+    x_odd_new  <span class="op">=</span> x_even <span class="op">*</span> sin_a <span class="op">+</span> x_odd <span class="op">*</span> cos_a
+    
+    <span class="kw">return</span> x_even_new, x_odd_new</code></pre>
+
+      <div class="code-walkthrough" id="cw-sec1">
+        <h5 id="cw-sec1-title">📝 Code Walkthrough</h5>
+        <ol>
+          <li id="cw-sec1-s1"><strong>theta_d = base ** (-2 * dim_d / D)</strong> — Compute the rotation frequency. Low d → high frequency, high d → low frequency.</li>
+          <li id="cw-sec1-s2"><strong>angle = position_m * theta_d</strong> — The rotation angle is simply position × frequency.</li>
+          <li id="cw-sec1-s3"><strong>x_even_new, x_odd_new = ...</strong> — Apply 2D rotation matrix: [cos -sin; sin cos] to each pair of dimensions.</li>
+        </ol>
       </div>
-      <p class="phase-desc" id="sec1-desc-framework">
-        后续的所有上下文扩展方法（包括 YaRN），本质上都是通过引入位置函数 <span class="math">g(m)</span> 和频率函数 <span class="math">h(&theta;)</span> 来修改这个旋转公式：
-      </p>
-      <div class="math-block">
-        f'<sub>W</sub>(x<sub>m</sub>, m, &theta;<sub>d</sub>) = f<sub>W</sub>(x<sub>m</sub>, g(m), h(&theta;<sub>d</sub>))
-      </div>
+
       <p class="phase-desc" id="sec1-desc2">
-        关键在于，不同维度 <span class="math">d</span> 拥有不同的旋转频率 <span class="math">&theta;<sub>d</sub></span>：<br>
-        <strong>低维度（小 d）</strong>旋转极快，捕捉局部的相对距离；<br><strong>高维度（大 d）</strong>旋转极慢，几乎静止，编码宏观的绝对位置信息。
+        关键在于，不同维度编码了不同的信息：<br />
+        <strong>低维度（小 d）</strong>旋转极快，捕捉局部的相对距离；<br />
+        <strong>高维度（大 d）</strong>旋转极慢，几乎静止，编码宏观的绝对位置信息。
       </p>
-      <div class="math-block">
-        &theta;<sub>d</sub> = 10000<sup>-2d/|D|</sup>
-      </div>
-      <div class="stage-wrapper" style="height: 300px;">
-        <div class="viz-layer" id="rope-layer" style="height: 100%;">
+
+      <div class="stage-wrapper" style="height: 300px">
+        <div class="viz-layer" id="rope-layer" style="height: 100%; pointer-events: auto">
           <svg width="100%" height="100%" id="svg-rope">
             <title>RoPE Visualization</title>
             <g id="rope-grid"></g>
             <g id="rope-vectors"></g>
           </svg>
           <div class="rope-legend">
-            <div class="rope-legend-item"><div class="rope-legend-color" style="background: var(--color-keep);"></div>d=0 (Fast)</div>
-            <div class="rope-legend-item"><div class="rope-legend-color" style="background: var(--color-trans);"></div>d=8</div>
-            <div class="rope-legend-item"><div class="rope-legend-color" style="background: var(--color-inter);"></div>d=16</div>
-            <div class="rope-legend-item"><div class="rope-legend-color" style="background: var(--text-secondary);"></div>d=24 (Slow)</div>
+            <div class="rope-legend-item">
+              <div class="rope-legend-color" style="background: var(--color-keep)"></div>
+              <span id="rope-l1">d=0 (Fast)</span>
+            </div>
+            <div class="rope-legend-item">
+              <div class="rope-legend-color" style="background: var(--color-trans)"></div>
+              <span>d=8</span>
+            </div>
+            <div class="rope-legend-item">
+              <div class="rope-legend-color" style="background: var(--color-inter)"></div>
+              <span>d=16</span>
+            </div>
+            <div class="rope-legend-item">
+              <div class="rope-legend-color" style="background: var(--text-secondary)"></div>
+              <span id="rope-l4">d=24 (Slow)</span>
+            </div>
           </div>
-          <div class="rope-m-counter" id="rope-m-counter">m = 0</div>
+          <div class="rope-m-counter">
+            <span id="rope-m-val">m = 0</span>
+            <button type="button" id="btn-rope-play" class="btn-play">Pause</button>
+          </div>
         </div>
       </div>
+
+      <!-- Section 2 -->
+      <div class="intuition-box" id="intuition-sec2"><span id="intuition-sec2-text">Think of wavelength as "how many tokens fit in one full rotation cycle." Short wavelength = fast spinning = sensitive to nearby tokens. Long wavelength = slow spinning = tracks global position.</span></div>
       <h3 class="phase-heading" id="sec2-heading">2. 波长与上下文长度</h3>
       <p class="phase-desc" id="sec2-desc">
-        旋转频率 <span class="math">&theta;<sub>d</sub></span> 决定了该维度在序列中需要多少个 Token 才能完成一次完整的 2&pi; 旋转。我们将这个跨度称为<strong>波长 (Wavelength)</strong> <span class="math">&lambda;<sub>d</sub></span>。
+        旋转频率 $\theta_d$ 决定了该维度在序列中需要多少个 Token 才能完成一次完整的 $2\pi$
+        旋转。我们将这个跨度称为<strong>波长 (Wavelength)</strong>
+        $\lambda_d$。同时定义预训练上下文长度 $L$ 与波长的比值 $r(d)$。
       </p>
+
       <div class="math-block">
-        &lambda;<sub>d</sub> = 2&pi; / &theta;<sub>d</sub> = 2&pi; &middot; 10000<sup>2d/|D|</sup>
+        $$ \lambda_d = \frac{2\pi}{\theta_d} $$ $$ r(d) = \frac{L}{\lambda_d} $$
       </div>
-      <p class="phase-desc" id="sec2-desc-ratio">
-        定义预训练上下文长度 <span class="math">L</span> 与波长的比值 <span class="math">r(d)</span>：
-      </p>
-      <div class="math-block">
-        r(d) = L / &lambda;<sub>d</sub> = L / (2&pi; &middot; 10000<sup>2d/|D|</sup>)
+
+      <details class="formula-breakdown" id="fb-sec2">
+        <summary id="fb-sec2-title">🔍 Symbol Breakdown</summary>
+        <table>
+          <tr><th>$\lambda_d$</th><td id="fb-sec2-r1">Wavelength: token span for one full 2π rotation</td></tr>
+          <tr><th>$\theta_d$</th><td id="fb-sec2-r2">Rotation frequency at dimension d</td></tr>
+          <tr><th>$r(d)$</th><td id="fb-sec2-r3">Frequency ratio indicating local/global behavior</td></tr>
+          <tr><th>$L$</th><td id="fb-sec2-r4">Original pre-training context length</td></tr>
+          <tr><th>$r \gg 1$</th><td id="fb-sec2-r5">High-frequency dimensions (local detail)</td></tr>
+          <tr><th>$r \ll 1$</th><td id="fb-sec2-r6">Low-frequency dimensions (global position)</td></tr>
+        </table>
+      </details>
+
+      <pre
+        class="code-block"
+      ><code id="code-sec2"><span class="cm"># Wavelength and ratio computation</span>
+<span class="kw">def</span> <span class="fn">wavelength</span>(dim_d, base<span class="op">=</span><span class="num">10000</span>, D<span class="op">=</span><span class="num">64</span>):
+    theta <span class="op">=</span> base <span class="op">**</span> (<span class="op">-</span><span class="num">2</span> <span class="op">*</span> dim_d <span class="op">/</span> D)
+    lam <span class="op">=</span> <span class="num">2</span> <span class="op">*</span> pi <span class="op">/</span> theta                  <span class="cm"># wavelength in tokens</span>
+    <span class="kw">return</span> lam
+
+<span class="kw">def</span> <span class="fn">freq_ratio</span>(dim_d, L<span class="op">=</span><span class="num">4096</span>):
+    <span class="kw">return</span> L <span class="op">/</span> wavelength(dim_d)           <span class="cm"># r &gt;&gt; 1: high freq, r &lt;&lt; 1: low freq</span></code></pre>
+
+      <div class="code-walkthrough" id="cw-sec2">
+        <h5 id="cw-sec2-title">📝 Code Walkthrough</h5>
+        <ol>
+          <li id="cw-sec2-s1"><strong>wavelength()</strong> — Converts frequency to wavelength (tokens per cycle).</li>
+          <li id="cw-sec2-s2"><strong>freq_ratio()</strong> — Normalizes wavelength by context length L.</li>
+          <li id="cw-sec2-s3"><strong>r behavior</strong> — Large r means local/high-frequency; tiny r means global/low-frequency.</li>
+        </ol>
       </div>
+
       <p class="phase-desc" id="sec2-desc-ratio-exp">
-        这个比值决定了该维度如何被处理：当 <span class="math">r &gg; 1</span> 时，该维度在训练窗口内完成多次循环 &rarr; <strong>高频（局部信息）</strong>；当 <span class="math">r &ll; 1</span> 时，该维度几乎不旋转 &rarr; <strong>低频（全局位置信息）</strong>。
+        这个比值决定了该维度如何被处理：当 $r \gg 1$ 时，该维度在训练窗口内完成多次循环
+        $\rightarrow$ <strong>高频（局部信息）</strong>；当 $r \ll 1$ 时，该维度几乎不旋转
+        $\rightarrow$ <strong>低频（全局位置信息）</strong>。
       </p>
+
       <div class="stage-wrapper">
         <div class="viz-layer" id="wavelength-layer">
           <svg width="100%" height="100%" id="svg-wavelength">
             <title>Wavelength Chart</title>
-            <line id="wl-axis-x" stroke="var(--text)" stroke-width="2"/>
-            <line id="wl-axis-y" stroke="var(--text)" stroke-width="2"/>
-            <line id="wl-threshold" stroke="var(--color-trans)" stroke-width="2" stroke-dasharray="5,5"/>
-            <path id="wl-path" fill="rgba(37, 99, 235, 0.1)" stroke="var(--accent)" stroke-width="2"/>
+            <line id="wl-axis-x" stroke="var(--text)" stroke-width="2" />
+            <line id="wl-axis-y" stroke="var(--text)" stroke-width="2" />
+            <line
+              id="wl-threshold"
+              stroke="var(--color-trans)"
+              stroke-width="2"
+              stroke-dasharray="5,5"
+            />
+            <path
+              id="wl-path"
+              fill="rgba(37, 99, 235, 0.1)"
+              stroke="var(--accent)"
+              stroke-width="2"
+            />
           </svg>
         </div>
         <div class="controls">
@@ -218,24 +1173,56 @@
               <span id="lbl-l-text">预训练上下文长度 (L)</span>
               <span id="label-L">4096</span>
             </div>
-            <input type="range" id="slider-L" min="1024" max="16384" step="1024" value="4096">
+            <input type="range" id="slider-L" min="1024" max="16384" step="1024" value="4096" />
           </div>
         </div>
       </div>
 
+      <!-- Section 3 -->
+      <div class="intuition-box" id="intuition-sec3"><span id="intuition-sec3-text">Imagine stretching a rubber band with markings. PI stretches ALL markings uniformly — the fine markings become unreadable. That's exactly what happens to high-frequency position info.</span></div>
       <h3 class="phase-heading" id="sec3-heading">3. 线性插值 (PI) 的灾难</h3>
       <p class="phase-desc" id="sec3-desc">
-        要扩展上下文到 <span class="math">s&middot;L</span>，最直接的方法是 <strong>Position Interpolation (PI)</strong>：把所有位置坐标缩小为 <span class="math">m/s</span>。在频域上，这等于把所有频率压缩为 <span class="math">&theta;<sub>d</sub>/s</span>。<br><br>但这对高频维度（低 d）是灾难性的。高频维度原本用来区分非常近的 Token，将它们硬性拉伸后，相邻 Token 的相对角度差变得过小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。
+        要扩展上下文到 $s \cdot L$，最直接的方法是
+        <strong>Position Interpolation (PI)</strong>：把所有位置坐标缩小为
+        $m/s$。这等价于将所有频率压缩为 $\theta_d/s$。
       </p>
-      <p class="phase-desc" id="sec3-desc-math">
-        用数学公式表达，PI 相当于：
-      </p>
-      <div class="math-block">
-        g(m) = m/s, &nbsp;&nbsp; h(&theta;<sub>d</sub>) = &theta;<sub>d</sub>
+
+      <div class="math-block">$$ g(m) = \frac{m}{s}, \quad h(\theta_d) = \frac{\theta_d}{s} $$</div>
+
+      <details class="formula-breakdown" id="fb-sec3">
+        <summary id="fb-sec3-title">🔍 Symbol Breakdown</summary>
+        <table>
+          <tr><th>$g(m)=m/s$</th><td id="fb-sec3-r1">Position interpolation: compress positions by scale s</td></tr>
+          <tr><th>$h(\theta_d)=\theta_d/s$</th><td id="fb-sec3-r2">Equivalent frequency compression in every dimension</td></tr>
+          <tr><th>$s$</th><td id="fb-sec3-r3">Target extension multiplier (e.g., 8, 16, 32)</td></tr>
+          <tr><th>Uniform scaling</th><td id="fb-sec3-r4">Applies equally to all dimensions, including high-frequency ones</td></tr>
+          <tr><th>High-freq impact</th><td id="fb-sec3-r5">Adjacent-token angle differences shrink too much</td></tr>
+          <tr><th>Consequence</th><td id="fb-sec3-r6">Model loses local positional resolution</td></tr>
+        </table>
+      </details>
+
+      <pre
+        class="code-block"
+      ><code id="code-sec3"><span class="cm"># Position Interpolation — the naive approach</span>
+<span class="kw">def</span> <span class="fn">position_interpolation</span>(position_m, scale_s):
+    <span class="kw">return</span> position_m <span class="op">/</span> scale_s    <span class="cm"># compress ALL positions by s</span>
+    <span class="cm"># Problem: high-freq dims lose resolution!</span>
+    <span class="cm"># Adjacent tokens: angle_diff = theta_d / s → too small</span></code></pre>
+
+      <div class="code-walkthrough" id="cw-sec3">
+        <h5 id="cw-sec3-title">📝 Code Walkthrough</h5>
+        <ol>
+          <li id="cw-sec3-s1"><strong>position_m / scale_s</strong> — Uniformly compresses every position index.</li>
+          <li id="cw-sec3-s2"><strong>Implicit effect</strong> — Equivalent to shrinking every θ_d by the same factor.</li>
+          <li id="cw-sec3-s3"><strong>Failure mode</strong> — High-frequency dimensions can no longer separate nearby tokens.</li>
+        </ol>
       </div>
+
       <p class="phase-desc" id="sec3-desc-prob">
-        这等价于将所有维度的有效频率变为 <span class="math">&theta;<sub>d</sub>/s</span>。在数学上，原本相邻 Token 间的旋转角度差是 <span class="math">&theta;<sub>d</sub></span>，现在变成了 <span class="math">&theta;<sub>d</sub>/s</span>。对于高频维度来说，角度差变得极小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。
+        这对高频维度（低 d）是灾难性的。高频维度原本用来区分非常近的 Token，将它们硬性拉伸后，相邻
+        Token 的相对角度差变得过小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。
       </p>
+
       <div class="stage-wrapper">
         <div class="viz-layer" id="pi-layer">
           <svg width="100%" height="100%" id="svg-pi">
@@ -246,51 +1233,138 @@
           <div class="control-group">
             <div class="control-label">
               <span id="lbl-s-pi">缩放比例 (s)</span>
-              <span id="label-s-pi">1x</span>
+              <span id="label-s-pi">1.0x</span>
             </div>
-            <input type="range" id="slider-s-pi" min="1" max="16" step="0.5" value="1">
+            <input type="range" id="slider-s-pi" min="1" max="16" step="0.5" value="1" />
           </div>
         </div>
       </div>
 
+      <!-- Section 4 -->
+      <div class="intuition-box" id="intuition-sec4"><span id="intuition-sec4-text">Instead of stretching positions, NTK-Aware changes the "ruler" itself (the base). This distributes the stretching pressure more evenly across all frequency bands.</span></div>
       <h3 class="phase-heading" id="sec4-0-heading">4. NTK-Aware 插值 (前置基础)</h3>
       <p class="phase-desc" id="sec4-0-desc">
-        在引入分段 NTK 之前，我们先看看 <strong>NTK-Aware Interpolation</strong>。它不直接缩放位置，而是修改底数 <span class="math">b</span>，将插值的压力分散到所有维度上：
-      </p>
-      <div class="math-block">
-        b' = b &middot; s<sup>|D|/(|D|-2)</sup>
-      </div>
-      <p class="phase-desc" id="sec4-0-desc2">
-        高频维度受影响较小，低频维度受影响较大。但这依然不够完美，于是 YaRN 提出了 NTK-by-parts。
+        在引入分段 NTK 之前，我们先看看
+        <strong>NTK-Aware Interpolation</strong>。它不直接缩放位置，而是修改底数
+        $b$，将插值的压力分散到所有维度上：
       </p>
 
+      <div class="math-block">$$ b' = b \cdot s^{|D|/(|D|-2)} $$</div>
+
+      <details class="formula-breakdown" id="fb-sec40">
+        <summary id="fb-sec40-title">🔍 Symbol Breakdown</summary>
+        <table>
+          <tr><th>$b'$</th><td id="fb-sec40-r1">Updated RoPE base used for extended context</td></tr>
+          <tr><th>$b$</th><td id="fb-sec40-r2">Original RoPE base (usually 10000)</td></tr>
+          <tr><th>$s$</th><td id="fb-sec40-r3">Context extension multiplier</td></tr>
+          <tr><th>$|D|$</th><td id="fb-sec40-r4">Embedding dimension count</td></tr>
+          <tr><th>Exponent $|D|/(|D|-2)$</th><td id="fb-sec40-r5">Dimension-dependent correction term</td></tr>
+          <tr><th>Main idea</th><td id="fb-sec40-r6">Reparameterize frequencies instead of raw positions</td></tr>
+        </table>
+      </details>
+
+      <pre
+        class="code-block"
+      ><code id="code-sec4-0"><span class="cm"># NTK-Aware: modify the base instead of positions</span>
+<span class="kw">def</span> <span class="fn">ntk_aware_base</span>(base, scale_s, D<span class="op">=</span><span class="num">64</span>):
+    <span class="kw">return</span> base <span class="op">*</span> scale_s <span class="op">**</span> (D <span class="op">/</span> (D <span class="op">-</span> <span class="num">2</span>))
+    <span class="cm"># Spreads interpolation pressure across ALL dimensions</span>
+    <span class="cm"># High-freq dims: less affected (good!)</span>
+    <span class="cm"># Low-freq dims: more affected (intended)</span></code></pre>
+
+      <div class="code-walkthrough" id="cw-sec40">
+        <h5 id="cw-sec40-title">📝 Code Walkthrough</h5>
+        <ol>
+          <li id="cw-sec40-s1"><strong>ntk_aware_base()</strong> — Computes a new base b′ from s and D.</li>
+          <li id="cw-sec40-s2"><strong>Effect</strong> — Frequency shift becomes dimension-aware, less harsh than PI.</li>
+          <li id="cw-sec40-s3"><strong>Tradeoff</strong> — Better than PI, but still not fully selective like YaRN.</li>
+        </ol>
+      </div>
+
+      <!-- Section 4.1 -->
+      <div class="intuition-box" id="intuition-sec41"><span id="intuition-sec41-text">YaRN's key insight: don't treat all frequencies the same. High-frequency dims already know local patterns — leave them alone. Only interpolate the low-frequency dims that actually need to handle longer contexts.</span></div>
       <h3 class="phase-heading" id="sec4-heading">4.1 YaRN 核心：分段 NTK 插值</h3>
       <p class="phase-desc" id="sec4-desc">
-        YaRN 的精髓在于 <strong>NTK-by-parts</strong>：不要一刀切地缩放。引入比值 <span class="math">r = L / &lambda;<sub>d</sub></span>，并定义两个阈值 <span class="math">&alpha;=1, &beta;=32</span>：<br><br>
-        <span style="color: var(--color-keep); font-weight: bold;">■ 高频 (r &gt; &beta;)</span>：波长远小于L。完全不插值，保持原样。<br>
-        <span style="color: var(--color-trans); font-weight: bold;">■ 中频 (&alpha; &lt; r &lt; &beta;)</span>：使用斜坡函数平滑过渡。<br>
-        <span style="color: var(--color-inter); font-weight: bold;">■ 低频 (r &lt; &alpha;)</span>：波长大于L。执行 PI 线性插值 (除以s)。
+        YaRN 的精髓在于 <strong>NTK-by-parts</strong>：不要一刀切地缩放。引入比值 $r = L /
+        \lambda_d$，并定义两个阈值 $\alpha=1, \beta=32$：<br /><br />
+        <span style="color: var(--color-keep); font-weight: bold">■ 高频 (r &gt; \beta)</span
+        >：波长远小于L。完全不插值，保持原样。<br />
+        <span style="color: var(--color-trans); font-weight: bold"
+          >■ 中频 (\alpha &lt; r &lt; \beta)</span
+        >：使用斜坡函数平滑过渡。<br />
+        <span style="color: var(--color-inter); font-weight: bold">■ 低频 (r &lt; \alpha)</span
+        >：波长大于L。执行 PI 线性插值 (除以s)。
       </p>
+
       <div class="math-block">
-        h(&theta;<sub>d</sub>) = (1-&gamma;(r)) &middot; &theta;<sub>d</sub>/s + &gamma;(r) &middot; &theta;<sub>d</sub>
+        $$ h(\theta_d) = (1-\gamma(r)) \cdot \frac{\theta_d}{s} + \gamma(r) \cdot \theta_d $$ $$
+        \gamma(r) = \begin{cases} 0 & r &lt; \alpha \\ 1 & r &gt; \beta \\ \frac{r-\alpha}{\beta-\alpha} &
+        \text{otherwise} \end{cases} $$
       </div>
-      <p class="phase-desc" id="sec4-desc-ramp">
-        这里的 <span class="math">&gamma;(r)</span> 是一个斜坡函数（Ramp function），其具体定义为：
-      </p>
-      <div class="math-block" style="text-align: left; padding-left: 10%; display: inline-block; margin-left: 50%; transform: translateX(-50%);">
-        &gamma;(r) = 0, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if r &lt; &alpha; <br>
-        &gamma;(r) = 1, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if r &gt; &beta; <br>
-        &gamma;(r) = (r-&alpha;)/(&beta;-&alpha;), &nbsp; otherwise
+
+      <details class="formula-breakdown" id="fb-sec41">
+        <summary id="fb-sec41-title">🔍 Symbol Breakdown</summary>
+        <table>
+          <tr><th>$h(\theta_d)$</th><td id="fb-sec41-r1">Final blended frequency for dimension d</td></tr>
+          <tr><th>$\gamma(r)$</th><td id="fb-sec41-r2">Ramp factor controlling interpolation intensity</td></tr>
+          <tr><th>$\alpha, \beta$</th><td id="fb-sec41-r3">Thresholds separating interpolate/transition/keep zones</td></tr>
+          <tr><th>$\gamma=0$</th><td id="fb-sec41-r4">Pure PI mode for very low-frequency dimensions</td></tr>
+          <tr><th>$\gamma=1$</th><td id="fb-sec41-r5">Keep original frequency for high-frequency dimensions</td></tr>
+          <tr><th>Middle regime</th><td id="fb-sec41-r6">Linear blend for smooth continuity and stability</td></tr>
+        </table>
+      </details>
+
+      <pre
+        class="code-block"
+      ><code id="code-sec4-1"><span class="cm"># YaRN Core: NTK-by-parts interpolation</span>
+<span class="kw">def</span> <span class="fn">yarn_frequency</span>(theta_d, dim_d, L<span class="op">=</span><span class="num">4096</span>, scale_s<span class="op">=</span><span class="num">4</span>, alpha<span class="op">=</span><span class="num">1</span>, beta<span class="op">=</span><span class="num">32</span>):
+    lam <span class="op">=</span> <span class="num">2</span> <span class="op">*</span> pi <span class="op">/</span> theta_d
+    r <span class="op">=</span> L <span class="op">/</span> lam                            <span class="cm"># wavelength ratio</span>
+
+    <span class="cm"># Ramp function γ(r)</span>
+    <span class="kw">if</span> r <span class="op">&lt;</span> alpha:
+        gamma <span class="op">=</span> <span class="num">0.0</span>                        <span class="cm"># low freq → full PI</span>
+    <span class="kw">elif</span> r <span class="op">&gt;</span> beta:
+        gamma <span class="op">=</span> <span class="num">1.0</span>                        <span class="cm"># high freq → keep original</span>
+    <span class="kw">else</span>:
+        gamma <span class="op">=</span> (r <span class="op">-</span> alpha) <span class="op">/</span> (beta <span class="op">-</span> alpha)  <span class="cm"># smooth blend</span>
+
+    <span class="cm"># Blended frequency</span>
+    theta_new <span class="op">=</span> (<span class="num">1</span> <span class="op">-</span> gamma) <span class="op">*</span> (theta_d <span class="op">/</span> scale_s) <span class="op">+</span> gamma <span class="op">*</span> theta_d
+    <span class="kw">return</span> theta_new</code></pre>
+
+      <div class="code-walkthrough" id="cw-sec41">
+        <h5 id="cw-sec41-title">📝 Code Walkthrough</h5>
+        <ol>
+          <li id="cw-sec41-s1"><strong>r = L / λ</strong> — Measures whether a dimension behaves globally or locally.</li>
+          <li id="cw-sec41-s2"><strong>Piecewise γ</strong> — Sets full interpolate, full keep, or smooth transition.</li>
+          <li id="cw-sec41-s3"><strong>theta_new blend</strong> — Mixes θ_d/s and θ_d based on γ(r).</li>
+        </ol>
       </div>
+
       <p class="phase-desc" id="sec4-desc-cases">
-        让我们用具体数字（以 LLaMA 为例，<span class="math">L=4096, b=10000</span>）来看三个极端情况：<br><br>
-        1. <strong>最高频 (d=0)</strong>：<span class="math">&theta;<sub>0</sub> = 1.0</span>，波长 <span class="math">&lambda;<sub>0</sub> &approx; 6.28</span>。比值 <span class="math">r &approx; 652 &gg; &beta;</span>。此时 <span class="math">&gamma;=1</span>，完全使用原频率 <span class="math">&theta;<sub>0</sub></span>，保留局部信息。<br>
-        2. <strong>最低频 (d=31)</strong>：<span class="math">&theta;<sub>31</sub></span> 极小，波长远大于 <span class="math">L</span>。比值 <span class="math">r &approx; 0.00065 &ll; &alpha;</span>。此时 <span class="math">&gamma;=0</span>，使用全量 PI 插值 <span class="math">&theta;<sub>31</sub>/s</span>。<br>
+        让我们用具体数字（以 LLaMA 为例，$L=4096, b=10000$）来看三个极端情况：<br /><br />
+        1. <strong>最高频 (d=0)</strong>：$\theta_0 = 1.0$，波长 $\lambda_0 \approx 6.28$。比值 $r
+        \approx 652 \gg \beta$。此时 $\gamma=1$，完全使用原频率 $\theta_0$，保留局部信息。<br />
+        2. <strong>最低频 (d=31)</strong>：$\theta_{31}$ 极小，波长远大于 $L$。比值 $r \approx
+        0.00065 \ll \alpha$。此时 $\gamma=0$，使用全量 PI 插值 $\theta_{31}/s$。<br />
         3. <strong>中频</strong>：按比例平滑混合。
       </p>
+
       <div class="stage-wrapper">
-        <div class="viz-layer" id="ntk-layer" style="display:flex; align-items:flex-end; justify-content:space-between; padding: 20px;">
+        <div
+          class="viz-layer"
+          id="ntk-layer"
+          style="
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 20px;
+            pointer-events: auto;
+          "
+        >
           <!-- Bars generated via JS -->
+          <div id="ntk-tooltip" class="ntk-tooltip"></div>
         </div>
         <div class="controls">
           <div class="control-group">
@@ -298,437 +1372,1312 @@
               <span id="lbl-s-ntk">目标扩展倍数 (s)</span>
               <span id="label-s-ntk">16x</span>
             </div>
-            <input type="range" id="slider-s-ntk" min="1" max="32" step="1" value="16">
+            <input type="range" id="slider-s-ntk" min="1" max="32" step="1" value="16" />
           </div>
-        </div> <!-- control-group -->
-      </div> <!-- controls -->
+        </div>
+      </div>
+
+      <!-- Section 4.5 -->
       <h3 class="phase-heading" id="sec4-dyn-heading">4.5. 动态 NTK 与直觉 (Intuition)</h3>
       <p class="phase-desc" id="sec4-dyn-desc">
-        在实际推理时，我们并不知道最终序列长度。YaRN 使用<strong>动态缩放因子</strong>，根据当前序列长度 <span class="math">l'</span> 实时计算：
-      </p>
-      <div class="math-block">
-        s = max(1, l'/L)
-      </div>
-      <p class="phase-desc" id="sec4-dyn-desc2">
-        这意味着模型可以在不进行任何微调（Fine-tuning）的情况下，在推理时动态适应不同的上下文长度。<br><br>
-        <strong>为什么分段 NTK 如此有效？（Intuition）</strong><br>
-        核心洞察是：高频维度编码的是<strong>局部距离</strong>（相邻 Token）。它们的波长极短，在预训练窗口 <span class="math">L</span> 内已经历了无数个完整周期。它们<strong>已经见过了所有可能的相对位置</strong>，如果强行插值，反而会破坏这种细粒度。而低频维度编码的是<strong>全局位置</strong>，波长超过 <span class="math">L</span>，在训练时连一个完整周期都没走完。这些维度面对更长的序列时，才真正需要通过 PI 进行“插值外推”。NTK-by-parts 完美地用数学将这一直觉落地。
+        在实际推理时，我们并不知道最终序列长度。YaRN
+        使用<strong>动态缩放因子</strong>，根据当前序列长度 $l'$ 实时计算：
       </p>
 
+      <div class="math-block">$$ s = \max(1, \frac{l'}{L}) $$</div>
+
+      <details class="formula-breakdown" id="fb-sec45">
+        <summary id="fb-sec45-title">🔍 Symbol Breakdown</summary>
+        <table>
+          <tr><th>$s$</th><td id="fb-sec45-r1">Dynamic context scaling factor used at inference time</td></tr>
+          <tr><th>$l'$</th><td id="fb-sec45-r2">Current sequence length during autoregressive decoding</td></tr>
+          <tr><th>$L$</th><td id="fb-sec45-r3">Original pre-training max context length</td></tr>
+          <tr><th>$\max(1,\cdot)$</th><td id="fb-sec45-r4">Prevents shrinking frequencies for short sequences</td></tr>
+          <tr><th>$s=1$</th><td id="fb-sec45-r5">No context extension; default RoPE behavior is preserved</td></tr>
+          <tr><th>$s>1$</th><td id="fb-sec45-r6">Activates YaRN interpolation/correction for long-context inference</td></tr>
+          <tr><th>Practical impact</th><td id="fb-sec45-r7">Single checkpoint can flexibly handle mixed sequence lengths</td></tr>
+          <tr><th>Key advantage</th><td id="fb-sec45-r8">No extra fine-tuning needed for each target length</td></tr>
+        </table>
+      </details>
+
+      <p class="phase-desc" id="sec4-dyn-desc2">
+        这意味着模型可以在不进行任何微调（Fine-tuning）的情况下，在推理时动态适应不同的上下文长度。<br /><br />
+        <strong>为什么分段 NTK 如此有效？（Intuition）</strong><br />
+        核心洞察是：高频维度编码的是<strong>局部距离</strong>（相邻
+        Token）。它们的波长极短，在预训练窗口 $L$
+        内已经历了无数个完整周期。它们<strong>已经见过了所有可能的相对位置</strong>，如果强行插值，反而会破坏这种细粒度。而低频维度编码的是<strong>全局位置</strong>，波长超过
+        $L$，在训练时连一个完整周期都没走完。这些维度面对更长的序列时，才真正需要通过 PI
+        进行“插值外推”。NTK-by-parts 完美地用数学将这一直觉落地。
+      </p>
+
+      <!-- Section 5 -->
+      <div class="intuition-box" id="intuition-sec5"><span id="intuition-sec5-text">After interpolation, the attention scores' distribution changes (like adjusting the "temperature" of a softmax). YaRN adds a tiny correction factor to restore the original distribution shape.</span></div>
       <h3 class="phase-heading" id="sec5-heading">5. 注意力缩放 (Attention Scaling)</h3>
       <p class="phase-desc" id="sec5-desc">
-        YaRN 发现，在插值后，注意力的 Logits 分布会发生变动（平均长度变大导致方差改变）。为了修正这种温度偏差，YaRN 在注意力计算后乘以一个极小但关键的缩放系数：
+        YaRN 发现，在插值后，注意力的 Logits
+        分布会发生变动（平均长度变大导致方差改变）。为了修正这种温度偏差，YaRN
+        在注意力计算后乘以一个极小但关键的缩放系数：
       </p>
-      <div class="math-block">
-        t = ( 0.1 &middot; ln(s) + 1 )<sup>-2</sup>
+
+      <div class="math-block">$$ t = \left(0.1 \cdot \ln(s) + 1\right)^{-2} $$</div>
+
+      <details class="formula-breakdown" id="fb-sec5">
+        <summary id="fb-sec5-title">🔍 Symbol Breakdown</summary>
+        <table>
+          <tr><th>$t$</th><td id="fb-sec5-r1">Attention correction factor</td></tr>
+          <tr><th>$s$</th><td id="fb-sec5-r2">Current extension scale factor</td></tr>
+          <tr><th>$0.1\ln(s)+1$</th><td id="fb-sec5-r3">Logarithmic temperature compensation term</td></tr>
+          <tr><th>Exponent $-2$</th><td id="fb-sec5-r4">Stabilizes scaling as s grows large</td></tr>
+          <tr><th>$s=1$</th><td id="fb-sec5-r5">t = 1, so original attention behavior remains unchanged</td></tr>
+          <tr><th>$s>1$</th><td id="fb-sec5-r6">t decreases, cooling shifted attention logits</td></tr>
+        </table>
+      </details>
+
+      <pre
+        class="code-block"
+      ><code id="code-sec5"><span class="cm"># Attention temperature correction</span>
+<span class="kw">def</span> <span class="fn">attention_scale</span>(scale_s):
+    t <span class="op">=</span> (<span class="num">0.1</span> <span class="op">*</span> log(scale_s) <span class="op">+</span> <span class="num">1</span>) <span class="op">**</span> (<span class="op">-</span><span class="num">2</span>)
+    <span class="kw">return</span> t    <span class="cm"># multiply attention logits by sqrt(t)</span>
+    <span class="cm"># s=1 → t=1.0 (no change)</span>
+    <span class="cm"># s=16 → t≈0.56 (cool down attention)</span></code></pre>
+
+      <div class="code-walkthrough" id="cw-sec5">
+        <h5 id="cw-sec5-title">📝 Code Walkthrough</h5>
+        <ol>
+          <li id="cw-sec5-s1"><strong>Compute t from s</strong> — Uses logarithmic scaling for smooth correction growth.</li>
+          <li id="cw-sec5-s2"><strong>Return factor</strong> — Apply to attention logits (typically via √t).</li>
+          <li id="cw-sec5-s3"><strong>Behavior</strong> — No change at s=1, stronger cooling as scale increases.</li>
+        </ol>
       </div>
-      <div class="stage-wrapper" style="height: 300px;">
+
+      <div class="stage-wrapper" style="height: 300px">
         <div class="viz-layer" id="attention-layer">
           <svg width="100%" height="100%" id="svg-attention">
             <title>Attention Scaling Chart</title>
-            <path id="att-path" fill="none" stroke="var(--text)" stroke-width="3"/>
-            <circle id="att-dot" r="6" fill="var(--color-keep)"/>
-            <text id="att-text" font-family="var(--font-math)" font-size="14" fill="var(--text-secondary)"></text>
+            <path id="att-path" fill="none" stroke="var(--text)" stroke-width="3" />
+            <circle id="att-dot" r="6" fill="var(--color-keep)" />
+            <text
+              id="att-text"
+              font-family="var(--font-math)"
+              font-size="14"
+              fill="var(--text-secondary)"
+            ></text>
           </svg>
         </div>
       </div>
 
-      <h3 class="phase-heading" id="sec6-heading">6. YaRN 方法总结</h3>
+      <!-- Section 6 -->
+      <h3 class="phase-heading" id="sec6-heading">6. YaRN 完整流程总结</h3>
+
+      <p class="phase-desc" id="sec6-desc">结合上述所有组件，端到端的 YaRN Pipeline 如下所示：</p>
+
+      <pre class="code-block"><code id="code-sec6"><span class="cm"># Complete YaRN Pipeline</span>
+<span class="kw">def</span> <span class="fn">yarn_rope</span>(x, position_m, L<span class="op">=</span><span class="num">4096</span>, base<span class="op">=</span><span class="num">10000</span>, D<span class="op">=</span><span class="num">64</span>, alpha<span class="op">=</span><span class="num">1</span>, beta<span class="op">=</span><span class="num">32</span>, seq_len<span class="op">=</span><span class="num">8192</span>):
+    scale_s <span class="op">=</span> max(<span class="num">1</span>, seq_len <span class="op">/</span> L)  <span class="cm"># dynamic scaling</span>
+    
+    <span class="kw">for</span> d <span class="kw">in</span> range(D <span class="op">//</span> <span class="num">2</span>):
+        theta <span class="op">=</span> base <span class="op">**</span> (<span class="op">-</span><span class="num">2</span> <span class="op">*</span> d <span class="op">/</span> D)
+        lam <span class="op">=</span> <span class="num">2</span> <span class="op">*</span> pi <span class="op">/</span> theta
+        r <span class="op">=</span> L <span class="op">/</span> lam
+        
+        <span class="cm"># NTK-by-parts</span>
+        <span class="kw">if</span> r <span class="op">&lt;</span> alpha:    gamma <span class="op">=</span> <span class="num">0.0</span>       <span class="cm"># → PI interpolation</span>
+        <span class="kw">elif</span> r <span class="op">&gt;</span> beta:   gamma <span class="op">=</span> <span class="num">1.0</span>       <span class="cm"># → keep original</span>
+        <span class="kw">else</span>:            gamma <span class="op">=</span> (r <span class="op">-</span> alpha) <span class="op">/</span> (beta <span class="op">-</span> alpha)
+        
+        theta_new <span class="op">=</span> (<span class="num">1</span> <span class="op">-</span> gamma) <span class="op">*</span> theta <span class="op">/</span> scale_s <span class="op">+</span> gamma <span class="op">*</span> theta
+        angle <span class="op">=</span> position_m <span class="op">*</span> theta_new
+        
+        <span class="cm"># Apply rotation</span>
+        x[<span class="num">2</span><span class="op">*</span>d], x[<span class="num">2</span><span class="op">*</span>d<span class="op">+</span><span class="num">1</span>] <span class="op">=</span> rotate_2d(x[<span class="num">2</span><span class="op">*</span>d], x[<span class="num">2</span><span class="op">*</span>d<span class="op">+</span><span class="num">1</span>], angle)
+    
+    <span class="cm"># Attention scaling</span>
+    t <span class="op">=</span> (<span class="num">0.1</span> <span class="op">*</span> log(scale_s) <span class="op">+</span> <span class="num">1</span>) <span class="op">**</span> (<span class="op">-</span><span class="num">2</span>)
+    <span class="kw">return</span> x, t</code></pre>
+
+      <div class="code-walkthrough" id="cw-sec6">
+        <h5 id="cw-sec6-title">📝 Code Walkthrough</h5>
+        <ol>
+          <li id="cw-sec6-s1"><strong>dynamic scale_s</strong> — Computes runtime scale from current sequence length.</li>
+          <li id="cw-sec6-s2"><strong>per-dimension NTK-by-parts</strong> — Calculates γ and blended frequency per dim.</li>
+          <li id="cw-sec6-s3"><strong>final output</strong> — Returns rotated embeddings plus attention correction t.</li>
+        </ol>
+      </div>
+
       <div class="key-stats">
         <div>128k<span id="stat1-lbl">无缝支持的上下文长度</span></div>
         <div>10x<span id="stat2-lbl">微调 Token 量降低</span></div>
         <div>2.5x<span id="stat3-lbl">所需训练步数减少</span></div>
       </div>
 
+      <h3 class="phase-heading" id="sec7-heading">7. Method Comparison & Real-World Configs</h3>
+      <div class="intuition-box" id="intuition-sec7"><span id="intuition-sec7-text">How do PI, NTK-Aware, and YaRN actually compare? This table summarizes the tradeoffs, and the configs below show how to use YaRN in production.</span></div>
+
+      <p class="phase-desc" id="sec7-desc">Below is a side-by-side comparison of the three main context extension methods, followed by real-world configurations:</p>
+
+      <div class="table-scroll-wrapper">
+      <table class="comparison-table" id="comparison-table">
+        <thead>
+          <tr>
+            <th id="ct-h0">Feature</th>
+            <th>PI</th>
+            <th>NTK-Aware</th>
+            <th>YaRN</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td id="ct-r1c0">Approach</td><td id="ct-r1c1">Scale all positions by 1/s</td><td id="ct-r1c2">Modify base b</td><td id="ct-r1c3">Per-dimension frequency adjustment</td></tr>
+          <tr><td id="ct-r2c0">High-freq handling</td><td id="ct-r2c1">❌ Compressed (destroys local info)</td><td id="ct-r2c2">⚠️ Partially preserved</td><td id="ct-r2c3">✅ Fully preserved (γ=1)</td></tr>
+          <tr><td id="ct-r3c0">Low-freq handling</td><td id="ct-r3c1">✅ Interpolated</td><td id="ct-r3c2">✅ Interpolated</td><td id="ct-r3c3">✅ PI interpolated (γ=0)</td></tr>
+          <tr><td id="ct-r4c0">Fine-tuning required</td><td id="ct-r4c1">200-400 steps</td><td id="ct-r4c2">200-400 steps</td><td id="ct-r4c3">~400 steps (10x fewer tokens)</td></tr>
+          <tr><td id="ct-r5c0">Dynamic inference</td><td id="ct-r5c1">❌ Fixed scale</td><td id="ct-r5c2">✅ Supported</td><td id="ct-r5c3">✅ Dynamic s = l'/L</td></tr>
+          <tr><td id="ct-r6c0">Attention correction</td><td id="ct-r6c1">❌ None</td><td id="ct-r6c2">❌ None</td><td id="ct-r6c3">✅ Temperature scaling t</td></tr>
+          <tr><td id="ct-r7c0">Perplexity at 128k</td><td id="ct-r7c1">High (degraded)</td><td id="ct-r7c2">Medium</td><td id="ct-r7c3">Low (best)</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h4 class="phase-heading" style="border-top: none; padding-top: 0.5rem; font-size: 1.2rem;" id="sec7-config-heading">Real-World Configurations</h4>
+      <p class="phase-desc" id="sec7-config-desc">Here's how YaRN is configured in popular models:</p>
+
+      <p class="phase-desc"><strong>LLaMA-2 7B (4k → 128k):</strong></p>
+      <div class="config-block" id="config-llama">rope_scaling:
+  type: yarn
+  factor: 32.0           # s = 128k / 4k = 32
+  original_max_position_embeddings: 4096
+  attention_factor: 0.1   # attention temperature
+  beta_fast: 32           # β threshold
+  beta_slow: 1            # α threshold</div>
+
+      <p class="phase-desc"><strong>Mistral 7B (8k → 64k):</strong></p>
+      <div class="config-block" id="config-mistral">rope_scaling:
+  type: yarn
+  factor: 8.0             # s = 64k / 8k = 8
+  original_max_position_embeddings: 8192
+  attention_factor: 0.1
+  beta_fast: 32
+  beta_slow: 1</div>
+
+      <p class="phase-desc"><strong id="sec7-hf-label">HuggingFace Transformers:</strong></p>
+      <pre class="code-block"><code id="code-sec7"><span class="kw">from</span> transformers <span class="kw">import</span> AutoModelForCausalLM
+
+<span class="cm"># Load model with YaRN scaling</span>
+model <span class="op">=</span> AutoModelForCausalLM.from_pretrained(
+    <span class="str">"meta-llama/Llama-2-7b-hf"</span>,
+    rope_scaling<span class="op">=</span>{
+        <span class="str">"type"</span>: <span class="str">"yarn"</span>,
+        <span class="str">"factor"</span>: <span class="num">32.0</span>,
+        <span class="str">"original_max_position_embeddings"</span>: <span class="num">4096</span>,
+        <span class="str">"attention_factor"</span>: <span class="num">0.1</span>,
+        <span class="str">"beta_fast"</span>: <span class="num">32</span>,
+        <span class="str">"beta_slow"</span>: <span class="num">1</span>,
+    }
+)</code></pre>
+      <div class="code-walkthrough" id="cw-sec7">
+        <h5 id="cw-sec7-title">📝 Code Walkthrough</h5>
+        <ol>
+          <li id="cw-sec7-s1"><strong>rope_scaling.type = "yarn"</strong> — Tells HuggingFace to use YaRN's NTK-by-parts interpolation instead of linear PI.</li>
+          <li id="cw-sec7-s2"><strong>factor = 32.0</strong> — The scale factor s, extending context from 4k to 128k tokens.</li>
+          <li id="cw-sec7-s3"><strong>beta_fast / beta_slow</strong> — The β and α thresholds that define the three frequency zones.</li>
+        </ol>
+      </div>
+
+      <h3 class="phase-heading" id="sec8-heading">8. Interactive Playground</h3>
+      <div class="intuition-box" id="intuition-sec8"><span id="intuition-sec8-text">Adjust the parameters below to see how PI, NTK-Aware, and YaRN handle each frequency dimension differently. Watch the three curves diverge as you increase the scale factor.</span></div>
+
+      <p class="phase-desc" id="sec8-desc">Drag the sliders to compare how each method modifies rotation frequencies across all 32 dimensions:</p>
+
+      <div class="playground-wrapper">
+        <div class="playground-controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span id="pg-lbl-s">Scale (s)</span>
+              <span id="pg-val-s">4x</span>
+            </div>
+            <input type="range" id="pg-slider-s" min="1" max="32" step="1" value="4" />
+          </div>
+          <div class="control-group">
+            <div class="control-label">
+              <span id="pg-lbl-alpha">α (alpha)</span>
+              <span id="pg-val-alpha">1</span>
+            </div>
+            <input type="range" id="pg-slider-alpha" min="0.5" max="4" step="0.5" value="1" />
+          </div>
+          <div class="control-group">
+            <div class="control-label">
+              <span id="pg-lbl-beta">β (beta)</span>
+              <span id="pg-val-beta">32</span>
+            </div>
+            <input type="range" id="pg-slider-beta" min="4" max="64" step="4" value="32" />
+          </div>
+        </div>
+
+        <svg class="playground-svg" id="svg-playground">
+          <title>PI vs NTK vs YaRN Comparison</title>
+        </svg>
+
+        <div style="display:flex; gap:1rem; justify-content:center; margin:0.75rem 0; font-family:var(--font-sans); font-size:0.8rem;">
+          <span style="color:var(--color-keep);">● PI</span>
+          <span style="color:var(--color-trans);">● NTK-Aware</span>
+          <span style="color:var(--color-inter);">● YaRN</span>
+        </div>
+
+        <div class="zone-display" id="zone-display">
+          <div class="zone-keep" id="zone-keep-text">■ Keep: 0 dims</div>
+          <div class="zone-trans" id="zone-trans-text">■ Transition: 0 dims</div>
+          <div class="zone-inter" id="zone-inter-text">■ Interpolate: 0 dims</div>
+        </div>
+      </div>
+
+      <div class="code-walkthrough" id="cw-sec8">
+        <h5 id="cw-sec8-title">📝 Code Walkthrough</h5>
+        <ol>
+          <li id="cw-sec8-s1"><strong>Scale slider s</strong> — Globally controls how aggressively PI and YaRN compress frequencies.</li>
+          <li id="cw-sec8-s2"><strong>α / β sliders</strong> — Move the interpolation thresholds to re-partition dimensions into three zones.</li>
+          <li id="cw-sec8-s3"><strong>Three curves</strong> — Dashed PI, dotted NTK-Aware, and solid YaRN reveal where methods diverge.</li>
+          <li id="cw-sec8-s4"><strong>Zone counters</strong> — Instantly shows keep/transition/interpolate dimension counts under current settings.</li>
+          <li id="cw-sec8-s5"><strong>Live i18n labels</strong> — Slider labels and zone text update automatically when switching EN/中文.</li>
+          <li id="cw-sec8-s6"><strong>Visual intuition</strong> — YaRN hugs PI in low-frequency zones and converges to original in high-frequency zones.</li>
+          <li id="cw-sec8-s7"><strong>Practical takeaway</strong> — Tune α/β to preserve local semantics while extending long-range recall.</li>
+        </ol>
+      </div>
     </div>
 
     <script>
-      const LABELS = {
-        en: {
-          heroSub: "Yet another RoPE extensioN method",
-          heroText: "Large Language Model (LLM) context windows are expanding rapidly.<br>YaRN provides an elegant, zero-compute-overhead method<br>to multiply context length dynamically by adjusting Rotary Position Embeddings (RoPE).",
-          sec1Head: "1. RoPE: Rotary Position Embedding Basics",
-          sec1Desc: "Before YaRN, we must understand RoPE. It pairs elements of word vectors and rotates them in the complex plane. The rotation angle is proportional to the absolute position <span class=\"math\">m</span> in the sequence.",
-          sec1Desc2: "Crucially, different dimensions <span class=\"math\">d</span> have different rotation frequencies <span class=\"math\">&theta;<sub>d</sub></span>:<br><strong>Low dimensions (small d)</strong> rotate rapidly, capturing local distances;<br><strong>High dimensions (large d)</strong> rotate extremely slowly, encoding macroscopic absolute positions.",
-          sec2Head: "2. Wavelength & Context Length",
-          sec2Desc: "The rotation frequency <span class=\"math\">&theta;<sub>d</sub></span> determines how many tokens a dimension needs to complete a full 2&pi; rotation. We call this span the <strong>Wavelength</strong> <span class=\"math\">&lambda;<sub>d</sub></span>.",
-          lblLText: "Pre-training Context Length (L)",
-          sec3Head: "3. The Position Interpolation Disaster",
-          sec3Desc: "To extend the context to <span class=\"math\">s&middot;L</span>, the most direct method is <strong>Position Interpolation (PI)</strong>: scale all coordinates by <span class=\"math\">m/s</span>. In the frequency domain, this compresses all frequencies to <span class=\"math\">&theta;<sub>d</sub>/s</span>.<br><br>But this is disastrous for high-frequency dimensions (low d). They are meant to distinguish very close tokens. Stretching them forces the relative angles to become too small, making the model 'nearsighted' and losing fine-grained relative resolution.",
-          lblSPi: "Scale Ratio (s)",
-          sec4Head: "4. YaRN Core: NTK-by-Parts Interpolation",
-          sec4Desc: "The essence of YaRN is <strong>NTK-by-parts</strong>: don't scale uniformly. Introduce the ratio <span class=\"math\">r = L / &lambda;<sub>d</sub></span>, with thresholds <span class=\"math\">&alpha;=1, &beta;=32</span>:<br><br><span style=\"color: var(--color-keep); font-weight: bold;\">■ High freq (r &gt; &beta;)</span>: Wavelength &lt;&lt; L. Do not interpolate, keep as is.<br><span style=\"color: var(--color-trans); font-weight: bold;\">■ Mid freq (&alpha; &lt; r &lt; &beta;)</span>: Smooth transition via ramp function.<br><span style=\"color: var(--color-inter); font-weight: bold;\">■ Low freq (r &lt; &alpha;)</span>: Wavelength &gt; L. Apply PI (divide by s).",
-          lblSNtk: "Target Extension Scale (s)",
-          sec5Head: "5. Attention Scaling",
-          sec5Desc: "YaRN found that after interpolation, the attention logits distribution shifts (larger average length alters variance). To correct this temperature bias, YaRN multiplies attention by a critical scaling factor:",
-          sec1DescComplex: "More rigorously, it can be written as a rotation in complex form (in a 2D subspace):",
-          sec1DescFramework: "All subsequent context extension methods (including YaRN) essentially modify this rotation by introducing a position function <span class=\"math\">g(m)</span> and a frequency function <span class=\"math\">h(&theta;)</span>:",
-          sec2DescRatio: "Define the ratio <span class=\"math\">r(d)</span> between the pre-training context length <span class=\"math\">L</span> and the wavelength:",
-          sec2DescRatioExp: "This ratio determines how each dimension is treated: when <span class=\"math\">r &gg; 1</span>, the dimension completes many cycles within the training window &rarr; <strong>high frequency (local info)</strong>; when <span class=\"math\">r &ll; 1</span>, it barely rotates &rarr; <strong>low frequency (global position info)</strong>.",
-          sec3DescMath: "Expressed mathematically, PI is equivalent to:",
-          sec3DescProb: "This is equivalent to scaling all effective frequencies to <span class=\"math\">&theta;<sub>d</sub>/s</span>. For high-frequency dimensions, the angle between adjacent tokens was <span class=\"math\">&theta;<sub>d</sub></span>, but now it's <span class=\"math\">&theta;<sub>d</sub>/s</span>. This drastic reduction causes the model to become 'nearsighted', losing its fine-grained relative resolution.",
-          sec40Head: "4. NTK-Aware Interpolation (Precursor)",
-          sec40Desc: "Before introducing NTK-by-parts, let's look at <strong>NTK-Aware Interpolation</strong>. Instead of directly scaling positions, it modifies the base <span class=\"math\">b</span> to spread the interpolation pressure across all dimensions:",
-          sec40Desc2: "High-frequency dimensions are affected less, and low-frequency ones are affected more. But it's still not perfect, leading YaRN to propose NTK-by-parts.",
-          sec4DescRamp: "Here, <span class=\"math\">&gamma;(r)</span> is a ramp function defined as:",
-          sec4DescCases: "Let's walk through 3 cases with concrete numbers (using LLaMA: <span class=\"math\">L=4096, b=10000</span>):<br><br>1. <strong>Highest freq (d=0)</strong>: <span class=\"math\">&theta;<sub>0</sub> = 1.0</span>, <span class=\"math\">&lambda;<sub>0</sub> &approx; 6.28</span>. Ratio <span class=\"math\">r &approx; 652 &gg; &beta;</span>. Here <span class=\"math\">&gamma;=1</span>, keeping <span class=\"math\">&theta;<sub>0</sub></span> unchanged (preserving local info).<br>2. <strong>Lowest freq (d=31)</strong>: <span class=\"math\">&theta;<sub>31</sub></span> is tiny, <span class=\"math\">&lambda;<sub>31</sub> &gg; L</span>. Ratio <span class=\"math\">r &approx; 0.00065 &ll; &alpha;</span>. Here <span class=\"math\">&gamma;=0</span>, applying full PI <span class=\"math\">&theta;<sub>31</sub>/s</span>.<br>3. <strong>Mid freq</strong>: A smooth proportional blend.",
-          sec4DynHead: "4.5. Dynamic NTK & Intuition",
-          sec4DynDesc: "During inference, the exact sequence length isn't known upfront. YaRN uses a <strong>dynamic scale factor</strong> calculated on-the-fly based on the current sequence length <span class=\"math\">l'</span>:",
-          sec4DynDesc2: "This allows the model to adapt dynamically to varying context lengths during inference without any fine-tuning.<br><br><strong>Why NTK-by-Parts Works (Intuition)</strong><br>The core insight: high-frequency dimensions encode <strong>local distances</strong> (nearby tokens). Their short wavelengths mean they complete many cycles within <span class=\"math\">L</span>. They have <strong>already seen all possible relative positions</strong>. Interpolating them would destroy this granularity. Low-frequency dimensions encode <strong>global position</strong>. Their wavelengths exceed <span class=\"math\">L</span>, so they only saw a fraction of a cycle during training. These are the dimensions that actually need interpolation (PI) to handle longer sequences. NTK-by-parts is the perfect mathematical realization of this insight.",
-          sec6Head: "6. YaRN Method Summary",
-          stat1Lbl: "Seamlessly Supported Context",
-          stat2Lbl: "Reduction in Fine-Tuning Tokens",
-          stat3Lbl: "Fewer Training Steps Required"
-        },
-        zh: {
-          heroSub: "Yet another RoPE extensioN method",
-          heroText: "大型语言模型（LLM）的上下文窗口正在极速扩张。<br>YaRN 提供了一种优雅且计算零开销的方法，<br>通过动态调整旋转位置编码（RoPE），将上下文长度扩展数倍。",
-          sec1Head: "1. RoPE 旋转位置编码基础",
-          sec1Desc: "在理解 YaRN 之前，我们必须先理解 RoPE。RoPE 将词向量的元素两两分组，并在复平面上进行旋转，旋转的角度与该词在句子中的绝对位置 <span class=\"math\">m</span> 成正比。",
-          sec1Desc2: "关键在于，不同维度 <span class=\"math\">d</span> 拥有不同的旋转频率 <span class=\"math\">&theta;<sub>d</sub></span>：<br><strong>低维度（小 d）</strong>旋转极快，捕捉局部的相对距离；<br><strong>高维度（大 d）</strong>旋转极慢，几乎静止，编码宏观的绝对位置信息。",
-          sec2Head: "2. 波长与上下文长度",
-          sec2Desc: "旋转频率 <span class=\"math\">&theta;<sub>d</sub></span> 决定了该维度在序列中需要多少个 Token 才能完成一次完整的 2&pi; 旋转。我们将这个跨度称为<strong>波长 (Wavelength)</strong> <span class=\"math\">&lambda;<sub>d</sub></span>。",
-          lblLText: "预训练上下文长度 (L)",
-          sec3Head: "3. 线性插值 (PI) 的灾难",
-          sec3Desc: "要扩展上下文到 <span class=\"math\">s&middot;L</span>，最直接的方法是 <strong>Position Interpolation (PI)</strong>：把所有位置坐标缩小为 <span class=\"math\">m/s</span>。在频域上，这等于把所有频率压缩为 <span class=\"math\">&theta;<sub>d</sub>/s</span>。<br><br>但这对高频维度（低 d）是灾难性的。高频维度原本用来区分非常近的 Token，将它们硬性拉伸后，相邻 Token 的相对角度差变得过小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。",
-          lblSPi: "缩放比例 (s)",
-          sec4Head: "4. YaRN 核心：分段 NTK 插值",
-          sec4Desc: "YaRN 的精髓在于 <strong>NTK-by-parts</strong>：不要一刀切地缩放。引入比值 <span class=\"math\">r = L / &lambda;<sub>d</sub></span>，并定义两个阈值 <span class=\"math\">&alpha;=1, &beta;=32</span>：<br><br><span style=\"color: var(--color-keep); font-weight: bold;\">■ 高频 (r &gt; &beta;)</span>: 波长远小于L。完全不插值，保持原样。<br><span style=\"color: var(--color-trans); font-weight: bold;\">■ 中频 (&alpha; &lt; r &lt; &beta;)</span>: 使用斜坡函数平滑过渡。<br><span style=\"color: var(--color-inter); font-weight: bold;\">■ 低频 (r &lt; &alpha;)</span>: 波长大于L。执行 PI 线性插值 (除以s)。",
-          lblSNtk: "目标扩展倍数 (s)",
-          sec5Head: "5. 注意力缩放 (Attention Scaling)",
-          sec5Desc: "YaRN 发现，在插值后，注意力的 Logits 分布会发生变动（平均长度变大导致方差改变）。为了修正这种温度偏差，YaRN 在注意力计算后乘以一个极小但关键的缩放系数：",
-          sec1DescComplex: "更严谨地，将其写为复数形式的旋转（在 2D 子空间中）：",
-          sec1DescFramework: "后续的所有上下文扩展方法（包括 YaRN），本质上都是通过引入位置函数 <span class=\"math\">g(m)</span> 和频率函数 <span class=\"math\">h(&theta;)</span> 来修改这个旋转公式：",
-          sec2DescRatio: "定义预训练上下文长度 <span class=\"math\">L</span> 与波长的比值 <span class=\"math\">r(d)</span>：",
-          sec2DescRatioExp: "这个比值决定了该维度如何被处理：当 <span class=\"math\">r &gg; 1</span> 时，该维度在训练窗口内完成多次循环 &rarr; <strong>高频（局部信息）</strong>；当 <span class=\"math\">r &ll; 1</span> 时，该维度几乎不旋转 &rarr; <strong>低频（全局位置信息）</strong>。",
-          sec3DescMath: "用数学公式表达，PI 相当于：",
-          sec3DescProb: "这等价于将所有维度的有效频率变为 <span class=\"math\">&theta;<sub>d</sub>/s</span>。在数学上，原本相邻 Token 间的旋转角度差是 <span class=\"math\">&theta;<sub>d</sub></span>，现在变成了 <span class=\"math\">&theta;<sub>d</sub>/s</span>。对于高频维度来说，角度差变得极小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。",
-          sec40Head: "4. NTK-Aware 插值 (前置基础)",
-          sec40Desc: "在引入分段 NTK 之前，我们先看看 <strong>NTK-Aware Interpolation</strong>。它不直接缩放位置，而是修改底数 <span class=\"math\">b</span>，将插值的压力分散到所有维度上：",
-          sec40Desc2: "高频维度受影响较小，低频维度受影响较大。但这依然不够完美，于是 YaRN 提出了 NTK-by-parts。",
-          sec4DescRamp: "这里的 <span class=\"math\">&gamma;(r)</span> 是一个斜坡函数（Ramp function），其具体定义为：",
-          sec4DescCases: "让我们用具体数字（以 LLaMA 为例，<span class=\"math\">L=4096, b=10000</span>）来看三个极端情况：<br><br>1. <strong>最高频 (d=0)</strong>：<span class=\"math\">&theta;<sub>0</sub> = 1.0</span>，波长 <span class=\"math\">&lambda;<sub>0</sub> &approx; 6.28</span>。比值 <span class=\"math\">r &approx; 652 &gg; &beta;</span>。此时 <span class=\"math\">&gamma;=1</span>，完全使用原频率 <span class=\"math\">&theta;<sub>0</sub></span>，保留局部信息。<br>2. <strong>最低频 (d=31)</strong>：<span class=\"math\">&theta;<sub>31</sub></span> 极小，波长远大于 <span class=\"math\">L</span>。比值 <span class=\"math\">r &approx; 0.00065 &ll; &alpha;</span>。此时 <span class=\"math\">&gamma;=0</span>，使用全量 PI 插值 <span class=\"math\">&theta;<sub>31</sub>/s</span>。<br>3. <strong>中频</strong>：按比例平滑混合。",
-          sec4DynHead: "4.5. 动态 NTK 与直觉 (Intuition)",
-          sec4DynDesc: "在实际推理时，我们并不知道最终序列长度。YaRN 使用<strong>动态缩放因子</strong>，根据当前序列长度 <span class=\"math\">l'</span> 实时计算：",
-          sec4DynDesc2: "这意味着模型可以在不进行任何微调（Fine-tuning）的情况下，在推理时动态适应不同的上下文长度。<br><br><strong>为什么分段 NTK 如此有效？（Intuition）</strong><br>核心洞察是：高频维度编码的是<strong>局部距离</strong>（相邻 Token）。它们的波长极短，在预训练窗口 <span class=\"math\">L</span> 内已经历了无数个完整周期。它们<strong>已经见过了所有可能的相对位置</strong>，如果强行插值，反而会破坏这种细粒度。而低频维度编码的是<strong>全局位置</strong>，波长超过 <span class=\"math\">L</span>，在训练时连一个完整周期都没走完。这些维度面对更长的序列时，才真正需要通过 PI 进行“插值外推”。NTK-by-parts 完美地用数学将这一直觉落地。",
-          sec6Head: "6. YaRN 方法总结",
-          stat1Lbl: "无缝支持的上下文长度",
-          stat2Lbl: "微调 Token 量降低",
-          stat3Lbl: "所需训练步数减少"
-        }
-      };
+            // i18n Data
+            const LABELS = {
+              en: {
+                heroSub: "Yet another RoPE extensioN method",
+                heroText:
+                  "Large Language Model (LLM) context windows are expanding rapidly.<br>YaRN provides an elegant, zero-compute-overhead method<br>to multiply context length dynamically by adjusting Rotary Position Embeddings (RoPE).",
+                sec1Head: "1. RoPE: Rotary Position Embedding Basics",
+                sec1Desc:
+                  "Before YaRN, we must understand RoPE. It pairs elements of word vectors and rotates them in the complex plane. The rotation angle is proportional to the absolute position $m$ in the sequence. Different dimensions $d$ have different rotation frequencies $\\theta_d$.",
+                sec1Desc2:
+                  "Crucially, different dimensions encode different information:<br><strong>Low dimensions (small d)</strong> rotate rapidly, capturing local distances;<br><strong>High dimensions (large d)</strong> rotate extremely slowly, encoding macroscopic absolute positions.",
+                ropeL1: "d=0 (Fast)",
+                ropeL4: "d=24 (Slow)",
+                sec2Head: "2. Wavelength & Context Length",
+                sec2Desc:
+                  "The rotation frequency $\\theta_d$ determines how many tokens a dimension needs to complete a full $2\\pi$ rotation. We call this span the <strong>Wavelength</strong> $\\lambda_d$. We also define the ratio $r(d)$ between the pre-training context length $L$ and the wavelength.",
+                sec2DescRatioExp:
+                  "This ratio determines how each dimension is treated: when $r \\gg 1$, the dimension completes many cycles within the training window $\\rightarrow$ <strong>high frequency (local info)</strong>; when $r \\ll 1$, it barely rotates $\\rightarrow$ <strong>low frequency (global position info)</strong>.",
+                lblLText: "Pre-training Context Length (L)",
+                sec3Head: "3. The Position Interpolation Disaster",
+                sec3Desc:
+                  "To extend the context to $s \\cdot L$, the most direct method is <strong>Position Interpolation (PI)</strong>: scale all coordinates by $m/s$. This is equivalent to compressing all frequencies to $\\theta_d/s$.",
+                sec3DescProb:
+                  "This is disastrous for high-frequency dimensions (low d). They are meant to distinguish very close tokens. Stretching them forces the relative angles to become too small, making the model 'nearsighted' and losing fine-grained relative resolution.",
+                lblSPi: "Scale Ratio (s)",
+                sec40Head: "4. NTK-Aware Interpolation (Precursor)",
+                sec40Desc:
+                  "Before introducing NTK-by-parts, let's look at <strong>NTK-Aware Interpolation</strong>. Instead of directly scaling positions, it modifies the base $b$ to spread the interpolation pressure across all dimensions:",
+                sec4Head: "4.1 YaRN Core: NTK-by-Parts Interpolation",
+                sec4Desc:
+                  'The essence of YaRN is <strong>NTK-by-parts</strong>: don\'t scale uniformly. Introduce the ratio $r = L / \\lambda_d$, with thresholds $\\alpha=1, \\beta=32$:<br><br><span style="color: var(--color-keep); font-weight: bold;">■ High freq (r > \\beta)</span>: Wavelength << L. Do not interpolate, keep as is.<br><span style="color: var(--color-trans); font-weight: bold;">■ Mid freq (\\alpha < r < \\beta)</span>: Smooth transition via ramp function.<br><span style="color: var(--color-inter); font-weight: bold;">■ Low freq (r < \\alpha)</span>: Wavelength > L. Apply PI (divide by s).',
+                sec4DescCases:
+                  "Let's walk through 3 cases with concrete numbers (using LLaMA: $L=4096, b=10000$):<br><br>1. <strong>Highest freq (d=0)</strong>: $\\theta_0 = 1.0$, $\\lambda_0 \\approx 6.28$. Ratio $r \\approx 652 \\gg \\beta$. Here $\\gamma=1$, keeping $\\theta_0$ unchanged (preserving local info).<br>2. <strong>Lowest freq (d=31)</strong>: $\\theta_{31}$ is tiny, $\\lambda_{31} \\gg L$. Ratio $r \\approx 0.00065 \\ll \\alpha$. Here $\\gamma=0$, applying full PI $\\theta_{31}/s$.<br>3. <strong>Mid freq</strong>: A smooth proportional blend.",
+                lblSNtk: "Target Extension Scale (s)",
+                sec4DynHead: "4.5. Dynamic NTK & Intuition",
+                sec4DynDesc:
+                  "During inference, the exact sequence length isn't known upfront. YaRN uses a <strong>dynamic scale factor</strong> calculated on-the-fly based on the current sequence length $l'$:",
+                sec4DynDesc2:
+                  "This allows the model to adapt dynamically to varying context lengths during inference without any fine-tuning.<br><br><strong>Why NTK-by-Parts Works (Intuition)</strong><br>The core insight: high-frequency dimensions encode <strong>local distances</strong> (nearby tokens). Their short wavelengths mean they complete many cycles within $L$. They have <strong>already seen all possible relative positions</strong>. Interpolating them would destroy this granularity. Low-frequency dimensions encode <strong>global position</strong>. Their wavelengths exceed $L$, so they only saw a fraction of a cycle during training. These are the dimensions that actually need interpolation (PI) to handle longer sequences. NTK-by-parts is the perfect mathematical realization of this insight.",
+                sec5Head: "5. Attention Scaling",
+                sec5Desc:
+                  "YaRN found that after interpolation, the attention logits distribution shifts (larger average length alters variance). To correct this temperature bias, YaRN multiplies attention by a critical scaling factor:",
+                sec6Head: "6. YaRN Pipeline Summary",
+                sec6Desc:
+                  "Combining all the components above, the end-to-end YaRN pipeline looks like this:",
+                stat1Lbl: "Seamlessly Supported Context",
+                stat2Lbl: "Reduction in Fine-Tuning Tokens",
+                stat3Lbl: "Fewer Training Steps Required",
+                btnPause: "Pause",
+                btnPlay: "Play",
+                c1_1: "# 1. Compute rotation frequency for this dimension",
+                c1_2: "# 2. Compute rotation angle",
+                c1_3: "# 3. Apply complex rotation in 2D subspace",
+                c3_1: "# compress ALL positions by s",
+                c3_2: "# Problem: high-freq dims lose resolution!",
+                c3_3: "# Adjacent tokens: angle_diff = theta_d / s → too small",
+                c40_1: "# Spreads interpolation pressure across ALL dimensions",
+                c40_2: "# High-freq dims: less affected (good!)",
+                c40_3: "# Low-freq dims: more affected (intended)",
+                c41_1: "# wavelength ratio",
+                c41_2: "# Ramp function γ(r)",
+                c41_3: "# low freq → full PI",
+                c41_4: "# high freq → keep original",
+                c41_5: "# smooth blend",
+                c41_6: "# Blended frequency",
+                c5_1: "# multiply attention logits by sqrt(t)",
+                c5_2: "# s=1 → t=1.0 (no change)",
+                c5_3: "# s=16 → t≈0.56 (cool down attention)",
+                c6_1: "# dynamic scaling",
+                c6_2: "# → PI interpolation",
+                c6_3: "# → keep original",
+                c6_4: "# Apply rotation",
+                // TL;DR
+                tldrTitle: "📖 TL;DR — What is YaRN?",
+                tldr1: "RoPE encodes position via rotation — low dims = local, high dims = global",
+                tldr2: "Position Interpolation (PI) scales all frequencies uniformly → destroys high-freq resolution",
+                tldr3: "YaRN's NTK-by-parts: keep high-freq, interpolate low-freq, smooth blend in between",
+                tldr4: "Dynamic scaling (s = seq_len / L) enables inference-time adaptation without fine-tuning",
+                tldr5: "Attention temperature correction fixes logit distribution shift after interpolation",
+                // Intuition boxes
+                intuitionSec1:
+                  "Why do we need position encoding at all? Without it, a Transformer treats \"The cat sat\" and \"sat The cat\" identically. RoPE elegantly injects position by rotating each dimension at a unique frequency.",
+                intuitionSec2:
+                  "Think of wavelength as \"how many tokens fit in one full rotation cycle.\" Short wavelength = fast spinning = sensitive to nearby tokens. Long wavelength = slow spinning = tracks global position.",
+                intuitionSec3:
+                  "Imagine stretching a rubber band with markings. PI stretches ALL markings uniformly — the fine markings become unreadable. That's exactly what happens to high-frequency position info.",
+                intuitionSec4:
+                  "Instead of stretching positions, NTK-Aware changes the \"ruler\" itself (the base). This distributes the stretching pressure more evenly across all frequency bands.",
+                intuitionSec41:
+                  "YaRN's key insight: don't treat all frequencies the same. High-frequency dims already know local patterns — leave them alone. Only interpolate the low-frequency dims that actually need to handle longer contexts.",
+                intuitionSec5:
+                  "After interpolation, the attention scores' distribution changes (like adjusting the \"temperature\" of a softmax). YaRN adds a tiny correction factor to restore the original distribution shape.",
+                intuitionSec7:
+                  "How do PI, NTK-Aware, and YaRN actually compare? This table summarizes the tradeoffs, and the configs below show how to use YaRN in production.",
+                intuitionSec8:
+                  "Adjust the parameters below to see how PI, NTK-Aware, and YaRN handle each frequency dimension differently. Watch the three curves diverge as you increase the scale factor.",
+                // Section 7
+                sec7Head: "7. Method Comparison & Real-World Configs",
+                sec7Desc:
+                  "Below is a side-by-side comparison of the three main context extension methods, followed by real-world configurations:",
+                sec7ConfigHead: "Real-World Configurations",
+                sec7ConfigDesc: "Here's how YaRN is configured in popular models:",
+                sec7HfLabel: "HuggingFace Transformers:",
+                ctH0: "Feature",
+                ctR1C0: "Approach",
+                ctR1C1: "Scale all positions by 1/s",
+                ctR1C2: "Modify base b",
+                ctR1C3: "Per-dimension frequency adjustment",
+                ctR2C0: "High-freq handling",
+                ctR2C1: "❌ Compressed (destroys local info)",
+                ctR2C2: "⚠️ Partially preserved",
+                ctR2C3: "✅ Fully preserved (γ=1)",
+                ctR3C0: "Low-freq handling",
+                ctR3C1: "✅ Interpolated",
+                ctR3C2: "✅ Interpolated",
+                ctR3C3: "✅ PI interpolated (γ=0)",
+                ctR4C0: "Fine-tuning required",
+                ctR4C1: "200-400 steps",
+                ctR4C2: "200-400 steps",
+                ctR4C3: "~400 steps (10x fewer tokens)",
+                ctR5C0: "Dynamic inference",
+                ctR5C1: "❌ Fixed scale",
+                ctR5C2: "✅ Supported",
+                ctR5C3: "✅ Dynamic s = l'/L",
+                ctR6C0: "Attention correction",
+                ctR6C1: "❌ None",
+                ctR6C2: "❌ None",
+                ctR6C3: "✅ Temperature scaling t",
+                ctR7C0: "Perplexity at 128k",
+                ctR7C1: "High (degraded)",
+                ctR7C2: "Medium",
+                ctR7C3: "Low (best)",
+                // Section 8
+                sec8Head: "8. Interactive Playground",
+                sec8Desc:
+                  "Drag the sliders to compare how each method modifies rotation frequencies across all 32 dimensions:",
+                pgLblS: "Scale (s)",
+                pgLblAlpha: "α (alpha)",
+                pgLblBeta: "β (beta)",
+                zoneKeep: "■ Keep: {n} dims",
+                zoneTrans: "■ Transition: {n} dims",
+                zoneInter: "■ Interpolate: {n} dims",
+                // Formula breakdown titles
+                fbTitle: "🔍 Symbol Breakdown",
+                // Code walkthrough titles
+                cwTitle: "📝 Code Walkthrough",
+              },
+              zh: {
+                heroSub: "Yet another RoPE extensioN method",
+                heroText:
+                  "大型语言模型（LLM）的上下文窗口正在极速扩张。<br>YaRN 提供了一种优雅且计算零开销的方法，<br>通过动态调整旋转位置编码（RoPE），将上下文长度扩展数倍。",
+                sec1Head: "1. RoPE 旋转位置编码基础",
+                sec1Desc:
+                  "在理解 YaRN 之前，我们必须先理解 RoPE。RoPE 将词向量的元素两两分组，并在复平面上进行旋转，旋转的角度与该词在句子中的绝对位置 $m$ 成正比。不同维度 $d$ 拥有不同的旋转频率 $\\theta_d$。",
+                sec1Desc2:
+                  "关键在于，不同维度编码了不同的信息：<br><strong>低维度（小 d）</strong>旋转极快，捕捉局部的相对距离；<br><strong>高维度（大 d）</strong>旋转极慢，几乎静止，编码宏观的绝对位置信息。",
+                ropeL1: "d=0 (快)",
+                ropeL4: "d=24 (慢)",
+                sec2Head: "2. 波长与上下文长度",
+                sec2Desc:
+                  "旋转频率 $\\theta_d$ 决定了该维度在序列中需要多少个 Token 才能完成一次完整的 $2\\pi$ 旋转。我们将这个跨度称为<strong>波长 (Wavelength)</strong> $\\lambda_d$。同时定义预训练上下文长度 $L$ 与波长的比值 $r(d)$。",
+                sec2DescRatioExp:
+                  "这个比值决定了该维度如何被处理：当 $r \\gg 1$ 时，该维度在训练窗口内完成多次循环 $\\rightarrow$ <strong>高频（局部信息）</strong>；当 $r \\ll 1$ 时，该维度几乎不旋转 $\\rightarrow$ <strong>低频（全局位置信息）</strong>。",
+                lblLText: "预训练上下文长度 (L)",
+                sec3Head: "3. 线性插值 (PI) 的灾难",
+                sec3Desc:
+                  "要扩展上下文到 $s \\cdot L$，最直接的方法是 <strong>Position Interpolation (PI)</strong>：把所有位置坐标缩小为 $m/s$。这等价于将所有频率压缩为 $\\theta_d/s$。",
+                sec3DescProb:
+                  "这对高频维度（低 d）是灾难性的。高频维度原本用来区分非常近的 Token，将它们硬性拉伸后，相邻 Token 的相对角度差变得过小，导致模型“近视”，丢失了细粒度的相对位置分辨能力。",
+                lblSPi: "缩放比例 (s)",
+                sec40Head: "4. NTK-Aware 插值 (前置基础)",
+                sec40Desc:
+                  "在引入分段 NTK 之前，我们先看看 <strong>NTK-Aware Interpolation</strong>。它不直接缩放位置，而是修改底数 $b$，将插值的压力分散到所有维度上：",
+                sec4Head: "4.1 YaRN 核心：分段 NTK 插值",
+                sec4Desc:
+                  'YaRN 的精髓在于 <strong>NTK-by-parts</strong>：不要一刀切地缩放。引入比值 $r = L / \\lambda_d$，并定义两个阈值 $\\alpha=1, \\beta=32$：<br><br><span style="color: var(--color-keep); font-weight: bold;">■ 高频 (r > \\beta)</span>：波长远小于L。完全不插值，保持原样。<br><span style="color: var(--color-trans); font-weight: bold;">■ 中频 (\\alpha < r < \\beta)</span>：使用斜坡函数平滑过渡。<br><span style="color: var(--color-inter); font-weight: bold;">■ 低频 (r < \\alpha)</span>：波长大于L。执行 PI 线性插值 (除以s)。',
+                sec4DescCases:
+                  "让我们用具体数字（以 LLaMA 为例，$L=4096, b=10000$）来看三个极端情况：<br><br>1. <strong>最高频 (d=0)</strong>：$\\theta_0 = 1.0$，波长 $\\lambda_0 \\approx 6.28$。比值 $r \\approx 652 \\gg \\beta$。此时 $\\gamma=1$，完全使用原频率 $\\theta_0$，保留局部信息。<br>2. <strong>最低频 (d=31)</strong>：$\\theta_{31}$ 极小，波长远大于 $L$。比值 $r \\approx 0.00065 \\ll \\alpha$。此时 $\\gamma=0$，使用全量 PI 插值 $\\theta_{31}/s$。<br>3. <strong>中频</strong>：按比例平滑混合。",
+                lblSNtk: "目标扩展倍数 (s)",
+                sec4DynHead: "4.5. 动态 NTK 与直觉 (Intuition)",
+                sec4DynDesc:
+                  "在实际推理时，我们并不知道最终序列长度。YaRN 使用<strong>动态缩放因子</strong>，根据当前序列长度 $l'$ 实时计算：",
+                sec4DynDesc2:
+                  "这意味着模型可以在不进行任何微调（Fine-tuning）的情况下，在推理时动态适应不同的上下文长度。<br><br><strong>为什么分段 NTK 如此有效？（Intuition）</strong><br>核心洞察是：高频维度编码的是<strong>局部距离</strong>（相邻 Token）。它们的波长极短，在预训练窗口 $L$ 内已经历了无数个完整周期。它们<strong>已经见过了所有可能的相对位置</strong>，如果强行插值，反而会破坏这种细粒度。而低频维度编码的是<strong>全局位置</strong>，波长超过 $L$，在训练时连一个完整周期都没走完。这些维度面对更长的序列时，才真正需要通过 PI 进行“插值外推”。NTK-by-parts 完美地用数学将这一直觉落地。",
+                sec5Head: "5. 注意力缩放 (Attention Scaling)",
+                sec5Desc:
+                  "YaRN 发现，在插值后，注意力的 Logits 分布会发生变动（平均长度变大导致方差改变）。为了修正这种温度偏差，YaRN 在注意力计算后乘以一个极小但关键的缩放系数：",
+                sec6Head: "6. YaRN 完整流程总结",
+                sec6Desc: "结合上述所有组件，端到端的 YaRN Pipeline 如下所示：",
+                stat1Lbl: "无缝支持的上下文长度",
+                stat2Lbl: "微调 Token 量降低",
+                stat3Lbl: "所需训练步数减少",
+                btnPause: "暂停",
+                btnPlay: "播放",
+                c1_1: "# 1. 计算当前维度的旋转频率",
+                c1_2: "# 2. 计算旋转角度",
+                c1_3: "# 3. 在 2D 子空间中应用复数旋转",
+                c3_1: "# 把所有位置坐标缩小为 s",
+                c3_2: "# 问题: 高频维度丢失分辨率！",
+                c3_3: "# 相邻 token: 角度差 = theta_d / s → 太小了",
+                c40_1: "# 将插值压力分散到所有维度",
+                c40_2: "# 高频维度：受影响小 (好事!)",
+                c40_3: "# 低频维度：受影响大 (符合预期)",
+                c41_1: "# 波长比值",
+                c41_2: "# 斜坡函数 γ(r)",
+                c41_3: "# 低频 → 完全 PI 插值",
+                c41_4: "# 高频 → 保持原样",
+                c41_5: "# 平滑混合",
+                c41_6: "# 混合后的新频率",
+                c5_1: "# 注意力 logits 乘以 sqrt(t)",
+                c5_2: "# s=1 → t=1.0 (不改变)",
+                c5_3: "# s=16 → t≈0.56 (使注意力分布变平缓)",
+                c6_1: "# 动态计算缩放因子",
+                c6_2: "# → PI 插值",
+                c6_3: "# → 保持原样",
+                c6_4: "# 应用旋转",
+                tldrTitle: "📖 速览 — 什么是 YaRN？",
+                tldr1: "RoPE 通过旋转编码位置 — 低维度 = 局部信息，高维度 = 全局信息",
+                tldr2: "位置插值 (PI) 均匀缩放所有频率 → 破坏高频分辨率",
+                tldr3: "YaRN 的分段 NTK：保留高频、插值低频、中间平滑过渡",
+                tldr4: "动态缩放 (s = seq_len / L) 无需微调即可在推理时自适应",
+                tldr5: "注意力温度校正修复插值后的 logit 分布偏移",
+                intuitionSec1:
+                  "为什么需要位置编码？没有它，Transformer 会把\"猫坐这里\"和\"这里坐猫\"当成一样的。RoPE 通过让每个维度以独特频率旋转来优雅地注入位置信息。",
+                intuitionSec2:
+                  "波长可以理解为\"一个完整旋转周期能容纳多少 Token\"。短波长 = 快速旋转 = 对近邻 Token 敏感。长波长 = 慢速旋转 = 追踪全局位置。",
+                intuitionSec3:
+                  "想象拉伸一根有刻度的橡皮筋。PI 均匀拉伸所有刻度 — 精细刻度变得无法辨认。这就是高频位置信息遭遇的问题。",
+                intuitionSec4:
+                  "NTK-Aware 不是拉伸位置，而是改变\"尺子\"本身（底数 b）。这样拉伸压力会更均匀地分配到所有频段。",
+                intuitionSec41:
+                  "YaRN 的核心洞察：不要一视同仁。高频维度已经学会了局部模式 — 别动它们。只插值真正需要处理更长上下文的低频维度。",
+                intuitionSec5:
+                  "插值后，注意力分数的分布会改变（就像调整了 softmax 的\"温度\"）。YaRN 添加一个微小的校正因子来恢复原始分布形状。",
+                intuitionSec7:
+                  "PI、NTK-Aware 和 YaRN 到底如何比较？此表总结了各方法的权衡，下方配置展示了生产环境中的用法。",
+                intuitionSec8:
+                  "调整下方滑块，观察 PI、NTK-Aware 和 YaRN 如何不同地处理每个频率维度。增大缩放因子，看三条曲线如何分化。",
+                sec7Head: "7. 方法对比与实际配置",
+                sec7Desc: "以下是三种主要上下文扩展方法的对比，以及实际模型配置：",
+                sec7ConfigHead: "实际模型配置",
+                sec7ConfigDesc: "以下是 YaRN 在主流模型中的配置方式：",
+                sec7HfLabel: "HuggingFace Transformers：",
+                ctH0: "特征",
+                ctR1C0: "方法",
+                ctR1C1: "所有位置除以 s",
+                ctR1C2: "修改底数 b",
+                ctR1C3: "逐维度频率调整",
+                ctR2C0: "高频处理",
+                ctR2C1: "❌ 被压缩（破坏局部信息）",
+                ctR2C2: "⚠️ 部分保留",
+                ctR2C3: "✅ 完全保留 (γ=1)",
+                ctR3C0: "低频处理",
+                ctR3C1: "✅ 被插值",
+                ctR3C2: "✅ 被插值",
+                ctR3C3: "✅ PI 插值 (γ=0)",
+                ctR4C0: "所需微调",
+                ctR4C1: "200-400 步",
+                ctR4C2: "200-400 步",
+                ctR4C3: "约 400 步（Token 减少 10 倍）",
+                ctR5C0: "动态推理",
+                ctR5C1: "❌ 固定缩放",
+                ctR5C2: "✅ 支持",
+                ctR5C3: "✅ 动态 s = l'/L",
+                ctR6C0: "注意力校正",
+                ctR6C1: "❌ 无",
+                ctR6C2: "❌ 无",
+                ctR6C3: "✅ 温度缩放 t",
+                ctR7C0: "128k 困惑度",
+                ctR7C1: "高（退化）",
+                ctR7C2: "中等",
+                ctR7C3: "低（最优）",
+                sec8Head: "8. 交互式实验场",
+                sec8Desc: "拖动滑块对比三种方法如何修改 32 个维度的旋转频率：",
+                pgLblS: "缩放倍数 (s)",
+                pgLblAlpha: "α (alpha)",
+                pgLblBeta: "β (beta)",
+                zoneKeep: "■ 保持: {n} 维",
+                zoneTrans: "■ 过渡: {n} 维",
+                zoneInter: "■ 插值: {n} 维",
+                fbTitle: "🔍 公式符号详解",
+                cwTitle: "📝 代码逐行解读",
+              },
+            };
 
-      let currentLang = 'zh';
-      const langToggleBtn = document.getElementById('lang-toggle');
+            let currentLang = "zh";
+            const langToggleBtn = document.getElementById("lang-toggle");
 
-      function updateI18n() {
-        const L = LABELS[currentLang];
-        langToggleBtn.textContent = currentLang === 'en' ? '中文' : 'EN';
-        
-        document.getElementById('hero-subtitle').innerHTML = L.heroSub;
-        document.getElementById('hero-text').innerHTML = L.heroText;
-        document.getElementById('sec1-heading').innerHTML = L.sec1Head;
-        document.getElementById('sec1-desc').innerHTML = L.sec1Desc;
-        document.getElementById('sec1-desc2').innerHTML = L.sec1Desc2;
-        document.getElementById('sec2-heading').innerHTML = L.sec2Head;
-        document.getElementById('sec2-desc').innerHTML = L.sec2Desc;
-        document.getElementById('lbl-l-text').innerHTML = L.lblLText;
-        document.getElementById('sec3-heading').innerHTML = L.sec3Head;
-        document.getElementById('sec3-desc').innerHTML = L.sec3Desc;
-        document.getElementById('lbl-s-pi').innerHTML = L.lblSPi;
-        document.getElementById('sec4-heading').innerHTML = L.sec4Head;
-        document.getElementById('sec4-desc').innerHTML = L.sec4Desc;
-        document.getElementById('lbl-s-ntk').innerHTML = L.lblSNtk;
-        document.getElementById('sec5-heading').innerHTML = L.sec5Head;
-        document.getElementById('sec5-desc').innerHTML = L.sec5Desc;
-        document.getElementById('sec6-heading').innerHTML = L.sec6Head;
-        document.getElementById('stat1-lbl').innerHTML = L.stat1Lbl;
-        document.getElementById('stat2-lbl').innerHTML = L.stat2Lbl;
-        document.getElementById('stat3-lbl').innerHTML = L.stat3Lbl;
-        document.getElementById('sec1-desc-complex').innerHTML = L.sec1DescComplex;
-        document.getElementById('sec1-desc-framework').innerHTML = L.sec1DescFramework;
-        document.getElementById('sec2-desc-ratio').innerHTML = L.sec2DescRatio;
-        document.getElementById('sec2-desc-ratio-exp').innerHTML = L.sec2DescRatioExp;
-        document.getElementById('sec3-desc-math').innerHTML = L.sec3DescMath;
-        document.getElementById('sec3-desc-prob').innerHTML = L.sec3DescProb;
-        document.getElementById('sec4-0-heading').innerHTML = L.sec40Head;
-        document.getElementById('sec4-0-desc').innerHTML = L.sec40Desc;
-        document.getElementById('sec4-0-desc2').innerHTML = L.sec40Desc2;
-        document.getElementById('sec4-desc-ramp').innerHTML = L.sec4DescRamp;
-        document.getElementById('sec4-desc-cases').innerHTML = L.sec4DescCases;
-        document.getElementById('sec4-dyn-heading').innerHTML = L.sec4DynHead;
-        document.getElementById('sec4-dyn-desc').innerHTML = L.sec4DynDesc;
-        document.getElementById('sec4-dyn-desc2').innerHTML = L.sec4DynDesc2;
-      }
+            function updateI18n() {
+              const L = LABELS[currentLang];
+              langToggleBtn.textContent = currentLang === "en" ? "中文" : "EN";
 
-      langToggleBtn.addEventListener('click', () => {
-        currentLang = currentLang === 'en' ? 'zh' : 'en';
-        updateI18n();
-      });
+              document.getElementById("hero-subtitle").innerHTML = L.heroSub;
+              document.getElementById("hero-text").innerHTML = L.heroText;
+              document.getElementById("sec1-heading").innerHTML = L.sec1Head;
+              document.getElementById("sec1-desc").innerHTML = L.sec1Desc;
+              document.getElementById("sec1-desc2").innerHTML = L.sec1Desc2;
+              document.getElementById("sec2-heading").innerHTML = L.sec2Head;
+              document.getElementById("sec2-desc").innerHTML = L.sec2Desc;
+              document.getElementById("sec2-desc-ratio-exp").innerHTML = L.sec2DescRatioExp;
+              document.getElementById("lbl-l-text").innerHTML = L.lblLText;
+              document.getElementById("sec3-heading").innerHTML = L.sec3Head;
+              document.getElementById("sec3-desc").innerHTML = L.sec3Desc;
+              document.getElementById("sec3-desc-prob").innerHTML = L.sec3DescProb;
+              document.getElementById("lbl-s-pi").innerHTML = L.lblSPi;
+              document.getElementById("sec4-0-heading").innerHTML = L.sec40Head;
+              document.getElementById("sec4-0-desc").innerHTML = L.sec40Desc;
+              document.getElementById("sec4-heading").innerHTML = L.sec4Head;
+              document.getElementById("sec4-desc").innerHTML = L.sec4Desc;
+              document.getElementById("sec4-desc-cases").innerHTML = L.sec4DescCases;
+              document.getElementById("lbl-s-ntk").innerHTML = L.lblSNtk;
+              document.getElementById("sec4-dyn-heading").innerHTML = L.sec4DynHead;
+              document.getElementById("sec4-dyn-desc").innerHTML = L.sec4DynDesc;
+              document.getElementById("sec4-dyn-desc2").innerHTML = L.sec4DynDesc2;
+              document.getElementById("sec5-heading").innerHTML = L.sec5Head;
+              document.getElementById("sec5-desc").innerHTML = L.sec5Desc;
+              document.getElementById("sec6-heading").innerHTML = L.sec6Head;
+              document.getElementById("sec6-desc").innerHTML = L.sec6Desc;
+              document.getElementById("stat1-lbl").innerHTML = L.stat1Lbl;
+              document.getElementById("stat2-lbl").innerHTML = L.stat2Lbl;
+              document.getElementById("stat3-lbl").innerHTML = L.stat3Lbl;
+              document.getElementById("rope-l1").innerHTML = L.ropeL1;
+              document.getElementById("rope-l4").innerHTML = L.ropeL4;
 
-      // Math constants
-      const DIMS = 64;
-      const BASE = 10000;
-      function getTheta(d) { return BASE ** (-2 * d / DIMS); }
+              const setHtml = (id, key) => {
+                const el = document.getElementById(id);
+                if (el && L[key]) el.innerHTML = L[key];
+              };
+              setHtml("tldr-title", "tldrTitle");
+              setHtml("tldr-1", "tldr1");
+              setHtml("tldr-2", "tldr2");
+              setHtml("tldr-3", "tldr3");
+              setHtml("tldr-4", "tldr4");
+              setHtml("tldr-5", "tldr5");
+              setHtml("intuition-sec1-text", "intuitionSec1");
+              setHtml("intuition-sec2-text", "intuitionSec2");
+              setHtml("intuition-sec3-text", "intuitionSec3");
+              setHtml("intuition-sec4-text", "intuitionSec4");
+              setHtml("intuition-sec41-text", "intuitionSec41");
+              setHtml("intuition-sec5-text", "intuitionSec5");
+              setHtml("intuition-sec7-text", "intuitionSec7");
+              setHtml("intuition-sec8-text", "intuitionSec8");
+              setHtml("sec7-heading", "sec7Head");
+              setHtml("sec7-desc", "sec7Desc");
+              setHtml("sec7-config-heading", "sec7ConfigHead");
+              setHtml("sec7-config-desc", "sec7ConfigDesc");
+              setHtml("sec7-hf-label", "sec7HfLabel");
+              setHtml("sec8-heading", "sec8Head");
+              setHtml("sec8-desc", "sec8Desc");
+              setHtml("pg-lbl-s", "pgLblS");
+              setHtml("pg-lbl-alpha", "pgLblAlpha");
+              setHtml("pg-lbl-beta", "pgLblBeta");
+              setHtml("ct-h0", "ctH0");
+              ["1", "2", "3", "4", "5", "6", "7"].forEach((r) => {
+                ["0", "1", "2", "3"].forEach((c) => {
+                  setHtml("ct-r" + r + "c" + c, "ctR" + r + "C" + c);
+                });
+              });
+              document.querySelectorAll(".formula-breakdown summary").forEach((el) => {
+                if (L.fbTitle) el.textContent = L.fbTitle;
+              });
+              document.querySelectorAll(".code-walkthrough h5").forEach((el) => {
+                if (L.cwTitle) el.textContent = L.cwTitle;
+              });
 
-      let time = 0;
+              if (ropePlaying) {
+                document.getElementById("btn-rope-play").innerHTML = L.btnPause;
+              } else {
+                document.getElementById("btn-rope-play").innerHTML = L.btnPlay;
+              }
 
-      // 1. RoPE Visualization
-      const ropeLayer = document.getElementById('svg-rope');
-      const ropeGrid = document.getElementById('rope-grid');
-      const ropeVectors = document.getElementById('rope-vectors');
-      const ropeMCounter = document.getElementById('rope-m-counter');
-      const ropeDims = [0, 8, 16, 24];
-      const ropeColors = ['var(--color-keep)', 'var(--color-trans)', 'var(--color-inter)', 'var(--text-secondary)'];
-      const ropeElements = [];
+              // Update code comments
+              const replaceComment = (id, html) => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = html;
+              };
 
-      function initRope() {
-        if (!ropeLayer) return;
-        ropeGrid.innerHTML = '';
-        ropeVectors.innerHTML = '';
-        ropeElements.length = 0;
+              replaceComment(
+                "code-sec1",
+                `<span class="cm">${L.c1_1}</span>
+      <span class="kw">def</span> <span class="fn">rope_embed</span>(x, position_m, dim_d, base<span class="op">=</span><span class="num">10000</span>, D<span class="op">=</span><span class="num">64</span>):
+          theta_d <span class="op">=</span> base <span class="op">**</span> (<span class="op">-</span><span class="num">2</span> <span class="op">*</span> dim_d <span class="op">/</span> D)
 
-        const w = ropeLayer.clientWidth || window.innerWidth * 0.8;
-        const h = ropeLayer.clientHeight || 300;
-        const cx = w / 2;
-        const cy = h / 2;
-        const maxRadius = Math.min(w, h) / 2 - 20;
+          <span class="cm">${L.c1_2}</span>
+          angle <span class="op">=</span> position_m <span class="op">*</span> theta_d
+          cos_a, sin_a <span class="op">=</span> cos(angle), sin(angle)
 
-        // Draw grid lines
-        const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        ['x', 'y'].forEach(axis => {
-          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-          line.setAttribute('x1', axis === 'x' ? 0 : cx);
-          line.setAttribute('y1', axis === 'y' ? 0 : cy);
-          line.setAttribute('x2', axis === 'x' ? w : cx);
-          line.setAttribute('y2', axis === 'y' ? h : cy);
-          line.setAttribute('stroke', 'var(--border)');
-          line.setAttribute('stroke-width', '1');
-          line.setAttribute('stroke-dasharray', '4,4');
-          gridGroup.appendChild(line);
-        });
-        ropeGrid.appendChild(gridGroup);
+          <span class="cm">${L.c1_3}</span>
+          x_even_new <span class="op">=</span> x_even <span class="op">*</span> cos_a <span class="op">-</span> x_odd <span class="op">*</span> sin_a
+          x_odd_new  <span class="op">=</span> x_even <span class="op">*</span> sin_a <span class="op">+</span> x_odd <span class="op">*</span> cos_a
 
-        // Draw circles and vectors
-        ropeDims.forEach((d, i) => {
-          const radius = maxRadius * (1 - i * 0.2);
-          
-          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          circle.setAttribute('cx', cx);
-          circle.setAttribute('cy', cy);
-          circle.setAttribute('r', radius);
-          circle.setAttribute('fill', 'none');
-          circle.setAttribute('stroke', ropeColors[i]);
-          circle.setAttribute('stroke-width', '1');
-          circle.setAttribute('stroke-opacity', '0.3');
-          circle.setAttribute('stroke-dasharray', '2,4');
-          ropeGrid.appendChild(circle);
+          <span class="kw">return</span> x_even_new, x_odd_new`,
+              );
 
-          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-          line.setAttribute('x1', cx);
-          line.setAttribute('y1', cy);
-          line.setAttribute('stroke', ropeColors[i]);
-          line.setAttribute('stroke-width', '2');
+              replaceComment(
+                "code-sec3",
+                `<span class="cm"># Position Interpolation</span>
+      <span class="kw">def</span> <span class="fn">position_interpolation</span>(position_m, scale_s):
+          <span class="kw">return</span> position_m <span class="op">/</span> scale_s    <span class="cm">${L.c3_1}</span>
+          <span class="cm">${L.c3_2}</span>
+          <span class="cm">${L.c3_3}</span>`,
+              );
 
-          const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          dot.setAttribute('r', '5');
-          dot.setAttribute('fill', ropeColors[i]);
-          dot.setAttribute('stroke', 'var(--bg)');
-          dot.setAttribute('stroke-width', '1.5');
+              replaceComment(
+                "code-sec4-0",
+                `<span class="cm"># NTK-Aware Interpolation</span>
+      <span class="kw">def</span> <span class="fn">ntk_aware_base</span>(base, scale_s, D<span class="op">=</span><span class="num">64</span>):
+          <span class="kw">return</span> base <span class="op">*</span> scale_s <span class="op">**</span> (D <span class="op">/</span> (D <span class="op">-</span> <span class="num">2</span>))
+          <span class="cm">${L.c40_1}</span>
+          <span class="cm">${L.c40_2}</span>
+          <span class="cm">${L.c40_3}</span>`,
+              );
 
-          ropeVectors.appendChild(line);
-          ropeVectors.appendChild(dot);
-          ropeElements.push({ d, radius, cx, cy, line, dot });
-        });
-      }
-      initRope();
+              replaceComment(
+                "code-sec4-1",
+                `<span class="cm"># YaRN Core: NTK-by-parts interpolation</span>
+      <span class="kw">def</span> <span class="fn">yarn_frequency</span>(theta_d, dim_d, L<span class="op">=</span><span class="num">4096</span>, scale_s<span class="op">=</span><span class="num">4</span>, alpha<span class="op">=</span><span class="num">1</span>, beta<span class="op">=</span><span class="num">32</span>):
+          lam <span class="op">=</span> <span class="num">2</span> <span class="op">*</span> pi <span class="op">/</span> theta_d
+          r <span class="op">=</span> L <span class="op">/</span> lam                            <span class="cm">${L.c41_1}</span>
 
-      // 2. Wavelength Visualization
-      const sliderL = document.getElementById('slider-L');
-      const labelL = document.getElementById('label-L');
-      const svgWl = document.getElementById('svg-wavelength');
-      const wlPath = document.getElementById('wl-path');
-      const wlThresh = document.getElementById('wl-threshold');
+          <span class="cm">${L.c41_2}</span>
+          <span class="kw">if</span> r <span class="op">&lt;</span> alpha:
+              gamma <span class="op">=</span> <span class="num">0.0</span>                        <span class="cm">${L.c41_3}</span>
+          <span class="kw">elif</span> r <span class="op">&gt;</span> beta:
+              gamma <span class="op">=</span> <span class="num">1.0</span>                        <span class="cm">${L.c41_4}</span>
+          <span class="kw">else</span>:
+              gamma <span class="op">=</span> (r <span class="op">-</span> alpha) <span class="op">/</span> (beta <span class="op">-</span> alpha)  <span class="cm">${L.c41_5}</span>
 
-      // 3. PI Visualization
-      const sliderPi = document.getElementById('slider-s-pi');
-      const labelPi = document.getElementById('label-s-pi');
-      const svgPi = document.getElementById('svg-pi');
+          <span class="cm">${L.c41_6}</span>
+          theta_new <span class="op">=</span> (<span class="num">1</span> <span class="op">-</span> gamma) <span class="op">*</span> (theta_d <span class="op">/</span> scale_s) <span class="op">+</span> gamma <span class="op">*</span> theta_d
+          <span class="kw">return</span> theta_new`,
+              );
 
-      // 4. NTK Visualization
-      const sliderNtk = document.getElementById('slider-s-ntk');
-      const labelNtk = document.getElementById('label-s-ntk');
-      const ntkLayer = document.getElementById('ntk-layer');
-      
-      for(let d=0; d<DIMS/2; d++) {
-        const bar = document.createElement('div');
-        bar.className = 'ntk-bar';
-        bar.style.width = '2.5%';
-        bar.style.margin = '0 1px';
-        bar.style.transition = 'height 0.2s';
-        ntkLayer.appendChild(bar);
-      }
-      const ntkBars = document.querySelectorAll('.ntk-bar');
+              replaceComment(
+                "code-sec5",
+                `<span class="cm"># Attention temperature correction</span>
+      <span class="kw">def</span> <span class="fn">attention_scale</span>(scale_s):
+          t <span class="op">=</span> (<span class="num">0.1</span> <span class="op">*</span> log(scale_s) <span class="op">+</span> <span class="num">1</span>) <span class="op">**</span> (<span class="op">-</span><span class="num">2</span>)
+          <span class="kw">return</span> t    <span class="cm">${L.c5_1}</span>
+          <span class="cm">${L.c5_2}</span>
+          <span class="cm">${L.c5_3}</span>`,
+              );
 
-      // 5. Attention Visualization
-      const svgAtt = document.getElementById('svg-attention');
-      const attPath = document.getElementById('att-path');
-      const attDot = document.getElementById('att-dot');
-      const attText = document.getElementById('att-text');
+              replaceComment(
+                "code-sec6",
+                `<span class="cm"># Complete YaRN Pipeline</span>
+      <span class="kw">def</span> <span class="fn">yarn_rope</span>(x, position_m, L<span class="op">=</span><span class="num">4096</span>, base<span class="op">=</span><span class="num">10000</span>, D<span class="op">=</span><span class="num">64</span>, alpha<span class="op">=</span><span class="num">1</span>, beta<span class="op">=</span><span class="num">32</span>, seq_len<span class="op">=</span><span class="num">8192</span>):
+          scale_s <span class="op">=</span> max(<span class="num">1</span>, seq_len <span class="op">/</span> L)  <span class="cm">${L.c6_1}</span>
 
-      function updateWavelength() {
-        const L_val = parseInt(sliderL.value, 10);
-        labelL.textContent = L_val;
-        
-        const w = svgWl.clientWidth || window.innerWidth * 0.8;
-        const h = svgWl.clientHeight || 300;
-        
-        const pad = 20;
-        const maxLambda = 2 * Math.PI * BASE;
-        
-        let pathStr = `M ${pad},${h-pad} `;
-        for(let d=0; d<DIMS/2; d++) {
-          const lambda = 2 * Math.PI / getTheta(d);
-          const x = pad + (d / (DIMS/2 - 1)) * (w - pad*2);
-          const MathLog = Math.log;
-          const y = h - pad - (MathLog(lambda) / MathLog(maxLambda)) * (h - pad*2);
-          pathStr += `L ${x},${y} `;
-        }
-        pathStr += `L ${w-pad},${h-pad} Z`;
-        wlPath.setAttribute('d', pathStr);
-        
-        const yL = h - pad - (Math.log(L_val) / Math.log(maxLambda)) * (h - pad*2);
-        wlThresh.setAttribute('y1', yL);
-        wlThresh.setAttribute('y2', yL);
-        wlThresh.setAttribute('x1', pad);
-        wlThresh.setAttribute('x2', w-pad);
-        
-        document.getElementById('wl-axis-x').setAttribute('x1', pad);
-        document.getElementById('wl-axis-x').setAttribute('y1', h-pad);
-        document.getElementById('wl-axis-x').setAttribute('x2', w-pad);
-        document.getElementById('wl-axis-x').setAttribute('y2', h-pad);
-        
-        document.getElementById('wl-axis-y').setAttribute('x1', pad);
-        document.getElementById('wl-axis-y').setAttribute('y1', h-pad);
-        document.getElementById('wl-axis-y').setAttribute('x2', pad);
-        document.getElementById('wl-axis-y').setAttribute('y2', pad);
-      }
+          <span class="kw">for</span> d <span class="kw">in</span> range(D <span class="op">//</span> <span class="num">2</span>):
+              theta <span class="op">=</span> base <span class="op">**</span> (<span class="op">-</span><span class="num">2</span> <span class="op">*</span> d <span class="op">/</span> D)
+              lam <span class="op">=</span> <span class="num">2</span> <span class="op">*</span> pi <span class="op">/</span> theta
+              r <span class="op">=</span> L <span class="op">/</span> lam
 
-      function updateNTK() {
-        const s_ntk = parseInt(sliderNtk.value, 10);
-        labelNtk.textContent = `${s_ntk}x`;
-        
-        const L = 4096;
-        const alpha = 1, beta = 32;
-        
-        ntkBars.forEach((bar, d) => {
-          const lambda = 2 * Math.PI / getTheta(d);
-          const r = L / lambda;
-          
-          let gamma, color;
-          if (r < alpha) { gamma = 0; color = 'var(--color-inter)'; }
-          else if (r > beta) { gamma = 1; color = 'var(--color-keep)'; }
-          else { gamma = (r - alpha) / (beta - alpha); color = 'var(--color-trans)'; }
-          
-          const ratio = (1 - gamma) * (1 / s_ntk) + gamma;
-          bar.style.height = `${ratio * 100}%`;
-          bar.style.backgroundColor = color;
-        });
-      }
+              <span class="kw">if</span> r <span class="op">&lt;</span> alpha:    gamma <span class="op">=</span> <span class="num">0.0</span>       <span class="cm">${L.c6_2}</span>
+              <span class="kw">elif</span> r <span class="op">&gt;</span> beta:   gamma <span class="op">=</span> <span class="num">1.0</span>       <span class="cm">${L.c6_3}</span>
+              <span class="kw">else</span>:            gamma <span class="op">=</span> (r <span class="op">-</span> alpha) <span class="op">/</span> (beta <span class="op">-</span> alpha)
 
-      function updateAttentionPath() {
-        const w = svgAtt.clientWidth || window.innerWidth * 0.8;
-        const h = svgAtt.clientHeight || 300;
-        const pad = 30;
-        
-        let pathStr = '';
-        for(let s=1; s<=64; s+=1) {
-          const val = 0.1 * Math.log(s) + 1;
-          const x = pad + (s/64) * (w - pad*2);
-          const y = h - pad - ((val - 1) / 0.5) * (h - pad*2);
-          if(s===1) pathStr += `M ${x},${y} `;
-          else pathStr += `L ${x},${y} `;
-        }
-        attPath.setAttribute('d', pathStr);
-      }
+              theta_new <span class="op">=</span> (<span class="num">1</span> <span class="op">-</span> gamma) <span class="op">*</span> theta <span class="op">/</span> scale_s <span class="op">+</span> gamma <span class="op">*</span> theta
+              angle <span class="op">=</span> position_m <span class="op">*</span> theta_new
 
-      function animationLoop() {
-        time += 0.016;
-        
-        // RoPE Vectors
-        const m = (time * 10) % 50;
-        if (ropeMCounter) {
-          ropeMCounter.textContent = `m = ${Math.floor(m)}`;
-        }
-        ropeElements.forEach((el, i) => {
-          const angle = m * getTheta(el.d);
-          const x2 = el.cx + el.radius * Math.cos(angle);
-          const y2 = el.cy + el.radius * Math.sin(angle);
-          el.line.setAttribute('x2', x2);
-          el.line.setAttribute('y2', y2);
-          el.dot.setAttribute('cx', x2);
-          el.dot.setAttribute('cy', y2);
-        });
-        
-        // PI Waves
-        const wPi = svgPi.clientWidth || window.innerWidth * 0.8;
-        const hPi = svgPi.clientHeight || 300;
-        if(wPi > 0) {
-          const s_pi = parseFloat(sliderPi.value);
-          labelPi.textContent = `${s_pi}x`;
-          const freqs = [0.1, 0.05, 0.01];
-          const colors = ['var(--color-keep)', 'var(--color-trans)', 'var(--color-inter)'];
-          
-          let paths = '';
-          freqs.forEach((f, i) => {
-            const yOffset = hPi * 0.25 * (i + 1);
-            let d = `M 0,${yOffset} `;
-            for(let x=0; x<wPi; x+=10) {
-              const y = yOffset + Math.sin((x - time*50) * f / s_pi) * 20;
-              d += `L ${x},${y} `;
+              <span class="cm">${L.c6_4}</span>
+              x[<span class="num">2</span><span class="op">*</span>d], x[<span class="num">2</span><span class="op">*</span>d<span class="op">+</span><span class="num">1</span>] <span class="op">=</span> rotate_2d(x[<span class="num">2</span><span class="op">*</span>d], x[<span class="num">2</span><span class="op">*</span>d<span class="op">+</span><span class="num">1</span>], angle)
+
+          t <span class="op">=</span> (<span class="num">0.1</span> <span class="op">*</span> log(scale_s) <span class="op">+</span> <span class="num">1</span>) <span class="op">**</span> (<span class="op">-</span><span class="num">2</span>)
+          <span class="kw">return</span> x, t`,
+              );
+
+              // Re-render KaTeX after i18n content swap
+              if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                  delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false },
+                  ],
+                  throwOnError: false,
+                });
+              }
             }
-            paths += `<path d="${d}" fill="none" stroke="${colors[i]}" stroke-width="2"/>`;
-          });
-          svgPi.innerHTML = paths;
-        }
 
-        // Attention Dot
-        const wAtt = svgAtt.clientWidth || window.innerWidth * 0.8;
-        const hAtt = svgAtt.clientHeight || 300;
-        if(wAtt > 0) {
-          const pad = 30;
-          const animS = 1 + (Math.sin(time * 0.5) + 1) * 16;
-          const animVal = 0.1 * Math.log(animS) + 1;
-          const dotX = pad + (animS/64) * (wAtt - pad*2);
-          const dotY = hAtt - pad - ((animVal - 1) / 0.5) * (hAtt - pad*2);
-          attDot.setAttribute('cx', dotX);
-          attDot.setAttribute('cy', dotY);
-          attText.setAttribute('x', dotX + 10);
-          attText.setAttribute('y', dotY - 10);
-          attText.textContent = `s=${animS.toFixed(1)} \u2192 ${animVal.toFixed(3)}`;
-        }
+            langToggleBtn.addEventListener("click", () => {
+              currentLang = currentLang === "en" ? "zh" : "en";
+              updateI18n();
+            });
 
-        requestAnimationFrame(animationLoop);
-      }
+            // Render KaTeX math expressions after scripts load
+            window.addEventListener("load", () => {
+              renderMathInElement(document.body, {
+                delimiters: [
+                  { left: "$$", right: "$$", display: true },
+                  { left: "$", right: "$", display: false },
+                ],
+                throwOnError: false,
+              });
+            });
 
-      // Init
-      sliderL.addEventListener('input', updateWavelength);
-      sliderNtk.addEventListener('input', updateNTK);
-      window.addEventListener('resize', () => {
-        initRope();
-        updateWavelength();
-        updateAttentionPath();
-      });
+            // Math constants
+            const DIMS = 64;
+            const BASE = 10000;
+            function getTheta(d) {
+              return BASE ** ((-2 * d) / DIMS);
+            }
 
-      // Run initial render after brief timeout to let CSS layout finish
-      setTimeout(() => {
-        updateI18n();
-        updateWavelength();
-        updateNTK();
-        updateAttentionPath();
-        animationLoop();
-      }, 100);
+            function updateReadingProgress() {
+              const scrollTop = window.scrollY;
+              const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+              const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+              const bar = document.getElementById("progress-bar");
+              if (bar) bar.style.width = progress + "%";
+            }
+            window.addEventListener("scroll", updateReadingProgress, { passive: true });
 
+            function renderTOC() {
+              const toc = document.getElementById("toc-sidebar");
+              if (!toc) return;
+              const headings = document.querySelectorAll(".phase-heading");
+              let html = "";
+              headings.forEach((h) => {
+                const text = h.textContent.trim();
+                const id = h.id;
+                html += `<a href="#${id}" data-target="${id}">${text}</a>`;
+              });
+              toc.innerHTML = html;
+            }
+
+            function updateActiveTOC() {
+              const headings = document.querySelectorAll(".phase-heading");
+              const links = document.querySelectorAll(".toc-sticky a");
+              let current = "";
+              headings.forEach((h) => {
+                if (h.getBoundingClientRect().top < 120) current = h.id;
+              });
+              links.forEach((a) => {
+                a.classList.toggle("active", a.getAttribute("data-target") === current);
+              });
+            }
+            window.addEventListener("scroll", updateActiveTOC, { passive: true });
+
+            const tocMobileBtn = document.getElementById("toc-mobile-btn");
+            const tocSidebar = document.getElementById("toc-sidebar");
+            if (tocMobileBtn && tocSidebar) {
+              tocMobileBtn.addEventListener("click", () => {
+                if (window.innerWidth <= 768) {
+                  tocSidebar.style.display = tocSidebar.style.display === "block" ? "none" : "block";
+                  tocSidebar.style.position = "fixed";
+                  tocSidebar.style.top = "50%";
+                  tocSidebar.style.left = "50%";
+                  tocSidebar.style.transform = "translate(-50%, -50%)";
+                  tocSidebar.style.width = "80%";
+                  tocSidebar.style.maxWidth = "300px";
+                  tocSidebar.style.zIndex = "100";
+                }
+              });
+            }
+
+            const pgSliderS = document.getElementById("pg-slider-s");
+            const pgSliderAlpha = document.getElementById("pg-slider-alpha");
+            const pgSliderBeta = document.getElementById("pg-slider-beta");
+
+            function updatePlayground() {
+              if (!pgSliderS) return;
+              const s = parseFloat(pgSliderS.value);
+              const alpha = parseFloat(pgSliderAlpha.value);
+              const beta = parseFloat(pgSliderBeta.value);
+
+              document.getElementById("pg-val-s").textContent = `${s}x`;
+              document.getElementById("pg-val-alpha").textContent = alpha;
+              document.getElementById("pg-val-beta").textContent = beta;
+
+              updatePlaygroundChart(s, alpha, beta);
+              updateZoneDisplay(alpha, beta);
+            }
+
+            function updatePlaygroundChart(s, alpha, beta) {
+              const svg = document.getElementById("svg-playground");
+              if (!svg) return;
+              const w = svg.clientWidth || 400;
+              const h = svg.clientHeight || 250;
+              const pad = 30;
+              const L = 4096;
+
+              let piPath = "",
+                ntkPath = "",
+                yarnPath = "";
+
+              for (let d = 0; d < DIMS / 2; d++) {
+                const theta = getTheta(d);
+                const x = pad + (d / (DIMS / 2 - 1)) * (w - pad * 2);
+
+                const piRatio = 1 / s;
+                const newBase = BASE * s ** (DIMS / (DIMS - 2));
+                const ntkTheta = newBase ** ((-2 * d) / DIMS);
+                const ntkRatio = ntkTheta / theta;
+                const lam = (2 * Math.PI) / theta;
+                const r = L / lam;
+                const gamma = r < alpha ? 0 : r > beta ? 1 : (r - alpha) / (beta - alpha);
+                const yarnRatio = (1 - gamma) * (1 / s) + gamma;
+
+                const piY = h - pad - piRatio * (h - pad * 2);
+                const ntkY = h - pad - ntkRatio * (h - pad * 2);
+                const yarnY = h - pad - Math.min(1, yarnRatio) * (h - pad * 2);
+
+                const prefix = d === 0 ? "M " : "L ";
+                piPath += `${prefix}${x},${piY} `;
+                ntkPath += `${prefix}${x},${ntkY} `;
+                yarnPath += `${prefix}${x},${yarnY} `;
+              }
+
+              let gridLines = '';
+              for (let i = 0.2; i <= 1.0; i += 0.2) {
+                const y = h - pad - i * (h - pad * 2);
+                gridLines += `<line x1="${pad}" y1="${y}" x2="${w-pad}" y2="${y}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4" opacity="0.3"/>`;
+                if (i === 0.5 || i === 1.0) {
+                  gridLines += `<text x="${pad-5}" y="${y+4}" text-anchor="end" font-size="10" fill="var(--text-secondary)">${i.toFixed(1)}</text>`;
+                }
+              }
+              gridLines += `<text x="${pad-5}" y="${h-pad+4}" text-anchor="end" font-size="10" fill="var(--text-secondary)">0</text>`;
+
+              const yarnFillPath = yarnPath + ` L ${w - pad},${h - pad} L ${pad},${h - pad} Z`;
+
+              svg.innerHTML = `
+                <defs>
+                  <linearGradient id="yarn-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--color-inter)" stop-opacity="0.2" />
+                    <stop offset="100%" stop-color="var(--color-inter)" stop-opacity="0.0" />
+                  </linearGradient>
+                </defs>
+                ${gridLines}
+                <line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="var(--border)" stroke-width="1"/>
+                <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h - pad}" stroke="var(--border)" stroke-width="1"/>
+                <text x="${w / 2}" y="${h - 5}" text-anchor="middle" font-size="11" fill="var(--text-secondary)" font-family="var(--font-sans)">Dimension d →</text>
+                <text x="10" y="${h / 2}" text-anchor="middle" font-size="11" fill="var(--text-secondary)" font-family="var(--font-sans)" transform="rotate(-90,10,${h / 2})">θ_new / θ_orig</text>
+                <path d="${yarnFillPath}" fill="url(#yarn-grad)" />
+                <path d="${piPath}" fill="none" stroke="var(--color-keep)" stroke-width="2.5" stroke-dasharray="6,3"/>
+                <path d="${ntkPath}" fill="none" stroke="var(--color-trans)" stroke-width="2.5" stroke-dasharray="2,2"/>
+                <path d="${yarnPath}" fill="none" stroke="var(--color-inter)" stroke-width="3"/>`;
+            }
+
+            function updateZoneDisplay(alpha, beta) {
+              const L = 4096;
+              let keep = 0,
+                trans = 0,
+                inter = 0;
+              for (let d = 0; d < DIMS / 2; d++) {
+                const lam = (2 * Math.PI) / getTheta(d);
+                const r = L / lam;
+                if (r > beta) keep++;
+                else if (r < alpha) inter++;
+                else trans++;
+              }
+              const zL = LABELS[currentLang];
+              document.getElementById("zone-keep-text").textContent = (zL.zoneKeep || "■ Keep: {n} dims").replace("{n}", keep);
+              document.getElementById("zone-trans-text").textContent = (zL.zoneTrans || "■ Transition: {n} dims").replace("{n}", trans);
+              document.getElementById("zone-inter-text").textContent = (zL.zoneInter || "■ Interpolate: {n} dims").replace("{n}", inter);
+            }
+
+            if (pgSliderS) {
+              pgSliderS.addEventListener("input", updatePlayground);
+              pgSliderAlpha.addEventListener("input", updatePlayground);
+              pgSliderBeta.addEventListener("input", updatePlayground);
+            }
+
+            let time = 0;
+            let isTabVisible = true;
+            document.addEventListener("visibilitychange", () => {
+              isTabVisible = !document.hidden;
+            });
+
+            // 1. RoPE Visualization
+            const ropeLayer = document.getElementById("svg-rope");
+            const ropeGrid = document.getElementById("rope-grid");
+            const ropeVectors = document.getElementById("rope-vectors");
+            const ropeMCounter = document.getElementById("rope-m-val");
+            const btnRopePlay = document.getElementById("btn-rope-play");
+            const ropeDims = [0, 8, 16, 24];
+            const ropeColors = [
+              "var(--color-keep)",
+              "var(--color-trans)",
+              "var(--color-inter)",
+              "var(--text-secondary)",
+            ];
+            const ropeElements = [];
+            let ropePlaying = true;
+
+            btnRopePlay.addEventListener("click", () => {
+              ropePlaying = !ropePlaying;
+              updateI18n(); // Updates button text
+            });
+
+            function initRope() {
+              if (!ropeLayer) return;
+              ropeGrid.innerHTML = "";
+              ropeVectors.innerHTML = "";
+              ropeElements.length = 0;
+
+              const w = ropeLayer.clientWidth || window.innerWidth * 0.8;
+              const h = ropeLayer.clientHeight || 300;
+              const cx = w / 2;
+              const cy = h / 2;
+              const maxRadius = Math.min(w, h) / 2 - 20;
+
+              const gridGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+              ["x", "y"].forEach((axis) => {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", axis === "x" ? 0 : cx);
+                line.setAttribute("y1", axis === "y" ? 0 : cy);
+                line.setAttribute("x2", axis === "x" ? w : cx);
+                line.setAttribute("y2", axis === "y" ? h : cy);
+                line.setAttribute("stroke", "var(--border)");
+                line.setAttribute("stroke-width", "1");
+                line.setAttribute("stroke-dasharray", "4,4");
+                gridGroup.appendChild(line);
+              });
+              ropeGrid.appendChild(gridGroup);
+
+              ropeDims.forEach((d, i) => {
+                const radius = maxRadius * (1 - i * 0.2);
+
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", cx);
+                circle.setAttribute("cy", cy);
+                circle.setAttribute("r", radius);
+                circle.setAttribute("fill", "none");
+                circle.setAttribute("stroke", ropeColors[i]);
+                circle.setAttribute("stroke-width", "1");
+                circle.setAttribute("stroke-opacity", "0.3");
+                circle.setAttribute("stroke-dasharray", "2,4");
+                ropeGrid.appendChild(circle);
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", cx);
+                line.setAttribute("y1", cy);
+                line.setAttribute("stroke", ropeColors[i]);
+                line.setAttribute("stroke-width", "2");
+
+                const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                dot.setAttribute("r", "5");
+                dot.setAttribute("fill", ropeColors[i]);
+                dot.setAttribute("stroke", "var(--bg)");
+                dot.setAttribute("stroke-width", "1.5");
+
+                ropeVectors.appendChild(line);
+                ropeVectors.appendChild(dot);
+                ropeElements.push({ d, radius, cx, cy, line, dot });
+              });
+            }
+            initRope();
+
+            // 2. Wavelength Visualization
+            const sliderL = document.getElementById("slider-L");
+            const labelL = document.getElementById("label-L");
+            const svgWl = document.getElementById("svg-wavelength");
+            const wlPath = document.getElementById("wl-path");
+            const wlThresh = document.getElementById("wl-threshold");
+
+            function updateWavelength() {
+              const L_val = parseInt(sliderL.value, 10);
+              labelL.textContent = L_val;
+
+              const w = svgWl.clientWidth || window.innerWidth * 0.8;
+              const h = svgWl.clientHeight || 300;
+              const pad = 20;
+              const maxLambda = 2 * Math.PI * BASE;
+
+              let pathStr = `M ${pad},${h - pad} `;
+              for (let d = 0; d < DIMS / 2; d++) {
+                const lambda = (2 * Math.PI) / getTheta(d);
+                const x = pad + (d / (DIMS / 2 - 1)) * (w - pad * 2);
+                const y = h - pad - (Math.log(lambda) / Math.log(maxLambda)) * (h - pad * 2);
+                pathStr += `L ${x},${y} `;
+              }
+              pathStr += `L ${w - pad},${h - pad} Z`;
+              wlPath.setAttribute("d", pathStr);
+
+              const yL = h - pad - (Math.log(L_val) / Math.log(maxLambda)) * (h - pad * 2);
+              wlThresh.setAttribute("y1", yL);
+              wlThresh.setAttribute("y2", yL);
+              wlThresh.setAttribute("x1", pad);
+              wlThresh.setAttribute("x2", w - pad);
+
+              document.getElementById("wl-axis-x").setAttribute("x1", pad);
+              document.getElementById("wl-axis-x").setAttribute("y1", h - pad);
+              document.getElementById("wl-axis-x").setAttribute("x2", w - pad);
+              document.getElementById("wl-axis-x").setAttribute("y2", h - pad);
+
+              document.getElementById("wl-axis-y").setAttribute("x1", pad);
+              document.getElementById("wl-axis-y").setAttribute("y1", h - pad);
+              document.getElementById("wl-axis-y").setAttribute("x2", pad);
+              document.getElementById("wl-axis-y").setAttribute("y2", pad);
+            }
+
+            // 3. PI Visualization
+            const sliderPi = document.getElementById("slider-s-pi");
+            const labelPi = document.getElementById("label-s-pi");
+            const svgPi = document.getElementById("svg-pi");
+
+            // 4. NTK Visualization
+            const sliderNtk = document.getElementById("slider-s-ntk");
+            const labelNtk = document.getElementById("label-s-ntk");
+            const ntkLayer = document.getElementById("ntk-layer");
+            const ntkTooltip = document.getElementById("ntk-tooltip");
+
+            for (let d = 0; d < DIMS / 2; d++) {
+              const bar = document.createElement("div");
+              bar.className = "ntk-bar";
+              bar.style.width = "2.5%";
+              bar.style.margin = "0 1px";
+
+              // Interaction for tooltip
+              const showTooltip = (e) => {
+                  e.preventDefault();
+
+                const lambda = (2 * Math.PI) / getTheta(d);
+                const r = 4096 / lambda;
+                let gamma = r < 1 ? 0 : r > 32 ? 1 : (r - 1) / 31;
+
+                ntkTooltip.innerHTML = `d=${d * 2}<br>λ &approx; ${lambda.toFixed(1)}<br>r &approx; ${r.toFixed(3)}<br>γ &approx; ${gamma.toFixed(2)}`;
+                ntkTooltip.classList.add("show");
+                const rect = bar.getBoundingClientRect();
+                const parentRect = ntkLayer.getBoundingClientRect();
+                ntkTooltip.style.left = `${rect.left - parentRect.left + rect.width / 2}px`;
+                ntkTooltip.style.top = `${rect.top - parentRect.top - 70}px`;
+              };
+              const hideTooltip = () => {
+                ntkTooltip.classList.remove("show");
+              };
+
+              bar.addEventListener("mouseenter", showTooltip);
+              bar.addEventListener("touchstart", showTooltip, {passive: false});
+              bar.addEventListener("mouseleave", hideTooltip);
+              bar.addEventListener("touchend", hideTooltip);
+              ntkLayer.appendChild(bar);
+            }
+            const ntkBars = document.querySelectorAll(".ntk-bar");
+
+            function updateNTK() {
+              const s_ntk = parseInt(sliderNtk.value, 10);
+              labelNtk.textContent = `${s_ntk}x`;
+
+              const L = 4096;
+              const alpha = 1,
+                beta = 32;
+
+              ntkBars.forEach((bar, d) => {
+                const lambda = (2 * Math.PI) / getTheta(d);
+                const r = L / lambda;
+
+                let gamma, color;
+                if (r < alpha) {
+                  gamma = 0;
+                  color = "var(--color-inter)";
+                } else if (r > beta) {
+                  gamma = 1;
+                  color = "var(--color-keep)";
+                } else {
+                  gamma = (r - alpha) / (beta - alpha);
+                  color = "var(--color-trans)";
+                }
+
+                const ratio = (1 - gamma) * (1 / s_ntk) + gamma;
+                bar.style.height = `${ratio * 100}%`;
+                bar.style.backgroundColor = color;
+              });
+            }
+
+            // 5. Attention Visualization
+            const svgAtt = document.getElementById("svg-attention");
+            const attPath = document.getElementById("att-path");
+            const attDot = document.getElementById("att-dot");
+            const attText = document.getElementById("att-text");
+
+            function updateAttentionPath() {
+              const w = svgAtt.clientWidth || window.innerWidth * 0.8;
+              const h = svgAtt.clientHeight || 300;
+              const pad = 30;
+
+              let pathStr = "";
+              for (let s = 1; s <= 64; s += 1) {
+                const val = 0.1 * Math.log(s) + 1;
+                const x = pad + (s / 64) * (w - pad * 2);
+                const y = h - pad - ((val - 1) / 0.5) * (h - pad * 2);
+                if (s === 1) pathStr += `M ${x},${y} `;
+                else pathStr += `L ${x},${y} `;
+              }
+              attPath.setAttribute("d", pathStr);
+            }
+
+            let ropeM = 0;
+            function animationLoop() {
+              if (isTabVisible) {
+                time += 0.016;
+
+                // RoPE Vectors
+                if (ropePlaying) {
+                  ropeM = (time * 10) % 50;
+                }
+                if (ropeMCounter) {
+                  ropeMCounter.textContent = `m = ${Math.floor(ropeM)}`;
+                }
+                ropeElements.forEach((el) => {
+                  const angle = ropeM * getTheta(el.d);
+                  const x2 = el.cx + el.radius * Math.cos(angle);
+                  const y2 = el.cy + el.radius * Math.sin(angle);
+                  el.line.setAttribute("x2", x2);
+                  el.line.setAttribute("y2", y2);
+                  el.dot.setAttribute("cx", x2);
+                  el.dot.setAttribute("cy", y2);
+                });
+
+                // PI Waves
+                const wPi = svgPi.clientWidth || window.innerWidth * 0.8;
+                const hPi = svgPi.clientHeight || 300;
+                if (wPi > 0) {
+                  const s_pi = parseFloat(sliderPi.value);
+                  labelPi.textContent = `${s_pi.toFixed(1)}x`;
+                  const freqs = [0.1, 0.05, 0.01];
+                  const colors = ["var(--color-keep)", "var(--color-trans)", "var(--color-inter)"];
+
+                  let paths = "";
+                  freqs.forEach((f, i) => {
+                    const yOffset = hPi * 0.25 * (i + 1);
+                    let dStr = `M 0,${yOffset} `;
+                    for (let x = 0; x < wPi; x += 10) {
+                      const y = yOffset + Math.sin(((x - time * 50) * f) / s_pi) * 20;
+                      dStr += `L ${x},${y} `;
+                    }
+                    paths += `<path d="${dStr}" fill="none" stroke="${colors[i]}" stroke-width="2"/>`;
+                  });
+                  svgPi.innerHTML = paths;
+                }
+
+                // Attention Dot
+                const wAtt = svgAtt.clientWidth || window.innerWidth * 0.8;
+                const hAtt = svgAtt.clientHeight || 300;
+                if (wAtt > 0) {
+                  const pad = 30;
+                  const animS = 1 + (Math.sin(time * 0.5) + 1) * 16;
+                  const animVal = 0.1 * Math.log(animS) + 1;
+                  const dotX = pad + (animS / 64) * (wAtt - pad * 2);
+                  const dotY = hAtt - pad - ((animVal - 1) / 0.5) * (hAtt - pad * 2);
+                  attDot.setAttribute("cx", dotX);
+                  attDot.setAttribute("cy", dotY);
+                  attText.setAttribute("x", dotX + 10);
+                  attText.setAttribute("y", dotY - 10);
+                  attText.textContent = `s=${animS.toFixed(1)} \u2192 ${animVal.toFixed(3)}`;
+                }
+              }
+
+              requestAnimationFrame(animationLoop);
+            }
+
+            // Init events
+            sliderL.addEventListener("input", updateWavelength);
+            sliderNtk.addEventListener("input", updateNTK);
+            window.addEventListener("resize", () => {
+              initRope();
+              updateWavelength();
+              updateAttentionPath();
+            });
+
+            // Run initial render
+            setTimeout(() => {
+              updateI18n();
+              renderTOC();
+              updateWavelength();
+              updateNTK();
+              updateAttentionPath();
+              updatePlayground();
+              updateReadingProgress();
+              updateActiveTOC();
+              animationLoop();
+            }, 100);
+
+            // --- UI Enhancements & Micro-interactions ---
+
+            // Scroll reveal
+            const revealObserver = new IntersectionObserver((entries) => {
+              entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add('visible');
+                }
+              });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+            document.querySelectorAll('.phase-heading, .intuition-box, .tldr-box, .math-block, .code-block-wrapper, .formula-breakdown, .code-walkthrough, .table-scroll-wrapper, .playground-wrapper, .config-block').forEach(el => {
+              el.classList.add('reveal');
+              revealObserver.observe(el);
+            });
+
+            // Code block copy button and wrapper
+            document.querySelectorAll('pre.code-block').forEach(pre => {
+              const wrapper = document.createElement('div');
+              wrapper.className = 'code-block-wrapper reveal';
+              pre.parentNode.insertBefore(wrapper, pre);
+              
+              const btn = document.createElement('button');
+              btn.className = 'copy-btn';
+              btn.textContent = 'Copy';
+              
+              wrapper.appendChild(btn);
+              wrapper.appendChild(pre);
+
+              // Reveal observing for the new wrapper
+              revealObserver.observe(wrapper);
+              pre.classList.remove('reveal');
+              revealObserver.unobserve(pre);
+
+              btn.addEventListener('click', () => {
+                const code = pre.textContent;
+                navigator.clipboard.writeText(code).then(() => {
+                  btn.textContent = '✓ Copied';
+                  btn.classList.add('copied');
+                  setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                  }, 2000);
+                });
+              });
+            });
+
+            // Auto-open first formula breakdown
+            const firstFB = document.querySelector('.formula-breakdown');
+            if (firstFB) firstFB.setAttribute('open', '');
+
+            // Slider track styling
+            function updateSliderTrack(slider) {
+              const val = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+              slider.style.setProperty('--val', val + '%');
+            }
+            document.querySelectorAll('input[type="range"]').forEach(s => {
+              updateSliderTrack(s);
+              s.addEventListener('input', () => updateSliderTrack(s));
+            });
     </script>
   </body>
 </html>

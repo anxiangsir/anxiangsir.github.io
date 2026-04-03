@@ -72,6 +72,21 @@
       .stage-wrapper { width: 100%; position: relative; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 0 auto 35px; background: var(--bg-alt); box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; justify-content: center; align-items: center; flex-direction: column; }
       .stage-footer { padding: 15px 20px; background: var(--bg); border-top: 1px solid var(--border); width: 100%; font-family: var(--font-sans); text-align: center; font-size: 0.95rem; font-weight: bold; color: var(--text); min-height: 3rem; display: flex; align-items: center; justify-content: center; }
 
+      .speedup-container { width: 100%; padding: 30px 20px; display: flex; flex-direction: column; gap: 16px; background: var(--bg); }
+      .speedup-row { display: flex; align-items: center; gap: 12px; font-family: var(--font-sans); }
+      .speedup-label { min-width: 100px; font-weight: 600; font-size: 0.9rem; text-align: right; color: var(--text); }
+      .speedup-track { flex: 1; height: 32px; background: var(--bg-alt); border-radius: 6px; overflow: hidden; position: relative; border: 1px solid var(--border); }
+      .speedup-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-weight: bold; font-size: 0.85rem; transition: width 1.5s cubic-bezier(0.4,0,0.2,1); width: 0%; }
+      .speedup-value { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-weight: bold; font-size: 0.85rem; color: var(--text-secondary); }
+
+      .tir-flow-container { width: 100%; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; background: var(--bg); }
+      .tir-step { display: flex; align-items: center; gap: 10px; width: 90%; max-width: 600px; padding: 10px 14px; border-radius: 8px; border: 2px solid var(--border); background: var(--bg-alt); font-family: var(--font-sans); font-size: 0.9rem; transition: all 0.4s ease; opacity: 0.4; }
+      .tir-step.active { opacity: 1; border-color: var(--accent); background: #eff6ff; box-shadow: 0 2px 8px rgba(37,99,235,0.15); }
+      .tir-step-icon { font-size: 1.4rem; min-width: 30px; text-align: center; }
+      .tir-step-text { flex: 1; line-height: 1.4; }
+      .tir-step-text strong { color: var(--text); }
+      .tir-arrow { font-size: 1.2rem; color: var(--border); text-align: center; transition: color 0.3s; }
+      .tir-arrow.active { color: var(--accent); }
       /* Section 1: Timeline CSS */
       .timeline-container { display: flex; flex-direction: row; width: 100%; gap: 10px; padding: 20px; }
       .timeline-box { flex: 1; display: flex; flex-direction: column; }
@@ -103,6 +118,47 @@
         .formula-wrap { font-size: 0.85rem; min-width: 0; width: 95%; padding: 10px 10px; margin-top: 20px; }
         .formula-state { padding: 0 8px; font-size: 0.8rem; }
         #dec-caption { font-size: 0.85rem !important; }
+        .arch-stage { height: auto; min-height: 300px; }
+        .arch-node { width: 140px; padding: 0.6rem; }
+        .node-title { font-size: 0.85rem; }
+        .node-desc { font-size: 0.7rem; }
+        .token-stage { height: auto; min-height: 200px; }
+        .token-stream { width: 95%; }
+        .phase-heading { font-size: 1.25rem; }
+        .hero-text { font-size: 1rem; }
+        .masthead-sub { font-size: 0.85rem; }
+        .algo-card { min-width: 70px; font-size: 0.78rem; padding: 6px 10px; }
+        .algo-detail { font-size: 0.88rem; padding: 12px; }
+        .speedup-label { min-width: 70px; font-size: 0.8rem; }
+        .speedup-fill { font-size: 0.75rem; }
+        .tir-step { font-size: 0.82rem; padding: 8px 12px; width: 95%; }
+        .tir-step-icon { font-size: 1.2rem; }
+      }
+      @media (max-width: 480px) {
+        .arch-node { width: 110px; padding: 0.5rem; font-size: 0.75rem; }
+        .arch-stage { min-height: 260px; }
+        #n-roll { left: 5px; }
+        #n-rew { right: 5px; }
+        .node-desc { display: none; }
+        .timeline-title { font-size: 0.85rem; }
+        .gpu-label { font-size: 0.55rem; }
+        .phase-heading { font-size: 1.1rem; }
+        .phase-desc { font-size: 0.95rem; }
+        .dec-seg { font-size: 0.65rem; }
+        .formula-wrap { font-size: 0.8rem; padding: 8px; }
+        .stage-footer { font-size: 0.85rem; padding: 10px; }
+        .masthead-title { font-size: 2rem; }
+        .lang-toggle { padding: 4px 10px; font-size: 0.8rem; }
+        .rollout-packet table { font-size: 0.75em; }
+        .algo-card { min-width: 60px; font-size: 0.72rem; padding: 5px 8px; }
+        .algo-root { font-size: 0.88rem; padding: 10px 16px; }
+        .algo-detail { font-size: 0.85rem; }
+        .speedup-label { min-width: 55px; font-size: 0.72rem; }
+        .speedup-row { gap: 8px; }
+        .speedup-fill { font-size: 0.7rem; padding-right: 6px; }
+        .speedup-track { height: 26px; }
+        .tir-step { font-size: 0.78rem; padding: 7px 10px; }
+        .tir-step-icon { font-size: 1rem; min-width: 24px; }
       }
 
       /* Section 2: Architecture CSS */
@@ -164,6 +220,36 @@
       .particle-burst { position: absolute; inset: 0; pointer-events: none; }
       .particle { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: rgba(34,197,94,0.9); opacity: 0; }
 
+      .algo-family-container { width: 100%; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; gap: 20px; background: var(--bg); min-height: 300px; }
+      .algo-tree { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 700px; }
+      .algo-root { padding: 12px 24px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; font-family: var(--font-sans); font-weight: bold; font-size: 1rem; text-align: center; box-shadow: 0 4px 12px rgba(37,99,235,0.3); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+      .algo-root:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(37,99,235,0.4); }
+      .algo-branch-line { width: 2px; height: 20px; background: var(--border); }
+      .algo-branches { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; }
+      .algo-card { padding: 8px 14px; border-radius: 6px; border: 2px solid var(--border); background: var(--bg-alt); font-family: var(--font-sans); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.25s; text-align: center; min-width: 90px; }
+      .algo-card:hover, .algo-card.active { border-color: var(--accent); background: #eff6ff; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(37,99,235,0.15); }
+      .algo-card.active { border-color: var(--accent); background: #dbeafe; }
+      .algo-detail { width: 100%; max-width: 700px; padding: 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-alt); font-family: var(--font-serif); font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); min-height: 60px; transition: opacity 0.3s; }
+
+      .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); z-index: 9999; transition: width 0.1s ease-out; width: 0%; pointer-events: none; }
+      .toc-nav { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; margin: 1.5rem auto; max-width: 700px; overflow: hidden; }
+      .toc-header { padding: 12px 16px; font-family: var(--font-sans); font-weight: bold; font-size: 0.95rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--bg); transition: background 0.2s; }
+      .toc-header:hover { background: var(--bg-alt); }
+      .toc-list { list-style: none; padding: 0 16px 12px; margin: 0; font-family: var(--font-sans); font-size: 0.9rem; max-height: 500px; overflow-y: auto; transition: max-height 0.3s ease-in-out, opacity 0.3s; }
+      .toc-list.collapsed { max-height: 0; padding-bottom: 0; opacity: 0; overflow: hidden; }
+      .toc-list li { margin-bottom: 8px; }
+      .toc-list li:last-child { margin-bottom: 0; }
+      .toc-list a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; display: block; }
+      .toc-list a:hover, .toc-list a.active { color: var(--accent); font-weight: bold; }
+      .back-to-top { position: fixed; bottom: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center; color: var(--accent); font-size: 1.2rem; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s; border: 1px solid var(--border); z-index: 9000; text-decoration: none; }
+      .back-to-top.show { opacity: 1; pointer-events: auto; }
+      .back-to-top:hover { transform: translateY(-3px); }
+      details.deep-dive { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; margin: 1.5rem 0; overflow: hidden; }
+      details.deep-dive > summary { padding: 12px 16px; cursor: pointer; font-family: var(--font-sans); font-size: 0.95rem; font-weight: bold; color: var(--accent); user-select: none; transition: background 0.2s; list-style: none; }
+      details.deep-dive > summary::-webkit-details-marker { display: none; }
+      details.deep-dive > summary:hover { background: rgba(37, 99, 235, 0.05); }
+      details.deep-dive > .dd-content { padding: 16px; border-top: 1px solid var(--border); background: var(--bg); }
+
       @keyframes segPulse { 0%,100% { opacity: 0.95; } 50% { opacity: 1; } }
       @keyframes nodePulse { 0%,100% { filter: saturate(1); } 50% { filter: saturate(1.2); } }
       @keyframes tokenIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -174,12 +260,13 @@
       @keyframes particlePop { from { opacity: 1; transform: translate(0,0) scale(1); } to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); } }
 
       @media (prefers-reduced-motion: reduce) {
-        .tl-seg, .arch-node, .data-packet, .token, .update-banner, .s-item, .s-bar, .s-x, .dec-seg, .bolt, .formula-state { animation: none; transition: none; }
+        .tl-seg, .arch-node, .data-packet, .token, .update-banner, .s-item, .s-bar, .s-x, .dec-seg, .bolt, .formula-state, .speedup-fill, .tir-step, .tir-arrow, .back-to-top, .progress-bar { animation: none; transition: none; }
       }
 
     </style>
   </head>
   <body>
+    <div class="progress-bar" id="progress-bar"></div>
     <nav class="site-nav">
       <a href="/">Home</a>
       <span class="nav-sep">|</span>
@@ -196,6 +283,13 @@
         <h1 class="masthead-title">AReaL</h1>
         <div class="masthead-sub" id="hero-subtitle"></div>
       </header>
+      <nav class="toc-nav" id="toc-nav">
+        <div class="toc-header" id="toc-toggle">
+          <span id="toc-title"></span>
+          <span class="toc-arrow" id="toc-arrow">▾</span>
+        </div>
+        <ol class="toc-list" id="toc-list"></ol>
+      </nav>
 
       <div class="hero-content">
         <p class="hero-text" id="hero-text"></p>
@@ -348,8 +442,11 @@
         <div class="step-indicator" id="step-staleness" style="position:absolute; bottom:20px; text-align:center; width:100%; font-family:var(--font-math); font-size:1rem; font-weight:bold; color:var(--text); background:rgba(255,255,255,0.9); padding:6px 12px; border-top:1px solid var(--border);"></div>
       </div>
 
+      <details class="deep-dive" id="sec4-details">
+        <summary><span class="dd-summary-text" id="sec4-summary-text"></span></summary>
+        <div class="dd-content">
       <p class="phase-desc" id="sec4-table-title"></p>
-      <table class="ablation-table" style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-family: var(--font-sans); text-align: left; border: 1px solid var(--border);">
+      <table class="ablation-table" style="width: 100%; border-collapse: collapse; font-family: var(--font-sans); text-align: left; border: 1px solid var(--border);">
         <thead>
           <tr style="background: var(--bg-alt); border-bottom: 2px solid var(--border);">
             <th style="padding: 10px; border-right: 1px solid var(--border);" id="sec4-threshold-head"></th>
@@ -385,6 +482,8 @@
           </tr>
         </tbody>
       </table>
+        </div>
+      </details>
 
       <h3 class="phase-heading" id="sec5-heading"></h3>
       <p class="phase-desc" id="sec5-desc1"></p>
@@ -402,10 +501,15 @@ $$\text{where } u_t^{\text{prox}}(\theta) = \frac{\pi_\theta(a_t | s_t)}{\textco
       <p class="phase-desc" id="sec5-desc8"></p>
       <div class="math-block" id="sec5-loginterp"></div>
 
+      <details class="deep-dive" id="sec5-details">
+        <summary><span class="dd-summary-text" id="sec5-summary-text"></span></summary>
+        <div class="dd-content">
       <div class="stage-wrapper" id="stage-decoupled" style="height: 300px; cursor: pointer;">
         <div class="viz-layer" id="viz-decoupled" style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; height:100%; padding:20px;"></div>
       </div>
       <p class="phase-desc" id="sec5-replay-note" style="text-align: center; font-size: 0.9em; margin-top: -15px;"></p>
+        </div>
+      </details>
 
       <h3 class="phase-heading" id="sec6-heading"></h3>
       <p class="phase-desc" id="sec6-desc1"></p>
@@ -453,16 +557,53 @@ $$\text{where } u_t^{\text{prox}}(\theta) = \frac{\pi_\theta(a_t | s_t)}{\textco
       <p class="phase-desc" id="sec6-highlight" style="font-family: var(--font-math); text-align: center; font-weight: bold; background: var(--bg-alt); padding: 10px; border-radius: 4px; border: 1px solid var(--border);"></p>
       <p class="phase-desc" id="sec6-desc2"></p>
 
+      <div class="stage-wrapper" id="stage-speedup">
+        <div class="speedup-container" id="speedup-bars">
+          <!-- JS will populate -->
+        </div>
+        <div class="stage-footer" id="sec6-speedup-footer"></div>
+      </div>
       <h3 class="phase-heading" id="sec7-heading"></h3>
       <p class="phase-desc" id="sec7-desc1"></p>
-      <ul style="padding-left: 20px; font-family: var(--font-serif); color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem;">
-        <li><strong id="sec7-paper-label"></strong> <a href="https://arxiv.org/abs/2505.24298" style="color: var(--accent);" id="sec7-paper-link" target="_blank" rel="noopener noreferrer">arXiv:2505.24298</a> <span id="sec7-paper-note"></span></li>
-        <li><strong id="sec7-github-label"></strong> <a href="https://github.com/inclusionAI/AReaL" style="color: var(--accent);" id="sec7-github-link" target="_blank" rel="noopener noreferrer">inclusionAI/AReaL</a></li>
-        <li><strong id="sec7-authors-label"></strong> <span id="sec7-authors-value"></span></li>
-      </ul>
       <p class="phase-desc" id="sec7-desc2"></p>
 
+      <div class="stage-wrapper" id="stage-algo-family">
+        <div class="algo-family-container" id="algo-family">
+          <!-- JS will populate this -->
+        </div>
+        <div class="stage-footer" id="sec7-algo-footer"></div>
+      </div>
+
+      <p class="phase-desc" id="sec7-desc3"></p>
+      <pre class="code-block"><code id="sec7-config-code" class="language-yaml"></code></pre>
+      <p class="phase-desc" id="sec7-desc4"></p>
+
+      <h3 class="phase-heading" id="sec8-heading"></h3>
+      <p class="phase-desc" id="sec8-desc1"></p>
+      <p class="phase-desc" id="sec8-desc2"></p>
+      <p class="phase-desc" id="sec8-desc3"></p>
+
+      <div class="stage-wrapper" id="stage-tir">
+        <div class="tir-flow-container" id="tir-flow">
+          <!-- JS will populate -->
+        </div>
+        <div class="stage-footer" id="sec8-tir-footer"></div>
+      </div>
+
+      <p class="phase-desc" id="sec8-desc4"></p>
+      <p class="phase-desc" id="sec8-desc5"></p>
+
+      <h3 class="phase-heading" id="sec9-heading"></h3>
+      <p class="phase-desc" id="sec9-desc1"></p>
+      <ul style="padding-left: 20px; font-family: var(--font-serif); color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem;">
+        <li><strong id="sec9-paper-label"></strong> <a href="https://arxiv.org/abs/2505.24298" style="color: var(--accent);" id="sec9-paper-link" target="_blank" rel="noopener noreferrer">arXiv:2505.24298</a> <span id="sec9-paper-note"></span></li>
+        <li><strong id="sec9-github-label"></strong> <a href="https://github.com/inclusionAI/AReaL" style="color: var(--accent);" id="sec9-github-link" target="_blank" rel="noopener noreferrer">inclusionAI/AReaL</a></li>
+        <li><strong id="sec9-authors-label"></strong> <span id="sec9-authors-value"></span></li>
+      </ul>
+      <p class="phase-desc" id="sec9-desc2"></p>
+
     </div>
+    <a href="#" class="back-to-top" id="back-to-top" aria-label="Back to top">↑</a>
 
     <script>
       const LABELS = {
@@ -470,6 +611,9 @@ $$\text{where } u_t^{\text{prox}}(\theta) = \frac{\pi_\theta(a_t | s_t)}{\textco
           heroSub: "由清华大学交叉信息研究院与蚂蚁集团联合推出 | NeurIPS 2025, arXiv:2505.24298",
           heroText: "随着 o1 等深度思考模型的兴起，长序列推理让传统的同步 RLHF 系统面临巨大瓶颈。<br>AReaL 是一个专为大语言模型（LLM）打造的<b>全异步强化学习训练系统</b>，彻底打破生成与训练的同步壁垒，实现 2.77倍 的训练提速。",
           
+          tocTitle: "目录",
+          expandDetail: "展开详细推导 ▸",
+          collapseDetail: "收起 ▾",
           sec1Head: "1. 同步RL的代价",
           sec1Desc1: "LLM 的 RL 训练本质是一个高频闭环：模型先按当前策略生成回答（rollout），奖励模型/规则验证器给出分数，再用 PPO 更新权重。这个循环在训练中会重复成千上万次。",
           sec1Desc2: "关键点是：rollout 不是一句自然语言，而是一份可训练的数据包。每个 token 都要带上概率、掩码、优势值与版本信息，否则训练器无法做稳定的策略梯度更新。",
@@ -579,17 +723,56 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec6Row6Areal: "2.27&times;",
           sec6Highlight: "η=4，朴素 PPO：23.3 → Decoupled PPO：42.2 (+81%)",
           sec6Desc2: "因此工程结论是：仅把系统改成异步并不够，必须同时引入可控 staleness 与匹配的 PPO 目标，才能把吞吐提升转化为最终任务收益。",
+          sec6SpeedupFooter: "GPU 利用率与训练加速对比",
+          sec7Head: "7. 算法家族：统一损失接口",
+          sec7Desc1: "AReaL 并非只支持 PPO。其 <code>functional.py</code> 通过统一接口支持 10+ 种 RL 算法，覆盖从经典 PPO 到最新的 GRPO 及其变体。点击下方卡片查看每种算法的核心思想。",
+          sec7Desc2: "这些算法共享统一的 rollout 数据结构和训练管线，只需切换损失函数配置即可无缝切换——这正是系统设计解耦的体现。",
+          sec7AlgoFooter: "点击算法卡片查看详情",
+          sec7Desc3: "以下是 AReaL 实际使用的 GSM8K GRPO 训练配置（来自 <code>examples/math/gsm8k_grpo.yaml</code>）：",
+          sec7Desc4: "关键参数解读：<code>n_samples=4</code> 表示每个 prompt 生成 4 个候选回答做组内比较；<code>eps_clip=0.4</code> 是比标准 PPO 更宽松的裁剪范围（标准为 0.2）；<code>reward_scaling=10.0</code> 放大奖励信号以加速学习。",
+          sec7ConfigCode: `# GSM8K GRPO Config (examples/math/gsm8k_grpo.yaml)
+n_samples: 4          # candidates per prompt
+eps_clip: 0.4         # clip range (wider than PPO's 0.2)
+reward_scaling: 10.0  # amplify reward signal
+reward_bias: -0.5     # center rewards around 0
+kl_ctl: 0.0           # no KL penalty
+max_head_offpolicyness: 2  # staleness cap for head
+gen_backend: "sglang" # generation engine`,
+          algoDesc_PPO: "经典 Proximal Policy Optimization。通过裁剪比率限制策略更新幅度，保证训练稳定性。AReaL 在此基础上扩展了 Decoupled PPO。",
+          algoDesc_GRPO: "Group Relative Policy Optimization。每个 prompt 生成一组候选回答，在组内归一化 advantage，无需单独的价值网络。默认用于 AReaL 的数学任务。",
+          algoDesc_GSPO: "Group Sampled Policy Optimization。GRPO 的变体，对组内采样策略做了优化，减少方差。",
+          algoDesc_SAPO: "Sample-Average Policy Optimization。使用样本均值作为 baseline，简化优势估计。",
+          algoDesc_M2PO: "Min-Max Policy Optimization。引入 min-max 目标来平衡探索与利用。",
+          algoDesc_DAPO: "Dynamic Asymmetric Policy Optimization。使用非对称裁剪范围（<code>eps_clip_higher</code>），对正优势和负优势使用不同的裁剪阈值。",
+          algoDesc_LitePPO: "轻量级 PPO。省略价值网络和 GAE，直接使用奖励信号，适合资源受限场景。",
+          algoDesc_DrGRPO: "Dr.GRPO (Dynamic Reward GRPO)。动态调整奖励缩放，对不同难度的任务自适应。",
+          algoDesc_REINFORCEpp: "REINFORCE++ 在经典 REINFORCE 基础上加入方差缩减技术和 baseline，提升梯度估计质量。",
+          algoDesc_RLOO: "REINFORCE Leave-One-Out。用留一法估计 baseline：每个样本的 baseline 是同组其他样本奖励的均值。",
 
-          sec7Head: "7. 参考文献",
-          sec7Desc1: "如果你想继续深入，建议按“系统实现 → 理论推导 → 消融实验”顺序阅读论文与代码，重点关注 rollout 数据结构、版本字段和损失函数实现。",
-          sec7PaperLabel: "Paper:",
-          sec7PaperLink: "arXiv:2505.24298",
-          sec7PaperNote: "(NeurIPS 2025)",
-          sec7GithubLabel: "GitHub:",
-          sec7GithubLink: "inclusionAI/AReaL",
-          sec7AuthorsLabel: "Authors:",
-          sec7AuthorsValue: "Tsinghua IIIS + Ant Group",
-          sec7Desc2: "阅读时可带着三个检查点：① rollout 里到底存了哪些 token-level 字段；② staleness 如何限制 in-flight 数据；③ Decoupled PPO 如何同时保证稳定与无偏校正。",
+          sec8Head: "8. 多轮 Agent 与工具推理 (TIR)",
+          sec8Desc1: "AReaL 不仅支持单轮问答训练，还内建了多轮对话和工具调用的训练流水线（<code>multi_turn.py</code> + <code>tir_workflow.py</code>）。",
+          sec8Desc2: "Tool-Integrated Reasoning (TIR) 的关键机制：模型在生成过程中输出特殊标记（如 <code>```python</code>），系统检测到后暂停生成，将代码发往沙箱执行，然后将执行结果拼接回 context 继续生成。",
+          sec8Desc3: "工具调用 token 的 <code>loss_mask</code> 被设为 0——模型不应该被训练去\"生成\"工具的返回值，只需学会何时调用工具以及如何解读结果。",
+          sec8TirFooter: "TIR 工作流：生成 → 工具检测 → 沙箱执行 → 结果注入 → 继续生成",
+          sec8Desc4: "多轮训练中，每轮重试的奖励会乘以衰减系数 <code>turn_discount</code>，鼓励模型在尽可能少的交互轮数内得到正确答案。",
+          sec8Desc5: "这使得 AReaL 可以直接训练 Agent 场景：搜索、代码执行、API 调用等，而不需要单独的微调流水线。",
+          tirStep1: "模型生成推理文本...",
+          tirStep2: "检测到 <code>```python</code> 标记",
+          tirStep3: "代码发送至沙箱执行",
+          tirStep4: "执行结果注入 Context",
+          tirStep5: "继续生成（loss_mask=0 覆盖工具 token）",
+          tirStep6: "最终答案 + 奖励评估",
+
+          sec9Head: "9. 参考文献",
+          sec9Desc1: "如果你想继续深入，建议按“系统实现 → 理论推导 → 消融实验”顺序阅读论文与代码，重点关注 rollout 数据结构、版本字段和损失函数实现。",
+          sec9PaperLabel: "Paper:",
+          sec9PaperLink: "arXiv:2505.24298",
+          sec9PaperNote: "(NeurIPS 2025)",
+          sec9GithubLabel: "GitHub:",
+          sec9GithubLink: "inclusionAI/AReaL",
+          sec9AuthorsLabel: "Authors:",
+          sec9AuthorsValue: "Tsinghua IIIS + Ant Group",
+          sec9Desc2: "阅读时可带着三个检查点：① rollout 里到底存了哪些 token-level 字段；② staleness 如何限制 in-flight 数据；③ Decoupled PPO 如何同时保证稳定与无偏校正。",
 
           s4AnimTraining: "训练中...",
           s4AnimActive: "活跃",
@@ -608,6 +791,9 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           
           sec1Head: "1. The Cost of Synchronous RL",
           sec1Desc1: "LLM RL training is a tight loop: generate a response rollout, score it with reward/verification, then update weights with PPO. This loop repeats thousands of times during training.",
+          tocTitle: "Contents",
+          expandDetail: "Expand detailed derivation ▸",
+          collapseDetail: "Collapse ▾",
           sec1Desc2: "A rollout is not just text; it is a trainable token-level packet carrying probabilities, masks, credit assignment, and version metadata.",
           sec1Desc3: "A typical packet is <code>{input_ids, logprobs, loss_mask, rewards, advantages, versions}</code>. <code>input_ids</code> concatenates prompt + response; <code>logprobs</code> stores per-token log-likelihoods under the generating policy; <code>loss_mask</code> is 0 on prompt tokens and 1 on generated tokens.",
           rpHeadField: "Field",
@@ -715,17 +901,56 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec6Row6Areal: "2.27&times;",
           sec6Highlight: "η=4, Naive PPO: 23.3 → Decoupled PPO: 42.2 (+81%)",
           sec6Desc2: "Takeaway: asynchronous rollout alone is insufficient. You need controlled staleness plus Decoupled PPO to convert throughput gains into final task quality.",
+          sec6SpeedupFooter: "GPU utilization and training speedup comparison",
+          sec7Head: "7. Algorithm Family: Unified Loss Interface",
+          sec7Desc1: "AReaL is not limited to PPO. Its <code>functional.py</code> provides a unified interface supporting 10+ RL algorithms, from classic PPO to the latest GRPO variants. Click the cards below to explore each algorithm's core idea.",
+          sec7Desc2: "All algorithms share the same rollout data structure and training pipeline — switching between them requires only a config change, showcasing the power of decoupled system design.",
+          sec7AlgoFooter: "Click an algorithm card for details",
+          sec7Desc3: "Below is AReaL's actual GSM8K GRPO training config (from <code>examples/math/gsm8k_grpo.yaml</code>):",
+          sec7Desc4: "Key parameters: <code>n_samples=4</code> means 4 candidate responses per prompt for group comparison; <code>eps_clip=0.4</code> is a wider clip range than standard PPO (0.2); <code>reward_scaling=10.0</code> amplifies the reward signal to accelerate learning.",
+          sec7ConfigCode: `# GSM8K GRPO Config (examples/math/gsm8k_grpo.yaml)
+n_samples: 4          # candidates per prompt
+eps_clip: 0.4         # clip range (wider than PPO's 0.2)
+reward_scaling: 10.0  # amplify reward signal
+reward_bias: -0.5     # center rewards around 0
+kl_ctl: 0.0           # no KL penalty
+max_head_offpolicyness: 2  # staleness cap for head
+gen_backend: "sglang" # generation engine`,
+          algoDesc_PPO: "Classic Proximal Policy Optimization. Clips the policy ratio to constrain update magnitude, ensuring stable training. AReaL extends this with Decoupled PPO.",
+          algoDesc_GRPO: "Group Relative Policy Optimization. Generates a group of candidate responses per prompt, normalizes advantages within the group, eliminating the need for a separate value network. Default for AReaL math tasks.",
+          algoDesc_GSPO: "Group Sampled Policy Optimization. A GRPO variant that optimizes the in-group sampling strategy to reduce variance.",
+          algoDesc_SAPO: "Sample-Average Policy Optimization. Uses sample mean as baseline, simplifying advantage estimation.",
+          algoDesc_M2PO: "Min-Max Policy Optimization. Introduces a min-max objective to balance exploration and exploitation.",
+          algoDesc_DAPO: "Dynamic Asymmetric Policy Optimization. Uses asymmetric clip ranges (<code>eps_clip_higher</code>), applying different thresholds for positive and negative advantages.",
+          algoDesc_LitePPO: "Lightweight PPO. Omits the value network and GAE, using reward signals directly. Suitable for resource-constrained settings.",
+          algoDesc_DrGRPO: "Dr.GRPO (Dynamic Reward GRPO). Dynamically adjusts reward scaling, adapting to task difficulty.",
+          algoDesc_REINFORCEpp: "REINFORCE++ adds variance reduction techniques and baselines to classic REINFORCE, improving gradient estimation quality.",
+          algoDesc_RLOO: "REINFORCE Leave-One-Out. Estimates baseline using leave-one-out: each sample's baseline is the mean reward of other samples in the group.",
 
-          sec7Head: "7. References",
-          sec7Desc1: "For deeper study, read in order: system implementation, theoretical derivation, then ablation results. Focus on rollout packet fields, version bookkeeping, and exact loss computation.",
-          sec7PaperLabel: "Paper:",
-          sec7PaperLink: "arXiv:2505.24298",
-          sec7PaperNote: "(NeurIPS 2025)",
-          sec7GithubLabel: "GitHub:",
-          sec7GithubLink: "inclusionAI/AReaL",
-          sec7AuthorsLabel: "Authors:",
-          sec7AuthorsValue: "Tsinghua IIIS + Ant Group",
-          sec7Desc2: "Three checkpoints while reading code/paper: (1) what token-level fields are stored per rollout, (2) how in-flight capacity is bounded by staleness, (3) how Decoupled PPO balances trust-region stability and off-policy correction.",
+          sec8Head: "8. Multi-Turn Agent & Tool-Integrated Reasoning",
+          sec8Desc1: "AReaL supports not just single-turn Q&A training but has built-in multi-turn dialogue and tool-calling pipelines (<code>multi_turn.py</code> + <code>tir_workflow.py</code>).",
+          sec8Desc2: "Tool-Integrated Reasoning (TIR) key mechanism: the model outputs special markers (e.g., <code>```python</code>) during generation. The system detects these, pauses generation, sends code to a sandbox, and injects execution results back into context.",
+          sec8Desc3: "Tool-call tokens have <code>loss_mask=0</code> — the model should not be trained to \"generate\" tool outputs, only to learn when to invoke tools and how to interpret results.",
+          sec8TirFooter: "TIR workflow: Generate → Detect tool → Sandbox exec → Inject result → Continue",
+          sec8Desc4: "In multi-turn training, each retry round's reward is multiplied by <code>turn_discount</code>, encouraging the model to reach the model to reach the correct answer in fewer interaction rounds.",
+          sec8Desc5: "This enables AReaL to directly train agent scenarios: search, code execution, API calls, etc., without requiring a separate fine-tuning pipeline.",
+          tirStep1: "Model generates reasoning text...",
+          tirStep2: "Detects <code>```python</code> marker",
+          tirStep3: "Code sent to sandbox for execution",
+          tirStep4: "Execution result injected into context",
+          tirStep5: "Continue generating (loss_mask=0 on tool tokens)",
+          tirStep6: "Final answer + reward evaluation",
+
+          sec9Head: "9. References",
+          sec9Desc1: "For deeper study, read in order: system implementation, theoretical derivation, then ablation results. Focus on rollout packet fields, version bookkeeping, and exact loss computation.",
+          sec9PaperLabel: "Paper:",
+          sec9PaperLink: "arXiv:2505.24298",
+          sec9PaperNote: "(NeurIPS 2025)",
+          sec9GithubLabel: "GitHub:",
+          sec9GithubLink: "inclusionAI/AReaL",
+          sec9AuthorsLabel: "Authors:",
+          sec9AuthorsValue: "Tsinghua IIIS + Ant Group",
+          sec9Desc2: "Three checkpoints while reading code/paper: (1) what token-level fields are stored per rollout, (2) how in-flight capacity is bounded by staleness, (3) how Decoupled PPO balances trust-region stability and off-policy correction.",
 
           s4AnimTraining: "Training...",
           s4AnimActive: "Active",
@@ -750,6 +975,16 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           .replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>')
           .replace(/\b(def|return|if|elif|else|for|while|import|from|class|with|as|in|not|and|or|True|False|None)\b/g, '<span class="kw">$1</span>')
           .replace(/\b(exp|clamp|max|min|print|len|range|sum)\b(?=\s*\()/g, '<span class="fn">$1</span>');
+      }
+
+      function highlightYaml(raw) {
+        return raw
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/(#[^\n]*)/g, '<span class="cm">$1</span>')
+          .replace(/^(\s*[\w_]+):/gm, '<span class="kw">$1</span>:')
+          .replace(/:\s*(\d+\.?\d*)\s*$/gm, ': <span class="num">$1</span>')
+          .replace(/:\s*(true|false|null)\s*$/gm, ': <span class="kw">$1</span>')
+          .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g, '<span class="str">$1</span>');
       }
 
       function updateI18n() {
@@ -857,16 +1092,71 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
         document.getElementById('sec6-highlight').innerHTML = L.sec6Highlight;
         document.getElementById('sec6-desc2').innerHTML = L.sec6Desc2;
 
+        const speedupFooter = document.getElementById('sec6-speedup-footer');
+        if (speedupFooter) speedupFooter.innerHTML = L.sec6SpeedupFooter;
+        const speedupData = [
+          { zh: '同步 PPO', en: 'Sync PPO' },
+          { zh: 'AReaL', en: 'AReaL' },
+          { zh: '同步训练', en: 'Sync Training' },
+          { zh: 'AReaL', en: 'AReaL' }
+        ];
+        speedupData.forEach((d, i) => {
+          const el = document.getElementById('speedup-label-' + i);
+          if (el) el.textContent = currentLang === 'zh' ? d.zh : d.en;
+        });
+
         document.getElementById('sec7-heading').innerHTML = L.sec7Head;
         document.getElementById('sec7-desc1').innerHTML = L.sec7Desc1;
-        document.getElementById('sec7-paper-label').innerHTML = L.sec7PaperLabel;
-        document.getElementById('sec7-paper-link').innerHTML = L.sec7PaperLink;
-        document.getElementById('sec7-paper-note').innerHTML = L.sec7PaperNote;
-        document.getElementById('sec7-github-label').innerHTML = L.sec7GithubLabel;
-        document.getElementById('sec7-github-link').innerHTML = L.sec7GithubLink;
-        document.getElementById('sec7-authors-label').innerHTML = L.sec7AuthorsLabel;
-        document.getElementById('sec7-authors-value').innerHTML = L.sec7AuthorsValue;
         document.getElementById('sec7-desc2').innerHTML = L.sec7Desc2;
+        document.getElementById('sec7-algo-footer').innerHTML = L.sec7AlgoFooter;
+        document.getElementById('sec7-desc3').innerHTML = L.sec7Desc3;
+        document.getElementById('sec7-config-code').innerHTML = highlightYaml(L.sec7ConfigCode);
+        document.getElementById('sec7-desc4').innerHTML = L.sec7Desc4;
+
+        document.getElementById('sec8-heading').innerHTML = L.sec8Head;
+        document.getElementById('sec8-desc1').innerHTML = L.sec8Desc1;
+        document.getElementById('sec8-desc2').innerHTML = L.sec8Desc2;
+        document.getElementById('sec8-desc3').innerHTML = L.sec8Desc3;
+        document.getElementById('sec8-tir-footer').innerHTML = L.sec8TirFooter;
+        document.getElementById('sec8-desc4').innerHTML = L.sec8Desc4;
+        document.getElementById('sec8-desc5').innerHTML = L.sec8Desc5;
+        const tirStepKeys = ['tirStep1', 'tirStep2', 'tirStep3', 'tirStep4', 'tirStep5', 'tirStep6'];
+        tirStepKeys.forEach((key, i) => {
+          const el = document.getElementById('tir-text-' + i);
+          if (el) el.innerHTML = L[key];
+        });
+
+        document.getElementById('sec9-heading').innerHTML = L.sec9Head;
+        document.getElementById('sec9-desc1').innerHTML = L.sec9Desc1;
+        document.getElementById('sec9-paper-label').innerHTML = L.sec9PaperLabel;
+        document.getElementById('sec9-paper-link').innerHTML = L.sec9PaperLink;
+        document.getElementById('sec9-paper-note').innerHTML = L.sec9PaperNote;
+        document.getElementById('sec9-github-label').innerHTML = L.sec9GithubLabel;
+        document.getElementById('sec9-github-link').innerHTML = L.sec9GithubLink;
+        document.getElementById('sec9-authors-label').innerHTML = L.sec9AuthorsLabel;
+        document.getElementById('sec9-authors-value').innerHTML = L.sec9AuthorsValue;
+        document.getElementById('sec9-desc2').innerHTML = L.sec9Desc2;
+        const ddText4 = document.getElementById('sec4-summary-text');
+        const details4 = document.getElementById('sec4-details');
+        if (ddText4 && details4) {
+          ddText4.innerHTML = details4.open ? L.collapseDetail : L.expandDetail;
+        }
+        const ddText5 = document.getElementById('sec5-summary-text');
+        const details5 = document.getElementById('sec5-details');
+        if (ddText5 && details5) {
+          ddText5.innerHTML = details5.open ? L.collapseDetail : L.expandDetail;
+        }
+        const tocTitle = document.getElementById('toc-title');
+        if (tocTitle) {
+          tocTitle.innerHTML = L.tocTitle;
+        }
+        if (typeof window.updateTocText === 'function') {
+          window.updateTocText();
+        }
+        const algoRoot = document.getElementById('algo-root-label');
+        if (algoRoot) algoRoot.textContent = currentLang === 'zh' ? 'AReaL 统一损失接口' : 'AReaL Unified Loss';
+        const activeAlgo = document.querySelector('.algo-card.active');
+        if (activeAlgo) activeAlgo.click();
         if (typeof renderMathInElement !== 'undefined') {
           renderMathInElement(document.body, {
             delimiters: [
@@ -902,7 +1192,10 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
         'stage-arch': true,
         'stage-token': true,
         'stage-staleness': true,
-        'stage-decoupled': true
+        'stage-decoupled': true,
+        'stage-algo-family': true,
+        'stage-tir': true,
+        'stage-speedup': true
       };
       const animObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -1385,9 +1678,225 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
         }
         requestAnimationFrame(tick);
       }
+      function initAlgoFamily() {
+        const container = document.getElementById('algo-family');
+        if (!container) return;
+        
+        const algos = ['PPO', 'GRPO', 'GSPO', 'SAPO', 'M2PO', 'DAPO', 'LitePPO', 'Dr.GRPO', 'REINFORCE++', 'RLOO'];
+        const algoKeys = ['PPO', 'GRPO', 'GSPO', 'SAPO', 'M2PO', 'DAPO', 'LitePPO', 'DrGRPO', 'REINFORCEpp', 'RLOO'];
+        
+        container.innerHTML = 
+          '<div class="algo-tree">' +
+          '  <div class="algo-root" id="algo-root-label"></div>' +
+          '  <div class="algo-branch-line"></div>' +
+          '  <div class="algo-branches" id="algo-branches"></div>' +
+          '  <div class="algo-detail" id="algo-detail"></div>' +
+          '</div>';
+        
+        const branchesEl = document.getElementById('algo-branches');
+        algos.forEach((name, i) => {
+          const card = document.createElement('div');
+          card.className = 'algo-card';
+          card.textContent = name;
+          card.dataset.key = algoKeys[i];
+          card.addEventListener('click', () => {
+            document.querySelectorAll('.algo-card').forEach(c => { c.classList.remove('active'); });
+            card.classList.add('active');
+            const L = LABELS[currentLang];
+            document.getElementById('algo-detail').innerHTML = L['algoDesc_' + algoKeys[i]];
+            document.getElementById('sec7-algo-footer').innerHTML = name;
+          });
+          branchesEl.appendChild(card);
+        });
+        
+        document.getElementById('algo-root-label').textContent = currentLang === 'zh' ? 'AReaL 统一损失接口' : 'AReaL Unified Loss';
+        
+        const grpoCard = branchesEl.querySelector('[data-key="GRPO"]');
+        if (grpoCard) grpoCard.click();
+      }
+
+      function initSpeedupBars() {
+        const container = document.getElementById('speedup-bars');
+        if (!container) return;
+        
+        const data = [
+          { labelZh: '同步 PPO', labelEn: 'Sync PPO', value: 45, max: 100, unit: '%', color: '#ef4444', metric: 'GPU Util' },
+          { labelZh: 'AReaL', labelEn: 'AReaL', value: 92, max: 100, unit: '%', color: '#10b981', metric: 'GPU Util' },
+          { labelZh: '同步训练', labelEn: 'Sync Training', value: 1, max: 3, unit: '×', color: '#94a3b8', metric: 'Speed' },
+          { labelZh: 'AReaL', labelEn: 'AReaL', value: 2.77, max: 3, unit: '×', color: '#2563eb', metric: 'Speed' },
+        ];
+        
+        container.innerHTML = data.map((d, i) => `
+          <div class="speedup-row">
+            <div class="speedup-label" id="speedup-label-${i}">${currentLang === 'zh' ? d.labelZh : d.labelEn}</div>
+            <div class="speedup-track">
+              <div class="speedup-fill" id="speedup-fill-${i}" style="background:${d.color};" data-target="${(d.value / d.max) * 100}">
+                ${d.value}${d.unit}
+              </div>
+            </div>
+          </div>
+        `).join('');
+        
+        // Animate fills on intersection
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              data.forEach((d, i) => {
+                const fill = document.getElementById('speedup-fill-' + i);
+                if (fill) {
+                  setTimeout(() => {
+                    fill.style.width = fill.dataset.target + '%';
+                  }, i * 200);
+                }
+              });
+              observer.disconnect();
+            }
+          });
+        }, { threshold: 0.3 });
+        
+        const stage = document.getElementById('stage-speedup');
+        if (stage) observer.observe(stage);
+      }
+
+      function initTirFlow() {
+        const container = document.getElementById('tir-flow');
+        if (!container) return;
+        
+        const icons = ['🤔', '🔍', '⚡', '📥', '🔄', '✅'];
+        const stepKeys = ['tirStep1', 'tirStep2', 'tirStep3', 'tirStep4', 'tirStep5', 'tirStep6'];
+        
+        container.innerHTML = stepKeys.map((key, i) => {
+          const arrow = i < stepKeys.length - 1 ? '<div class="tir-arrow" id="tir-arrow-' + i + '">↓</div>' : '';
+          return '<div class="tir-step" id="tir-step-' + i + '">' +
+            '<div class="tir-step-icon">' + icons[i] + '</div>' +
+            '<div class="tir-step-text" id="tir-text-' + i + '">' + LABELS[currentLang][key] + '</div>' +
+            '</div>' + arrow;
+        }).join('');
+        
+        // Animate steps sequentially
+        let currentStep = -1;
+        const start = performance.now();
+        const stepDur = 1500;
+        const totalDur = stepKeys.length * stepDur + 2000;
+        
+        function tick(now) {
+          requestAnimationFrame(tick);
+          if (!animVisible['stage-tir']) return;
+          
+          const t = (now - start) % totalDur;
+          const step = Math.min(stepKeys.length - 1, Math.floor(t / stepDur));
+          
+          if (step !== currentStep) {
+            currentStep = step;
+            for (let i = 0; i < stepKeys.length; i++) {
+              const el = document.getElementById('tir-step-' + i);
+              const arrow = document.getElementById('tir-arrow-' + i);
+              if (el) el.classList.toggle('active', i <= step);
+              if (arrow) arrow.classList.toggle('active', i < step);
+            }
+          }
+        }
+        requestAnimationFrame(tick);
+      }
+
+      function initToc() {
+        const tocList = document.getElementById('toc-list');
+        const headings = document.querySelectorAll('.phase-heading');
+        if (!tocList || headings.length === 0) return;
+        
+        headings.forEach((heading, i) => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = '#' + heading.id;
+          a.id = 'toc-link-' + i;
+          a.textContent = heading.textContent;
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            const y = heading.getBoundingClientRect().top + window.scrollY - 20;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          });
+          li.appendChild(a);
+          tocList.appendChild(li);
+        });
+
+        const toggleBtn = document.getElementById('toc-toggle');
+        const arrow = document.getElementById('toc-arrow');
+        
+        if (window.innerWidth < 768) {
+          tocList.classList.add('collapsed');
+          arrow.textContent = '▸';
+        }
+        
+        toggleBtn.addEventListener('click', () => {
+          tocList.classList.toggle('collapsed');
+          arrow.textContent = tocList.classList.contains('collapsed') ? '▸' : '▾';
+        });
+
+        window.updateTocText = () => {
+          headings.forEach((heading, i) => {
+            const a = document.getElementById('toc-link-' + i);
+            if (a) a.textContent = heading.textContent;
+          });
+        };
+
+        window.addEventListener('scroll', () => {
+          let current = headings.length - 1;
+          for (let i = 0; i < headings.length; i++) {
+            if (headings[i].getBoundingClientRect().top > 100) {
+              current = i === 0 ? 0 : i - 1;
+              break;
+            }
+          }
+          document.querySelectorAll('.toc-list a').forEach((a, i) => {
+            a.classList.toggle('active', i === current);
+          });
+        });
+      }
+
+      function initScrollFeatures() {
+        const progBar = document.getElementById('progress-bar');
+        const btt = document.getElementById('back-to-top');
+        
+        window.addEventListener('scroll', () => {
+          const h = document.documentElement;
+          const st = h.scrollTop || document.body.scrollTop;
+          const sh = h.scrollHeight || document.body.scrollHeight;
+          const percent = (st / (sh - h.clientHeight)) * 100;
+          if (progBar) progBar.style.width = percent + '%';
+          
+          if (btt) {
+            if (st > 300) {
+              btt.classList.add('show');
+            } else {
+              btt.classList.remove('show');
+            }
+          }
+        });
+        
+        if (btt) {
+          btt.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+      }
+
+      function initDetails() {
+        ['sec4-details', 'sec5-details'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.addEventListener('toggle', () => {
+              const summaryText = el.querySelector('.dd-summary-text');
+              if (summaryText) {
+                summaryText.innerHTML = el.open ? LABELS[currentLang].collapseDetail : LABELS[currentLang].expandDetail;
+              }
+            });
+          }
+        });
+      }
 
       updateI18n();
-      ['stage-timeline', 'stage-arch', 'stage-token', 'stage-staleness', 'stage-decoupled'].forEach((id) => {
+      ['stage-timeline', 'stage-arch', 'stage-token', 'stage-staleness', 'stage-decoupled', 'stage-algo-family', 'stage-tir', 'stage-speedup'].forEach((id) => {
         const el = document.getElementById(id);
         if (el) animObserver.observe(el);
       });
@@ -1396,6 +1905,12 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
       initSection3();
       initStalenessAnim();
       initDecoupledAnim();
+      initAlgoFamily();
+      initSpeedupBars();
+      initTirFlow();
+      initToc();
+      initScrollFeatures();
+      initDetails();
     </script>
   </body>
 </html>

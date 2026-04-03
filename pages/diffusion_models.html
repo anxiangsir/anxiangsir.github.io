@@ -1,0 +1,1726 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script defer src="/_vercel/insights/script.js"></script>
+    <title>Diffusion Models: From DDPM to Flow Matching</title>
+    <meta name="description" content="A comprehensive guide to Diffusion Models, Flow Matching, and Rectified Flow." />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+    <style>
+
+      :root {
+        --bg: #ffffff;
+        --bg-alt: #f8f9fa;
+        --text: #1a1a2e;
+        --text-secondary: #555;
+        --accent: #2563eb;
+        --border: #e2e8f0;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-math: "JetBrains Mono", monospace;
+      }
+      .fm-part { --accent: #10b981; }
+      .ddpm-part { --accent: #2563eb; }
+      
+      .site-nav { max-width: 860px; margin: 0 auto 1rem; padding: 0 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-sans); font-size: 0.85em; flex-wrap: wrap; }
+      .site-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 600; letter-spacing: 0.02em; padding: 2px 4px; }
+      .site-nav a:hover { color: var(--accent); text-decoration: underline; }
+      .site-nav .nav-sep { color: var(--border); user-select: none; }
+      
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: var(--bg); color: var(--text); font-family: var(--font-serif); line-height: 1.5; padding: 2rem 1rem; }
+      
+      .article { max-width: 860px; margin: 0 auto; background: var(--bg); padding: 0 1rem 3rem; position: relative; }
+      
+      .masthead { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2.5rem; position: relative; }
+      .masthead-title { font-family: var(--font-headline); font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin: 0 0 10px; color: var(--text); }
+      .masthead-sub { font-size: 1rem; font-family: var(--font-sans); margin-bottom: 10px; color: var(--text-secondary); }
+      
+      .lang-toggle { position: absolute; top: 10px; right: 10px; z-index: 40; font-family: var(--font-sans); padding: 6px 16px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; color: var(--text-secondary); font-weight: bold; border-radius: 20px; font-size: 0.85rem; transition: all 0.2s; }
+      .lang-toggle:hover { background: var(--bg-alt); color: var(--text); border-color: var(--text-secondary); }
+      
+      .phase-heading { font-family: var(--font-headline); font-size: 1.5rem; font-weight: 700; text-align: left; margin: 2.5rem 0 1rem; border-top: 2px solid var(--border); padding-top: 1.5rem; color: var(--text); }
+      .phase-desc { font-family: var(--font-serif); font-size: 1.05rem; text-align: left; max-width: none; margin: 0 0 15px; color: var(--text-secondary); line-height: 1.75; }
+      .phase-desc a { color: var(--accent); text-decoration: none; font-weight: 500; }
+      .phase-desc a:hover { text-decoration: underline; }
+      
+      .math-block { display: block; text-align: center; padding: 1.5rem 1rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); overflow-x: auto; -webkit-overflow-scrolling: touch; font-size: 1.1em; font-family: var(--font-math); }
+      
+      .code-block { display: block; background: #1e1e2e; color: #cdd6f4; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.88rem; line-height: 1.7; padding: 1.25rem 1.5rem; margin: 2rem 0; border-radius: 8px; border-left: 3px solid var(--accent); overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: pre; tab-size: 4; }
+      .code-block code { background: none; border: none; padding: 0; font-size: inherit; font-family: inherit; color: inherit; }
+      .code-block .kw { color: #cba6f7; }
+      .code-block .fn { color: #89b4fa; }
+      .code-block .str { color: #a6e3a1; }
+      .code-block .num { color: #fab387; }
+      .code-block .cm { color: #6c7086; font-style: italic; }
+      .code-block .op { color: #89dceb; }
+      
+      .stage-wrapper { width: 100%; position: relative; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 2rem auto; background: var(--bg-alt); box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; flex-direction: column; }
+      .canvas-container { width: 100%; height: 350px; position: relative; display: flex; justify-content: center; align-items: center; background: white; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 20px 20px; }
+      
+      /* FM specific canvas */
+      .stage-wrapper canvas { display: block; width: 100%; max-height: 100%; outline: none; background: #ffffff; cursor: pointer; }
+      .fm-part .stage-wrapper canvas { height: 300px; max-height: 300px; background-image: none; }
+      
+      .controls, .stage-footer { padding: 15px 20px; background: var(--bg-alt); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 15px; font-family: var(--font-sans); flex-wrap: wrap; justify-content: space-between; }
+      .fm-part .stage-footer { justify-content: center; text-align: center; font-size: 0.95rem; font-weight: bold; color: var(--text); min-height: 3rem; }
+      
+      .btn, .btn-play { background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; font-family: var(--font-sans); font-size: 0.85rem; }
+      .btn:hover, .btn-play:hover { opacity: 0.9; }
+      .slider-container { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 200px; font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; }
+      .slider { flex: 1; accent-color: var(--accent); cursor: pointer; }
+      .status-text { font-family: var(--font-math); font-size: 0.85rem; color: var(--accent); font-weight: bold; min-width: 120px; text-align: right; }
+      
+      .radio-group { display: flex; gap: 10px; }
+      .radio-label { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; font-weight: 500; }
+      
+      .comp-table { width: 100%; border-collapse: collapse; margin: 2rem 0; font-family: var(--font-sans); font-size: 0.95rem; }
+      .comp-table th, .comp-table td { padding: 12px; border: 1px solid var(--border); text-align: left; }
+      .comp-table th { background: var(--bg-alt); font-weight: bold; }
+      
+      .part-divider { text-align: center; margin: 4rem 0 3rem; position: relative; }
+      .part-divider::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; border-top: 1px dashed var(--border); z-index: 1; }
+      .part-divider span { display: inline-block; background: var(--bg); padding: 0 1.5rem; position: relative; z-index: 2; font-family: var(--font-headline); font-size: 2rem; font-weight: 900; color: var(--text); }
+      
+      @media (max-width: 768px) {
+        .math-block { padding: 1rem 0.5rem; font-size: 0.9rem; }
+        .code-block { font-size: 0.78rem; padding: 1rem; margin: 1.5rem 0; }
+        body { padding: 1rem; }
+        .article { padding: 0 1rem 2rem; max-width: 100%; }
+        .lang-toggle { right: 10px; top: 10px; }
+        .phase-heading { font-size: 1.25rem; }
+        .canvas-container { height: 250px; }
+        .fm-part .stage-wrapper canvas { height: 250px; }
+      }
+
+    </style>
+  </head>
+  <body>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/partial_fc.html">PFC</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/llava_onevision2.html">OV2</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+    </nav>
+    
+    <div class="article">
+      <button type="button" class="lang-toggle" id="lang-toggle">EN</button>
+      
+      <header class="masthead">
+        <h1 class="masthead-title">Diffusion Models</h1>
+        <div class="masthead-sub" id="hero-subtitle">From DDPM to Flow Matching</div>
+      </header>
+      
+      <div id="part-ddpm" class="ddpm-part">
+<h3 class="phase-heading" id="ddpm-sec1-heading"></h3>
+      <p class="phase-desc" id="ddpm-sec1-desc1"></p>
+      <p class="phase-desc" id="ddpm-sec1-desc2"></p>
+      <p class="phase-desc" id="ddpm-sec1-desc3"></p>
+
+      <h3 class="phase-heading" id="ddpm-sec2-heading"></h3>
+      <p class="phase-desc" id="ddpm-sec2-desc1"></p>
+      <div class="math-block">
+        $$q(\mathbf{x}_t \mid \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_t; \sqrt{1 - \beta_t} \mathbf{x}_{t-1}, \beta_t \mathbf{I})$$
+      </div>
+      <p class="phase-desc" id="ddpm-sec2-desc2"></p>
+      <div class="math-block">
+        $$\mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t}\boldsymbol{\epsilon}$$
+        $$\text{where} \quad \alpha_t = 1 - \beta_t, \quad \bar{\alpha}_t = \prod_{s=1}^t \alpha_s, \quad \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$$
+      </div>
+      <p class="phase-desc" id="ddpm-sec2-desc3"></p>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container">
+          <canvas id="ddpm-canvas-forward"></canvas>
+        </div>
+        <div class="controls">
+          <div class="slider-container">
+            <span id="ddpm-fwd-t-label">t=0</span>
+            <input type="range" id="ddpm-fwd-slider" class="slider" min="0" max="1000" value="0">
+            <span>T=1000</span>
+          </div>
+          <button class="btn" id="ddpm-fwd-play">Play</button>
+          <div class="status-text" id="ddpm-fwd-status">SNR: &infin;</div>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="ddpm-sec3-heading"></h3>
+      <p class="phase-desc" id="ddpm-sec3-desc1"></p>
+      <div class="math-block">
+        $$p_\theta(\mathbf{x}_{t-1} \mid \mathbf{x}_t) = \mathcal{N}(\mathbf{x}_{t-1}; \boldsymbol{\mu}_\theta(\mathbf{x}_t, t), \sigma_t^2 \mathbf{I})$$
+      </div>
+      <p class="phase-desc" id="ddpm-sec3-desc2"></p>
+      <div class="math-block">
+        $$\boldsymbol{\mu}_\theta(\mathbf{x}_t, t) = \frac{1}{\sqrt{\alpha_t}} \left( \mathbf{x}_t - \frac{\beta_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) \right)$$
+      </div>
+      <p class="phase-desc" id="ddpm-sec3-desc3"></p>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container">
+          <canvas id="ddpm-canvas-reverse"></canvas>
+        </div>
+        <div class="controls">
+          <button class="btn" id="ddpm-rev-play">Start Denoising</button>
+          <div class="status-text" id="ddpm-rev-status">t = 1000</div>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="ddpm-sec4-heading"></h3>
+      <p class="phase-desc" id="ddpm-sec4-desc1"></p>
+      <div class="math-block">
+        $$L_{\text{simple}}(\theta) = \mathbb{E}_{t, \mathbf{x}_0, \boldsymbol{\epsilon}} \left[ \| \boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t}\boldsymbol{\epsilon}, t) \|^2 \right]$$
+      </div>
+      <p class="phase-desc" id="ddpm-sec4-desc2"></p>
+
+      <pre class="code-block"><code id="ddpm-code-train"></code></pre>
+
+      <h3 class="phase-heading" id="ddpm-sec5-heading"></h3>
+      <p class="phase-desc" id="ddpm-sec5-desc1"></p>
+      <p class="phase-desc" id="ddpm-sec5-desc2"></p>
+
+      <pre class="code-block"><code id="ddpm-code-sample"></code></pre>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container">
+          <canvas id="ddpm-canvas-sample"></canvas>
+        </div>
+        <div class="controls">
+          <button class="btn" id="ddpm-samp-play">Generate New Sample</button>
+          <div class="status-text" id="ddpm-samp-status">Ready</div>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="ddpm-sec6-heading"></h3>
+      <p class="phase-desc" id="ddpm-sec6-desc1"></p>
+      <p class="phase-desc" id="ddpm-sec6-desc2"></p>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container" style="height: 300px;">
+          <canvas id="ddpm-canvas-schedule"></canvas>
+        </div>
+        <div class="controls">
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="sched_type" value="linear" checked> Linear</label>
+            <label class="radio-label"><input type="radio" name="sched_type" value="cosine"> Cosine</label>
+          </div>
+          <div class="status-text" id="ddpm-sched-status" style="flex:1; text-align:right;">Hover to view</div>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="ddpm-sec7-heading"></h3>
+      <p class="phase-desc" id="ddpm-sec7-desc1"></p>
+      <p class="phase-desc" id="ddpm-sec7-desc2"></p>
+      <p class="phase-desc" id="ddpm-sec7-desc3"></p>
+      </div>
+
+      <div class="part-divider">
+        <span>Part II: Flow Matching</span>
+      </div>
+
+      <div id="part-fm" class="fm-part">
+<h3 class="phase-heading" id="fm-sec1-heading"></h3>
+      <p class="phase-desc" id="fm-sec1-desc1"></p>
+      <p class="phase-desc" id="fm-sec1-desc2"></p>
+      <p class="phase-desc" id="fm-sec1-desc3"></p>
+
+      <h3 class="phase-heading" id="fm-sec2-heading"></h3>
+      <p class="phase-desc" id="fm-sec2-desc1"></p>
+      <div class="math-block">
+        $$\frac{dx}{dt} = v_\theta(x, t), \quad t \in [0, 1]$$
+      </div>
+      <p class="phase-desc" id="fm-sec2-desc2"></p>
+      
+      <div class="stage-wrapper">
+        <canvas id="fm-canvas-ode"></canvas>
+        <div class="stage-footer">
+          <span id="fm-anim1-text"></span>
+          <button class="btn-play" onclick="resetCanvas1()">Reset</button>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="fm-sec3-heading"></h3>
+      <p class="phase-desc" id="fm-sec3-desc1"></p>
+      <div class="math-block">
+        $$x_t = (1 - t) x_0 + t x_1$$
+        $$v_{target}(x_t, t) = x_1 - x_0$$
+      </div>
+      <p class="phase-desc" id="fm-sec3-desc2"></p>
+      <div class="math-block">
+        $$\mathcal{L}(\theta) = \mathbb{E}_{t, x_0, x_1} \left[ \| v_\theta(x_t, t) - (x_1 - x_0) \|^2 \right]$$
+      </div>
+      <p class="phase-desc" id="fm-sec3-desc3"></p>
+
+      <div class="stage-wrapper">
+        <canvas id="fm-canvas-straight"></canvas>
+        <div class="stage-footer">
+          <span id="fm-anim2-text"></span>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="fm-sec4-heading"></h3>
+      <p class="phase-desc" id="fm-sec4-desc1"></p>
+      <div class="code-block">
+<span class="kw">def</span> <span class="fn">train_step</span>(model, x_1):
+    <span class="cm"># t ~ U[0, 1]</span>
+    t <span class="op">=</span> torch.rand(B, <span class="num">1</span>)
+    
+    <span class="cm"># x_0 ~ N(0, I)</span>
+    x_0 <span class="op">=</span> torch.randn_like(x_1)
+    
+    <span class="cm"># Linear interpolation</span>
+    x_t <span class="op">=</span> (<span class="num">1</span> <span class="op">-</span> t) <span class="op">*</span> x_0 <span class="op">+</span> t <span class="op">*</span> x_1
+    
+    <span class="cm"># Target velocity is simply the difference</span>
+    v_target <span class="op">=</span> x_1 <span class="op">-</span> x_0
+    
+    <span class="cm"># Predict velocity field</span>
+    v_pred <span class="op">=</span> model(x_t, t)
+    
+    <span class="cm"># MSE Loss</span>
+    loss <span class="op">=</span> F.mse_loss(v_pred, v_target)
+    <span class="kw">return</span> loss</div>
+
+      <h3 class="phase-heading" id="fm-sec5-heading"></h3>
+      <p class="phase-desc" id="fm-sec5-desc1"></p>
+      <div class="code-block">
+<span class="kw">def</span> <span class="fn">sample_euler</span>(model, steps<span class="op">=</span><span class="num">50</span>, shape<span class="op">=</span>(<span class="num">1</span>, <span class="num">3</span>, <span class="num">256</span>, <span class="num">256</span>)):
+    x <span class="op">=</span> torch.randn(shape)  <span class="cm"># Start at noise (t=0)</span>
+    dt <span class="op">=</span> <span class="num">1.0</span> <span class="op">/</span> steps
+    
+    <span class="kw">for</span> i <span class="op">in</span> <span class="fn">range</span>(steps):
+        t <span class="op">=</span> torch.full((shape[<span class="num">0</span>],), i <span class="op">*</span> dt)
+        v <span class="op">=</span> model(x, t)
+        
+        <span class="cm"># Euler integration step</span>
+        x <span class="op">=</span> x <span class="op">+</span> v <span class="op">*</span> dt
+        
+    <span class="kw">return</span> x  <span class="cm"># Data at t=1</span></div>
+
+      <div class="stage-wrapper">
+        <canvas id="fm-canvas-sampling"></canvas>
+        <div class="stage-footer">
+          <span id="fm-anim3-text"></span>
+          <select id="fm-step-select" onchange="resetCanvas3()" style="padding:4px; font-family:var(--font-sans);">
+            <option value="5">5 Steps</option>
+            <option value="10" selected>10 Steps</option>
+            <option value="50">50 Steps</option>
+          </select>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="fm-sec6-heading"></h3>
+      <p class="phase-desc" id="fm-sec6-desc1"></p>
+      <p class="phase-desc" id="fm-sec6-desc2"></p>
+      
+      <div class="stage-wrapper">
+        <canvas id="fm-canvas-reflow"></canvas>
+        <div class="stage-footer">
+          <span id="fm-anim4-text"></span>
+          <button class="btn-play" onclick="triggerReflow()">Reflow</button>
+        </div>
+      </div>
+
+      <h3 class="phase-heading" id="fm-sec7-heading"></h3>
+      <p class="phase-desc" id="fm-sec7-desc1"></p>
+      <div class="math-block">
+        $$\text{Error}_{\text{Euler}} \propto \max_{t} \| \nabla_x v_\theta \| \cdot dt^2$$
+      </div>
+      <p class="phase-desc" id="fm-sec7-desc2"></p>
+
+      <h3 class="phase-heading" id="fm-sec8-heading"></h3>
+      <p class="phase-desc" id="fm-sec8-desc1"></p>
+      
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th id="fm-th-feature">Feature</th>
+            <th id="fm-th-ddpm">DDPM / DDIM</th>
+            <th id="fm-th-fm" style="color: var(--accent);">Flow Matching</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="fm-td-framework">Mathematical Framework</td>
+            <td>Stochastic Differential Equations (SDE)</td>
+            <td>Ordinary Differential Equations (ODE)</td>
+          </tr>
+          <tr>
+            <td id="fm-td-target">Training Target</td>
+            <td>Predict Noise $\epsilon$ or Data $x_0$</td>
+            <td>Predict Velocity $v = x_1 - x_0$</td>
+          </tr>
+          <tr>
+            <td id="fm-td-path">Path Shape</td>
+            <td>Curved (Noise Schedule dependent)</td>
+            <td>Straight (Linear Interpolation)</td>
+          </tr>
+          <tr>
+            <td id="fm-td-steps">Typical Sampling Steps</td>
+            <td>20 - 1000</td>
+            <td>1 - 50 (with Reflow)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="phase-desc" id="fm-sec8-desc2"></p>
+      </div>
+      
+    </div>
+
+    <script>
+
+let currentLang = localStorage.getItem('blog_lang') || 'zh';
+const langToggle = document.getElementById('lang-toggle');
+
+const GLOBAL_LABELS = {
+    zh: {
+        title: "DDPM 到 Flow Matching",
+        subtitle: "从 DDPM 到 Flow Matching · 扩散生成模型全景"
+    },
+    en: {
+        title: "DDPM to Flow Matching",
+        subtitle: "From DDPM to Flow Matching"
+    }
+};
+
+// --- DDPM JS ---
+(() => {
+const DDPM_LABELS = {
+  zh: {
+    heroSub: "Denoising Diffusion Probabilistic Models · 去噪扩散概率模型",
+    sec1Heading: "1. 什么是 DDPM？(直觉介绍)",
+    sec1Desc1: "去噪扩散概率模型 (DDPM) 是一种强大的生成模型。它的核心思想是：通过学习反转一个向数据中添加噪声的过程，来生成新的数据。",
+    sec1Desc2: "想象一下老式电视机的信号受到干扰，画面逐渐布满雪花（噪声）。DDPM 的前向过程就是人为地模拟这个干扰过程，在 1000 个微小的时间步内，将清晰的图像一点点变成纯粹的静态随机噪声。",
+    sec1Desc3: "而它的反向过程，则是训练一个神经网络，教它如何在这个充满雪花的屏幕上，一步一步地“猜测”并减去这些噪声，最终还原出清晰的图像。通过将一个极其困难的生成任务拆解成 1000 个极简单的去噪任务，DDPM 取得了惊人的生成效果。",
+    
+    sec2Heading: "2. 前向加噪过程 (Forward Process)",
+    sec2Desc1: "前向过程被定义为一个马尔可夫链，在每一步 $t$ 中，我们向图像加入微量的高斯噪声。$\\beta_t$ 是预先定义好的噪声调度参数（通常从 0.0001 线性增加到 0.02）。",
+    sec2Desc2: "得益于高斯分布的优良性质，我们不需要一步步加噪，而是可以直接用闭式解（重参数化技巧）在任意时间步 $t$ 直接计算出加噪后的状态 $\\mathbf{x}_t$：",
+    sec2Desc3: "随着 $t \\to T$，$\\bar{\\alpha}_t \\to 0$，图像完全丢失了原始信号，变成标准正态分布。拖动下方滑块，观察二维点集是如何坍缩为高斯分布的：",
+    
+    fwdPlay: "播放", fwdTLabel: "t=", fwdStatus: "信噪比 (SNR): ",
+    
+    sec3Heading: "3. 反向去噪过程 (Reverse Process)",
+    sec3Desc1: "如果我们能知道逆向条件概率 $q(\\mathbf{x}_{t-1} | \\mathbf{x}_t)$，我们就能从噪声中还原数据。不幸的是，这个分布取决于整个数据分布，无法直接计算。因此，我们用一个神经网络 $p_\\theta$ 来近似它：",
+    sec3Desc2: "Ho et al. (2020) 的一项关键发现是：我们可以将方差 $\\sigma_t^2$ 设为常数，并让神经网络直接预测在时间步 $t$ 时加入的噪声 $\\boldsymbol{\\epsilon}_\\theta$。这样均值 $\\boldsymbol{\\mu}_\\theta$ 就可以通过下式计算：",
+    sec3Desc3: "网络并不直接预测原始图像 $\\mathbf{x}_0$，而是预测**噪声**。点击下方按钮，观察从纯随机噪声中逐渐复原结构的过程。",
+    
+    revPlay: "开始去噪", revStatus: "时间步: ",
+    
+    sec4Heading: "4. 训练过程 (Training)",
+    sec4Desc1: "DDPM 的训练极其简单优雅。我们通过优化变分下界 (ELBO) 推导出了一个极度简化的均方误差损失函数：",
+    sec4Desc2: "在每次训练迭代中：1. 随机抽取一张真实图像；2. 随机抽取一个时间步 $t$；3. 随机采样噪声 $\\boldsymbol{\\epsilon}$；4. 将噪声加到图像上；5. 让网络预测这个噪声，并计算与真实噪声的 MSE。其 PyTorch 伪代码如下：",
+    
+    sec5Heading: "5. 采样过程 (Sampling)",
+    sec5Desc1: "采样是从纯高斯噪声开始，利用训练好的模型执行 1000 步的反向传播。这一过程与朗之万动力学 (Langevin Dynamics) 密切相关。",
+    sec5Desc2: "在每一步中，网络预测并减去部分噪声，同时我们还要加回一个微小的随机噪声 $z$ (Langevin 注入)，这能防止样本坍缩，保持生成分布的多样性。",
+    
+    sampPlay: "生成新样本", sampStatus: "就绪",
+    
+    sec6Heading: "6. 噪声调度详解 (Noise Schedule)",
+    sec6Desc1: "参数 $\\beta_t$ 控制着每步加噪的强度。原始 DDPM 使用线性调度 (Linear)，但人们发现，线性调度在后期破坏信号过快，导致最后几百步几乎全是纯噪声。",
+    sec6Desc2: "Nichol & Dhariwal (2021) 提出了余弦调度 (Cosine Schedule)，使得信噪比的衰减更加平滑，显著提升了生成质量。下图中展示了 $\\bar{\\alpha}_t$ (保留的信号比例) 随时间的变化。",
+    
+    sec7Heading: "7. 局限性与扩展 (Limitations & Extensions)",
+    sec7Desc1: "DDPM 最主要的缺点是**采样极慢**。生成一张图像需要网络进行 1000 次前向推理。这促使了 <strong>DDIM (Denoising Diffusion Implicit Models)</strong> 的诞生，它将采样过程改写为确定性常微分方程 (ODE)，实现了数十步的加速采样，且无需重新训练模型。",
+    sec7Desc2: "此外，Song et al. 提出的 <strong>基于分数的生成模型 (Score-based Models)</strong> 将扩散过程推广到了连续时间的随机微分方程 (SDE)。近期的 <strong>流匹配 (Flow Matching)</strong> 则提供了更通用、更优化的传输路径视角。",
+    sec7Desc3: "您可以查看我的 <a href=\"/pages/ddpm.html\">DDPM 综述页</a> 获取更多概念背景，或滚动到下方 <a href=\"#part-fm\">Part II: Flow Matching</a> 了解这一领域的最新进展。"
+  },
+  en: {
+    heroSub: "Denoising Diffusion Probabilistic Models",
+    sec1Heading: "1. What is DDPM?",
+    sec1Desc1: "Denoising Diffusion Probabilistic Models (DDPM) are a powerful class of generative models. The core idea is to learn to reverse a process that incrementally adds noise to data.",
+    sec1Desc2: "Imagine analog TV static interfering with a broadcast until the picture is completely lost. The forward process of DDPM artificially simulates this over 1000 microscopic timesteps, degrading a pristine image into pure Gaussian noise.",
+    sec1Desc3: "The reverse process involves training a neural network to step-by-step 'guess' and subtract this noise from the static-filled canvas. By breaking down the highly complex generation task into 1000 trivial denoising steps, DDPM achieves astonishing generative results.",
+    
+    sec2Heading: "2. Forward Process",
+    sec2Desc1: "The forward process is a Markov chain that gradually adds Gaussian noise to the data. $\\beta_t$ represents the noise schedule (typically increasing linearly from 0.0001 to 0.02).",
+    sec2Desc2: "Thanks to the properties of Gaussian distributions, we don't need to add noise step-by-step. Using the reparameterization trick, we can jump directly to any timestep $t$ and compute the noisy state $\\mathbf{x}_t$ in a closed form:",
+    sec2Desc3: "As $t \\to T$, $\\bar{\\alpha}_t \\to 0$, and the data completely loses its original structure, converging to a standard normal distribution. Use the slider below to see how a 2D point cluster dissolves into noise:",
+    
+    fwdPlay: "Play", fwdTLabel: "t=", fwdStatus: "SNR: ",
+    
+    sec3Heading: "3. Reverse Process",
+    sec3Desc1: "If we knew the reverse conditional probability $q(\\mathbf{x}_{t-1} | \\mathbf{x}_t)$, we could recreate the data from noise. Unfortunately, this distribution depends on the entire data distribution and is intractable. Instead, we approximate it using a neural network $p_\\theta$:",
+    sec3Desc2: "A key insight by Ho et al. (2020) was fixing the variance $\\sigma_t^2$ to constants and making the network directly predict the added noise $\\boldsymbol{\\epsilon}_\\theta$. The mean $\\boldsymbol{\\mu}_\\theta$ is then computed analytically:",
+    sec3Desc3: "The network does not predict the original image $\\mathbf{x}_0$ directly; it predicts the **noise**. Click the button below to watch the structure emerge from pure random noise.",
+    
+    revPlay: "Start Denoising", revStatus: "Step: ",
+    
+    sec4Heading: "4. Training",
+    sec4Desc1: "Training DDPM is remarkably simple and elegant. By optimizing the variational lower bound (ELBO), the loss function simplifies to a basic Mean Squared Error:",
+    sec4Desc2: "In each training iteration: 1. Sample real data; 2. Sample random timestep $t$; 3. Sample random noise $\\boldsymbol{\\epsilon}$; 4. Add noise to data; 5. Have the model predict the noise and compute MSE. The PyTorch pseudocode is as follows:",
+    
+    sec5Heading: "5. Sampling",
+    sec5Desc1: "Sampling starts from pure Gaussian noise and runs the trained model iteratively backwards for 1000 steps. This process is deeply connected to Langevin Dynamics.",
+    sec5Desc2: "At each step, the network predicts and subtracts part of the noise, while a tiny amount of random noise $z$ is injected back in. This stochasticity prevents sample collapse and maintains diversity.",
+    
+    sampPlay: "Generate Sample", sampStatus: "Ready",
+    
+    sec6Heading: "6. Noise Schedule Deep Dive",
+    sec6Desc1: "The parameter $\\beta_t$ dictates noise intensity. The original DDPM used a linear schedule, but researchers found it destroys the signal too quickly, leaving the last hundreds of steps as nearly pure noise.",
+    sec6Desc2: "Nichol & Dhariwal (2021) introduced the Cosine Schedule, which decays the signal-to-noise ratio much more smoothly, significantly boosting generation quality. The chart below plots $\\bar{\\alpha}_t$ (signal retention) over time.",
+    
+    sec7Heading: "7. Limitations & Extensions",
+    sec7Desc1: "The primary drawback of DDPM is **slow sampling**. Generating one image requires 1000 neural network passes. This led to <strong>DDIM (Denoising Diffusion Implicit Models)</strong>, which reformulated the process as a deterministic ODE, allowing sampling in ~50 steps without retraining.",
+    sec7Desc2: "Furthermore, <strong>Score-based Generative Models</strong> by Song et al. generalized diffusion into continuous-time Stochastic Differential Equations (SDEs). More recently, <strong>Flow Matching</strong> offers a more general and optimal optimal-transport perspective.",
+    sec7Desc3: "Check out my <a href=\"/pages/ddpm.html\">DDPM Overview</a> for broader context, or scroll down to <a href=\"#part-fm\">Part II: Flow Matching</a> to see the latest paradigm shifts in the field."
+  }
+};
+
+const CODE_ZH = {
+  train: `<span class="kw">def</span> <span class="fn">train_step</span>(model, x_0):
+    <span class="cm"># 1. 随机采样时间步和噪声</span>
+    t = torch.randint(<span class="num">0</span>, T, (B,))
+    eps = torch.randn_like(x_0)
+    
+    <span class="cm"># 2. 前向过程：直接计算 x_t (闭式解)</span>
+    x_t = sqrt_alpha_bar[t] <span class="op">*</span> x_0 <span class="op">+</span> sqrt_one_minus_alpha_bar[t] <span class="op">*</span> eps
+    
+    <span class="cm"># 3. 让模型预测加入的噪声</span>
+    eps_pred = <span class="fn">model</span>(x_t, t)
+    
+    <span class="cm"># 4. 计算简单的均方误差 (MSE) 损失</span>
+    loss = F.<span class="fn">mse_loss</span>(eps, eps_pred)
+    <span class="kw">return</span> loss`,
+    
+  sample: `<span class="kw">def</span> <span class="fn">sample</span>(model):
+    <span class="cm"># 1. 从纯高斯噪声开始</span>
+    x = torch.<span class="fn">randn</span>(shape)
+    
+    <span class="cm"># 2. 从 T 到 1 反向去噪</span>
+    <span class="kw">for</span> t <span class="kw">in</span> <span class="fn">reversed</span>(<span class="fn">range</span>(T)):
+        <span class="cm"># Langevin 噪声注入 (最后一步 t=0 时不加噪声)</span>
+        z = torch.<span class="fn">randn_like</span>(x) <span class="kw">if</span> t <span class="op">></span> <span class="num">0</span> <span class="kw">else</span> <span class="num">0</span>
+        
+        <span class="cm"># 预测噪声</span>
+        eps_pred = <span class="fn">model</span>(x, t)
+        
+        <span class="cm"># 根据推导公式计算均值，并注入方差噪声</span>
+        mean = (<span class="num">1</span> <span class="op">/</span> sqrt_alpha[t]) <span class="op">*</span> (x <span class="op">-</span> beta[t] <span class="op">/</span> sqrt_one_minus_alpha_bar[t] <span class="op">*</span> eps_pred)
+        x = mean <span class="op">+</span> sigma[t] <span class="op">*</span> z
+        
+    <span class="kw">return</span> x`
+};
+
+const CODE_EN = {
+  train: `<span class="kw">def</span> <span class="fn">train_step</span>(model, x_0):
+    <span class="cm"># 1. Sample random timesteps and noise</span>
+    t = torch.randint(<span class="num">0</span>, T, (B,))
+    eps = torch.randn_like(x_0)
+    
+    <span class="cm"># 2. Forward process: compute x_t directly (closed-form)</span>
+    x_t = sqrt_alpha_bar[t] <span class="op">*</span> x_0 <span class="op">+</span> sqrt_one_minus_alpha_bar[t] <span class="op">*</span> eps
+    
+    <span class="cm"># 3. Predict the added noise</span>
+    eps_pred = <span class="fn">model</span>(x_t, t)
+    
+    <span class="cm"># 4. Compute simplified MSE loss</span>
+    loss = F.<span class="fn">mse_loss</span>(eps, eps_pred)
+    <span class="kw">return</span> loss`,
+    
+  sample: `<span class="kw">def</span> <span class="fn">sample</span>(model):
+    <span class="cm"># 1. Start from pure Gaussian noise</span>
+    x = torch.<span class="fn">randn</span>(shape)
+    
+    <span class="cm"># 2. Reverse process from T down to 1</span>
+    <span class="kw">for</span> t <span class="kw">in</span> <span class="fn">reversed</span>(<span class="fn">range</span>(T)):
+        <span class="cm"># Langevin noise injection (except at step 0)</span>
+        z = torch.<span class="fn">randn_like</span>(x) <span class="kw">if</span> t <span class="op">></span> <span class="num">0</span> <span class="kw">else</span> <span class="num">0</span>
+        
+        <span class="cm"># Predict noise</span>
+        eps_pred = <span class="fn">model</span>(x, t)
+        
+        <span class="cm"># Compute mean using derived formula, add variance noise</span>
+        mean = (<span class="num">1</span> <span class="op">/</span> sqrt_alpha[t]) <span class="op">*</span> (x <span class="op">-</span> beta[t] <span class="op">/</span> sqrt_one_minus_alpha_bar[t] <span class="op">*</span> eps_pred)
+        x = mean <span class="op">+</span> sigma[t] <span class="op">*</span> z
+        
+    <span class="kw">return</span> x`
+};
+
+let currentLang = 'zh';
+
+function setLangDDPM(lang) {
+  currentLang = lang;
+  const dict = DDPM_LABELS[lang];
+  for (let key in dict) {
+    const el = document.getElementById("ddpm-" + key.replace(/([A-Z])/g, "-$1").toLowerCase());
+    if (el) el.innerHTML = dict[key];
+  }
+  document.getElementById('ddpm-code-train').innerHTML = lang === 'zh' ? CODE_ZH.train : CODE_EN.train;
+  document.getElementById('ddpm-code-sample').innerHTML = lang === 'zh' ? CODE_ZH.sample : CODE_EN.sample;
+  
+  document.getElementById('lang-toggle').textContent = lang === 'zh' ? 'EN' : 'ZH';
+  updateControlsLang();
+}
+
+function updateControlsLang() {
+    const fwdPlayBtn = document.getElementById('ddpm-fwd-play');
+    if (fwdPlayBtn.innerText !== 'Pause' && fwdPlayBtn.innerText !== '暂停') {
+        fwdPlayBtn.innerText = DDPM_LABELS[currentLang].fwdPlay;
+    }
+    const revPlayBtn = document.getElementById('ddpm-rev-play');
+    if (revPlayBtn.innerText === 'Start Denoising' || revPlayBtn.innerText === '开始去噪' || revPlayBtn.innerText === 'Reset' || revPlayBtn.innerText === '重置') {
+        revPlayBtn.innerText = revPlayBtn.dataset.state === 'running' ? 
+            (currentLang === 'zh' ? '重置' : 'Reset') : 
+            DDPM_LABELS[currentLang].revPlay;
+    }
+    const sampPlayBtn = document.getElementById('ddpm-samp-play');
+    if (sampPlayBtn.dataset.state !== 'running') {
+        sampPlayBtn.innerText = DDPM_LABELS[currentLang].sampPlay;
+    }
+}
+// KaTeX initialization
+document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false}
+    ],
+    throwOnError: false
+  });
+  setLang('zh');
+  initAnimations();
+});
+
+// --- DDPM Math Utilities ---
+const T = 1000;
+function getLinearSchedule() {
+    const beta = new Float32Array(T);
+    const alpha_bar = new Float32Array(T);
+    let ab = 1.0;
+    for(let i=0; i<T; i++) {
+        beta[i] = 0.0001 + (0.02 - 0.0001) * (i / (T-1));
+        ab *= (1.0 - beta[i]);
+        alpha_bar[i] = ab;
+    }
+    return {beta, alpha_bar};
+}
+
+function getCosineSchedule() {
+    const beta = new Float32Array(T);
+    const alpha_bar = new Float32Array(T);
+    const s = 0.008;
+    const f = (t) => Math.pow(Math.cos((t/T + s)/(1+s) * Math.PI/2), 2);
+    const f0 = f(0);
+    
+    for(let i=0; i<T; i++) {
+        alpha_bar[i] = f(i) / f0;
+        if(i > 0) {
+            beta[i] = 1.0 - (alpha_bar[i] / alpha_bar[i-1]);
+        } else {
+            beta[i] = 1.0 - alpha_bar[0];
+        }
+        beta[i] = Math.min(beta[i], 0.999); // clip
+    }
+    return {beta, alpha_bar};
+}
+
+const linearSched = getLinearSchedule();
+
+function randn_bm() {
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+// --- Animations ---
+const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeOutBack = t => { const c1 = 1.70158; const c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+
+function initAnimations() {
+    setupForwardAnim();
+    setupReverseAnim();
+    setupSampleAnim();
+    setupScheduleAnim();
+}
+
+function drawGrid(ctx, w, h, clearAlpha = 1.0) {
+    if (clearAlpha === 1.0) {
+        ctx.clearRect(0, 0, w, h);
+    } else {
+        ctx.fillStyle = `rgba(255, 255, 255, ${clearAlpha})`;
+        ctx.fillRect(0, 0, w, h);
+    }
+    ctx.beginPath();
+    ctx.strokeStyle = clearAlpha === 1.0 ? 'rgba(0, 0, 0, 0.03)' : `rgba(0, 0, 0, 0.03)`;
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= w; x += 20) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+    for (let y = 0; y <= h; y += 20) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+    ctx.stroke();
+}
+
+// 1. Forward Animation
+function setupForwardAnim() {
+    const canvas = document.getElementById('ddpm-canvas-forward');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('ddpm-fwd-slider');
+    const playBtn = document.getElementById('ddpm-fwd-play');
+    const status = document.getElementById('ddpm-fwd-status');
+    const label = document.getElementById('ddpm-fwd-t-label');
+    
+    const numPoints = 300;
+    const points = [];
+    for(let i=0; i<numPoints; i++) {
+        let x, y;
+        const r = Math.random();
+        if(r < 0.5) { 
+            const ang = Math.random() * Math.PI * 2;
+            x = Math.cos(ang) * 0.8;
+            y = Math.sin(ang) * 0.8;
+        } else if(r < 0.6) { 
+            x = -0.3 + randn_bm()*0.05; y = -0.3 + randn_bm()*0.05;
+        } else if(r < 0.7) { 
+            x = 0.3 + randn_bm()*0.05; y = -0.3 + randn_bm()*0.05;
+        } else { 
+            const ang = Math.PI*0.2 + Math.random() * Math.PI*0.6;
+            x = Math.cos(ang) * 0.5;
+            y = Math.sin(ang) * 0.5 + 0.1;
+        }
+        points.push({x0: x, y0: y, epsX: randn_bm(), epsY: randn_bm()});
+    }
+
+    let w, h, cx, cy, scale;
+    function resize() {
+        w = canvas.clientWidth; h = canvas.clientHeight;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx.scale(dpr, dpr);
+        cx = w/2; cy = h/2; scale = Math.min(w, h)/3;
+    }
+    window.addEventListener('resize', () => { resize(); draw(parseInt(slider.value)); });
+    resize();
+
+    function draw(t) {
+        drawGrid(ctx, w, h, 0.15);
+        let ab = t === 0 ? 1.0 : linearSched.alpha_bar[t-1];
+        const snr = ab / (1 - ab);
+        
+        label.innerText = `t=${t}`;
+        status.innerHTML = (currentLang === 'zh' ? '信噪比: ' : 'SNR: ') + (t === 0 ? '&infin;' : snr.toFixed(2));
+        
+        const prog = t / 1000;
+        const color = `hsl(220, ${85 - 75*prog}%, ${55 + 15*prog}%)`;
+        
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 6;
+        
+        for(const p of points) {
+            const xt = Math.sqrt(ab)*p.x0 + Math.sqrt(1-ab)*p.epsX;
+            const yt = Math.sqrt(ab)*p.y0 + Math.sqrt(1-ab)*p.epsY;
+            ctx.beginPath();
+            ctx.arc(cx + xt*scale, cy + yt*scale, 3, 0, Math.PI*2);
+            ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+    }
+
+    let animId = null;
+    let isPlaying = false;
+    let playProgress = 0;
+    
+    function playLoop() {
+        playProgress += 0.005;
+        if(playProgress > 1) playProgress = 0;
+        const t = Math.floor(easeInOutCubic(playProgress) * 1000);
+        slider.value = t;
+        draw(t);
+        if(isPlaying) animId = requestAnimationFrame(playLoop);
+    }
+
+    playBtn.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        playBtn.innerText = isPlaying ? (currentLang==='zh'?'暂停':'Pause') : (currentLang==='zh'?'播放':'Play');
+        if(isPlaying) {
+            playProgress = parseInt(slider.value) / 1000;
+            playLoop();
+        } else cancelAnimationFrame(animId);
+    });
+
+    slider.addEventListener('input', () => {
+        if(isPlaying) {
+            isPlaying = false;
+            cancelAnimationFrame(animId);
+            playBtn.innerText = currentLang==='zh'?'播放':'Play';
+        }
+        draw(parseInt(slider.value));
+    });
+
+    draw(0);
+}
+
+// 2. Reverse Animation
+function setupReverseAnim() {
+    const canvas = document.getElementById('ddpm-canvas-reverse');
+    const ctx = canvas.getContext('2d');
+    const playBtn = document.getElementById('ddpm-rev-play');
+    const status = document.getElementById('ddpm-rev-status');
+    
+    const numPoints = 200;
+    const targets = [];
+    const points = [];
+    
+    for(let i=0; i<numPoints; i++) {
+        const ang = (i/numPoints) * Math.PI * 2 * 3;
+        const rad = 0.8 * (i/numPoints);
+        targets.push({x: Math.cos(ang)*rad, y: Math.sin(ang)*rad});
+        const p = {x: randn_bm(), y: randn_bm(), history: []};
+        for(let j=0; j<8; j++) p.history.push({x: p.x, y: p.y});
+        points.push(p);
+    }
+
+    let w, h, cx, cy, scale;
+    let currentT = 1000;
+    let animId = null;
+    function resize() {
+        w = canvas.clientWidth; h = canvas.clientHeight;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx.scale(dpr, dpr);
+        cx = w/2; cy = h/2; scale = Math.min(w, h)/2.5;
+    }
+    window.addEventListener('resize', () => { resize(); if(!animId) draw(1000); });
+    resize();
+
+    
+    function draw(t) {
+        drawGrid(ctx, w, h, 0.2);
+        status.innerHTML = (currentLang === 'zh' ? '时间步 t=' : 'Step t=') + t;
+        
+        const prog = t/1000;
+        const easeProg = easeOutBack(1 - prog);
+        const color = `hsl(${220 * (1-prog)}, ${85 * (1-prog)}%, ${60 - 5*(1-prog)}%)`;
+        
+        ctx.fillStyle = color;
+        ctx.strokeStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8 * (1 - prog);
+        
+        for(let i=0; i<numPoints; i++) {
+            const p = points[i];
+            const tgt = targets[i];
+            
+            const px = p.x + (tgt.x - p.x) * easeProg + (t>0 ? randn_bm()*0.05*prog : 0);
+            const py = p.y + (tgt.y - p.y) * easeProg + (t>0 ? randn_bm()*0.05*prog : 0);
+            
+            p.history.unshift({x: px, y: py});
+            p.history.pop();
+            
+            ctx.beginPath();
+            for(let j=0; j<p.history.length; j++) {
+                const pt = p.history[j];
+                const hx = cx + pt.x*scale;
+                const hy = cy + pt.y*scale;
+                if(j===0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+            }
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+            
+            ctx.beginPath();
+            ctx.arc(cx + px*scale, cy + py*scale, 3, 0, Math.PI*2);
+            ctx.fill();
+            
+            if (prog > 0.1 && prog < 0.9) {
+                const dx = tgt.x - px;
+                const dy = tgt.y - py;
+                const len = Math.sqrt(dx*dx + dy*dy);
+                if (len > 0) {
+                    const ax = cx + px*scale;
+                    const ay = cy + py*scale;
+                    const ndx = dx/len * 8;
+                    const ndy = dy/len * 8;
+                    ctx.beginPath();
+                    ctx.moveTo(ax, ay);
+                    ctx.lineTo(ax + ndx, ay + ndy);
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+        }
+        ctx.shadowBlur = 0;
+    }
+
+    function playLoop() {
+        currentT -= 8;
+        if(currentT < 0) currentT = 0;
+        draw(currentT);
+        
+        if(currentT > 0) {
+            animId = requestAnimationFrame(playLoop);
+        } else {
+            playBtn.innerText = currentLang === 'zh' ? '重置' : 'Reset';
+            playBtn.dataset.state = 'done';
+            animId = null;
+        }
+    }
+
+    playBtn.addEventListener('click', () => {
+        if(playBtn.dataset.state === 'running') return;
+        if(playBtn.dataset.state === 'done') {
+            currentT = 1000;
+            for(let i=0; i<numPoints; i++) {
+                const p = points[i];
+                p.x = randn_bm();
+                p.y = randn_bm();
+                for(let j=0; j<8; j++) p.history[j] = {x: p.x, y: p.y};
+            }
+            playBtn.dataset.state = '';
+            playBtn.innerText = currentLang === 'zh' ? '开始去噪' : 'Start Denoising';
+            draw(currentT);
+            return;
+        }
+        
+        playBtn.dataset.state = 'running';
+        playBtn.innerText = '...';
+        playLoop();
+    });
+
+    draw(1000);
+}
+
+// 3. Sample Animation
+function setupSampleAnim() {
+    const canvas = document.getElementById('ddpm-canvas-sample');
+    const ctx = canvas.getContext('2d');
+    const playBtn = document.getElementById('ddpm-samp-play');
+    const status = document.getElementById('ddpm-samp-status');
+    
+    let w, h;
+    let noiseTex = [];
+    const res = 6;
+    let t = 1000;
+    let animId = null;
+    
+    function resize() {
+        w = canvas.clientWidth; h = canvas.clientHeight;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx.scale(dpr, dpr);
+        
+        const cols = Math.floor(w/res);
+        const rows = Math.floor(h/res);
+        noiseTex = new Float32Array(cols * rows);
+        for(let i=0; i<noiseTex.length; i++) noiseTex[i] = Math.random();
+        if(!animId) draw(1.0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+
+    function draw(prog) {
+        ctx.clearRect(0, 0, w, h);
+        const cols = Math.floor(w/res);
+        const rows = Math.floor(h/res);
+        
+        for(let i=0; i<cols; i++) {
+            for(let j=0; j<rows; j++) {
+                const x = (i/cols - 0.5)*2;
+                const y = (j/rows - 0.5)*2;
+                
+                const d1 = Math.exp(-(Math.pow(x-0.4,2)+Math.pow(y-0.4,2))*12);
+                const d2 = Math.exp(-(Math.pow(x+0.4,2)+Math.pow(y+0.4,2))*12);
+                const targetDens = Math.min(1, d1+d2);
+                
+                const noiseDens = noiseTex[i + j*cols];
+                const dens = targetDens * (1-prog) + noiseDens * prog;
+                
+                ctx.fillStyle = `hsl(${270 + dens*60}, 80%, ${30 + dens*50}%)`;
+                ctx.fillRect(i*res, j*res, res, res);
+            }
+        }
+        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        for(let j=0; j<h; j+=2) ctx.fillRect(0, j, w, 1);
+        
+        status.innerHTML = `${currentLang==='zh'?'进度':'Progress'}: ${Math.floor((1-prog)*100)}%`;
+    }
+
+    function playLoop() {
+        t -= 10;
+        if(t < 0) t = 0;
+        draw(t/1000);
+        if(t > 0) {
+            animId = requestAnimationFrame(playLoop);
+        } else {
+            playBtn.innerText = currentLang === 'zh' ? '生成新样本' : 'Generate Sample';
+            playBtn.dataset.state = 'ready';
+            animId = null;
+        }
+    }
+
+    playBtn.addEventListener('click', () => {
+        if(playBtn.dataset.state === 'running') return;
+        t = 1000;
+        for(let i=0; i<noiseTex.length; i++) noiseTex[i] = Math.random();
+        playBtn.dataset.state = 'running';
+        playBtn.innerText = '...';
+        playLoop();
+    });
+}
+
+// 4. Schedule Plot
+function setupScheduleAnim() {
+    const canvas = document.getElementById('ddpm-canvas-schedule');
+    const ctx = canvas.getContext('2d');
+    const radios = document.querySelectorAll('input[name="sched_type"]');
+    const status = document.getElementById('ddpm-sched-status');
+    
+    let w, h, animDotT = 0;
+    function resize() {
+        w = canvas.clientWidth; h = canvas.clientHeight;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', () => { resize(); draw(lastMouseX); });
+    resize();
+    
+    const cosSched = getCosineSchedule();
+    let lastMouseX = -1;
+
+    function drawCurve(ab, isSelected, pad) {
+        ctx.beginPath();
+        for(let i=0; i<T; i++) {
+            const x = pad + (i/T)*(w-pad*2);
+            const y = (h-pad) - ab[i]*(h-pad*2);
+            if(i===0) ctx.moveTo(x,y);
+            else ctx.lineTo(x,y);
+        }
+        
+        if (isSelected) {
+            const grad = ctx.createLinearGradient(0, pad, 0, h-pad);
+            grad.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
+            grad.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+            
+            const fillPath = new Path2D();
+            fillPath.moveTo(pad, h-pad);
+            for(let i=0; i<T; i++) {
+                const x = pad + (i/T)*(w-pad*2);
+                const y = (h-pad) - ab[i]*(h-pad*2);
+                fillPath.lineTo(x, y);
+            }
+            fillPath.lineTo(w-pad, h-pad);
+            fillPath.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill(fillPath);
+            
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 3;
+        } else {
+            ctx.strokeStyle = 'rgba(37, 99, 235, 0.2)';
+            ctx.lineWidth = 2;
+        }
+        ctx.lineCap = 'round';
+        ctx.stroke();
+    }
+
+    function draw(mouseX = -1) {
+        lastMouseX = mouseX;
+        drawGrid(ctx, w, h);
+        const pad = 40;
+        
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); ctx.lineTo(w-pad, h-pad);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#1a1a2e';
+        ctx.font = '600 12px var(--font-sans)';
+        ctx.textAlign = 'center';
+        ctx.fillText('0', pad, h-pad+20);
+        ctx.fillText('T=1000', w-pad, h-pad+20);
+        for(let i=200; i<=800; i+=200) {
+            const x = pad + (i/T)*(w-pad*2);
+            ctx.fillText(i.toString(), x, h-pad+20);
+            ctx.beginPath(); ctx.moveTo(x, h-pad); ctx.lineTo(x, h-pad+5); ctx.stroke();
+        }
+        
+        ctx.textAlign = 'right';
+        ctx.fillText('1.0', pad-10, pad+5);
+        ctx.fillText('0.5', pad-10, pad + (h-pad*2)*0.5 + 5);
+        ctx.fillText('0.0', pad-10, h-pad+5);
+        ctx.fillText('ᾱ_t', pad-10, pad-15);
+        
+        const type = document.querySelector('input[name="sched_type"]:checked').value;
+        const abLin = linearSched.alpha_bar;
+        const abCos = cosSched.alpha_bar;
+        
+        drawCurve(abLin, type === 'linear', pad);
+        drawCurve(abCos, type === 'cosine', pad);
+        
+        if(mouseX >= pad && mouseX <= w-pad) {
+            const t = Math.floor(((mouseX-pad)/(w-pad*2))*T);
+            const ab = type === 'linear' ? abLin : abCos;
+            const x = pad + (t/T)*(w-pad*2);
+            const y = (h-pad) - ab[t]*(h-pad*2);
+            
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4,4]);
+            ctx.beginPath(); 
+            ctx.moveTo(x, h-pad); ctx.lineTo(x, y); 
+            ctx.moveTo(pad, y); ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            animDotT += 0.1;
+            const r = 5 + Math.sin(animDotT);
+            
+            ctx.fillStyle = '#ef4444';
+            ctx.shadowColor = '#ef4444';
+            ctx.shadowBlur = 12;
+            ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            ctx.fillStyle = '#1a1a2e';
+            ctx.font = '600 12px var(--font-sans)';
+            ctx.textAlign = x > w/2 ? 'right' : 'left';
+            ctx.fillText(`t=${t}, ᾱ_t=${ab[t].toFixed(3)}`, x + (x > w/2 ? -10 : 10), y - 10);
+            
+            status.innerHTML = `t=${t}, ᾱ_t=${ab[t].toFixed(3)}`;
+            requestAnimationFrame(() => { if (lastMouseX === mouseX) draw(mouseX); });
+        } else {
+            status.innerHTML = currentLang === 'zh' ? '悬停查看数值' : 'Hover to view';
+        }
+    }
+
+    radios.forEach(r => r.addEventListener('change', () => draw(lastMouseX)));
+    canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        draw(e.clientX - rect.left);
+    });
+    canvas.addEventListener('mouseleave', () => draw(-1));
+    
+    draw(-1);
+}
+
+window.setLangDDPM = setLangDDPM;
+})();
+
+// --- FM JS ---
+(() => {
+const FM_LABELS = {
+        zh: {
+          heroSubtitle: "条件流匹配与整流 · 扩散模型的新范式",
+          sec1Heading: "1. 为什么需要 Flow Matching?",
+          sec1Desc1: "在扩散模型 (Diffusion Models) 统治生成领域后，研究者发现基于 SDE (随机微分方程) 的框架存在诸多痛点：复杂的噪声调度 (Noise Schedules)、弯曲的采样路径，以及导致采样速度慢的截断误差。",
+          sec1Desc2: "Flow Matching (流匹配) 提出了一种极简的视角：既然我们想要把纯噪声映射到真实数据，为什么不直接在它们之间连一条直线？",
+          sec1Desc3: "打个比方：Diffusion 像是在山林里沿等高线探索下山的路；而 Flow Matching 则是直接在山顶和山脚之间修了一条笔直的高速公路。Stable Diffusion 3 和 Flux 等最新一代模型均已转向这一范式。",
+          
+          sec2Heading: "2. ODE 视角 (常微分方程)",
+          sec2Desc1: "连续标准化流 (CNF) 通过学习一个速度场 (Velocity Field) $v_\\theta$ 来将一个简单的分布 $p_0$ (如高斯噪声) 随时间 $t$ 平滑地传输到复杂分布 $p_1$ (数据分布)：",
+          sec2Desc2: "只要我们能准确预测每个点在每个时刻的速度，就可以通过解 ODE 从噪声生成图像。",
+          anim1Text: "向量场与粒子传输 (ODE Flow)",
+          
+          sec3Heading: "3. 条件流匹配 (Conditional Flow Matching)",
+          sec3Desc1: "直接学习全局的 $v_\\theta$ 极其困难。条件流匹配 (CFM) 的核心技巧是：每次只考虑一对数据点 $(x_0, x_1)$，其中 $x_0$ 是噪声，$x_1$ 是真实图片。在这两点之间构造最简单的线性插值路径：",
+          sec3Desc2: "在这个路径上，目标速度 $v_{target}$ 是一个常数！这意味着模型在每个时刻 $t$ 的目标就是预测这个恒定的方向差。损失函数极其简单，完全不需要 Diffusion 中的加权系数 $\\alpha_t$：",
+          sec3Desc3: "这种设计将复杂的边缘分布匹配问题，转化为了简单的条件路径回归问题。",
+          anim2Text: "直线插值路径 (Straight Paths)",
+
+          sec4Heading: "4. 极简的训练逻辑",
+          sec4Desc1: "与 DDPM 需要维护一套复杂的累积乘积系数不同，Flow Matching 的训练代码极其干净，甚至可以用 10 行 PyTorch 代码实现核心逻辑：",
+          
+          sec5Heading: "5. 采样：ODE 求解",
+          sec5Desc1: "生成图像即是在解 ODE。最简单的做法是前向欧拉法 (Euler Method)：",
+          anim3Text: "欧拉法采样步数对比",
+
+          sec6Heading: "6. Rectified Flow (整流与路径拉直)",
+          sec6Desc1: "即便使用 CFM 训练，由于不同数据对 $(x_0, x_1)$ 的直线在空间中可能发生交叉，模型学习到的全局向量场仍然会有些弯曲。",
+          sec6Desc2: "Rectified Flow (整流) 提出了一种优雅的解决方案：使用训练好的模型生成一批 (噪声, 生成图) 的配对数据，然后用这些数据**重新训练** (Reflow)。这相当于拉直了原本交叉弯曲的路径，使得 1-step 生成成为可能。",
+          anim4Text: "Reflow 过程：将弯曲的传输路径拉直",
+
+          sec7Heading: "7. 为什么直线路径更好？",
+          sec7Desc1: "在使用欧拉法等数值方法求解 ODE 时，截断误差与路径的曲率 (Curvature) 成正比：",
+          sec7Desc2: "因为 Flow Matching 鼓励直线路径，曲率极低，所以只需要非常少的步数 (如 10 步) 就能达到 diffusion 模型几百步的效果。",
+
+          sec8Heading: "8. 生态与应用",
+          sec8Desc1: "Flow Matching 统一了连续时间生成模型的框架。目前，它已经是最高水平图像生成和视频生成的基石：",
+          sec8Desc2: "通过将 SDE 退化为 ODE，并引入最优传输 (Optimal Transport) 思想，Flow Matching 使得生成模型的工程实现更简单、理论更完备。推荐结合上方 <a href=\"#part-ddpm\">Part I: DDPM</a> 一并阅读，体会两者的哲学差异。",
+          
+          thFeature: "特性", thDdpm: "DDPM / DDIM", thFm: "Flow Matching",
+          tdFramework: "数学框架", tdTarget: "训练目标", tdPath: "路径形状", tdSteps: "典型采样步数"
+        },
+        en: {
+          heroSubtitle: "Conditional Flow Matching & Rectified Flow",
+          sec1Heading: "1. Why Flow Matching?",
+          sec1Desc1: "As Diffusion Models dominated generation, researchers noticed friction points in the SDE framework: complex noise schedules, curved sampling paths, and high truncation errors slowing down inference.",
+          sec1Desc2: "Flow Matching offers a minimalist perspective: if we want to map pure noise to real data, why not just draw a straight line between them?",
+          sec1Desc3: "Analogy: Diffusion navigates a winding mountain trail; Flow Matching builds a straight highway from top to bottom. State-of-the-art models like Stable Diffusion 3 and Flux have adopted this exact paradigm.",
+          
+          sec2Heading: "2. The ODE Perspective",
+          sec2Desc1: "Continuous Normalizing Flows (CNF) transport a simple distribution $p_0$ (e.g., Gaussian noise) to a complex distribution $p_1$ (data) smoothly over time $t$ by learning a velocity field $v_\\theta$:",
+          sec2Desc2: "If we can accurately predict the velocity vector for every point at every time, we can generate images from noise simply by solving this ODE.",
+          anim1Text: "Vector Field and Particle Transport (ODE Flow)",
+
+          sec3Heading: "3. Conditional Flow Matching",
+          sec3Desc1: "Learning a global $v_\\theta$ directly is intractable. The core trick of CFM is conditioning on data pairs $(x_0, x_1)$, where $x_0$ is noise and $x_1$ is real data, and constructing a linear path between them:",
+          sec3Desc2: "On this path, the target velocity $v_{target}$ is constant! The model just predicts this constant directional difference. The loss function is pristine, requiring no diffusion schedule weights $\\alpha_t$:",
+          sec3Desc3: "This design reduces the complex marginal distribution matching into simple conditional path regression.",
+          anim2Text: "Straight Interpolation Paths",
+
+          sec4Heading: "4. Pristine Training Logic",
+          sec4Desc1: "Unlike DDPM which maintains cumulative product schedules, Flow Matching training logic is incredibly clean and can be implemented in 10 lines of PyTorch:",
+
+          sec5Heading: "5. Sampling: ODE Solvers",
+          sec5Desc1: "Generating an image is solving the ODE. The simplest approach is the forward Euler Method:",
+          anim3Text: "Euler Sampling Steps Comparison",
+
+          sec6Heading: "6. Rectified Flow (Straightening Paths)",
+          sec6Desc1: "Even with CFM, straight paths for different $(x_0, x_1)$ pairs can cross in high-dimensional space, forcing the learned global vector field to curve to resolve conflicts.",
+          sec6Desc2: "Rectified Flow introduces an elegant fix: use the trained model to generate a batch of (noise, generated_image) pairs, then **retrain** on these pairs (Reflow). This systematically straightens the transport paths, enabling 1-step generation.",
+          anim4Text: "Reflow Process: Straightening Curved Transport Paths",
+
+          sec7Heading: "7. Why Straight Paths Matter mathematically",
+          sec7Desc1: "When solving ODEs numerically (e.g., Euler method), the truncation error is proportional to the curvature of the path:",
+          sec7Desc2: "Because Flow Matching strongly regularizes paths to be straight, the curvature is near zero. Consequently, it requires vastly fewer steps (e.g., 10 steps) to achieve what diffusion models do in hundreds.",
+
+          sec8Heading: "8. Ecosystem & Applications",
+          sec8Desc1: "Flow Matching unifies continuous-time generative models. Today, it serves as the foundation for state-of-the-art image and video generation:",
+          sec8Desc2: "By reducing SDEs to ODEs and incorporating Optimal Transport, Flow Matching simplifies engineering while strengthening theoretical guarantees. See <a href=\"#part-ddpm\">Part I: DDPM</a> above to contrast their philosophies.",
+          
+          thFeature: "Feature", thDdpm: "DDPM / DDIM", thFm: "Flow Matching",
+          tdFramework: "Mathematical Framework", tdTarget: "Training Target", tdPath: "Path Shape", tdSteps: "Typical Sampling Steps"
+        }
+      };
+
+      let currentLang = 'zh';
+      
+
+      function updateLang() {
+        const d = FM_LABELS[currentLang];
+        document.getElementById('hero-subtitle').innerHTML = d.heroSubtitle;
+        
+        document.getElementById('fm-sec1-heading').innerHTML = d.sec1Heading;
+        document.getElementById('fm-sec1-desc1').innerHTML = d.sec1Desc1;
+        document.getElementById('fm-sec1-desc2').innerHTML = d.sec1Desc2;
+        document.getElementById('fm-sec1-desc3').innerHTML = d.sec1Desc3;
+        
+        document.getElementById('fm-sec2-heading').innerHTML = d.sec2Heading;
+        document.getElementById('fm-sec2-desc1').innerHTML = d.sec2Desc1;
+        document.getElementById('fm-sec2-desc2').innerHTML = d.sec2Desc2;
+        document.getElementById('fm-anim1-text').innerHTML = d.anim1Text;
+        
+        document.getElementById('fm-sec3-heading').innerHTML = d.sec3Heading;
+        document.getElementById('fm-sec3-desc1').innerHTML = d.sec3Desc1;
+        document.getElementById('fm-sec3-desc2').innerHTML = d.sec3Desc2;
+        document.getElementById('fm-sec3-desc3').innerHTML = d.sec3Desc3;
+        document.getElementById('fm-anim2-text').innerHTML = d.anim2Text;
+        
+        document.getElementById('fm-sec4-heading').innerHTML = d.sec4Heading;
+        document.getElementById('fm-sec4-desc1').innerHTML = d.sec4Desc1;
+        
+        document.getElementById('fm-sec5-heading').innerHTML = d.sec5Heading;
+        document.getElementById('fm-sec5-desc1').innerHTML = d.sec5Desc1;
+        document.getElementById('fm-anim3-text').innerHTML = d.anim3Text;
+        
+        document.getElementById('fm-sec6-heading').innerHTML = d.sec6Heading;
+        document.getElementById('fm-sec6-desc1').innerHTML = d.sec6Desc1;
+        document.getElementById('fm-sec6-desc2').innerHTML = d.sec6Desc2;
+        document.getElementById('fm-anim4-text').innerHTML = d.anim4Text;
+        
+        document.getElementById('fm-sec7-heading').innerHTML = d.sec7Heading;
+        document.getElementById('fm-sec7-desc1').innerHTML = d.sec7Desc1;
+        document.getElementById('fm-sec7-desc2').innerHTML = d.sec7Desc2;
+        
+        document.getElementById('fm-sec8-heading').innerHTML = d.sec8Heading;
+        document.getElementById('fm-sec8-desc1').innerHTML = d.sec8Desc1;
+        document.getElementById('fm-sec8-desc2').innerHTML = d.sec8Desc2;
+        
+        document.getElementById('fm-th-feature').innerHTML = d.thFeature;
+        document.getElementById('fm-th-ddpm').innerHTML = d.thDdpm;
+        document.getElementById('fm-th-fm').innerHTML = d.thFm;
+        document.getElementById('fm-td-framework').innerHTML = d.tdFramework;
+        document.getElementById('fm-td-target').innerHTML = d.tdTarget;
+        document.getElementById('fm-td-path').innerHTML = d.tdPath;
+        document.getElementById('fm-td-steps').innerHTML = d.tdSteps;
+      }
+
+      function setLangFM(lang) {
+        currentLang = lang;
+        updateLang();
+      }
+
+      
+      
+      updateLang();
+
+      // Setup Canvas Animations
+      function resizeCanvas(canvas) {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        return { w: rect.width, h: rect.height, ctx };
+      }
+
+      // Utils
+      function drawGrid(ctx, w, h) {
+        ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+        for (let y = 0; y < h; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      }
+
+      // Animation 1: ODE Flow Field
+      const c1 = document.getElementById('fm-canvas-ode');
+      let pts1 = [];
+      let time1 = 0;
+      function initCanvas1() {
+        const { w, h } = resizeCanvas(c1);
+        pts1 = Array.from({length: 50}, () => ({
+          x: Math.random() * w, y: Math.random() * h,
+          history: [],
+          life: Math.random() * 150
+        }));
+      }
+      function resetCanvas1() { initCanvas1(); }
+      function getVelocity(x, y, w, h, t) {
+        let vx = 1.5 + Math.cos(x * 0.01 + t) * 0.5;
+        let vy = Math.sin(x * 0.015 - y * 0.01 + t * 0.5) * 1.5;
+        return {vx, vy};
+      }
+      function loop1() {
+        const { w, h, ctx } = resizeCanvas(c1);
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        time1 += 0.02;
+        let maxSpeed = 3.5;
+
+        // Draw vector field
+        const spacing = 30;
+        for(let x=spacing/2; x<w; x+=spacing) {
+          for(let y=spacing/2; y<h; y+=spacing) {
+            let {vx, vy} = getVelocity(x, y, w, h, time1);
+            let speed = Math.hypot(vx, vy);
+            let angle = Math.atan2(vy, vx);
+            
+            let alpha = 0.2 + (speed / maxSpeed) * 0.6;
+            let hue = 180 + (speed / maxSpeed) * 60;
+            
+            ctx.strokeStyle = `hsla(${hue}, 70%, 60%, ${alpha})`;
+            ctx.lineWidth = 1.5;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            let endX = x + Math.cos(angle) * 12;
+            let endY = y + Math.sin(angle) * 12;
+            ctx.lineTo(endX, endY);
+            
+            // Arrowhead
+            ctx.lineTo(endX - Math.cos(angle - 0.5) * 4, endY - Math.sin(angle - 0.5) * 4);
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(endX - Math.cos(angle + 0.5) * 4, endY - Math.sin(angle + 0.5) * 4);
+            ctx.stroke();
+          }
+        }
+        
+        // Particles
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#10b981';
+        
+        pts1.forEach(p => {
+          let {vx, vy} = getVelocity(p.x, p.y, w, h, time1);
+          p.x += vx;
+          p.y += vy;
+          p.history.unshift({x: p.x, y: p.y});
+          if(p.history.length > 15) p.history.pop();
+          
+          p.life--;
+          
+          if(p.history.length > 1) {
+            for(let i=0; i<p.history.length-1; i++) {
+              ctx.beginPath();
+              ctx.strokeStyle = `rgba(16, 185, 129, ${(1 - i/15) * 0.6})`;
+              ctx.lineWidth = 2;
+              ctx.moveTo(p.history[i].x, p.history[i].y);
+              ctx.lineTo(p.history[i+1].x, p.history[i+1].y);
+              ctx.stroke();
+            }
+          }
+          
+          ctx.fillStyle = '#10b981';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+          ctx.fill();
+          
+          if(p.life <= 0 || p.x > w + 20 || p.y > h + 20 || p.y < -20) {
+            p.x = -10;
+            p.y = Math.random() * h;
+            p.history = [];
+            p.life = 100 + Math.random() * 100;
+          }
+        });
+        
+        ctx.shadowBlur = 0;
+        requestAnimationFrame(loop1);
+      }
+
+      // Animation 2: Straight Paths
+      const c2 = document.getElementById('fm-canvas-straight');
+      let paths2 = [];
+      let t2 = 0;
+      function initCanvas2() {
+        const { w, h } = resizeCanvas(c2);
+        paths2 = Array.from({length: 12}, (_, i) => ({
+          x0: 40, 
+          y0: (h/(13)) * (i+1) + (Math.random() * 10 - 5),
+          x1: w - 40, 
+          y1: Math.random() * (h-60) + 30,
+          offset: Math.random() * 0.3
+        }));
+        t2 = 0;
+      }
+      function smoothstep(t) { return t * t * (3 - 2 * t); }
+      function loop2() {
+        const { w, h, ctx } = resizeCanvas(c2);
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        t2 += 0.006;
+        if(t2 > 1.5) t2 = -0.2;
+        
+        ctx.font = 'bold 16px var(--font-math)';
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.textAlign = 'right';
+        ctx.fillText(`t = ${Math.max(0, Math.min(1, t2)).toFixed(2)}`, w - 20, 30);
+        
+        paths2.forEach(p => {
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(p.x0, p.y0);
+          ctx.lineTo(p.x1, p.y1);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          
+          ctx.fillStyle = '#64748b'; // Noise
+          ctx.beginPath(); ctx.arc(p.x0, p.y0, 5, 0, Math.PI*2); ctx.fill();
+          
+          ctx.fillStyle = '#10b981'; // Data
+          ctx.beginPath(); ctx.arc(p.x1, p.y1, 5, 0, Math.PI*2); ctx.fill();
+          
+          let localT = Math.max(0, Math.min(1, (t2 - p.offset) / (1 - p.offset)));
+          let easedT = smoothstep(localT);
+          
+          if(localT > 0 && localT < 1) {
+            let cx = p.x0 * (1-easedT) + p.x1 * easedT;
+            let cy = p.y0 * (1-easedT) + p.y1 * easedT;
+            
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 15);
+            grad.addColorStop(0, 'rgba(59, 130, 246, 1)');
+            grad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+            
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#3b82f6';
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI*2); ctx.fill();
+            
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+          } else if (localT >= 1) {
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath(); ctx.arc(p.x1, p.y1, 7, 0, Math.PI*2); ctx.fill();
+          }
+        });
+        requestAnimationFrame(loop2);
+      }
+
+      // Animation 3: Sampling Euler
+      const c3 = document.getElementById('fm-canvas-sampling');
+      let t3 = 0;
+      function initCanvas3() { t3 = 0; }
+      function resetCanvas3() { t3 = 0; }
+      function loop3() {
+        const { w, h, ctx } = resizeCanvas(c3);
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        let steps = parseInt(document.getElementById('fm-step-select').value) || 10;
+        t3 += 0.008;
+        if(t3 > 1.3) t3 = 0;
+        let t_prog = Math.max(0, Math.min(1, t3));
+        
+        let sx = 40, sy = h - 40;
+        let ex = w - 40, ey = 40;
+        
+        let idealPath = [];
+        for(let i=0; i<=100; i++) {
+          let pt = i/100;
+          let nx = sx + pt*(ex-sx);
+          let ny = sy - pt*(sy-ey) + Math.sin(pt*Math.PI)*60;
+          idealPath.push({x: nx, y: ny});
+        }
+        
+        // Draw Legend
+        ctx.font = '14px var(--font-sans)';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#555';
+        ctx.fillText('— Ideal', 20, 30);
+        ctx.fillStyle = '#10b981';
+        ctx.fillText('— Euler', 20, 50);
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+        ctx.fillText('■ Error', 20, 70);
+        
+        // Euler path computation
+        let eulerPath = [{x: sx, y: sy}];
+        let px = sx, py = sy;
+        let totalError = 0;
+        
+        for(let i=0; i<steps; i++) {
+          let pt = i/steps;
+          let dx = (ex-sx);
+          let dy = -(sy-ey) + Math.cos(pt*Math.PI)*Math.PI*60;
+          
+          px += dx * (1/steps);
+          py += dy * (1/steps);
+          eulerPath.push({x: px, y: py});
+          
+          let idealIdx = Math.min(100, Math.floor((i+1)/steps * 100));
+          totalError += Math.abs(py - idealPath[idealIdx].y);
+        }
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.textAlign = 'right';
+        ctx.fillText(`Error: ${(totalError * (10/steps)).toFixed(1)}px`, w - 20, 30);
+
+        // Error Fill
+        let current_step = Math.floor(t_prog * steps);
+        let currentEulerPath = eulerPath.slice(0, current_step + 1);
+        
+        if (current_step < steps && t_prog > 0) {
+          let rem = (t_prog * steps) - current_step;
+          let lx = eulerPath[current_step].x + (eulerPath[current_step+1].x - eulerPath[current_step].x) * rem;
+          let ly = eulerPath[current_step].y + (eulerPath[current_step+1].y - eulerPath[current_step].y) * rem;
+          currentEulerPath.push({x: lx, y: ly});
+        }
+        
+        if (currentEulerPath.length > 1) {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
+          ctx.beginPath();
+          ctx.moveTo(currentEulerPath[0].x, currentEulerPath[0].y);
+          for(let i=1; i<currentEulerPath.length; i++) {
+             ctx.lineTo(currentEulerPath[i].x, currentEulerPath[i].y);
+          }
+          let idealProg = Math.floor(t_prog * 100);
+          for(let i=idealProg; i>=0; i--) {
+             ctx.lineTo(idealPath[i].x, idealPath[i].y);
+          }
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Ideal smooth curve
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(idealPath[0].x, idealPath[0].y);
+        for(let i=1; i<=100; i++) ctx.lineTo(idealPath[i].x, idealPath[i].y);
+        ctx.stroke();
+
+        // Euler Integration steps
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(currentEulerPath[0].x, currentEulerPath[0].y);
+        for(let i=1; i<currentEulerPath.length; i++) {
+          ctx.lineTo(currentEulerPath[i].x, currentEulerPath[i].y);
+        }
+        ctx.stroke();
+        
+        ctx.fillStyle = '#10b981';
+        for(let i=0; i<Math.min(currentEulerPath.length, current_step+1); i++) {
+          let p = currentEulerPath[i];
+          ctx.fillRect(p.x-3, p.y-3, 6, 6);
+          ctx.fillStyle = '#10b981';
+          ctx.font = '10px var(--font-sans)';
+          ctx.fillText(i.toString(), p.x-6, p.y+12);
+        }
+        
+        // Moving dot
+        if (currentEulerPath.length > 0) {
+          let lastP = currentEulerPath[currentEulerPath.length-1];
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = '#3b82f6';
+          ctx.fillStyle = '#3b82f6';
+          ctx.beginPath(); ctx.arc(lastP.x, lastP.y, 8, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(lastP.x, lastP.y, 3, 0, Math.PI*2); ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+        
+        requestAnimationFrame(loop3);
+      }
+
+      // Animation 4: Reflow
+      const c4 = document.getElementById('fm-canvas-reflow');
+      let isReflow = false;
+      let reflowFactor = 0;
+      let paths4 = [];
+      let t4 = 0;
+      function initCanvas4() {
+        const { w, h } = resizeCanvas(c4);
+        isReflow = false;
+        reflowFactor = 0;
+        paths4 = Array.from({length: 10}, (_, i) => ({
+          x0: 40, y0: 40 + i*((h-80)/9),
+          x1: w-40, y1: 40 + ((9-i))*((h-80)/9),
+          cy: (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random()*80),
+          offset: Math.random() * Math.PI * 2
+        }));
+        t4 = 0;
+      }
+      function triggerReflow() {
+        isReflow = !isReflow;
+      }
+      function loop4() {
+        const { w, h, ctx } = resizeCanvas(c4);
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        t4 += 0.01;
+        
+        if(isReflow) {
+          reflowFactor += 0.02;
+          if(reflowFactor > 1) reflowFactor = 1;
+        } else {
+          reflowFactor -= 0.02;
+          if(reflowFactor < 0) reflowFactor = 0;
+        }
+        
+        ctx.font = 'bold 36px var(--font-sans)';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(0,0,0,0.03)';
+        ctx.fillText(reflowFactor < 0.5 ? 'Before Reflow' : 'After Reflow', w/2, h/2 + 12);
+        
+        paths4.forEach((p, i) => {
+          let y1_target = 40 + i*((h-80)/9);
+          let cur_x1 = p.x1;
+          let cur_y1 = p.y1 * (1-reflowFactor) + y1_target * reflowFactor;
+          let cur_cy = p.y0 + (cur_y1 - p.y0)/2 + p.cy * (1-reflowFactor);
+          
+          let hue = reflowFactor * 150; // 0 (red) -> 150 (green)
+          ctx.strokeStyle = `hsla(${hue}, 70%, 60%, 0.6)`;
+          ctx.lineWidth = 1.5 + reflowFactor * 1.5;
+          
+          ctx.beginPath();
+          ctx.moveTo(p.x0, p.y0);
+          ctx.quadraticCurveTo(w/2, cur_cy, cur_x1, cur_y1);
+          ctx.stroke();
+          
+          // Moving particle
+          let pt_wrap = (t4 * 0.2 + p.offset) % 1.0;
+          let ix = Math.pow(1-pt_wrap, 2) * p.x0 + 2*(1-pt_wrap)*pt_wrap*(w/2) + Math.pow(pt_wrap, 2)*cur_x1;
+          let iy = Math.pow(1-pt_wrap, 2) * p.y0 + 2*(1-pt_wrap)*pt_wrap*(cur_cy) + Math.pow(pt_wrap, 2)*cur_y1;
+          
+          ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = ctx.fillStyle;
+          ctx.beginPath(); ctx.arc(ix, iy, 5, 0, Math.PI*2); ctx.fill();
+          ctx.shadowBlur = 0;
+          
+          ctx.fillStyle = '#64748b';
+          ctx.beginPath(); ctx.arc(p.x0, p.y0, 4, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = '#10b981';
+          ctx.beginPath(); ctx.arc(cur_x1, cur_y1, 4, 0, Math.PI*2); ctx.fill();
+        });
+        
+        // Crossing highlight
+        if (reflowFactor < 0.5) {
+            let opacity = 1 - reflowFactor*2;
+            ctx.fillStyle = `rgba(239, 68, 68, ${opacity * (0.5 + Math.sin(t4*5)*0.3)})`;
+            ctx.beginPath(); ctx.arc(w/2, h/2, 20, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+            ctx.font = 'bold 14px var(--font-sans)';
+            ctx.fillText('X', w/2, h/2 + 5);
+        }
+        
+        ctx.fillStyle = `rgba(0, 0, 0, 0.4)`;
+        ctx.font = '10px var(--font-sans)';
+        paths4.forEach((p, i) => {
+          let curvature = (Math.abs(p.cy) * (1-reflowFactor)).toFixed(1);
+          if (curvature > 5) {
+             let cur_y1 = p.y1 * (1-reflowFactor) + (40 + i*((h-80)/9)) * reflowFactor;
+             let cur_cy = p.y0 + (cur_y1 - p.y0)/2 + p.cy * (1-reflowFactor);
+             ctx.fillText(`κ=${curvature}`, w/2, cur_cy - 10);
+          }
+        });
+        
+        requestAnimationFrame(loop4);
+      }
+      document.addEventListener('DOMContentLoaded', () => {
+        initCanvas1(); loop1();
+        initCanvas2(); loop2();
+        initCanvas3(); loop3();
+        initCanvas4(); loop4();
+      });
+      
+      window.addEventListener('resize', () => {
+        initCanvas1();
+        initCanvas2();
+        initCanvas4();
+      });
+    
+window.setLangFM = setLangFM;
+window.resetCanvas1 = resetCanvas1;
+window.resetCanvas3 = resetCanvas3;
+window.triggerReflow = triggerReflow;
+})();
+
+function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('blog_lang', lang);
+    langToggle.textContent = lang === 'zh' ? 'EN' : 'ZH';
+    
+    document.title = GLOBAL_LABELS[lang].title;
+    const heroSubtitle = document.getElementById('hero-subtitle');
+    if (heroSubtitle) heroSubtitle.textContent = GLOBAL_LABELS[lang].subtitle;
+    
+    // Call the individual setLang functions
+    if (window.setLangDDPM) window.setLangDDPM(lang);
+    if (window.setLangFM) window.setLangFM(lang);
+    
+    if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false}
+            ],
+            throwOnError: false
+        });
+    }
+}
+
+langToggle.addEventListener('click', () => {
+    setLang(currentLang === 'zh' ? 'en' : 'zh');
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    setLang(currentLang);
+});
+
+</script>
+  </body>
+</html>

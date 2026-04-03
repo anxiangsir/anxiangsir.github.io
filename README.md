@@ -6,6 +6,7 @@
 - AI-powered chat assistant using Alibaba Cloud DashScope (Qwen model)
 - Automatic conversation logging to Neon Postgres database
 - Interactive visualizations: PartialFC training pipeline, LLaVA-OneVision2 codec animation
+- Citation World Map: citing-author geographic distribution from Semantic Scholar (offline-generated)
 - Hybrid deployment: GitHub Pages (static) + Vercel (API + Database)
 
 ## Project Structure
@@ -43,6 +44,7 @@ anxiangsir.github.io/
 │   └── snd/                   #   Sound effects
 │
 ├── data/                      # Data files
+│   ├── citation_data.json     #   Citation map data (generated offline)
 │   ├── publications.yaml      #   Full publications list
 │   └── selected_publications.yaml  # Selected publications
 │
@@ -53,6 +55,7 @@ anxiangsir.github.io/
 │   └── screenshot*.png        #   Site screenshots
 │
 ├── scripts/                   # Development & build scripts
+│   ├── generate_citation_data.py  # Citation map data generator (headless)
 │   ├── screenshot.js          #   Playwright screenshot automation
 │   ├── take_screenshot.py     #   Python screenshot helper
 │   ├── mcp-client.js          #   MCP client utility
@@ -147,3 +150,39 @@ The chat assistant uses a lightweight RAG (Retrieval-Augmented Generation) syste
 ## Database Setup
 
 For setting up conversation logging with Neon Postgres, see [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md).
+
+## Citation World Map
+
+The homepage includes an interactive Citation World Map showing the geographic distribution of citing authors, generated offline from Semantic Scholar data.
+
+### How It Works
+
+1. `scripts/generate_citation_data.py` collects all citing papers via the Semantic Scholar API, then batch-looks up author affiliations
+2. Affiliations are geocoded via `geopy` (Nominatim) to determine country locations
+3. Results are aggregated by country and written to `data/citation_data.json`
+4. The homepage JS reads this JSON and colors the SVG world map with warm orange tones
+
+### Regenerating Citation Data
+
+```bash
+# Set proxy (required on internal servers)
+export http_proxy=http://172.16.5.77:8889
+export https_proxy=http://172.16.5.77:8889
+
+# Install dependencies
+pip install requests geopy pycountry tqdm
+
+# Generate data (~5-10 minutes, rate-limited by S2 API)
+python scripts/generate_citation_data.py
+
+# Output: data/citation_data.json
+# Cache: scripts/.citation_cache/ (delete to force re-scrape)
+```
+
+### Configuration
+
+- **S2 Author ID**: `2054941340` (hardcoded in `scripts/generate_citation_data.py`)
+- **Google Scholar ID**: `1ckaPgwAAAAJ` (used for display link only)
+- **Color scale**: Warm orange (`#fde8d0` → `#b35a1a`), distinct from the Visitor Map's blue tones
+- **SVG**: Reuses `assets/img/world-map.min.svg` with ISO 3166-1 lowercase country code IDs
+- **JSON schema**: `{scholar_id, s2_author_id, total_citations, total_countries, total_institutions, countries: {ISO_CODE: {name, count, institutions: [{name, count, lat, lng}]}}}`
