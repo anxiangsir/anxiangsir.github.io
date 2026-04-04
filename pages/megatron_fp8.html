@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <script defer src="/_vercel/insights/script.js"></script>
     <title>Megatron FP8 量化训练</title>
-    <meta name="description" content="Megatron-LM FP8 quantized training — E4M3 vs E5M2 formats, tensor scaling, delayed scaling, 5 interactive canvas animations." />
+    <meta name="description" content="Megatron-LM FP8 quantized training — E4M3 vs E5M2 formats, tensor scaling, delayed scaling, 8 interactive canvas animations." />
     <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -156,6 +156,26 @@
         data-en="&lt;strong&gt;💡 Key idea:&lt;/strong&gt; FP8 training is &lt;em&gt;not&lt;/em&gt; 'convert everything to 8 bits'. Only the most bandwidth-hungry GEMM inputs (weights and activations) are stored in FP8. LayerNorm, Softmax, residual connections, and the optimizer remain in BF16/FP32. This surgical replacement maximizes throughput while preserving numerical stability."
         data-zh="&lt;strong&gt;💡 核心思想：&lt;/strong&gt; FP8 训练&lt;em&gt;不是&lt;/em&gt;"把所有东西都换成 8 位"。只有最耗带宽的 GEMM 输入（权重和激活）才以 FP8 存储。LayerNorm、Softmax、残差连接和优化器仍保持 BF16/FP32。这种精准替换在最大化吞吐量的同时保证数值稳定性。"><strong>💡 核心思想：</strong> FP8 训练<em>不是</em>"把所有东西都换成 8 位"。只有最耗带宽的 GEMM 输入（权重和激活）才以 FP8 存储。LayerNorm、Softmax、残差连接和优化器仍保持 BF16/FP32。这种精准替换在最大化吞吐量的同时保证数值稳定性。</div>
 
+
+      <!-- VIZ A: Memory Bandwidth Race -->
+      <h3 class="phase-heading" id="sec-bw" style="font-size:1.15rem;border-top:none;padding-top:0;margin-top:1rem;"
+        data-en="▸ Interactive: Memory Bus — BF16 vs FP8"
+        data-zh="▸ 互动演示：内存总线 — BF16 vs FP8">▸ 互动演示：内存总线 — BF16 vs FP8</h3>
+      <p class="phase-desc" style="margin-bottom:10px;"
+        data-en="Same physical memory bus, same bus bandwidth. BF16 moves 2 bytes per element; FP8 moves 1 byte — so FP8 delivers 2× as many elements per second. Watch the packets race:"
+        data-zh="相同的物理内存总线，相同的总线带宽。BF16 每个元素占 2 字节；FP8 每个元素占 1 字节——因此 FP8 每秒可传输 2 倍数量的元素。观察数据包竞速：">相同的物理内存总线，相同的总线带宽。BF16 每个元素占 2 字节；FP8 每个元素占 1 字节——因此 FP8 每秒可传输 2 倍数量的元素。观察数据包竞速：</p>
+      <div class="stage-wrapper" id="stage-bw" style="height:260px;">
+        <canvas id="canvas-bw"></canvas>
+        <div class="viz-info" id="bw-info" role="status" aria-live="polite">running…</div>
+        <div class="controls">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-play" id="btn-bw-toggle" type="button"
+              data-en="⏸ Pause" data-zh="⏸ 暂停">⏸ 暂停</button>
+            <button class="btn-play" id="btn-bw-reset" type="button" style="background:#6b7280;"
+              data-en="↺ Reset" data-zh="↺ 重置">↺ 重置</button>
+          </div>
+        </div>
+      </div>
       <!-- §2 FP8 Formats -->
       <h2 class="phase-heading" id="sec-format"
         data-en="§2 FP8 Formats: E4M3 vs E5M2"
@@ -255,13 +275,74 @@
         data-zh="FP8 的最大值只有 448（E4M3）——远小于 BF16 的 3.4×10³⁸。直接类型转换几乎会导致每个真实张量溢出。解决方案：为每个张量维护缩放因子 $s$，在转换前归一化。">FP8 的最大值只有 448（E4M3）——远小于 BF16 的 3.4×10³⁸。直接类型转换几乎会导致每个真实张量溢出。解决方案：为每个张量维护缩放因子 $s$，在转换前归一化。</p>
       <div class="math-block">$$x_{\text{fp8}} = \mathrm{cast\_fp8}\!\left(\frac{x}{s}\right), \qquad \hat{x} = x_{\text{fp8}} \cdot s, \qquad s^{*} = \frac{\mathrm{amax}(x)}{\text{fp8\_max}}$$</div>
 
+
+      <!-- VIZ B: Tensor Scaling Interactive -->
+      <p class="phase-desc" style="margin-bottom:10px;"
+        data-en="The interactive demo below generates a random BF16 tensor whose values span a much larger range than FP8 allows. Toggle between raw and scaled views to see why the scale factor is essential."
+        data-zh="下方互动演示生成一个随机 BF16 张量，其值范围远超 FP8 所允许的范围。切换原始值/缩放后视图，了解缩放因子的必要性。">下方互动演示生成一个随机 BF16 张量，其值范围远超 FP8 所允许的范围。切换原始值/缩放后视图，了解缩放因子的必要性。</p>
+      <div class="stage-wrapper" id="stage-tscale" style="height:360px;">
+        <canvas id="canvas-tscale"></canvas>
+        <div class="viz-info" id="tscale-info" role="status" aria-live="polite">Before scaling</div>
+        <div class="controls">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-play" id="btn-tscale-before" type="button"
+              data-en="📊 Before Scaling" data-zh="📊 缩放前">📊 缩放前</button>
+            <button class="btn-play" id="btn-tscale-after" type="button" style="background:#059669;"
+              data-en="✅ After Scaling" data-zh="✅ 缩放后">✅ 缩放后</button>
+            <button class="btn-play" id="btn-tscale-regen" type="button" style="background:#7c3aed;"
+              data-en="🎲 New Tensor" data-zh="🎲 换张量">🎲 换张量</button>
+          </div>
+        </div>
+      </div>
       <!-- §5 Delayed Scaling -->
       <h2 class="phase-heading" id="sec-delayed"
         data-en="§5 Delayed Scaling: Reusing Historical amax"
         data-zh="§5 延迟缩放：复用历史 amax">§5 延迟缩放：复用历史 amax</h2>
       <p class="phase-desc"
-        data-en="Computing amax before each GEMM requires a full tensor scan, adding latency. Megatron-LM uses delayed scaling: keep a rolling window of past amax values and derive the current scale from them — near-zero overhead, numerically stable. Hit ▶ Play to watch the window slide across training steps."
-        data-zh="在每次 GEMM 前计算 amax 需要完整扫描张量，增加延迟。Megatron-LM 使用延迟缩放：保存滑动窗口的历史 amax 值并从中推导当前缩放因子——几乎零开销，数值稳定。点击 ▶ 播放，观察窗口在训练步骤中滑动。">在每次 GEMM 前计算 amax 需要完整扫描张量，增加延迟。Megatron-LM 使用延迟缩放：保存滑动窗口的历史 amax 值并从中推导当前缩放因子——几乎零开销，数值稳定。点击 ▶ 播放，观察窗口在训练步骤中滑动。</p>
+        data-en="Computing amax before each GEMM requires a full tensor scan — adding latency and synchronization overhead. Megatron-LM sidesteps this with <em>delayed scaling</em>: maintain a circular buffer of the W most recent per-tensor amax values, then derive the current scale from the buffer's maximum. Overhead is near-zero, and the scale stays numerically stable across steps."
+        data-zh="在每次 GEMM 前计算 amax 需要完整扫描张量——增加了延迟和同步开销。Megatron-LM 通过<em>延迟缩放</em>绕过了这个问题：为每个张量维护一个包含最近 W 个 amax 值的循环缓冲区，然后从缓冲区的最大值推导当前缩放因子。开销几乎为零，并且缩放值在各步骤间保持数值稳定。">在每次 GEMM 前计算 amax 需要完整扫描张量——增加了延迟和同步开销。Megatron-LM 通过<em>延迟缩放</em>绕过了这个问题：为每个张量维护一个包含最近 W 个 amax 值的循环缓冲区，然后从缓冲区的最大值推导当前缩放因子。开销几乎为零，并且缩放值在各步骤间保持数值稳定。</p>
+
+      <div class="two-col" style="margin:1.2rem 0;">
+        <div class="col-card">
+          <h4 data-en="⚡ Why &ldquo;Delayed&rdquo;?" data-zh="⚡ 为何称为「延迟」？">⚡ 为何称为「延迟」？</h4>
+          <p style="line-height:1.7;margin-top:.4rem;"
+            data-en="At step <em>t</em>, the scale factor <em>s<sub>t</sub></em> is computed from the amax history of steps <em>t−W … t−1</em>. The amax of the <em>current</em> step is recorded <em>after</em> the GEMM — it only influences the scale starting from step <em>t+1</em>. This one-step lag is the &ldquo;delay&rdquo;."
+            data-zh="在步骤 <em>t</em>，缩放因子 <em>s<sub>t</sub></em> 是根据步骤 <em>t−W … t−1</em> 的 amax 历史计算得出的。<em>当前</em>步骤的 amax 在 GEMM 之后才被记录——它只从步骤 <em>t+1</em> 开始影响缩放因子。这个一步的滞后就是「延迟」。">在步骤 <em>t</em>，缩放因子 <em>s<sub>t</sub></em> 是根据步骤 <em>t−W … t−1</em> 的 amax 历史计算得出的。<em>当前</em>步骤的 amax 在 GEMM 之后才被记录——它只从步骤 <em>t+1</em> 开始影响缩放因子。这个一步的滞后就是「延迟」。</p>
+        </div>
+        <div class="col-card">
+          <h4 data-en="🔁 4-Phase Loop (per GEMM call)" data-zh="🔁 4 阶段循环（每次 GEMM 调用）">🔁 4 阶段循环（每次 GEMM 调用）</h4>
+          <ol style="padding-left:1.1rem;line-height:1.9;margin-top:.4rem;"
+            data-en="<li><strong>Read scale</strong> s = max(history) / fp8_max</li><li><strong>Cast</strong> x → FP8 using s</li><li><strong>GEMM</strong> in FP8 on Tensor Core</li><li><strong>Record</strong> amax(x) into history buffer</li>"
+            data-zh="<li><strong>读取缩放因子</strong> s = max(history) / fp8_max</li><li><strong>转换</strong> x → FP8（使用 s）</li><li><strong>GEMM</strong> 在 Tensor Core 上以 FP8 执行</li><li><strong>记录</strong> amax(x) 到历史缓冲区</li>"><li><strong>读取缩放因子</strong> s = max(history) / fp8_max</li><li><strong>转换</strong> x → FP8（使用 s）</li><li><strong>GEMM</strong> 在 Tensor Core 上以 FP8 执行</li><li><strong>记录</strong> amax(x) 到历史缓冲区</li></ol>
+        </div>
+      </div>
+
+      <!-- VIZ C: Delayed Scaling Step-by-Step Pipeline -->
+      <p class="phase-desc" style="margin-bottom:8px;"
+        data-en="The animation below steps through 3 training iterations, showing the history buffer state, the derived scale, and the GEMM execution. A &lsquo;spike&rsquo; scenario (sudden gradient surge) demonstrates what delayed scaling does — and does not — handle."
+        data-zh="下方动画逐步展示 3 次训练迭代，显示历史缓冲区状态、推导的缩放因子和 GEMM 执行。「尖峰」场景（梯度突然激增）演示了延迟缩放能处理和不能处理的情况。">下方动画逐步展示 3 次训练迭代，显示历史缓冲区状态、推导的缩放因子和 GEMM 执行。「尖峰」场景（梯度突然激增）演示了延迟缩放能处理和不能处理的情况。</p>
+      <div class="stage-wrapper" id="stage-dsp" style="height:420px;">
+        <canvas id="canvas-dsp"></canvas>
+        <div class="viz-info" id="dsp-info" role="status" aria-live="polite">step 0 / phase A</div>
+        <div class="controls">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-play" id="btn-dsp-prev" type="button" style="background:#6b7280;"
+              data-en="◀ Prev" data-zh="◀ 上一步">◀ 上一步</button>
+            <button class="btn-play" id="btn-dsp-next" type="button"
+              data-en="Next ▶" data-zh="下一步 ▶">下一步 ▶</button>
+            <button class="btn-play" id="btn-dsp-play" type="button" style="background:#059669;"
+              data-en="▶ Auto Play" data-zh="▶ 自动播放">▶ 自动播放</button>
+            <button class="btn-play" id="btn-dsp-spike" type="button" style="background:#d97706;"
+              data-en="⚡ Add Spike" data-zh="⚡ 注入尖峰">⚡ 注入尖峰</button>
+            <button class="btn-play" id="btn-dsp-reset" type="button" style="background:#dc2626;"
+              data-en="↺ Reset" data-zh="↺ 重置">↺ 重置</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box" style="margin-top:1rem;"
+        data-en="&lt;strong&gt;⚠️ Spike scenario:&lt;/strong&gt; When a sudden gradient spike occurs at step &lt;em&gt;t&lt;/em&gt;, the scale at step &lt;em&gt;t&lt;/em&gt; was computed from history[t−W : t−1] and may be too small → values clip to FP8_MAX. But step &lt;em&gt;t&lt;/em&gt;'s large amax is immediately added to the history buffer, so by step &lt;em&gt;t+1&lt;/em&gt; the scale has already been corrected. One step of clipping is typically acceptable — gradient clipping at the optimizer level handles the rest."
+        data-zh="&lt;strong&gt;⚠️ 尖峰场景：&lt;/strong&gt; 当步骤 &lt;em&gt;t&lt;/em&gt; 发生梯度尖峰时，步骤 &lt;em&gt;t&lt;/em&gt; 的缩放因子是根据 history[t−W : t−1] 计算的，可能太小 → 值裁剪到 FP8_MAX。但步骤 &lt;em&gt;t&lt;/em&gt; 的大 amax 立即被添加到历史缓冲区，因此到步骤 &lt;em&gt;t+1&lt;/em&gt; 时缩放因子已经修正。一步的裁剪通常是可接受的——优化器层面的梯度裁剪会处理剩余影响。"><strong>⚠️ 尖峰场景：</strong> 当步骤 <em>t</em> 发生梯度尖峰时，步骤 <em>t</em> 的缩放因子是根据 history[t−W : t−1] 计算的，可能太小 → 值裁剪到 FP8_MAX。但步骤 <em>t</em> 的大 amax 立即被添加到历史缓冲区，因此到步骤 <em>t+1</em> 时缩放因子已经修正。一步的裁剪通常是可接受的——优化器层面的梯度裁剪会处理剩余影响。</div>
 
       <!-- VIZ 3: Delayed Scaling Timeline -->
       <div class="stage-wrapper" id="stage-delayed" style="height:380px;">
@@ -1168,6 +1249,667 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
 
       window.addEventListener('resize', function(){ resize(); draw(prog); });
       resize(); draw(1.0);
+    })();
+
+    /* ===================================================================
+       VIZ A — MEMORY BANDWIDTH RACE (BF16 vs FP8)
+       =================================================================== */
+    (function() {
+      var canvas = document.getElementById('canvas-bw');
+      var ctx = canvas.getContext('2d');
+      var info = document.getElementById('bw-info');
+      var animId = null, running = true, t = 0, lastTs = null;
+
+      function resize() {
+        var wrap = canvas.parentElement, dpr = window.devicePixelRatio || 1;
+        canvas.width  = wrap.clientWidth * dpr;
+        canvas.height = (wrap.clientHeight - 60) * dpr;
+        canvas.style.width  = wrap.clientWidth + 'px';
+        canvas.style.height = (wrap.clientHeight - 60) + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function draw() {
+        var W = canvas.width / (window.devicePixelRatio || 1);
+        var H = canvas.height / (window.devicePixelRatio || 1);
+        ctx.clearRect(0, 0, W, H);
+
+        /* Title */
+        ctx.fillStyle = '#1a1a2e';
+        ctx.font = 'bold 13px Playfair Display,serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(
+          lang === 'zh'
+            ? '内存总线吞吐：BF16 (2 字节/元素) vs FP8 (1 字节/元素)'
+            : 'Memory Bus Throughput: BF16 (2 bytes/elem) vs FP8 (1 byte/elem)',
+          W / 2, 22
+        );
+
+        var pL = 58, pR = 90, pT = 42;
+        var trackW = W - pL - pR, trackH = 44, gap = 36;
+        var y1 = pT, y2 = pT + trackH + gap;
+
+        /* Track backgrounds */
+        ctx.fillStyle = '#f8f9fa'; ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.roundRect(pL, y1, trackW, trackH, 7); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.roundRect(pL, y2, trackW, trackH, 7); ctx.fill(); ctx.stroke();
+
+        /* Track labels */
+        ctx.textAlign = 'right'; ctx.font = 'bold 11px Helvetica Neue,sans-serif';
+        ctx.fillStyle = '#6b7280'; ctx.fillText('BF16', pL - 8, y1 + trackH / 2 + 4);
+        ctx.fillText('2B/elem', pL - 8, y1 + trackH / 2 + 17);
+        ctx.fillStyle = '#2563eb'; ctx.fillText('FP8', pL - 8, y2 + trackH / 2 + 4);
+        ctx.fillText('1B/elem', pL - 8, y2 + trackH / 2 + 17);
+
+        /* Source / dest labels */
+        ctx.fillStyle = '#9ca3af'; ctx.font = '10px Helvetica Neue,sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('HBM', pL + 20, pT - 8);
+        ctx.fillText(lang === 'zh' ? '计算单元' : 'Compute', pL + trackW - 20, pT - 8);
+
+        /* Arrow line */
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(pL, pT - 8); ctx.lineTo(pL + trackW, pT - 8); ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Clip to track area */
+        ctx.save(); ctx.beginPath(); ctx.rect(pL, pT - 2, trackW, (trackH + gap) * 2 + 4); ctx.clip();
+
+        var speed = 85; /* pixels/sec */
+        var bf16PW = 26, bf16Period = 38;
+        var fp8PW  = 13, fp8Period  = 20;
+
+        /* BF16 packets */
+        for (var i = -3; i <= Math.ceil(trackW / bf16Period) + 3; i++) {
+          var px = pL + ((i * bf16Period + t * speed) % (trackW + bf16Period + bf16PW));
+          if (px > pL + trackW || px + bf16PW < pL) continue;
+          var x1c = Math.max(px, pL), x2c = Math.min(px + bf16PW, pL + trackW);
+          ctx.fillStyle = 'rgba(107,114,128,0.72)';
+          ctx.beginPath(); ctx.roundRect(x1c, y1 + 9, x2c - x1c, trackH - 18, 3); ctx.fill();
+          if (x2c - x1c > 12) {
+            ctx.fillStyle = '#fff'; ctx.font = '8px JetBrains Mono,monospace'; ctx.textAlign = 'center';
+            ctx.fillText('2B', x1c + (x2c - x1c) / 2, y1 + trackH / 2 + 3);
+          }
+        }
+        /* FP8 packets — same speed but half width → double density */
+        for (var i = -3; i <= Math.ceil(trackW / fp8Period) + 5; i++) {
+          var px = pL + ((i * fp8Period + t * speed) % (trackW + fp8Period + fp8PW));
+          if (px > pL + trackW || px + fp8PW < pL) continue;
+          var x1c = Math.max(px, pL), x2c = Math.min(px + fp8PW, pL + trackW);
+          ctx.fillStyle = 'rgba(37,99,235,0.78)';
+          ctx.beginPath(); ctx.roundRect(x1c, y2 + 9, x2c - x1c, trackH - 18, 3); ctx.fill();
+          if (x2c - x1c > 8) {
+            ctx.fillStyle = '#fff'; ctx.font = '8px JetBrains Mono,monospace'; ctx.textAlign = 'center';
+            ctx.fillText('1B', x1c + (x2c - x1c) / 2, y2 + trackH / 2 + 3);
+          }
+        }
+        ctx.restore();
+
+        /* Counters */
+        var elapsed = t + 0.001;
+        var bf16Count = Math.floor(elapsed * speed / bf16Period);
+        var fp8Count  = Math.floor(elapsed * speed / fp8Period);
+        ctx.textAlign = 'left'; ctx.font = 'bold 11px JetBrains Mono,monospace';
+        ctx.fillStyle = '#6b7280';
+        ctx.fillText(bf16Count + ' elem', pL + trackW + 8, y1 + trackH / 2 + 5);
+        ctx.fillStyle = '#2563eb';
+        ctx.fillText(fp8Count  + ' elem', pL + trackW + 8, y2 + trackH / 2 + 5);
+
+        /* Speedup badge */
+        var ratio = bf16Count > 0 ? (fp8Count / bf16Count).toFixed(1) : '2.0';
+        var badgeX = W / 2, badgeY = H - 12;
+        ctx.font = 'bold 12px JetBrains Mono,monospace'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#059669';
+        ctx.fillText((lang === 'zh' ? '元素吞吐 ' : 'Element throughput ') + ratio + '×  (same bus bandwidth)', badgeX, badgeY);
+
+        info.textContent = 'BF16: ' + bf16Count + ' elem   FP8: ' + fp8Count + ' elem  (' + ratio + '×)';
+      }
+
+      function loop(ts) {
+        if (!lastTs) lastTs = ts;
+        t += (ts - lastTs) / 1000; lastTs = ts;
+        draw();
+        animId = requestAnimationFrame(loop);
+      }
+
+      document.getElementById('btn-bw-toggle').addEventListener('click', function() {
+        if (running) {
+          cancelAnimationFrame(animId); animId = null; running = false; lastTs = null;
+          this.dataset.en = '▶ Play'; this.dataset.zh = '▶ 播放';
+          this.textContent = lang === 'zh' ? '▶ 播放' : '▶ Play';
+        } else {
+          running = true;
+          this.dataset.en = '⏸ Pause'; this.dataset.zh = '⏸ 暂停';
+          this.textContent = lang === 'zh' ? '⏸ 暂停' : '⏸ Pause';
+          animId = requestAnimationFrame(loop);
+        }
+      });
+      document.getElementById('btn-bw-reset').addEventListener('click', function() {
+        cancelAnimationFrame(animId); animId = null; running = false; lastTs = null; t = 0;
+        var btn = document.getElementById('btn-bw-toggle');
+        btn.dataset.en = '▶ Play'; btn.dataset.zh = '▶ 播放';
+        btn.textContent = lang === 'zh' ? '▶ 播放' : '▶ Play';
+        draw();
+      });
+
+      window.addEventListener('resize', function() { resize(); draw(); });
+      resize();
+      animId = requestAnimationFrame(loop);
+    })();
+
+    /* ===================================================================
+       VIZ B — TENSOR SCALING INTERACTIVE DEMO
+       =================================================================== */
+    (function() {
+      var canvas = document.getElementById('canvas-tscale');
+      var ctx = canvas.getContext('2d');
+      var info = document.getElementById('tscale-info');
+
+      var FP8_MAX = 448;
+      var N = 36;
+      var OVERFLOW_THRESHOLD_FACTOR = 0.99; /* bar is "overflow" if |v| > FP8_MAX * scale * OVERFLOW_THRESHOLD_FACTOR */
+      var rawVals = [], animId = null, mode = 'before', animProg = 1.0;
+
+      function genTensor() {
+        rawVals = [];
+        for (var i = 0; i < N; i++) {
+          /* Gaussian-ish: sum of several uniforms */
+          var v = 0; for (var k = 0; k < 6; k++) v += Math.random() - 0.5;
+          rawVals.push(v * 2800);
+        }
+        /* Ensure a few large-magnitude outliers */
+        rawVals[3]  =  (7000 + Math.random() * 3000);
+        rawVals[11] = -(6500 + Math.random() * 2500);
+        rawVals[22] =  (8000 + Math.random() * 2000);
+        rawVals[29] = -(5500 + Math.random() * 2000);
+      }
+      genTensor();
+
+      function resize() {
+        var wrap = canvas.parentElement, dpr = window.devicePixelRatio || 1;
+        canvas.width  = wrap.clientWidth * dpr;
+        canvas.height = (wrap.clientHeight - 60) * dpr;
+        canvas.style.width  = wrap.clientWidth + 'px';
+        canvas.style.height = (wrap.clientHeight - 60) + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function ease(x) { return x < 0.5 ? 2*x*x : -1+(4-2*x)*x; }
+
+      function draw(prog) {
+        var W = canvas.width / (window.devicePixelRatio || 1);
+        var H = canvas.height / (window.devicePixelRatio || 1);
+        ctx.clearRect(0, 0, W, H);
+
+        var amax = Math.max.apply(null, rawVals.map(Math.abs));
+        var scale = amax / FP8_MAX;
+        var p = ease(Math.min(prog, 1.0));
+
+        /* Interpolate bar heights based on mode transition */
+        var vals = rawVals.map(function(v) {
+          return mode === 'after' ? v / scale * p + v * (1 - p)
+                                  : v / scale * (1 - p) + v * p;
+        });
+
+        var maxAbs = mode === 'after' ? FP8_MAX * 1.18 : amax * 1.18;
+
+        var pad = { l: 50, r: 22, t: 58, b: 62 };
+        var cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+        var bw = Math.max(1, cw / N - 2);
+
+        /* Title */
+        ctx.fillStyle = '#1a1a2e'; ctx.font = 'bold 13px Playfair Display,serif'; ctx.textAlign = 'center';
+        ctx.fillText(
+          mode === 'before'
+            ? (lang === 'zh' ? '张量值分布（缩放前）— 超出 FP8 范围的值将溢出' : 'Tensor Value Distribution (Before Scaling) — values outside FP8 range will overflow')
+            : (lang === 'zh' ? '张量值分布（缩放后）— 所有值已映射到 FP8 范围 [−448, +448]' : 'Tensor Values After Scaling — all values now fit in FP8 range [−448, +448]'),
+          W / 2, 24
+        );
+
+        /* Axes */
+        var zeroY = pad.t + ch / 2;
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t + ch);
+        ctx.lineTo(pad.l + cw, pad.t + ch); ctx.stroke();
+
+        /* Zero line */
+        ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(pad.l, zeroY); ctx.lineTo(pad.l + cw, zeroY); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#9ca3af'; ctx.font = '10px JetBrains Mono,monospace'; ctx.textAlign = 'right';
+        ctx.fillText('0', pad.l - 5, zeroY + 4);
+
+        /* Y labels */
+        var yLabel = mode === 'after' ? FP8_MAX : amax;
+        ctx.fillText('+' + yLabel.toFixed(0), pad.l - 5, pad.t + 8);
+        ctx.fillText('-' + yLabel.toFixed(0), pad.l - 5, pad.t + ch);
+
+        /* FP8 max / min lines */
+        var fp8pY = zeroY - (FP8_MAX / maxAbs) * ch / 2;
+        var fp8nY = zeroY + (FP8_MAX / maxAbs) * ch / 2;
+        ctx.strokeStyle = '#059669'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(pad.l, fp8pY); ctx.lineTo(pad.l + cw, fp8pY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(pad.l, fp8nY); ctx.lineTo(pad.l + cw, fp8nY); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#059669'; ctx.font = 'bold 10px JetBrains Mono,monospace'; ctx.textAlign = 'right';
+        ctx.fillText('+448 (FP8 max)', pad.l + cw, fp8pY - 3);
+        ctx.fillText('-448 (FP8 min)', pad.l + cw, fp8nY + 13);
+
+        /* amax lines (before mode only) */
+        if (mode === 'before') {
+          var amaxPY = zeroY - (amax / maxAbs) * ch / 2;
+          var amaxNY = zeroY + (amax / maxAbs) * ch / 2;
+          ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 2; ctx.setLineDash([6, 3]);
+          ctx.beginPath(); ctx.moveTo(pad.l, amaxPY); ctx.lineTo(pad.l + cw, amaxPY); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(pad.l, amaxNY); ctx.lineTo(pad.l + cw, amaxNY); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#dc2626'; ctx.font = 'bold 10px JetBrains Mono,monospace'; ctx.textAlign = 'left';
+          ctx.fillText('amax = ' + amax.toFixed(0), pad.l + 4, amaxPY - 3);
+        }
+
+        /* Bars */
+        vals.forEach(function(v, i) {
+          var bh = Math.abs(v) / maxAbs * ch / 2;
+          var bx = pad.l + i * (cw / N) + 1;
+          var by = v >= 0 ? zeroY - bh : zeroY;
+          var overflow = mode === 'before' && Math.abs(v) > FP8_MAX * (scale * OVERFLOW_THRESHOLD_FACTOR);
+          ctx.fillStyle = overflow ? 'rgba(220,38,38,0.75)' : 'rgba(37,99,235,0.65)';
+          ctx.beginPath();
+          if (v >= 0) ctx.roundRect(bx, by, bw, bh, [3, 3, 0, 0]);
+          else        ctx.roundRect(bx, by, bw, bh, [0, 0, 3, 3]);
+          ctx.fill();
+        });
+
+        /* Bottom annotation */
+        ctx.textAlign = 'center'; ctx.font = 'bold 11px Helvetica Neue,sans-serif';
+        if (mode === 'before') {
+          ctx.fillStyle = '#dc2626';
+          ctx.fillText(
+            lang === 'zh' ? '🔴 红色柱：amax=' + amax.toFixed(0) + ' >> FP8_MAX=448，直接转换会溢出' : '🔴 Red bars overflow FP8 range. amax=' + amax.toFixed(0) + ' >> FP8_MAX=448',
+            W / 2, pad.t + ch + 22
+          );
+          ctx.fillStyle = '#7c3aed';
+          ctx.fillText(
+            'scale s = amax / fp8_max = ' + amax.toFixed(0) + ' / 448 = ' + scale.toFixed(3),
+            W / 2, pad.t + ch + 38
+          );
+        } else {
+          ctx.fillStyle = '#059669';
+          ctx.fillText(
+            lang === 'zh' ? '✅ 所有值均在 [−448, +448] 内，可安全转换为 FP8' : '✅ All values fit in [−448, +448] — safe to cast to FP8',
+            W / 2, pad.t + ch + 22
+          );
+          ctx.fillStyle = '#7c3aed';
+          ctx.fillText(
+            'x_fp8 = cast_fp8(x / ' + scale.toFixed(3) + ')   →   x̂ = x_fp8 × ' + scale.toFixed(3),
+            W / 2, pad.t + ch + 38
+          );
+        }
+
+        info.textContent = (mode === 'before' ? 'Before Scaling' : 'After Scaling') +
+                           '  |  amax=' + amax.toFixed(0) + '  s=' + scale.toFixed(3);
+      }
+
+      function animateTo(newMode) {
+        if (animId) cancelAnimationFrame(animId);
+        mode = newMode; animProg = 0;
+        var start = null, dur = 900;
+        function step(ts) {
+          if (!start) start = ts;
+          animProg = Math.min((ts - start) / dur, 1.0);
+          draw(animProg);
+          if (animProg < 1) animId = requestAnimationFrame(step);
+        }
+        animId = requestAnimationFrame(step);
+      }
+
+      document.getElementById('btn-tscale-before').addEventListener('click', function() { animateTo('before'); });
+      document.getElementById('btn-tscale-after').addEventListener('click', function()  { animateTo('after'); });
+      document.getElementById('btn-tscale-regen').addEventListener('click', function() {
+        genTensor(); mode = 'before'; animProg = 1.0; draw(1.0);
+      });
+
+      window.addEventListener('resize', function() { resize(); draw(animProg); });
+      resize(); draw(1.0);
+    })();
+
+    /* ===================================================================
+       VIZ C — DELAYED SCALING STEP-BY-STEP PIPELINE
+       =================================================================== */
+    (function() {
+      var canvas = document.getElementById('canvas-dsp');
+      var ctx = canvas.getContext('2d');
+      var info = document.getElementById('dsp-info');
+
+      /* Simulation parameters */
+      var W_HIST = 6;       /* history window size (small for clarity) */
+      var AUTO_PLAY_INTERVAL_MS = 700; /* ms between auto-play phase advances */
+      var N_STEPS = 12;     /* total training steps to simulate */
+      var FP8_MAX = 448;
+
+      /* Generate reproducible amax sequence */
+      var BASE_AMAX = [];
+      (function() {
+        var seed = 1;
+        function rand() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var i = 0; i < N_STEPS; i++) {
+          BASE_AMAX.push(parseFloat((1.8 + 1.2 * Math.sin(i * 0.55) + 0.5 * rand()).toFixed(3)));
+        }
+      })();
+
+      var spikeEnabled = false, spikeStep = 7;
+      var curStep = 0;        /* 0..N_STEPS */
+      var phase = 0;          /* 0=read scale, 1=gemm, 2=record amax */
+      var history = [];       /* recorded amax values so far */
+      var autoTimer = null;
+
+      function getAmax(s) {
+        var a = BASE_AMAX[s];
+        if (spikeEnabled && s === spikeStep) a *= 8;
+        return a;
+      }
+
+      function getScale(step) {
+        if (history.length === 0) return 1.0 / FP8_MAX;
+        var start = Math.max(0, history.length - W_HIST);
+        var win = history.slice(start);
+        return Math.max.apply(null, win) / FP8_MAX;
+      }
+
+      function resize() {
+        var wrap = canvas.parentElement, dpr = window.devicePixelRatio || 1;
+        canvas.width  = wrap.clientWidth * dpr;
+        canvas.height = (wrap.clientHeight - 60) * dpr;
+        canvas.style.width  = wrap.clientWidth + 'px';
+        canvas.style.height = (wrap.clientHeight - 60) + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function drawRoundedBox(x, y, w, h, r, fillStyle, strokeStyle, alpha) {
+        ctx.globalAlpha = alpha !== undefined ? alpha : 1;
+        ctx.fillStyle = fillStyle;
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill();
+        ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      function draw() {
+        var W = canvas.width / (window.devicePixelRatio || 1);
+        var H = canvas.height / (window.devicePixelRatio || 1);
+        ctx.clearRect(0, 0, W, H);
+
+        var scale = getScale(curStep);
+        var curAmax = curStep < N_STEPS ? getAmax(curStep) : 0;
+        var isOverflow = spikeEnabled && curStep === spikeStep && history.length > 0 && curAmax > scale * FP8_MAX * 1.05;
+
+        /* ── Title ── */
+        ctx.fillStyle = '#1a1a2e'; ctx.font = 'bold 13px Playfair Display,serif'; ctx.textAlign = 'center';
+        ctx.fillText(
+          lang === 'zh' ? '延迟缩放：每步的 4 个阶段详解' : 'Delayed Scaling: 4-Phase Walkthrough per Training Step',
+          W / 2, 22
+        );
+
+        /* ─────────────────────────────────────────────────────────────────
+           LEFT PANEL: History Buffer
+        ───────────────────────────────────────────────────────────────── */
+        var lx = 12, ly = 36, lw = Math.min(180, W * 0.24);
+        ctx.fillStyle = '#6b7280'; ctx.font = 'bold 11px Helvetica Neue,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(lang === 'zh' ? '历史缓冲区 (W=' + W_HIST + ')' : 'History Buffer (W=' + W_HIST + ')', lx + lw / 2, ly + 14);
+
+        var cellH = 22, cellGap = 3;
+        var bufStart = Math.max(0, history.length - W_HIST);
+        var visCount = Math.min(W_HIST, Math.max(history.length, 1));
+        var bufY = ly + 24;
+
+        for (var i = 0; i < W_HIST; i++) {
+          var hIdx = bufStart + i;
+          var cy = bufY + i * (cellH + cellGap);
+          var inHistory = hIdx < history.length;
+          var isInWindow = inHistory && hIdx >= Math.max(0, history.length - W_HIST);
+          var isMaxCell = isInWindow;
+          /* find actual max */
+          var winSlice = history.slice(Math.max(0, history.length - W_HIST));
+          var winMax = winSlice.length ? Math.max.apply(null, winSlice) : 0;
+          var cellAmax = inHistory ? history[hIdx] : 0;
+          var isMaxVal = inHistory && Math.abs(cellAmax - winMax) < 0.001 && winMax > 0;
+
+          var fillC = !inHistory ? '#f3f4f6'
+                    : isMaxVal   ? '#fef9c3'
+                    : isInWindow ? '#eff6ff'
+                    : '#f9fafb';
+          var strokeC = !inHistory ? '#e5e7eb'
+                      : isMaxVal   ? '#d97706'
+                      : isInWindow ? '#93c5fd'
+                      : '#d1d5db';
+
+          drawRoundedBox(lx + 4, cy, lw - 8, cellH, 4, fillC, strokeC);
+          ctx.fillStyle = inHistory ? '#1a1a2e' : '#d1d5db';
+          ctx.font = inHistory ? 'bold 10px JetBrains Mono,monospace' : '10px JetBrains Mono,monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText('step ' + hIdx, lx + 10, cy + cellH / 2 + 4);
+          if (inHistory) {
+            ctx.fillStyle = isMaxVal ? '#d97706' : '#2563eb';
+            ctx.font = 'bold 10px JetBrains Mono,monospace';
+            ctx.textAlign = 'right';
+            ctx.fillText(history[hIdx].toFixed(3), lx + lw - 10, cy + cellH / 2 + 4);
+            if (isMaxVal) {
+              ctx.fillStyle = '#d97706'; ctx.font = '8px JetBrains Mono,monospace';
+              ctx.fillText('★ max', lx + lw - 52, cy + 8);
+            }
+          }
+        }
+
+        /* Scale derived */
+        var scaleBoxY = bufY + W_HIST * (cellH + cellGap) + 6;
+        drawRoundedBox(lx + 4, scaleBoxY, lw - 8, 28, 5, '#eff6ff', '#2563eb');
+        ctx.fillStyle = '#2563eb'; ctx.font = 'bold 10px JetBrains Mono,monospace'; ctx.textAlign = 'center';
+        ctx.fillText('s = ' + scale.toFixed(4), lx + lw / 2, scaleBoxY + 12);
+        ctx.fillStyle = '#6b7280'; ctx.font = '9px Helvetica Neue,sans-serif';
+        ctx.fillText(lang === 'zh' ? '= max(窗口) / 448' : '= max(window) / 448', lx + lw / 2, scaleBoxY + 24);
+
+        /* ─────────────────────────────────────────────────────────────────
+           CENTER PANEL: Current Step Phases
+        ───────────────────────────────────────────────────────────────── */
+        var cx0 = lw + 28, cw0 = W - lw - 28 - 14;
+        if (curStep >= N_STEPS) {
+          /* Done */
+          ctx.fillStyle = '#059669'; ctx.font = 'bold 15px Playfair Display,serif'; ctx.textAlign = 'center';
+          ctx.fillText(lang === 'zh' ? '✅ 已完成所有步骤！' : '✅ All steps complete!', cx0 + cw0 / 2, H / 2);
+        } else {
+          /* Step header */
+          ctx.fillStyle = '#1a1a2e'; ctx.font = 'bold 13px Playfair Display,serif'; ctx.textAlign = 'center';
+          ctx.fillText(
+            (lang === 'zh' ? '步骤 ' : 'Step ') + curStep + ' / ' + (N_STEPS - 1) +
+            (spikeEnabled && curStep === spikeStep ? (lang === 'zh' ? '  ⚡ 梯度尖峰！' : '  ⚡ GRADIENT SPIKE!') : ''),
+            cx0 + cw0 / 2, 40
+          );
+
+          var phases = [
+            {
+              label: lang === 'zh' ? '① 读取缩放因子' : '① Read Scale Factor',
+              detail: 's = ' + scale.toFixed(4),
+              note: lang === 'zh' ? '来自 history[' + Math.max(0,history.length-W_HIST) + ':' + history.length + '] 的最大值' : 'max of history[' + Math.max(0,history.length-W_HIST) + ':' + history.length + ']',
+              color: '#2563eb', bg: '#eff6ff'
+            },
+            {
+              label: lang === 'zh' ? '② Cast + GEMM' : '② Cast + GEMM',
+              detail: lang === 'zh' ? 'x_fp8 = cast(x / ' + scale.toFixed(3) + ')' : 'x_fp8 = cast(x / ' + scale.toFixed(3) + ')',
+              note: isOverflow
+                ? (lang === 'zh' ? '⚠️ 警告：amax(' + curAmax.toFixed(2) + ') > s × 448，部分值裁剪！' : '⚠️ amax(' + curAmax.toFixed(2) + ') > s × 448 — some clipping!')
+                : (lang === 'zh' ? 'H100 FP8 Tensor Core 执行 GEMM' : 'H100 FP8 Tensor Core executes GEMM'),
+              color: isOverflow ? '#dc2626' : '#059669',
+              bg:    isOverflow ? '#fef2f2' : '#f0fdf4'
+            },
+            {
+              label: lang === 'zh' ? '③ 记录 amax' : '③ Record amax',
+              detail: 'amax = ' + curAmax.toFixed(3),
+              note: lang === 'zh' ? '→ 写入 history[' + curStep + '] 供后续步骤使用' : '→ written to history[' + curStep + '] for future steps',
+              color: '#d97706', bg: '#fef3c7'
+            },
+            {
+              label: lang === 'zh' ? '④ 更新下一步缩放因子' : '④ Update Scale for Next Step',
+              detail: function() {
+                var futHist = history.concat([curAmax]);
+                var futWin = futHist.slice(Math.max(0, futHist.length - W_HIST));
+                var futS = Math.max.apply(null, futWin) / FP8_MAX;
+                return 's_{t+1} = ' + futS.toFixed(4);
+              }(),
+              note: lang === 'zh' ? '基于含当前 amax 的更新窗口' : 'based on updated window including current amax',
+              color: '#7c3aed', bg: '#faf5ff'
+            }
+          ];
+
+          var boxH2 = 62, boxGap = 12;
+          var totalH = phases.length * boxH2 + (phases.length - 1) * boxGap;
+          var startY = (H - 60 - totalH) / 2 + 42;
+
+          phases.forEach(function(ph, idx) {
+            var bx = cx0 + 8, by = startY + idx * (boxH2 + boxGap);
+            var bw2 = cw0 - 16;
+            var active = (idx === phase);
+            var done   = (idx < phase);
+            var alpha = done ? 0.5 : active ? 1.0 : 0.22;
+            drawRoundedBox(bx, by, bw2, boxH2, 8, ph.bg, ph.color, alpha);
+
+            /* Active glow */
+            if (active) {
+              ctx.shadowColor = ph.color; ctx.shadowBlur = 8;
+              ctx.beginPath(); ctx.roundRect(bx, by, bw2, boxH2, 8); ctx.stroke();
+              ctx.shadowBlur = 0;
+            }
+
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = ph.color; ctx.font = 'bold 11px Helvetica Neue,sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText(ph.label, bx + 12, by + 16);
+            ctx.fillStyle = '#1a1a2e'; ctx.font = 'bold 12px JetBrains Mono,monospace';
+            ctx.fillText(ph.detail, bx + 12, by + 33);
+            ctx.fillStyle = '#6b7280'; ctx.font = '10px Helvetica Neue,sans-serif';
+            ctx.fillText(ph.note, bx + 12, by + 50);
+            ctx.globalAlpha = 1;
+
+            /* Done checkmark */
+            if (done) {
+              ctx.fillStyle = '#059669'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'right';
+              ctx.fillText('✓', bx + bw2 - 10, by + boxH2 / 2 + 5);
+            }
+            /* Active arrow */
+            if (active) {
+              ctx.fillStyle = ph.color; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'right';
+              ctx.fillText('▶', bx + bw2 - 10, by + boxH2 / 2 + 6);
+            }
+          });
+
+          /* Connector arrows between phases */
+          phases.forEach(function(ph, idx) {
+            if (idx === phases.length - 1) return;
+            var by = startY + idx * (boxH2 + boxGap) + boxH2;
+            var ax = cx0 + 8 + (cw0 - 16) / 2;
+            var alpha2 = idx < phase ? 0.7 : 0.15;
+            ctx.globalAlpha = alpha2;
+            ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(ax, by + 1); ctx.lineTo(ax, by + boxGap - 1); ctx.stroke();
+            ctx.fillStyle = '#9ca3af';
+            ctx.beginPath();
+            ctx.moveTo(ax, by + boxGap - 1);
+            ctx.lineTo(ax - 5, by + boxGap - 7);
+            ctx.lineTo(ax + 5, by + boxGap - 7);
+            ctx.closePath(); ctx.fill();
+            ctx.globalAlpha = 1;
+          });
+        }
+
+        /* ── Status bar ── */
+        var statusY = H - 8;
+        ctx.fillStyle = '#9ca3af'; ctx.font = '10px JetBrains Mono,monospace'; ctx.textAlign = 'center';
+        ctx.fillText(
+          (lang === 'zh' ? '步骤 ' : 'step ') + Math.min(curStep, N_STEPS - 1) + '/' + (N_STEPS - 1) +
+          '   ' + (lang === 'zh' ? '阶段 ' : 'phase ') + (phase + 1) + '/4' +
+          '   history=' + history.length +
+          (isOverflow ? (lang === 'zh' ? '   ⚠️ 溢出' : '   ⚠️ OVERFLOW') : ''),
+          W / 2, statusY
+        );
+
+        info.textContent =
+          (lang === 'zh' ? '步骤 ' : 'step ') + curStep + '  ' +
+          (lang === 'zh' ? '阶段 ' : 'phase ') + (phase + 1) + '/4' +
+          (isOverflow ? (lang === 'zh' ? '  ⚠️ 溢出！' : '  ⚠️ Overflow!') : '');
+      }
+
+      function advance() {
+        if (phase < 3) {
+          phase++;
+        } else {
+          /* Commit step: record amax into history */
+          if (curStep < N_STEPS) {
+            history.push(getAmax(curStep));
+            curStep++;
+          }
+          phase = 0;
+        }
+        draw();
+      }
+
+      function retreat() {
+        if (phase > 0) {
+          phase--;
+        } else if (curStep > 0) {
+          curStep--;
+          history.pop();
+          phase = 3;
+        }
+        draw();
+      }
+
+      function resetAll() {
+        curStep = 0; phase = 0; history = [];
+        if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+        var btnPlay = document.getElementById('btn-dsp-play');
+        btnPlay.dataset.en = '▶ Auto Play'; btnPlay.dataset.zh = '▶ 自动播放';
+        btnPlay.textContent = lang === 'zh' ? '▶ 自动播放' : '▶ Auto Play';
+        draw();
+      }
+
+      document.getElementById('btn-dsp-next').addEventListener('click', advance);
+      document.getElementById('btn-dsp-prev').addEventListener('click', retreat);
+      document.getElementById('btn-dsp-reset').addEventListener('click', resetAll);
+
+      document.getElementById('btn-dsp-spike').addEventListener('click', function() {
+        spikeEnabled = !spikeEnabled;
+        this.style.background = spikeEnabled ? '#dc2626' : '#d97706';
+        this.dataset.en = spikeEnabled ? '⚡ Remove Spike' : '⚡ Add Spike';
+        this.dataset.zh = spikeEnabled ? '⚡ 移除尖峰' : '⚡ 注入尖峰';
+        this.textContent = lang === 'zh'
+          ? (spikeEnabled ? '⚡ 移除尖峰' : '⚡ 注入尖峰')
+          : (spikeEnabled ? '⚡ Remove Spike' : '⚡ Add Spike');
+        draw();
+      });
+
+      document.getElementById('btn-dsp-play').addEventListener('click', function() {
+        if (autoTimer) {
+          clearInterval(autoTimer); autoTimer = null;
+          this.dataset.en = '▶ Auto Play'; this.dataset.zh = '▶ 自动播放';
+          this.textContent = lang === 'zh' ? '▶ 自动播放' : '▶ Auto Play';
+          return;
+        }
+        this.dataset.en = '⏸ Pause'; this.dataset.zh = '⏸ 暂停';
+        this.textContent = lang === 'zh' ? '⏸ 暂停' : '⏸ Pause';
+        var self = this;
+        autoTimer = setInterval(function() {
+          if (curStep >= N_STEPS && phase >= 3) {
+            clearInterval(autoTimer); autoTimer = null;
+            self.dataset.en = '▶ Auto Play'; self.dataset.zh = '▶ 自动播放';
+            self.textContent = lang === 'zh' ? '▶ 自动播放' : '▶ Auto Play';
+            return;
+          }
+          advance();
+        }, AUTO_PLAY_INTERVAL_MS);
+      });
+
+      window.addEventListener('resize', function() { resize(); draw(); });
+      resize(); draw();
     })();
 
     </script>
