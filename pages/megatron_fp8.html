@@ -315,21 +315,21 @@
 
         <div class="stage-wrapper">
           <canvas id="fp8Canvas"></canvas>
-          <div class="viz-info" id="vizInfo">target = 1.0</div>
+          <div class="viz-info" id="vizInfo" role="status" aria-live="polite">target = 1.0</div>
           <div class="controls">
             <div class="control-group">
               <label class="control-label">
                 <span data-zh="目标值（log scale）" data-en="Target value (log scale)" id="sliderLabel">目标值（log scale）</span>
                 <span id="targetVal">1.000</span>
               </label>
-              <input type="range" id="targetSlider" min="-7" max="7" step="0.05" value="0" />
+              <input type="range" id="targetSlider" min="-7" max="7" step="0.05" value="0" aria-label="Target value (log scale)" />
             </div>
             <div class="control-group">
               <label class="control-label">
                 <span data-zh="缩放因子 s" data-en="Scaling factor s">缩放因子 s</span>
                 <span id="scaleVal">1.000</span>
               </label>
-              <input type="range" id="scaleSlider" min="-3" max="3" step="0.1" value="0" />
+              <input type="range" id="scaleSlider" min="-3" max="3" step="0.1" value="0" aria-label="Scaling factor s" />
             </div>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
               <button class="btn-play" id="btnAutoScale" data-zh="⚡ 自动缩放" data-en="⚡ Auto Scale">⚡ 自动缩放</button>
