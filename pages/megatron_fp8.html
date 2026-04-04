@@ -1,0 +1,1175 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <script defer src="/_vercel/insights/script.js"></script>
+    <title>Megatron FP8 量化训练</title>
+    <meta name="description" content="Megatron-LM FP8 quantized training — E4M3 vs E5M2 formats, tensor scaling, delayed scaling, 5 interactive canvas animations." />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <style>
+      :root {
+        --bg:#fff; --bg-alt:#f8f9fa; --text:#1a1a2e; --text-secondary:#555;
+        --accent:#2563eb; --border:#e2e8f0;
+        --font-headline:"Playfair Display","Georgia",serif;
+        --font-serif:"Cormorant Garamond","Palatino Linotype","Book Antiqua",Palatino,serif;
+        --font-sans:"Helvetica Neue",Helvetica,Arial,sans-serif;
+        --font-math:"JetBrains Mono",monospace;
+      }
+      .progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:999;transition:width .1s}
+      .site-nav{max-width:860px;margin:0 auto 1rem;padding:0 .5rem;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);font-size:.85em;flex-wrap:wrap}
+      .site-nav a{color:var(--text-secondary);text-decoration:none;font-weight:600;letter-spacing:.02em;padding:2px 4px}
+      .site-nav a:hover{color:var(--accent);text-decoration:underline}
+      .site-nav .nav-sep{color:var(--border);user-select:none}
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{background:var(--bg);color:var(--text);font-family:var(--font-serif);line-height:1.5;padding:2rem 1rem;-webkit-text-size-adjust:100%}
+      .article{max-width:860px;margin:0 auto;background:var(--bg);padding:0 1rem 3rem;position:relative}
+      .masthead{text-align:center;border-bottom:1px solid var(--border);padding-bottom:1.5rem;margin-bottom:2.5rem;position:relative}
+      .masthead-title{font-family:var(--font-headline);font-size:clamp(2.2rem,5vw,3.5rem);font-weight:900;line-height:1.1;margin:0 0 10px;color:var(--text)}
+      .masthead-sub{font-size:1rem;font-family:var(--font-sans);margin-bottom:10px;color:var(--text-secondary)}
+      .lang-toggle{position:absolute;top:10px;right:10px;z-index:40;font-family:var(--font-sans);padding:6px 16px;border:1px solid var(--border);background:var(--bg);cursor:pointer;color:var(--text-secondary);font-weight:bold;border-radius:20px;font-size:.85rem;transition:all .2s;touch-action:manipulation}
+      .lang-toggle:hover{background:var(--bg-alt);color:var(--text);border-color:var(--text-secondary)}
+      /* Fixed TOC sidebar */
+      .toc{position:fixed;right:max(calc((100vw - 860px)/2 - 210px),12px);top:120px;width:175px;font-family:var(--font-sans);font-size:.78rem;z-index:50}
+      .toc a{display:block;padding:4px 0;color:var(--text-secondary);text-decoration:none;border-left:2px solid transparent;padding-left:10px;transition:all .15s;line-height:1.3}
+      .toc a:hover,.toc a.active{color:var(--accent);border-left-color:var(--accent)}
+      /* Canvas wrapper */
+      .stage-wrapper{width:100%;height:430px;position:relative;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:0 auto 35px;background:var(--bg-alt);box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;justify-content:center;align-items:center;flex-direction:column;contain:layout style paint}
+      .stage-wrapper canvas{position:absolute;top:0;left:0;width:100%;height:calc(100% - 60px)}
+      .controls{padding:10px 16px;background:var(--bg-alt);border-top:1px solid var(--border);width:100%;display:flex;align-items:center;justify-content:space-between;position:absolute;bottom:0;left:0;z-index:10;font-family:var(--font-sans);gap:10px;flex-wrap:wrap;min-height:60px}
+      .control-group{display:flex;flex-direction:column;flex:1;min-width:120px;gap:4px}
+      .control-label{display:flex;justify-content:space-between;font-size:.85rem;font-weight:bold;color:var(--text)}
+      input[type=range]{-webkit-appearance:none;width:100%;height:6px;background:var(--border);border-radius:4px;outline:none;touch-action:manipulation}
+      input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);margin-top:-7px}
+      input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+      .btn-play{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:6px 16px;font-size:.8rem;font-weight:bold;cursor:pointer;font-family:var(--font-sans);transition:background .2s;touch-action:manipulation;white-space:nowrap}
+      .btn-play:hover{background:#1d4ed8}
+      /* Content */
+      .phase-heading{font-family:var(--font-headline);font-size:1.5rem;font-weight:700;text-align:left;margin:2.5rem 0 1rem;border-top:2px solid var(--border);padding-top:1.5rem;color:var(--text)}
+      .phase-desc{font-family:var(--font-serif);font-size:1.05rem;text-align:left;max-width:none;margin:0 0 15px;color:var(--text-secondary);line-height:1.75}
+      .math-block{display:block;text-align:center;padding:1.5rem 1rem;background:var(--bg-alt);border-left:3px solid var(--accent);margin:2rem 0;border-radius:4px;color:var(--text);overflow-x:auto;-webkit-overflow-scrolling:touch}
+      .key-stats{display:flex;justify-content:space-around;text-align:center;margin:25px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:15px 0;font-family:var(--font-headline);font-weight:bold;color:var(--text)}
+      .key-stats div{flex:1;border-right:1px solid var(--border)}
+      .key-stats div:last-child{border-right:none}
+      .key-stats span{display:block;font-size:.85rem;color:var(--text-secondary);margin-top:5px;font-family:var(--font-sans)}
+      .insight-box{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-left:4px solid var(--accent);border-radius:8px;padding:16px 20px;margin:1.5rem 0;font-family:var(--font-sans);font-size:.92rem;line-height:1.6}
+      .insight-box strong{color:var(--accent)}
+      .viz-legend{position:absolute;top:12px;left:12px;font-family:var(--font-sans);font-size:.8rem;display:flex;flex-direction:column;gap:4px;z-index:10;background:rgba(255,255,255,.92);padding:8px 12px;border:1px solid var(--border);border-radius:6px;box-shadow:0 2px 5px rgba(0,0,0,.05)}
+      .viz-legend-item{display:flex;align-items:center;gap:6px;color:var(--text);font-weight:600}
+      .viz-legend-color{width:10px;height:10px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+      .viz-info{position:absolute;top:12px;right:12px;font-family:var(--font-math);font-size:.8rem;font-weight:bold;z-index:10;color:var(--text);background:rgba(255,255,255,.92);padding:6px 12px;border:1px solid var(--border);border-radius:20px;box-shadow:0 2px 5px rgba(0,0,0,.05)}
+      .pipeline{display:flex;align-items:center;justify-content:center;gap:0;margin:2rem 0;flex-wrap:wrap}
+      .pipeline-step{background:var(--bg-alt);border:2px solid var(--border);border-radius:10px;padding:12px 16px;text-align:center;font-family:var(--font-sans);font-size:.82rem;font-weight:600;min-width:110px;transition:all .2s}
+      .pipeline-step:hover{border-color:var(--accent);box-shadow:0 2px 10px rgba(37,99,235,.15)}
+      .pipeline-step small{display:block;font-weight:400;color:var(--text-secondary);margin-top:4px;font-size:.8em}
+      .pipeline-step.hl{border-color:var(--accent);background:#eff6ff;color:var(--accent)}
+      .pipeline-arrow{font-size:1.4rem;color:var(--accent);padding:0 4px;font-weight:bold}
+      .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin:1.5rem 0}
+      .col-card{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:var(--font-sans);font-size:.9rem;color:var(--text)}
+      .col-card h4{font-family:var(--font-headline);font-size:1.05rem;margin-bottom:.5rem;color:var(--text)}
+      pre,code{font-family:var(--font-math)}
+      pre{background:#1e1e2e;color:#cdd6f4;padding:1.5rem;border-radius:8px;overflow-x:auto;font-size:.85rem;line-height:1.6;margin:1.5rem 0}
+      code{background:var(--bg-alt);color:var(--accent);padding:1px 5px;border-radius:3px;font-size:.9em}
+      pre code{background:transparent;color:inherit;padding:0}
+      .kw{color:#cba6f7}.fn{color:#89b4fa}.cm{color:#585b70;font-style:italic}.st{color:#a6e3a1}.nm{color:#fab387}.op{color:#89dceb}
+      table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-family:var(--font-sans);font-size:.9rem}
+      th{background:var(--bg-alt);font-weight:bold;border:1px solid var(--border);padding:10px 14px;text-align:left}
+      td{border:1px solid var(--border);padding:9px 14px}
+      tr:nth-child(even) td{background:var(--bg-alt)}
+      @media(max-width:1200px){.toc{display:none}}
+      @media(max-width:600px){
+        .stage-wrapper{height:370px}
+        .two-col{grid-template-columns:1fr}
+        .pipeline{flex-direction:column}
+        .pipeline-arrow{transform:rotate(90deg);padding:4px 0}
+        .key-stats{flex-direction:column;gap:12px}
+        .key-stats div{border-right:none;border-bottom:1px solid var(--border);padding-bottom:8px}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar" id="progress-bar"></div>
+    <nav class="site-nav">
+      <a href="/">Home</a><span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a><span class="nav-sep">|</span>
+      <a href="/pages/publications.html">Publications</a><span class="nav-sep">|</span>
+      <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>
+    </nav>
+
+    <article class="article">
+      <nav class="toc" id="toc"></nav>
+
+      <header class="masthead">
+        <button class="lang-toggle" id="langBtn" type="button">中/EN</button>
+        <p class="masthead-sub"
+          data-en="LLM Training · Mixed Precision · ~12 min read"
+          data-zh="大模型训练 · 混合精度 · 约 12 分钟阅读">大模型训练 · 混合精度 · 约 12 分钟阅读</p>
+        <h1 class="masthead-title">Megatron FP8</h1>
+        <p class="masthead-sub" style="font-size:1.15rem;margin-top:6px;"
+          data-en="FP8 Quantized Training: From Number Format to Large-Scale Deployment"
+          data-zh="FP8 量化训练：从数据格式到大规模落地">FP8 量化训练：从数据格式到大规模落地</p>
+      </header>
+
+      <div class="key-stats">
+        <div>2×<span data-en="Memory Halved" data-zh="显存减半">显存减半</span></div>
+        <div>~1.5–2×<span data-en="Throughput Gain" data-zh="吞吐量提升">吞吐量提升</span></div>
+        <div>E4M3 / E5M2<span data-en="Two FP8 Formats" data-zh="两种 FP8 格式">两种 FP8 格式</span></div>
+        <div>H100<span data-en="FP8 Tensor Core" data-zh="FP8 Tensor Core">FP8 Tensor Core</span></div>
+      </div>
+
+      <div style="padding:1rem 0 2rem;">
+        <p class="phase-desc"
+          data-en="Training large language models requires enormous compute and memory. FP8 training in Megatron-LM cuts weight and activation storage from 16 bits to 8 bits for the most bandwidth-hungry matrix multiplications, unlocking up to 2× peak throughput on H100 GPUs — while keeping model quality nearly identical to BF16 baselines."
+          data-zh="训练大型语言模型需要巨量算力和显存。Megatron-LM 的 FP8 训练将最耗带宽的矩阵乘法的权重和激活从 16 位压缩到 8 位，在 H100 GPU 上解锁最高 2 倍的吞吐量峰值——同时模型质量与 BF16 基线几乎相同。">训练大型语言模型需要巨量算力和显存。Megatron-LM 的 FP8 训练将最耗带宽的矩阵乘法的权重和激活从 16 位压缩到 8 位，在 H100 GPU 上解锁最高 2 倍的吞吐量峰值——同时模型质量与 BF16 基线几乎相同。</p>
+      </div>
+
+      <!-- §1 Why FP8 -->
+      <h2 class="phase-heading" id="sec-why"
+        data-en="§1 Why FP8 Training?"
+        data-zh="§1 为什么要 FP8 训练？">§1 为什么要 FP8 训练？</h2>
+      <p class="phase-desc"
+        data-en="Modern LLMs are memory-bandwidth-bound: the GPU spends most time moving data between HBM and compute units, not doing arithmetic. Halving the data type width from BF16 (2 bytes) to FP8 (1 byte) doubles the effective memory bandwidth for matrix multiplications — the dominant kernel in transformer training."
+        data-zh="现代 LLM 是带宽瓶颈型计算：GPU 大部分时间花在 HBM 与计算单元之间搬运数据，而非真正做运算。将数据类型从 BF16（2 字节）缩窄到 FP8（1 字节），对矩阵乘法这一 Transformer 训练的主导 kernel 而言，等效内存带宽翻倍。">现代 LLM 是带宽瓶颈型计算：GPU 大部分时间花在 HBM 与计算单元之间搬运数据，而非真正做运算。将数据类型从 BF16（2 字节）缩窄到 FP8（1 字节），对矩阵乘法这一 Transformer 训练的主导 kernel 而言，等效内存带宽翻倍。</p>
+
+      <div class="two-col">
+        <div class="col-card">
+          <h4 data-en="🔴 Traditional AMP" data-zh="🔴 传统 AMP">🔴 传统 AMP</h4>
+          <ul style="padding-left:1.1rem;line-height:1.8;"
+            data-en="<li>Weights: BF16 fwd + FP32 master</li><li>Gradients: FP32 accumulation</li><li>Activations: BF16</li><li>6 bytes/param</li>"
+            data-zh="<li>权重：BF16 前向 + FP32 master</li><li>梯度：FP32 累积</li><li>激活：BF16</li><li>每参数 6 字节</li>"><li>权重：BF16 前向 + FP32 master</li><li>梯度：FP32 累积</li><li>激活：BF16</li><li>每参数 6 字节</li></ul>
+        </div>
+        <div class="col-card">
+          <h4 data-en="🟢 FP8 Mixed Precision" data-zh="🟢 FP8 混合精度">🟢 FP8 混合精度</h4>
+          <ul style="padding-left:1.1rem;line-height:1.8;"
+            data-en="<li>Weights: FP8 E4M3 in forward GEMM</li><li>Weight gradients: FP8 E5M2</li><li>Activations: FP8 during compute</li><li>Master weights / optimizer: FP32</li>"
+            data-zh="<li>权重：前向 GEMM 中用 FP8 E4M3</li><li>权重梯度：FP8 E5M2</li><li>激活：计算时 FP8</li><li>master weights / 优化器仍 FP32</li>"><li>权重：前向 GEMM 中用 FP8 E4M3</li><li>权重梯度：FP8 E5M2</li><li>激活：计算时 FP8</li><li>master weights / 优化器仍 FP32</li></ul>
+        </div>
+      </div>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;💡 Key idea:&lt;/strong&gt; FP8 training is &lt;em&gt;not&lt;/em&gt; 'convert everything to 8 bits'. Only the most bandwidth-hungry GEMM inputs (weights and activations) are stored in FP8. LayerNorm, Softmax, residual connections, and the optimizer remain in BF16/FP32. This surgical replacement maximizes throughput while preserving numerical stability."
+        data-zh="&lt;strong&gt;💡 核心思想：&lt;/strong&gt; FP8 训练&lt;em&gt;不是&lt;/em&gt;"把所有东西都换成 8 位"。只有最耗带宽的 GEMM 输入（权重和激活）才以 FP8 存储。LayerNorm、Softmax、残差连接和优化器仍保持 BF16/FP32。这种精准替换在最大化吞吐量的同时保证数值稳定性。"><strong>💡 核心思想：</strong> FP8 训练<em>不是</em>"把所有东西都换成 8 位"。只有最耗带宽的 GEMM 输入（权重和激活）才以 FP8 存储。LayerNorm、Softmax、残差连接和优化器仍保持 BF16/FP32。这种精准替换在最大化吞吐量的同时保证数值稳定性。</div>
+
+      <!-- §2 FP8 Formats -->
+      <h2 class="phase-heading" id="sec-format"
+        data-en="§2 FP8 Formats: E4M3 vs E5M2"
+        data-zh="§2 FP8 格式：E4M3 与 E5M2">§2 FP8 格式：E4M3 与 E5M2</h2>
+      <p class="phase-desc"
+        data-en="All 8 bits split into three fields: sign (S), exponent (E), and mantissa (M). The FP8 standard defines two variants — click the buttons below to animate how the bits are allocated."
+        data-zh="8 个比特分为三个字段：符号位（S）、指数（E）和尾数（M）。FP8 标准定义了两种变体——点击下方按钮，动画展示比特是如何分配的。">8 个比特分为三个字段：符号位（S）、指数（E）和尾数（M）。FP8 标准定义了两种变体——点击下方按钮，动画展示比特是如何分配的。</p>
+
+      <!-- VIZ 1: Bit Layout Animator -->
+      <div class="stage-wrapper" id="stage-bits" style="height:300px;">
+        <canvas id="canvas-bits"></canvas>
+        <div class="viz-info" id="bits-info">E4M3FN</div>
+        <div class="controls">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-play" id="btn-e4m3" type="button">E4M3FN</button>
+            <button class="btn-play" id="btn-e5m2" type="button" style="background:#d97706;">E5M2</button>
+            <button class="btn-play" id="btn-bf16" type="button" style="background:#059669;">BF16</button>
+            <button class="btn-play" id="btn-anim-bits" type="button" style="background:#7c3aed;"
+              data-en="▶ Cycle" data-zh="▶ 循环">▶ 循环</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="phase-desc"
+        data-en="The value encoded by a normal FP8 number follows the IEEE 754 rule:"
+        data-zh="正常 FP8 数遵循 IEEE 754 编码规则：">正常 FP8 数遵循 IEEE 754 编码规则：</p>
+      <div class="math-block">$$\text{value} = (-1)^{S} \cdot 2^{E_{\text{int}} - \text{bias}} \cdot \left(1 + \frac{M_{\text{int}}}{2^{\#M}}\right)$$</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th data-en="Format" data-zh="格式">格式</th>
+            <th>S</th><th>E bits</th><th>M bits</th>
+            <th data-en="Bias" data-zh="偏置">偏置</th>
+            <th data-en="Max Value" data-zh="最大值">最大值</th>
+            <th data-en="Typical Use" data-zh="典型用途">典型用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>E4M3FN</strong></td><td>1</td><td>4</td><td>3</td><td>7</td><td>448</td>
+            <td data-en="Forward: weights, activations" data-zh="前向：权重、激活">前向：权重、激活</td></tr>
+          <tr><td><strong>E5M2</strong></td><td>1</td><td>5</td><td>2</td><td>15</td><td>57344</td>
+            <td data-en="Backward: weight gradients" data-zh="反向：权重梯度">反向：权重梯度</td></tr>
+          <tr><td>BF16</td><td>1</td><td>8</td><td>7</td><td>127</td><td>~3.4×10<sup>38</sup></td>
+            <td data-en="Traditional AMP baseline" data-zh="传统 AMP 基线">传统 AMP 基线</td></tr>
+        </tbody>
+      </table>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;💡 Why E4M3 forward, E5M2 backward?&lt;/strong&gt; Forward activations and weights cluster in a small range → more mantissa bits (E4M3) give finer granularity. Backward gradients are sparse with larger peaks → more exponent bits (E5M2) prevent overflow."
+        data-zh="&lt;strong&gt;💡 为何前向用 E4M3，反向用 E5M2？&lt;/strong&gt; 前向激活和权重集中在小范围 → 更多尾数位（E4M3）提供更细粒度。反向梯度稀疏且峰值大 → 更多指数位（E5M2）防止溢出。"><strong>💡 为何前向用 E4M3，反向用 E5M2？</strong> 前向激活和权重集中在小范围 → 更多尾数位（E4M3）提供更细粒度。反向梯度稀疏且峰值大 → 更多指数位（E5M2）防止溢出。</div>
+
+      <!-- §3 Number Line -->
+      <h2 class="phase-heading" id="sec-numline"
+        data-en="§3 Representable Values on the Number Line"
+        data-zh="§3 可表示值的数轴分布">§3 可表示值的数轴分布</h2>
+      <p class="phase-desc"
+        data-en="Because E4M3 has more mantissa bits, its values are denser near 1.0. E5M2 spreads values more uniformly over a wider range. The visualization below shows all positive representable values on a log-scale axis — drag the target slider and watch the quantization error update live."
+        data-zh="E4M3 有更多尾数位，其可表示值在 1.0 附近更密集。E5M2 则将值更均匀地分布在更宽的范围。下方可视化在对数坐标轴上展示所有正数可表示值——拖动目标值滑块，实时观察量化误差。">E4M3 有更多尾数位，其可表示值在 1.0 附近更密集。E5M2 则将值更均匀地分布在更宽的范围。下方可视化在对数坐标轴上展示所有正数可表示值——拖动目标值滑块，实时观察量化误差。</p>
+
+      <!-- VIZ 2: Number Line -->
+      <div class="stage-wrapper" id="stage-numline">
+        <canvas id="canvas-numline"></canvas>
+        <div class="viz-legend">
+          <div class="viz-legend-item"><div class="viz-legend-color" style="background:#d97706;"></div><span>E4M3FN</span></div>
+          <div class="viz-legend-item"><div class="viz-legend-color" style="background:#059669;"></div><span>E5M2</span></div>
+        </div>
+        <div class="viz-info" id="numline-info" role="status" aria-live="polite">x = 1.000</div>
+        <div class="controls">
+          <div class="control-group">
+            <label class="control-label">
+              <span data-en="Target x (log₂)" data-zh="目标值 x（log₂）">目标值 x（log₂）</span>
+              <span id="numline-tv">2⁰ = 1.000</span>
+            </label>
+            <input type="range" id="numline-target" min="-7" max="8" step="0.05" value="0" aria-label="Target value" />
+          </div>
+          <div class="control-group">
+            <label class="control-label">
+              <span data-en="Scale factor s" data-zh="缩放因子 s">缩放因子 s</span>
+              <span id="numline-sv">s = 1.000</span>
+            </label>
+            <input type="range" id="numline-scale" min="-4" max="4" step="0.1" value="0" aria-label="Scale factor" />
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn-play" id="btn-autoscale" type="button"
+              data-en="⚡ Auto Scale" data-zh="⚡ 自动缩放">⚡ 自动缩放</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- §4 Tensor Scaling -->
+      <h2 class="phase-heading" id="sec-scaling"
+        data-en="§4 Tensor Scaling Factors"
+        data-zh="§4 Tensor 缩放因子">§4 Tensor 缩放因子</h2>
+      <p class="phase-desc"
+        data-en="FP8's max is only 448 (E4M3) — far smaller than BF16's 3.4×10³⁸. A direct cast would overflow almost every real tensor. The solution: maintain a per-tensor scaling factor $s$ and normalize before casting."
+        data-zh="FP8 的最大值只有 448（E4M3）——远小于 BF16 的 3.4×10³⁸。直接类型转换几乎会导致每个真实张量溢出。解决方案：为每个张量维护缩放因子 $s$，在转换前归一化。">FP8 的最大值只有 448（E4M3）——远小于 BF16 的 3.4×10³⁸。直接类型转换几乎会导致每个真实张量溢出。解决方案：为每个张量维护缩放因子 $s$，在转换前归一化。</p>
+      <div class="math-block">$$x_{\text{fp8}} = \mathrm{cast\_fp8}\!\left(\frac{x}{s}\right), \qquad \hat{x} = x_{\text{fp8}} \cdot s, \qquad s^{*} = \frac{\mathrm{amax}(x)}{\text{fp8\_max}}$$</div>
+
+      <!-- §5 Delayed Scaling -->
+      <h2 class="phase-heading" id="sec-delayed"
+        data-en="§5 Delayed Scaling: Reusing Historical amax"
+        data-zh="§5 延迟缩放：复用历史 amax">§5 延迟缩放：复用历史 amax</h2>
+      <p class="phase-desc"
+        data-en="Computing amax before each GEMM requires a full tensor scan, adding latency. Megatron-LM uses delayed scaling: keep a rolling window of past amax values and derive the current scale from them — near-zero overhead, numerically stable. Hit ▶ Play to watch the window slide across training steps."
+        data-zh="在每次 GEMM 前计算 amax 需要完整扫描张量，增加延迟。Megatron-LM 使用延迟缩放：保存滑动窗口的历史 amax 值并从中推导当前缩放因子——几乎零开销，数值稳定。点击 ▶ 播放，观察窗口在训练步骤中滑动。">在每次 GEMM 前计算 amax 需要完整扫描张量，增加延迟。Megatron-LM 使用延迟缩放：保存滑动窗口的历史 amax 值并从中推导当前缩放因子——几乎零开销，数值稳定。点击 ▶ 播放，观察窗口在训练步骤中滑动。</p>
+
+      <!-- VIZ 3: Delayed Scaling Timeline -->
+      <div class="stage-wrapper" id="stage-delayed" style="height:380px;">
+        <canvas id="canvas-delayed"></canvas>
+        <div class="viz-info" id="delayed-info" role="status" aria-live="polite">step 0</div>
+        <div class="controls">
+          <div class="control-group">
+            <label class="control-label">
+              <span data-en="History window W" data-zh="历史窗口 W">历史窗口 W</span>
+              <span id="delayed-wv">16</span>
+            </label>
+            <input type="range" id="delayed-w" min="1" max="32" step="1" value="16" aria-label="History window size" />
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-play" id="btn-dp" type="button"
+              data-en="▶ Play" data-zh="▶ 播放">▶ 播放</button>
+            <button class="btn-play" id="btn-dr" type="button" style="background:#6b7280;"
+              data-en="↺ Reset" data-zh="↺ 重置">↺ 重置</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;💡 amax_compute_algo='max':&lt;/strong&gt; Megatron takes the max of all amax values in the history window — conservative, never underestimates the range, preventing overflow at the cost of occasionally over-scaling."
+        data-zh="&lt;strong&gt;💡 amax_compute_algo='max'：&lt;/strong&gt; Megatron 取历史窗口中 amax 值的最大值——保守策略，永不低估范围，防止溢出，代价是偶尔过度缩放。"><strong>💡 amax_compute_algo='max'：</strong> Megatron 取历史窗口中 amax 值的最大值——保守策略，永不低估范围，防止溢出，代价是偶尔过度缩放。</div>
+
+      <!-- §6 Forward/Backward GEMMs -->
+      <h2 class="phase-heading" id="sec-gemm"
+        data-en="§6 Forward and Backward GEMMs"
+        data-zh="§6 前向与反向 GEMM">§6 前向与反向 GEMM</h2>
+      <p class="phase-desc"
+        data-en="Every linear layer performs three matrix multiplications. FP8 training replaces the operands with appropriately typed FP8 tensors. Click Forward / Backward to see each pass, or Animate to play through."
+        data-zh="每个线性层执行三次矩阵乘法。FP8 训练将操作数替换为适当类型的 FP8 张量。点击前向/反向查看各自流程，或点击动画播放。">每个线性层执行三次矩阵乘法。FP8 训练将操作数替换为适当类型的 FP8 张量。点击前向/反向查看各自流程，或点击动画播放。</p>
+
+      <div class="math-block">$$\underbrace{Y = X\,W^T}_{\substack{\text{前向}\\\text{(E4M3×E4M3)}}} \qquad \underbrace{dX = dY\,W}_{\substack{\text{输入梯度}\\\text{(E5M2×E4M3)}}} \qquad \underbrace{dW = dY^T X}_{\substack{\text{权重梯度}\\\text{(E5M2×E4M3)}}}$$</div>
+
+      <!-- VIZ 4: Animated Training Pipeline -->
+      <div class="stage-wrapper" id="stage-pipeline" style="height:400px;">
+        <canvas id="canvas-pipeline"></canvas>
+        <div class="viz-info" id="pipeline-info" role="status" aria-live="polite">Forward pass</div>
+        <div class="controls">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-play" id="btn-pp" type="button"
+              data-en="▶ Animate" data-zh="▶ 动画">▶ 动画</button>
+            <button class="btn-play" id="btn-pfwd" type="button" style="background:#2563eb;"
+              data-en="Forward" data-zh="前向">前向</button>
+            <button class="btn-play" id="btn-pbwd" type="button" style="background:#d97706;"
+              data-en="Backward" data-zh="反向">反向</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;💡 Accumulator stays BF16/FP32:&lt;/strong&gt; Only the GEMM &lt;em&gt;inputs&lt;/em&gt; are in FP8. The output accumulator stays at higher precision to prevent error buildup — H100's FP8 Tensor Cores accumulate in FP32 internally."
+        data-zh="&lt;strong&gt;💡 累加器保持 BF16/FP32：&lt;/strong&gt; 只有 GEMM 的&lt;em&gt;输入&lt;/em&gt;是 FP8。输出累加器保持高精度以防止误差累积——H100 的 FP8 Tensor Core 内部以 FP32 进行累加。"><strong>💡 累加器保持 BF16/FP32：</strong> 只有 GEMM 的<em>输入</em>是 FP8。输出累加器保持高精度以防止误差累积——H100 的 FP8 Tensor Core 内部以 FP32 进行累加。</div>
+
+      <!-- §7 API -->
+      <h2 class="phase-heading" id="sec-api"
+        data-en="§7 Megatron-LM API"
+        data-zh="§7 Megatron-LM API">§7 Megatron-LM API</h2>
+      <p class="phase-desc"
+        data-en="Megatron-LM exposes FP8 through NVIDIA's transformer_engine library. Only a few flags needed:"
+        data-zh="Megatron-LM 通过 NVIDIA transformer_engine 库提供 FP8 支持，只需几个参数：">Megatron-LM 通过 NVIDIA transformer_engine 库提供 FP8 支持，只需几个参数：</p>
+
+<pre><code><span class="cm"># Launch script flags</span>
+--fp8-format hybrid           <span class="cm"># E4M3 fwd + E5M2 bwd</span>
+--fp8-amax-history-len 16     <span class="cm"># rolling amax window</span>
+--fp8-amax-compute-algo max   <span class="cm"># conservative: take window max</span>
+
+<span class="cm"># Python API</span>
+<span class="kw">import</span> transformer_engine.<span class="fn">pytorch</span> <span class="kw">as</span> te
+<span class="kw">from</span> transformer_engine.common.<span class="fn">recipe</span> <span class="kw">import</span> Format, DelayedScaling
+
+fp8_recipe = <span class="fn">DelayedScaling</span>(
+    fp8_format<span class="op">=</span>Format.HYBRID,   <span class="cm"># E4M3 fwd / E5M2 bwd</span>
+    amax_history_len<span class="op">=</span><span class="nm">16</span>,
+    amax_compute_algo<span class="op">=</span><span class="st">"max"</span>,
+)
+<span class="kw">with</span> te.<span class="fn">fp8_autocast</span>(enabled<span class="op">=</span><span class="nm">True</span>, fp8_recipe<span class="op">=</span>fp8_recipe):
+    output <span class="op">=</span> <span class="fn">model</span>(input_ids, attention_mask)
+</code></pre>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;💡 Tensor Parallelism:&lt;/strong&gt; FP8 works seamlessly with Megatron TP and PP. Activation amax values are synchronized within each TP group via all-reduce, ensuring all GPUs share consistent scaling factors. Ops not supporting FP8 (e.g. FlashAttention) auto-fallback to BF16."
+        data-zh="&lt;strong&gt;💡 张量并行：&lt;/strong&gt; FP8 与 Megatron TP/PP 无缝配合。激活 amax 通过 all-reduce 在 TP 组内同步，确保所有 GPU 共享一致的缩放因子。不支持 FP8 的操作（如 FlashAttention）自动降级为 BF16。"><strong>💡 张量并行：</strong> FP8 与 Megatron TP/PP 无缝配合。激活 amax 通过 all-reduce 在 TP 组内同步，确保所有 GPU 共享一致的缩放因子。不支持 FP8 的操作（如 FlashAttention）自动降级为 BF16。</div>
+
+      <!-- §8 Benchmarks -->
+      <h2 class="phase-heading" id="sec-bench"
+        data-en="§8 Performance Benchmarks"
+        data-zh="§8 性能基准">§8 性能基准</h2>
+      <p class="phase-desc"
+        data-en="Click ▶ Animate to watch the throughput bars grow. Hover bars for exact numbers. Data from the official Megatron-LM report, H100 SXM 80GB, TP=8."
+        data-zh="点击 ▶ 动画观察吞吐量柱状图增长，悬停查看详细数字。数据来自官方 Megatron-LM 报告，H100 SXM 80GB，TP=8。">点击 ▶ 动画观察吞吐量柱状图增长，悬停查看详细数字。数据来自官方 Megatron-LM 报告，H100 SXM 80GB，TP=8。</p>
+
+      <!-- VIZ 5: Benchmark Bar Chart -->
+      <div class="stage-wrapper" id="stage-bench" style="height:380px;">
+        <canvas id="canvas-bench"></canvas>
+        <div class="viz-info" id="bench-info" role="status" aria-live="polite"
+          data-en="Hover for details" data-zh="悬停查看详情">悬停查看详情</div>
+        <div class="controls">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-play" id="btn-ba" type="button"
+              data-en="▶ Animate" data-zh="▶ 动画">▶ 动画</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;📊 Model quality:&lt;/strong&gt; On Pile/MMLU/HellaSwag, FP8 matches BF16 loss curves and task metrics to within 0.1%. Gradient clipping threshold can be slightly relaxed (1.0→1.5) to account for quantization noise in gradients."
+        data-zh="&lt;strong&gt;📊 模型质量：&lt;/strong&gt; 在 Pile/MMLU/HellaSwag 上，FP8 训练的 loss 曲线和任务指标与 BF16 差异在 0.1% 以内。梯度裁剪阈值可略微放宽（1.0→1.5）以适应梯度中的量化噪声。"><strong>📊 模型质量：</strong> 在 Pile/MMLU/HellaSwag 上，FP8 训练的 loss 曲线和任务指标与 BF16 差异在 0.1% 以内。梯度裁剪阈值可略微放宽（1.0→1.5）以适应梯度中的量化噪声。</div>
+
+      <footer style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-family:var(--font-sans);font-size:.85rem;color:var(--text-secondary);text-align:center;">
+        <p data-en="References: Shoeybi et al., Megatron-LM (2019); NVIDIA, Transformer Engine FP8 Training; Micikevicius et al., FP8 Formats for Deep Learning, arXiv 2022."
+          data-zh="参考：Shoeybi et al., Megatron-LM (2019); NVIDIA, Transformer Engine FP8 Training; Micikevicius et al., FP8 Formats for Deep Learning, arXiv 2022.">参考：Shoeybi et al., Megatron-LM (2019); NVIDIA, Transformer Engine FP8 Training; Micikevicius et al., FP8 Formats for Deep Learning, arXiv 2022.</p>
+      </footer>
+    </article>
+
+    <script>
+    /* =====================================================================
+       Megatron FP8 — 5 Interactive Visualizations
+       ===================================================================== */
+
+    // ---- i18n ----
+    var lang = 'zh';
+    var langBtn = document.getElementById('langBtn');
+    function updateI18n() {
+      document.querySelectorAll('[data-en]').forEach(function(el) {
+        el.innerHTML = el.getAttribute('data-' + lang) || '';
+      });
+      langBtn.textContent = lang === 'zh' ? 'EN/中' : '中/EN';
+    }
+    langBtn.addEventListener('click', function() { lang = lang === 'zh' ? 'en' : 'zh'; updateI18n(); });
+
+    // ---- Progress bar (RAF-throttled) ----
+    var progressBar = document.getElementById('progress-bar');
+    var rafPending = false;
+    document.addEventListener('scroll', function() {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(function() {
+        var h = document.documentElement;
+        var pct = (h.scrollTop || document.body.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+        progressBar.style.width = pct + '%';
+        rafPending = false;
+      });
+    }, {passive: true});
+
+    // ---- TOC (RAF-throttled) ----
+    var tocRafPending = false;
+    // ---- TOC ----
+    function renderTOC() {
+      var toc = document.getElementById('toc');
+      var headings = document.querySelectorAll('.phase-heading[id]');
+      toc.innerHTML = '';
+      headings.forEach(function(h) {
+        var a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.textContent = h.textContent.trim();
+        toc.appendChild(a);
+      });
+    }
+    document.addEventListener('scroll', function() {
+      if (tocRafPending) return;
+      tocRafPending = true;
+      requestAnimationFrame(function() {
+        var links = document.querySelectorAll('.toc a');
+        var headings = document.querySelectorAll('.phase-heading[id]');
+        var current = '';
+        headings.forEach(function(h) { if (h.getBoundingClientRect().top < 150) current = h.id; });
+        links.forEach(function(a) { a.classList.toggle('active', a.getAttribute('href') === '#' + current); });
+        tocRafPending = false;
+      });
+    }, {passive: true});
+
+    document.addEventListener('DOMContentLoaded', function() {
+      renderTOC();
+      // KaTeX auto-render
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+          throwOnError:false
+        });
+      }
+      // roundRect polyfill for Safari < 16
+      if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
+          var radius = Array.isArray(r) ? r[0] : (r||0);
+          this.moveTo(x+radius,y);
+          this.lineTo(x+w-radius,y);
+          this.quadraticCurveTo(x+w,y,x+w,y+radius);
+          this.lineTo(x+w,y+h-radius);
+          this.quadraticCurveTo(x+w,y+h,x+w-radius,y+h);
+          this.lineTo(x+radius,y+h);
+          this.quadraticCurveTo(x,y+h,x,y+h-radius);
+          this.lineTo(x,y+radius);
+          this.quadraticCurveTo(x,y,x+radius,y);
+          this.closePath();
+        };
+      }
+    });
+
+    /* ===================================================================
+       VIZ 1 — BIT LAYOUT ANIMATOR
+       =================================================================== */
+    (function() {
+      var canvas = document.getElementById('canvas-bits');
+      var ctx = canvas.getContext('2d');
+      var info = document.getElementById('bits-info');
+
+      var FMTS = {
+        'E4M3FN': {bits:8,  groups:[{l:'S',n:1,c:'#dc2626'},{l:'E',n:4,c:'#d97706'},{l:'M',n:3,c:'#059669'}], bias:7,   max:'448'},
+        'E5M2':   {bits:8,  groups:[{l:'S',n:1,c:'#dc2626'},{l:'E',n:5,c:'#d97706'},{l:'M',n:2,c:'#059669'}], bias:15,  max:'57344'},
+        'BF16':   {bits:16, groups:[{l:'S',n:1,c:'#dc2626'},{l:'E',n:8,c:'#d97706'},{l:'M',n:7,c:'#059669'}], bias:127, max:'~3.4e38'}
+      };
+
+      var curFmt = 'E4M3FN', animProg = 1.0, animId = null;
+
+      function resize() {
+        var wrap = canvas.parentElement, dpr = window.devicePixelRatio || 1;
+        canvas.width  = wrap.clientWidth * dpr;
+        canvas.height = (wrap.clientHeight - 60) * dpr;
+        canvas.style.width  = wrap.clientWidth + 'px';
+        canvas.style.height = (wrap.clientHeight - 60) + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function drawBits(fmt, prog) {
+        var W = canvas.width / (window.devicePixelRatio || 1);
+        var H = canvas.height / (window.devicePixelRatio || 1);
+        ctx.clearRect(0, 0, W, H);
+        var f = FMTS[fmt];
+        var total = f.bits;
+        var boxW = Math.min(48, (W - 80) / total - 4);
+        var boxH = 50;
+        var gap = 4;
+        var tw = total * (boxW + gap) - gap;
+        var sx = (W - tw) / 2;
+        var cy = H / 2 - 18;
+
+        // Build flat bit array
+        var bits = [];
+        f.groups.forEach(function(g) {
+          for (var i = 0; i < g.n; i++) bits.push({l:g.l, c:g.c});
+        });
+
+        var vis = Math.round(prog * total);
+        bits.forEach(function(b, i) {
+          var x = sx + i * (boxW + gap);
+          var alpha = i < vis ? 1.0 : 0.12;
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = b.c;
+          ctx.beginPath(); ctx.roundRect(x, cy - boxH/2, boxW, boxH, 6); ctx.fill();
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.roundRect(x, cy - boxH/2, boxW, boxH, 6); ctx.stroke();
+          // bit index (top)
+          ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '9px JetBrains Mono,monospace';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+          ctx.fillText(String(total - 1 - i), x + boxW/2, cy - boxH/2 + 3);
+          // field label (center)
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 15px Helvetica Neue,sans-serif';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(b.l, x + boxW/2, cy);
+          ctx.textBaseline = 'alphabetic';
+          ctx.globalAlpha = 1;
+        });
+
+        // Bracket group labels below
+        var xc = sx;
+        f.groups.forEach(function(g) {
+          var gw = g.n * (boxW + gap) - gap;
+          var by = cy + boxH/2 + 12;
+          ctx.strokeStyle = g.c; ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(xc, by); ctx.lineTo(xc, by + 5);
+          ctx.moveTo(xc, by + 5); ctx.lineTo(xc + gw, by + 5);
+          ctx.moveTo(xc + gw, by + 5); ctx.lineTo(xc + gw, by);
+          ctx.stroke();
+          ctx.fillStyle = g.c; ctx.font = 'bold 11px Helvetica Neue,sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(g.l + ' (' + g.n + 'b)', xc + gw/2, by + 18);
+          xc += g.n * (boxW + gap);
+        });
+
+        // Title
+        ctx.fillStyle = '#1a1a2e'; ctx.font = 'bold 15px Playfair Display,serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(fmt + '  —  ' + total + '-bit floating point', W/2, 24);
+
+        // Stats bottom
+        ctx.fillStyle = '#888'; ctx.font = '11px JetBrains Mono,monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('bias = ' + f.bias + '   max = ' + f.max, W/2, H - 8);
+      }
+
+      function animateTo(fmt) {
+        if (animId) cancelAnimationFrame(animId);
+        curFmt = fmt; animProg = 0; info.textContent = fmt;
+        var start = null, dur = 700;
+        function step(ts) {
+          if (!start) start = ts;
+          animProg = Math.min((ts - start) / dur, 1.0);
+          drawBits(fmt, animProg);
+          if (animProg < 1) animId = requestAnimationFrame(step);
+        }
+        animId = requestAnimationFrame(step);
+      }
+
+      document.getElementById('btn-e4m3').addEventListener('click', function() { animateTo('E4M3FN'); });
+      document.getElementById('btn-e5m2').addEventListener('click', function() { animateTo('E5M2'); });
+      document.getElementById('btn-bf16').addEventListener('click', function() { animateTo('BF16'); });
+
+      var cycleIdx = 0, cycleTimer = null;
+      var cycleOrder = ['E4M3FN', 'E5M2', 'BF16'];
+      document.getElementById('btn-anim-bits').addEventListener('click', function() {
+        if (cycleTimer) {
+          clearInterval(cycleTimer); cycleTimer = null;
+          this.dataset.en = '▶ Cycle'; this.dataset.zh = '▶ 循环';
+          this.textContent = lang === 'zh' ? '▶ 循环' : '▶ Cycle';
+          return;
+        }
+        this.dataset.en = '⏹ Stop'; this.dataset.zh = '⏹ 停止';
+        this.textContent = lang === 'zh' ? '⏹ 停止' : '⏹ Stop';
+        function next() { animateTo(cycleOrder[cycleIdx++ % cycleOrder.length]); }
+        next();
+        cycleTimer = setInterval(next, 1100);
+      });
+
+      window.addEventListener('resize', function() { resize(); drawBits(curFmt, animProg); });
+      resize(); drawBits('E4M3FN', 1.0);
+    })();
+
+    /* ===================================================================
+       VIZ 2 — NUMBER LINE
+       =================================================================== */
+    (function() {
+      var canvas = document.getElementById('canvas-numline');
+      var ctx = canvas.getContext('2d');
+      var info = document.getElementById('numline-info');
+      var tSlider = document.getElementById('numline-target');
+      var sSlider = document.getElementById('numline-scale');
+      var tvEl = document.getElementById('numline-tv');
+      var svEl = document.getElementById('numline-sv');
+
+      var FP8_E4M3_MAX = 448.0, FP8_E5M2_MAX = 57344.0;
+
+      function genE4M3() {
+        var v = [];
+        for (var e = 0; e <= 14; e++) for (var m = 0; m <= 7; m++) {
+          if (e===0 && m===0) continue;
+          var val = e===0 ? Math.pow(2,-6)*(m/8) : Math.pow(2,e-7)*(1+m/8);
+          if (val <= FP8_E4M3_MAX) v.push(val);
+        }
+        return v.sort(function(a,b){return a-b;});
+      }
+      function genE5M2() {
+        var v = [];
+        for (var e = 0; e <= 30; e++) for (var m = 0; m <= 3; m++) {
+          if (e===0 && m===0) continue;
+          var val = e===0 ? Math.pow(2,-14)*(m/4) : Math.pow(2,e-15)*(1+m/4);
+          if (val <= FP8_E5M2_MAX) v.push(val);
+        }
+        return v.sort(function(a,b){return a-b;});
+      }
+      function quant(x, vals) {
+        var ax = Math.abs(x); if (!ax) return 0;
+        var best = vals[0], bestD = Math.abs(ax - best);
+        for (var i = 1; i < vals.length; i++) {
+          var d = Math.abs(ax - vals[i]);
+          if (d < bestD) { bestD = d; best = vals[i]; }
+          else if (vals[i] > ax + bestD) break;
+        }
+        return x < 0 ? -best : best;
+      }
+
+      var e4 = genE4M3(), e5 = genE5M2();
+      var tLog = 0, sLog = 0;
+
+      function resize() {
+        var w = canvas.parentElement, dpr = window.devicePixelRatio || 1;
+        canvas.width  = w.clientWidth * dpr;
+        canvas.height = (w.clientHeight - 60) * dpr;
+        canvas.style.width  = w.clientWidth + 'px';
+        canvas.style.height = (w.clientHeight - 60) + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function draw() {
+        var W = canvas.width/(window.devicePixelRatio||1);
+        var H = canvas.height/(window.devicePixelRatio||1);
+        ctx.clearRect(0,0,W,H);
+
+        var target = Math.pow(2, tLog);
+        var scale  = Math.pow(2, sLog);
+        var scaled = target / scale;
+        var q4 = quant(scaled, e4) * scale;
+        var q5 = quant(scaled, e5) * scale;
+        var err4 = Math.abs((q4-target)/target)*100;
+        var err5 = Math.abs((q5-target)/target)*100;
+
+        var pL=55, pR=20, pT=52, pB=30, pw=W-pL-pR;
+        var logMin=-10, logMax=10;
+        function lx(v) {
+          if (v<=0) return pL;
+          return pL+(Math.log2(v)-logMin)/(logMax-logMin)*pw;
+        }
+
+        // Grid
+        for (var exp=logMin; exp<=logMax; exp+=2) {
+          var x = pL+(exp-logMin)/(logMax-logMin)*pw;
+          ctx.strokeStyle='#f3f4f6'; ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(x,pT); ctx.lineTo(x,H-pB); ctx.stroke();
+          ctx.fillStyle='#9ca3af'; ctx.font='10px JetBrains Mono,monospace'; ctx.textAlign='center';
+          ctx.fillText('2^'+exp, x, H-pB+14);
+        }
+
+        // Axis
+        var axY = H/2;
+        ctx.strokeStyle='#d1d5db'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(pL,axY); ctx.lineTo(pL+pw,axY); ctx.stroke();
+
+        // E5M2 row
+        var r5 = axY - 55;
+        ctx.fillStyle='#059669'; ctx.font='bold 11px Helvetica Neue,sans-serif'; ctx.textAlign='right';
+        ctx.fillText('E5M2', pL-5, r5+4);
+        e5.forEach(function(v) {
+          var x = lx(v);
+          ctx.strokeStyle='rgba(5,150,105,0.4)'; ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(x,r5-6); ctx.lineTo(x,r5+6); ctx.stroke();
+        });
+
+        // E4M3 row
+        var r4 = axY + 55;
+        ctx.fillStyle='#d97706'; ctx.font='bold 11px Helvetica Neue,sans-serif'; ctx.textAlign='right';
+        ctx.fillText('E4M3', pL-5, r4+4);
+        e4.forEach(function(v) {
+          var x = lx(v);
+          ctx.strokeStyle='rgba(217,119,6,0.4)'; ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(x,r4-6); ctx.lineTo(x,r4+6); ctx.stroke();
+        });
+
+        // Scaled dashed
+        var txS = lx(Math.abs(scaled));
+        if (txS>=pL && txS<=pL+pw) {
+          ctx.strokeStyle='#9ca3af'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+          ctx.beginPath(); ctx.moveTo(txS,pT); ctx.lineTo(txS,H-pB); ctx.stroke(); ctx.setLineDash([]);
+          ctx.fillStyle='#9ca3af'; ctx.font='10px JetBrains Mono,monospace'; ctx.textAlign='center';
+          ctx.fillText('x/s='+scaled.toExponential(2), txS, pT-5);
+        }
+
+        // Target solid
+        var tx = lx(target);
+        if (tx>=pL && tx<=pL+pw) {
+          ctx.strokeStyle='#2563eb'; ctx.lineWidth=2.5;
+          ctx.beginPath(); ctx.moveTo(tx,pT); ctx.lineTo(tx,H-pB); ctx.stroke();
+          ctx.fillStyle='#2563eb'; ctx.font='bold 11px JetBrains Mono,monospace'; ctx.textAlign='center';
+          ctx.fillText('x='+target.toExponential(2), tx, pT-5);
+        }
+
+        // Quantized dots
+        var q5x = lx(Math.abs(q5));
+        if (q5x>=pL && q5x<=pL+pw) {
+          ctx.beginPath(); ctx.arc(q5x,r5,8,0,Math.PI*2);
+          ctx.fillStyle='#059669'; ctx.fill();
+        }
+        var q4x = lx(Math.abs(q4));
+        if (q4x>=pL && q4x<=pL+pw) {
+          ctx.beginPath(); ctx.arc(q4x,r4,8,0,Math.PI*2);
+          ctx.fillStyle='#d97706'; ctx.fill();
+        }
+
+        // Info
+        ctx.fillStyle='#1a1a2e'; ctx.font='bold 12px JetBrains Mono,monospace'; ctx.textAlign='left';
+        ctx.fillText('x = '+target.toExponential(3), pL, pT-22);
+        ctx.fillStyle='#d97706'; ctx.font='11px JetBrains Mono,monospace';
+        ctx.fillText('E4M3 → '+q4.toExponential(3)+'  err '+err4.toFixed(2)+'%', pL, pT-8);
+        ctx.fillStyle='#059669';
+        ctx.fillText('E5M2 → '+q5.toExponential(3)+'  err '+err5.toFixed(2)+'%', pL+280, pT-8);
+
+        info.textContent = 'x = '+target.toExponential(3);
+      }
+
+      tSlider.addEventListener('input', function() {
+        tLog = parseFloat(this.value);
+        var t = Math.pow(2,tLog);
+        tvEl.textContent = '2^'+tLog.toFixed(1)+' = '+t.toExponential(2);
+        draw();
+      });
+      sSlider.addEventListener('input', function() {
+        sLog = parseFloat(this.value);
+        svEl.textContent = 's = '+Math.pow(2,sLog).toExponential(2);
+        draw();
+      });
+      document.getElementById('btn-autoscale').addEventListener('click', function() {
+        var t = Math.pow(2,tLog);
+        sLog = Math.max(-4,Math.min(4,Math.log2(t/(FP8_E4M3_MAX*0.5))));
+        sSlider.value = sLog.toFixed(1);
+        svEl.textContent = 's = '+Math.pow(2,sLog).toExponential(2);
+        draw();
+      });
+      window.addEventListener('resize', function() { resize(); draw(); });
+      resize(); draw();
+    })();
+
+    /* ===================================================================
+       VIZ 3 — DELAYED SCALING TIMELINE
+       =================================================================== */
+    (function() {
+      var canvas = document.getElementById('canvas-delayed');
+      var ctx = canvas.getContext('2d');
+      var info = document.getElementById('delayed-info');
+      var wSlider = document.getElementById('delayed-w');
+      var wvEl = document.getElementById('delayed-wv');
+      var btnPlay = document.getElementById('btn-dp');
+      var btnReset= document.getElementById('btn-dr');
+
+      var STEPS = 40;
+      var amaxH = [];
+      for (var i = 0; i < STEPS; i++) {
+        amaxH.push(parseFloat((2.0 + 1.5*Math.sin(i*0.3) + 0.8*Math.random()).toFixed(3)));
+      }
+
+      var step = 0, W_hist = 16, timer = null, playing = false;
+
+      function resize() {
+        var w = canvas.parentElement, dpr = window.devicePixelRatio || 1;
+        canvas.width  = w.clientWidth * dpr;
+        canvas.height = (w.clientHeight - 60) * dpr;
+        canvas.style.width  = w.clientWidth + 'px';
+        canvas.style.height = (w.clientHeight - 60) + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function draw() {
+        var W = canvas.width/(window.devicePixelRatio||1);
+        var H = canvas.height/(window.devicePixelRatio||1);
+        ctx.clearRect(0,0,W,H);
+
+        var pad={top:50,right:25,bottom:45,left:55};
+        var cw=W-pad.left-pad.right, ch=H-pad.top-pad.bottom;
+        var vis = Math.min(step+1, STEPS);
+        var maxA = Math.max.apply(null, amaxH.slice(0, Math.max(vis,1)))*1.3 + 0.5;
+        var sw = cw / STEPS;
+
+        // Axes
+        ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(pad.left,pad.top); ctx.lineTo(pad.left,pad.top+ch); ctx.lineTo(pad.left+cw,pad.top+ch); ctx.stroke();
+
+        // Y labels
+        ctx.fillStyle='#9ca3af'; ctx.font='10px JetBrains Mono,monospace'; ctx.textAlign='right';
+        for (var k = 0; k <= 4; k++) {
+          var val = (maxA*k)/4;
+          var y = pad.top+ch-(val/maxA)*ch;
+          ctx.fillText(val.toFixed(1), pad.left-6, y+4);
+          ctx.strokeStyle='#f3f4f6'; ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cw,y); ctx.stroke();
+        }
+        // X labels
+        ctx.fillStyle='#9ca3af'; ctx.font='10px JetBrains Mono,monospace'; ctx.textAlign='center';
+        for (var i = 0; i < STEPS; i+=5) {
+          ctx.fillText(String(i), pad.left+i*sw+sw/2, pad.top+ch+17);
+        }
+
+        // Window highlight
+        if (step > 0) {
+          var ws = Math.max(0, step-W_hist), we = step-1;
+          ctx.fillStyle='rgba(37,99,235,0.07)';
+          ctx.fillRect(pad.left+ws*sw, pad.top, (we-ws+1)*sw, ch);
+          ctx.strokeStyle='rgba(37,99,235,0.35)'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+          ctx.strokeRect(pad.left+ws*sw, pad.top, (we-ws+1)*sw, ch);
+          ctx.setLineDash([]);
+        }
+
+        // amax bars
+        for (var i = 0; i < vis; i++) {
+          var bx = pad.left + i*sw;
+          var bh = (amaxH[i]/maxA)*ch;
+          var by = pad.top+ch-bh;
+          var inWin = step>0 && i>=Math.max(0,step-W_hist) && i<step;
+          ctx.fillStyle = i===step-1 ? '#2563eb' : (inWin ? 'rgba(37,99,235,0.55)' : 'rgba(37,99,235,0.18)');
+          ctx.beginPath(); ctx.roundRect(bx+2,by,Math.max(1,sw-4),bh,[3,3,0,0]); ctx.fill();
+        }
+
+        // Derived scaling factor line (red dashed)
+        if (step > 0) {
+          ctx.strokeStyle='#dc2626'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+          ctx.beginPath();
+          for (var i = 1; i <= vis; i++) {
+            var ws2 = Math.max(0, i-W_hist);
+            var winMax = Math.max.apply(null, amaxH.slice(ws2, i));
+            var sVal = winMax / 448;
+            var px = pad.left+(i-0.5)*sw;
+            var py = pad.top+ch-(sVal/maxA)*ch*2.5;
+            if (i===1) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+          }
+          ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        // Title
+        ctx.fillStyle='#1a1a2e'; ctx.font='bold 13px Playfair Display,serif'; ctx.textAlign='center';
+        ctx.fillText(lang==='zh'?'延迟缩放：amax 历史窗口与推导的缩放因子':'Delayed Scaling: amax History Window and Derived Scale', W/2, 26);
+
+        // Legend
+        ctx.fillStyle='rgba(37,99,235,0.55)'; ctx.fillRect(pad.left,pad.top+ch+28,14,10);
+        ctx.fillStyle='#555'; ctx.font='11px Helvetica Neue,sans-serif'; ctx.textAlign='left';
+        ctx.fillText(lang==='zh'?'窗口内 amax':'amax in window', pad.left+18, pad.top+ch+38);
+        ctx.strokeStyle='#dc2626'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+        ctx.beginPath(); ctx.moveTo(pad.left+145,pad.top+ch+32); ctx.lineTo(pad.left+163,pad.top+ch+32); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle='#dc2626'; ctx.fillText(lang==='zh'?'缩放因子 s':'scale s', pad.left+167, pad.top+ch+38);
+
+        // Axis labels
+        ctx.save(); ctx.translate(16,pad.top+ch/2); ctx.rotate(-Math.PI/2);
+        ctx.fillStyle='#9ca3af'; ctx.font='11px Helvetica Neue,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(lang==='zh'?'amax 值':'amax value', 0,0); ctx.restore();
+        ctx.fillStyle='#9ca3af'; ctx.font='11px Helvetica Neue,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(lang==='zh'?'训练步':'Training step', pad.left+cw/2, pad.top+ch+38);
+
+        info.textContent = (lang==='zh'?'步骤 ':'step ')+step+'/'+STEPS;
+      }
+
+      btnPlay.addEventListener('click', function() {
+        if (playing) {
+          clearInterval(timer); timer=null; playing=false;
+          this.dataset.en='▶ Play'; this.dataset.zh='▶ 播放';
+          this.textContent=lang==='zh'?'▶ 播放':'▶ Play';
+          return;
+        }
+        if (step >= STEPS) step = 0;
+        playing=true;
+        this.dataset.en='⏸ Pause'; this.dataset.zh='⏸ 暂停';
+        this.textContent=lang==='zh'?'⏸ 暂停':'⏸ Pause';
+        var self = this;
+        timer = setInterval(function() {
+          step++;
+          draw();
+          if (step >= STEPS) {
+            clearInterval(timer); timer=null; playing=false;
+            self.dataset.en='▶ Play'; self.dataset.zh='▶ 播放';
+            self.textContent=lang==='zh'?'▶ 播放':'▶ Play';
+          }
+        }, 120);
+      });
+      btnReset.addEventListener('click', function() {
+        if (timer) clearInterval(timer); timer=null; playing=false;
+        step=0;
+        btnPlay.dataset.en='▶ Play'; btnPlay.dataset.zh='▶ 播放';
+        btnPlay.textContent=lang==='zh'?'▶ 播放':'▶ Play';
+        draw();
+      });
+      wSlider.addEventListener('input', function() { W_hist=parseInt(this.value); wvEl.textContent=W_hist; draw(); });
+      window.addEventListener('resize', function() { resize(); draw(); });
+      resize(); draw();
+    })();
+
+    /* ===================================================================
+       VIZ 4 — FP8 TRAINING PIPELINE ANIMATION
+       =================================================================== */
+    (function() {
+      var canvas = document.getElementById('canvas-pipeline');
+      var ctx = canvas.getContext('2d');
+      var info = document.getElementById('pipeline-info');
+      var btnPlay = document.getElementById('btn-pp');
+      var btnFwd  = document.getElementById('btn-pfwd');
+      var btnBwd  = document.getElementById('btn-pbwd');
+
+      var mode = 'fwd', animT = 1.0, animId = null;
+
+      function resize() {
+        var w = canvas.parentElement, dpr = window.devicePixelRatio||1;
+        canvas.width  = w.clientWidth*dpr;
+        canvas.height = (w.clientHeight-60)*dpr;
+        canvas.style.width  = w.clientWidth+'px';
+        canvas.style.height = (w.clientHeight-60)+'px';
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+
+      function box(x,y,w,h,label,sub,fill,border,alpha) {
+        ctx.globalAlpha = alpha||1;
+        ctx.fillStyle=fill; ctx.strokeStyle=border; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill();
+        ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.stroke();
+        ctx.globalAlpha=1;
+        ctx.fillStyle='#1a1a2e'; ctx.font='bold 11px Helvetica Neue,sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(label,x+w/2,y+h/2-7);
+        ctx.font='10px JetBrains Mono,monospace'; ctx.fillStyle='#555';
+        ctx.fillText(sub,x+w/2,y+h/2+8);
+        ctx.textBaseline='alphabetic';
+      }
+
+      function arrow(x1,y1,x2,y2,color,alpha,label) {
+        ctx.globalAlpha=alpha||1; ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=2.5;
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+        var ang=Math.atan2(y2-y1,x2-x1);
+        ctx.beginPath();
+        ctx.moveTo(x2,y2);
+        ctx.lineTo(x2-10*Math.cos(ang-0.4),y2-10*Math.sin(ang-0.4));
+        ctx.lineTo(x2-10*Math.cos(ang+0.4),y2-10*Math.sin(ang+0.4));
+        ctx.closePath(); ctx.fill();
+        if (label) {
+          ctx.font='bold 10px JetBrains Mono,monospace'; ctx.textAlign='center';
+          var mx=(x1+x2)/2, my=(y1+y2)/2, tw=ctx.measureText(label).width;
+          ctx.fillStyle='rgba(255,255,255,0.9)';
+          ctx.fillRect(mx-tw/2-3,my-9,tw+6,13);
+          ctx.fillStyle=color; ctx.fillText(label,mx,my);
+        }
+        ctx.globalAlpha=1;
+      }
+
+      function drawScene() {
+        var W=canvas.width/(window.devicePixelRatio||1);
+        var H=canvas.height/(window.devicePixelRatio||1);
+        ctx.clearRect(0,0,W,H);
+        var t = animT;
+
+        if (mode==='fwd') {
+          var bw=105,bh=54,gy=H/2-27;
+          var xs=[18,150,280,410,540];
+          var labels=['Input X','Cast FP8','Weight W','FP8 GEMM','Output Y'];
+          var subs=['BF16','→ E4M3','E4M3','H100 TC','BF16'];
+          var fills=['#eff6ff','#fef3c7','#fef3c7','#eff6ff','#f0fdf4'];
+          var borders=['#93c5fd','#fcd34d','#fcd34d','#2563eb','#86efac'];
+          var arrows=[['','E4M3','E4M3×','→BF16']];
+          for (var i=0;i<5;i++) box(xs[i],gy,bw,bh,labels[i],subs[i],fills[i],borders[i],t>=(i/5)?1:0.15);
+          for (var i=0;i<4;i++) {
+            var al=t>=((i+0.5)/5)?1:0.1;
+            var lbls=['','E4M3','×',''];
+            arrow(xs[i]+bw,gy+bh/2,xs[i+1],gy+bh/2,'#2563eb',al,lbls[i]);
+          }
+          if (t>0.4){ctx.fillStyle='#d97706';ctx.font='10px Helvetica Neue,sans-serif';ctx.textAlign='center';ctx.fillText('stored as FP8 E4M3',xs[2]+bw/2,gy+bh+16);}
+          if (t>0.8){ctx.fillStyle='#059669';ctx.font='10px Helvetica Neue,sans-serif';ctx.textAlign='center';ctx.fillText('accumulator: FP32',xs[3]+bw/2,gy+bh+16);}
+          ctx.fillStyle='#1a1a2e';ctx.font='bold 14px Playfair Display,serif';ctx.textAlign='center';
+          ctx.fillText(lang==='zh'?'前向传播 — FP8 GEMM 数据流':'Forward Pass — FP8 GEMM Data Flow',W/2,25);
+          info.textContent=lang==='zh'?'前向传播 (E4M3×E4M3)':'Forward pass (E4M3×E4M3)';
+        } else {
+          // Backward — two GEMMs layout
+          var bw=115,bh=48;
+          var row1=H*0.18, row2=H*0.55;
+          ctx.fillStyle='#1a1a2e';ctx.font='bold 14px Playfair Display,serif';ctx.textAlign='center';
+          ctx.fillText(lang==='zh'?'反向传播 — 两个 FP8 GEMM':'Backward Pass — Two FP8 GEMMs',W/2,25);
+
+          // dY
+          box(10,row1,bw,bh,'Grad dY','E5M2','#fff7ed','#fcd34d',t>0?1:0.15);
+          // W
+          box(10+bw+25,row2,bw,bh,'Weight W','E4M3','#fef3c7','#fcd34d',t>0.1?1:0.15);
+          // GEMM1: dX
+          box(10+bw+25,row1,bw,bh,'GEMM₁','dX = dY·W','#eff6ff','#2563eb',t>0.25?1:0.1);
+          arrow(10+bw,row1+bh/2,10+bw+25,row1+bh/2,'#2563eb',t>0.25?1:0.1,'E5M2');
+          arrow(10+bw+25+bw/2,row2,10+bw+25+bw/2,row1+bh,'#6b7280',t>0.25?1:0.1,'W↑');
+          // dX out
+          box(10+2*(bw+25),row1,bw,bh,'Inp. Grad','dX→BF16','#f0fdf4','#86efac',t>0.5?1:0.1);
+          arrow(10+bw+25+bw,row1+bh/2,10+2*(bw+25),row1+bh/2,'#059669',t>0.5?1:0.1,'BF16');
+          // X activation
+          box(10+3*(bw+25)+25,row2,bw,bh,'Activ. X','E4M3','#fef3c7','#fcd34d',t>0.5?1:0.1);
+          // GEMM2: dW
+          var g2x=10+2*(bw+25)+10;
+          box(g2x,row2,bw,bh,'GEMM₂','dW = dYᵀX','#eff6ff','#2563eb',t>0.6?1:0.1);
+          // dY → GEMM2
+          arrow(10+bw/2,row1+bh,10+bw/2,row2,'#d97706',t>0.6?1:0.1,'');
+          arrow(10+bw,row2+bh/2,g2x,row2+bh/2,'#d97706',t>0.6?1:0.1,'E5M2');
+          arrow(10+3*(bw+25)+25,row2+bh/2,g2x+bw,row2+bh/2,'#6b7280',t>0.6?1:0.1,'E4M3');
+          // dW out
+          box(g2x+bw+20,row1,bw,bh,'Wt. Grad','dW→FP32','#fdf2f8','#e879f9',t>0.8?1:0.1);
+          arrow(g2x+bw/2,row2,g2x+bw/2,row1+bh,'#7c3aed',t>0.8?1:0.1,'');
+          info.textContent=lang==='zh'?'反向传播 (E5M2×E4M3)':'Backward pass (E5M2×E4M3)';
+        }
+      }
+
+      function startAnim() {
+        if (animId) cancelAnimationFrame(animId);
+        animT=0; var start=null, dur=2000;
+        function step(ts) {
+          if (!start) start=ts;
+          animT=Math.min((ts-start)/dur,1.0);
+          drawScene();
+          if (animT<1) animId=requestAnimationFrame(step);
+        }
+        animId=requestAnimationFrame(step);
+      }
+
+      btnPlay.addEventListener('click', startAnim);
+      btnFwd.addEventListener('click', function(){ mode='fwd'; animT=1; drawScene(); });
+      btnBwd.addEventListener('click', function(){ mode='bwd'; animT=1; drawScene(); });
+      window.addEventListener('resize', function(){ resize(); drawScene(); });
+      resize(); drawScene();
+    })();
+
+    /* ===================================================================
+       VIZ 5 — BENCHMARK BAR CHART (animated)
+       =================================================================== */
+    (function() {
+      var canvas = document.getElementById('canvas-bench');
+      var ctx = canvas.getContext('2d');
+      var info = document.getElementById('bench-info');
+      var btnAnim = document.getElementById('btn-ba');
+
+      var data = [
+        {model:'7B',  bf16:4200, fp8:6100, speedup:1.45},
+        {model:'13B', bf16:2300, fp8:3500, speedup:1.52},
+        {model:'30B', bf16:1050, fp8:1650, speedup:1.57},
+        {model:'70B', bf16:530,  fp8:880,  speedup:1.66}
+      ];
+
+      // Shared layout constants (used in both draw() and mousemove handler)
+      var PAD_LEFT=70, PAD_RIGHT=30, PAD_TOP=50, PAD_BOT=55;
+
+      var prog=1.0, animId=null, hovered=-1;
+
+      function resize() {
+        var w=canvas.parentElement, dpr=window.devicePixelRatio||1;
+        canvas.width  = w.clientWidth*dpr;
+        canvas.height = (w.clientHeight-60)*dpr;
+        canvas.style.width  = w.clientWidth+'px';
+        canvas.style.height = (w.clientHeight-60)+'px';
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+
+      function draw(p) {
+        var W=canvas.width/(window.devicePixelRatio||1);
+        var H=canvas.height/(window.devicePixelRatio||1);
+        ctx.clearRect(0,0,W,H);
+        var pad={top:PAD_TOP,right:PAD_RIGHT,bottom:PAD_BOT,left:PAD_LEFT};
+        var cw=W-pad.left-pad.right, ch=H-pad.top-pad.bottom;
+        var maxV=7000, gw=cw/data.length, bw=gw*0.28;
+
+        ctx.fillStyle='#1a1a2e'; ctx.font='bold 14px Playfair Display,serif'; ctx.textAlign='center';
+        ctx.fillText(lang==='zh'?'H100 上 FP8 与 BF16 吞吐量对比（tokens/s/GPU）':'FP8 vs BF16 Throughput on H100 (tokens/s/GPU)',W/2,27);
+
+        // Axes
+        ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(pad.left,pad.top); ctx.lineTo(pad.left,pad.top+ch); ctx.lineTo(pad.left+cw,pad.top+ch); ctx.stroke();
+
+        // Y ticks
+        ctx.fillStyle='#9ca3af'; ctx.font='10px JetBrains Mono,monospace'; ctx.textAlign='right';
+        for (var k=0;k<=5;k++) {
+          var v2=(maxV*k)/5, y=pad.top+ch-(v2/maxV)*ch;
+          ctx.fillText(k===0?'0':(v2>=1000?(v2/1000).toFixed(0)+'k':v2), pad.left-6, y+4);
+          ctx.strokeStyle='#f3f4f6'; ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cw,y); ctx.stroke();
+        }
+
+        // Y axis label
+        ctx.save(); ctx.translate(18,pad.top+ch/2); ctx.rotate(-Math.PI/2);
+        ctx.fillStyle='#9ca3af'; ctx.font='11px Helvetica Neue,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(lang==='zh'?'吞吐量 (tok/s/GPU)':'Throughput (tok/s/GPU)',0,0); ctx.restore();
+
+        data.forEach(function(d,i) {
+          var gx=pad.left+i*gw, isHov=(hovered===i);
+          // BF16
+          var bh1=(d.bf16/maxV)*ch*p;
+          ctx.fillStyle=isHov?'rgba(107,114,128,0.9)':'rgba(107,114,128,0.6)';
+          ctx.beginPath(); ctx.roundRect(gx+gw*0.08,pad.top+ch-bh1,bw,bh1,[4,4,0,0]); ctx.fill();
+          // FP8
+          var bh2=(d.fp8/maxV)*ch*p;
+          ctx.fillStyle=isHov?'rgba(37,99,235,0.9)':'rgba(37,99,235,0.75)';
+          ctx.beginPath(); ctx.roundRect(gx+gw*0.08+bw+5,pad.top+ch-bh2,bw,bh2,[4,4,0,0]); ctx.fill();
+          // Speedup label
+          if (p>0.8) {
+            ctx.fillStyle='#2563eb'; ctx.font='bold 11px JetBrains Mono,monospace'; ctx.textAlign='center';
+            ctx.fillText(d.speedup+'×', gx+gw*0.08+bw+5+bw/2, pad.top+ch-bh2-10);
+          }
+          // X label
+          ctx.fillStyle='#555'; ctx.font='bold 12px Helvetica Neue,sans-serif'; ctx.textAlign='center';
+          ctx.fillText(d.model, gx+gw/2, pad.top+ch+20);
+        });
+
+        // Legend
+        ctx.fillStyle='rgba(107,114,128,0.6)'; ctx.fillRect(pad.left,pad.top+ch+33,14,11);
+        ctx.fillStyle='#555'; ctx.font='11px Helvetica Neue,sans-serif'; ctx.textAlign='left';
+        ctx.fillText('BF16',pad.left+18,pad.top+ch+43);
+        ctx.fillStyle='rgba(37,99,235,0.75)'; ctx.fillRect(pad.left+58,pad.top+ch+33,14,11);
+        ctx.fillText('FP8',pad.left+76,pad.top+ch+43);
+        ctx.fillStyle='#2563eb'; ctx.font='bold 11px JetBrains Mono,monospace';
+        ctx.fillText('N× = speedup',pad.left+105,pad.top+ch+43);
+      }
+
+      canvas.addEventListener('mousemove', function(e) {
+        var rect=canvas.getBoundingClientRect(), mx=e.clientX-rect.left;
+        var cw2=rect.width-PAD_LEFT-PAD_RIGHT, gw2=cw2/data.length;
+        hovered=-1;
+        for (var i=0;i<data.length;i++) { if (mx>=PAD_LEFT+i*gw2 && mx<PAD_LEFT+(i+1)*gw2) hovered=i; }
+        if (hovered>=0) {
+          var d=data[hovered];
+          info.textContent=d.model+': BF16='+d.bf16+' | FP8='+d.fp8+' | '+d.speedup+'×';
+        } else {
+          info.textContent=lang==='zh'?'悬停查看详情':'Hover for details';
+        }
+        draw(prog);
+      });
+      canvas.addEventListener('mouseleave', function() {
+        hovered=-1; info.textContent=lang==='zh'?'悬停查看详情':'Hover for details'; draw(prog);
+      });
+
+      btnAnim.addEventListener('click', function() {
+        if (animId) cancelAnimationFrame(animId);
+        prog=0; var start=null, dur=1200;
+        function step(ts) {
+          if (!start) start=ts;
+          prog=Math.min((ts-start)/dur,1.0);
+          draw(prog);
+          if (prog<1) animId=requestAnimationFrame(step);
+        }
+        animId=requestAnimationFrame(step);
+      });
+
+      window.addEventListener('resize', function(){ resize(); draw(prog); });
+      resize(); draw(1.0);
+    })();
+
+    </script>
+  </body>
+</html>
