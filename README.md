@@ -103,7 +103,7 @@ The site includes a Python-based Chat API (`api/chat.py`) and database logging f
 
 ### GitHub Pages (Static only — Chat API unavailable)
 
-The `static.yml` workflow deploys the site to GitHub Pages. Because GitHub Pages serves only static files, the Chat API (`/api/chat`) is **not available** under this deployment method.
+The `static.yml` workflow now installs Node.js dependencies, runs the KaTeX pre-render build, and deploys the generated `dist/` directory to GitHub Pages. Because GitHub Pages serves only static files, the Chat API (`/api/chat`) is **not available** under this deployment method.
 
 ### Hybrid: GitHub Pages + Vercel API (Recommended)
 
@@ -142,6 +142,50 @@ This means:
    ```
 
 4. **Open** http://localhost:8000
+
+### KaTeX SSR Build
+
+Math-heavy pages are pre-rendered at build time into static KaTeX HTML so the deployed site has zero runtime math rendering JavaScript.
+
+#### Pages Covered
+
+- `pages/areal.html`
+- `pages/yarn.html`
+- `pages/diffusion_models.html`
+
+#### What the build does
+
+- copies the repository into `dist/`
+- pre-renders LaTeX in both static HTML and JavaScript i18n strings
+- removes runtime `katex.min.js`, `auto-render.min.js`, and `renderMathInElement(...)`
+- localizes KaTeX CSS/fonts to `dist/assets/vendor/katex/`
+- keeps source HTML files in `pages/` unchanged
+
+#### Build locally
+
+```bash
+npm install
+npm run build
+
+# Preview the built site
+python -m http.server 8000 --directory dist
+```
+
+#### Proxy notes for this server environment
+
+External network access requires the internal proxy:
+
+```bash
+export http_proxy=http://172.16.5.77:8889
+export https_proxy=http://172.16.5.77:8889
+```
+
+For local preview, bypass the proxy for localhost requests:
+
+```bash
+export no_proxy=127.0.0.1,localhost
+python -m http.server 8000 --directory dist
+```
 
 ## RAG System
 

@@ -1,0 +1,12 @@
+{
+  "name": "anxiangsir-github-io",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Xiang An's personal homepage with KaTeX SSR pre-rendering",
+  "scripts": {
+    "build": "node scripts/prerender-katex.js"
+  },
+  "devDependencies": {
+    "katex": "^0.16.11"
+  }
+}
