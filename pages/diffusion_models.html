@@ -54,6 +54,11 @@
       .phase-desc a:hover { text-decoration: underline; }
       
       .math-block { display: block; text-align: center; padding: 1.5rem 1rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); overflow-x: auto; -webkit-overflow-scrolling: touch; font-size: 1.1em; font-family: var(--font-math); }
+      details.deep-dive { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; margin: 1.5rem 0; overflow: hidden; }
+      details.deep-dive > summary { padding: 12px 16px; cursor: pointer; font-family: var(--font-sans); font-size: 0.95rem; font-weight: bold; color: var(--accent); user-select: none; transition: background 0.2s; list-style: none; }
+      details.deep-dive > summary::-webkit-details-marker { display: none; }
+      details.deep-dive > summary:hover { background: rgba(37, 99, 235, 0.05); }
+      details.deep-dive > .dd-content { padding: 16px; border-top: 1px solid var(--border); background: var(--bg); }
       
       .code-block { display: block; background: #1e1e2e; color: #cdd6f4; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.88rem; line-height: 1.7; padding: 1.25rem 1.5rem; margin: 2rem 0; border-radius: 8px; border-left: 3px solid var(--accent); overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: pre; tab-size: 4; }
       .code-block code { background: none; border: none; padding: 0; font-size: inherit; font-family: inherit; color: inherit; }
@@ -151,7 +156,7 @@
             <input type="range" id="ddpm-fwd-slider" class="slider" min="0" max="1000" value="0">
             <span>T=1000</span>
           </div>
-          <button class="btn" id="ddpm-fwd-play">Play</button>
+          <button type="button" class="btn" id="ddpm-fwd-play">Play</button>
           <div class="status-text" id="ddpm-fwd-status">SNR: &infin;</div>
         </div>
       </div>
@@ -172,7 +177,7 @@
           <canvas id="ddpm-canvas-reverse"></canvas>
         </div>
         <div class="controls">
-          <button class="btn" id="ddpm-rev-play">Start Denoising</button>
+          <button type="button" class="btn" id="ddpm-rev-play">Start Denoising</button>
           <div class="status-text" id="ddpm-rev-status">t = 1000</div>
         </div>
       </div>
@@ -197,7 +202,7 @@
           <canvas id="ddpm-canvas-sample"></canvas>
         </div>
         <div class="controls">
-          <button class="btn" id="ddpm-samp-play">Generate New Sample</button>
+          <button type="button" class="btn" id="ddpm-samp-play">Generate New Sample</button>
           <div class="status-text" id="ddpm-samp-status">Ready</div>
         </div>
       </div>
@@ -246,7 +251,7 @@
         <canvas id="fm-canvas-ode"></canvas>
         <div class="stage-footer">
           <span id="fm-anim1-text"></span>
-          <button class="btn-play" onclick="resetCanvas1()">Reset</button>
+          <button type="button" class="btn-play" onclick="resetCanvas1()">Reset</button>
         </div>
       </div>
 
@@ -318,6 +323,7 @@
             <option value="50">50 Steps</option>
           </select>
         </div>
+      </div>
 
       <h3 class="phase-heading" id="fm-cps-heading"></h3>
       <p class="phase-desc" id="fm-cps-desc1"></p>
@@ -420,7 +426,7 @@
         <canvas id="fm-canvas-reflow"></canvas>
         <div class="stage-footer">
           <span id="fm-anim4-text"></span>
-          <button class="btn-play" onclick="triggerReflow()">Reflow</button>
+          <button type="button" class="btn-play" onclick="triggerReflow()">Reflow</button>
         </div>
       </div>
 
@@ -500,24 +506,24 @@ const DDPM_LABELS = {
     sec2Heading: "2. 前向加噪过程 (Forward Process)",
     sec2Desc1: "前向过程被定义为一个马尔可夫链，在每一步 $t$ 中，我们向图像加入微量的高斯噪声。$\\beta_t$ 是预先定义好的噪声调度参数（通常从 0.0001 线性增加到 0.02）。",
     sec2Desc2: "得益于高斯分布的优良性质，我们不需要一步步加噪，而是可以直接用闭式解（重参数化技巧）在任意时间步 $t$ 直接计算出加噪后的状态 $\\mathbf{x}_t$：",
-    sec2Desc3: "随着 $t \\to T$，$\\bar{\\alpha}_t \\to 0$，图像完全丢失了原始信号，变成标准正态分布。拖动下方滑块，观察二维点集是如何坍缩为高斯分布的：",
+    sec2Desc3: "随着 $t \\to T$，$\\bar{\\alpha}_t \\to 0$，图像完全丢失了原始信号，变成标准正态分布。拖动下方滑块，观察二维点集是如何坍缩为高斯分布的：<details class='deep-dive'><summary>🔍 深入理解：前向步的张量形状与数值</summary><div class='dd-content'>假设输入图像批次 $\\mathbf{x}_0$ 形状为 <code>[B, C, H, W] = [4, 3, 64, 64]</code>。对于每个样本，我们随机采样一个标量时间步 $t \\in [1, 1000]$，得到形状为 <code>[B]</code> 的时间张量。对应的 $\\bar{\\alpha}_t$ 从预先计算的表中提取并广播为 <code>[B, 1, 1, 1]</code>。<br>我们采样标准正态噪声 $\\boldsymbol{\\epsilon} \\sim \\mathcal{N}(\\mathbf{0}, \\mathbf{I})$，形状同样为 <code>[4, 3, 64, 64]</code>。<br>如果 $t=500, \\bar{\\alpha}_{500} = 0.5$，那么 $\\mathbf{x}_{500} = \\sqrt{0.5}\\mathbf{x}_0 + \\sqrt{0.5}\\boldsymbol{\\epsilon}$。通过这一步，我们将原始图像信号和纯噪声等比例混合，而无需经过前面的 499 步。</div></details>",
     
     fwdPlay: "播放", fwdTLabel: "t=", fwdStatus: "信噪比 (SNR): ",
     
     sec3Heading: "3. 反向去噪过程 (Reverse Process)",
     sec3Desc1: "如果我们能知道逆向条件概率 $q(\\mathbf{x}_{t-1} | \\mathbf{x}_t)$，我们就能从噪声中还原数据。不幸的是，这个分布取决于整个数据分布，无法直接计算。因此，我们用一个神经网络 $p_\\theta$ 来近似它：",
     sec3Desc2: "Ho et al. (2020) 的一项关键发现是：我们可以将方差 $\\sigma_t^2$ 设为常数，并让神经网络直接预测在时间步 $t$ 时加入的噪声 $\\boldsymbol{\\epsilon}_\\theta$。这样均值 $\\boldsymbol{\\mu}_\\theta$ 就可以通过下式计算：",
-    sec3Desc3: "网络并不直接预测原始图像 $\\mathbf{x}_0$，而是预测**噪声**。点击下方按钮，观察从纯随机噪声中逐渐复原结构的过程。",
+    sec3Desc3: "网络并不直接预测原始图像 $\\mathbf{x}_0$，而是预测**噪声**。点击下方按钮，观察从纯随机噪声中逐渐复原结构的过程。<details class='deep-dive'><summary>🔍 深入理解：反向去噪的均值计算</summary><div class='dd-content'>在第 $t$ 步，U-Net 接收带有噪声的图像 $\\mathbf{x}_t$ <code>[B, 3, 64, 64]</code> 和时间步编码 $t$ <code>[B, 256]</code>，预测出同维度的噪声 $\\boldsymbol{\\epsilon}_\\theta$。假设 $\\beta_t = 0.01, \\bar{\\alpha}_t = 0.8$。<br>根据推导公式，分布的均值计算为：$\\boldsymbol{\\mu}_\\theta = \\frac{1}{\\sqrt{0.99}} \\left( \\mathbf{x}_t - \\frac{0.01}{\\sqrt{0.2}} \\boldsymbol{\\epsilon}_\\theta \\right)$。<br>这表明我们首先通过减去缩放后的预测噪声来“剔除”雪花，再对结果稍微放大（因为 $\\frac{1}{\\sqrt{1-\\beta_t}} > 1$）以恢复因前向缩放丢失的信号能量。然后我们再向均值中注入方差为 $\\sigma_t^2$ 的新随机噪声。</div></details>",
     
     revPlay: "开始去噪", revStatus: "时间步: ",
     
     sec4Heading: "4. 训练过程 (Training)",
     sec4Desc1: "DDPM 的训练极其简单优雅。我们通过优化变分下界 (ELBO) 推导出了一个极度简化的均方误差损失函数：",
-    sec4Desc2: "在每次训练迭代中：1. 随机抽取一张真实图像；2. 随机抽取一个时间步 $t$；3. 随机采样噪声 $\\boldsymbol{\\epsilon}$；4. 将噪声加到图像上；5. 让网络预测这个噪声，并计算与真实噪声的 MSE。其 PyTorch 伪代码如下：",
+    sec4Desc2: "在每次训练迭代中：1. 随机抽取一张真实图像；2. 随机抽取一个时间步 $t$；3. 随机采样噪声 $\\boldsymbol{\\epsilon}$；4. 将噪声加到图像上；5. 让网络预测这个噪声，并计算与真实噪声的 MSE。其 PyTorch 伪代码如下：<details class='deep-dive'><summary>🔍 深入理解：训练阶段损失计算</summary><div class='dd-content'>训练时的关键优势在于我们可以将不同时间步 $t$ 的学习任务打包在一个 Batch 内并行处理。<br>假设 $B=4$，对应采样的 $t$ 向量为 <code>[10, 250, 500, 999]</code>。<br>真实的噪声 $\\boldsymbol{\\epsilon}$ 是我们自己从 $\\mathcal{N}(0, \\mathbf{I})$ 采样的。模型并不知道这个真实噪声，仅根据 $\\mathbf{x}_t$ 和 $t$ 试图输出预测噪声 $\\boldsymbol{\\epsilon}_\\theta$。<br>最后，计算 <code>loss = MSE(eps_true, eps_pred)</code>。我们无需对 1000 步进行反向传播 (BPTT)，因此模型训练极其高效。</div></details>",
     
     sec5Heading: "5. 采样过程 (Sampling)",
     sec5Desc1: "采样是从纯高斯噪声开始，利用训练好的模型执行 1000 步的反向传播。这一过程与朗之万动力学 (Langevin Dynamics) 密切相关。",
-    sec5Desc2: "在每一步中，网络预测并减去部分噪声，同时我们还要加回一个微小的随机噪声 $z$ (Langevin 注入)，这能防止样本坍缩，保持生成分布的多样性。",
+    sec5Desc2: "在每一步中，网络预测并减去部分噪声，同时我们还要加回一个微小的随机噪声 $z$ (Langevin 注入)，这能防止样本坍缩，保持生成分布的多样性。<details class='deep-dive'><summary>🔍 深入理解：Langevin 噪声注入的作用</summary><div class='dd-content'>如果我们只取网络的均值预测而不加入随机噪声 $z$，采样的图像往往会变得极其平滑且缺乏高频细节（像一团模糊的色块）。<br>每次注入的随机噪声方差 $\\sigma_t^2$（常设为 $\\beta_t$ 或 $\\tilde{\\beta}_t$）本质上在进行随机游走。在最后一步 $t=0$ 时，我们停止注入噪声 <code>z = 0</code>，以便最终输出纯净无噪的清晰图像。这种随机游走机制使得单张初始噪声图 <code>[1, 3, 256, 256]</code> 在不同采样路径下能生成各种截然不同的最终图像。</div></details>",
     
     sampPlay: "生成新样本", sampStatus: "就绪",
     
@@ -540,24 +546,24 @@ const DDPM_LABELS = {
     sec2Heading: "2. Forward Process",
     sec2Desc1: "The forward process is a Markov chain that gradually adds Gaussian noise to the data. $\\beta_t$ represents the noise schedule (typically increasing linearly from 0.0001 to 0.02).",
     sec2Desc2: "Thanks to the properties of Gaussian distributions, we don't need to add noise step-by-step. Using the reparameterization trick, we can jump directly to any timestep $t$ and compute the noisy state $\\mathbf{x}_t$ in a closed form:",
-    sec2Desc3: "As $t \\to T$, $\\bar{\\alpha}_t \\to 0$, and the data completely loses its original structure, converging to a standard normal distribution. Use the slider below to see how a 2D point cluster dissolves into noise:",
+    sec2Desc3: "As $t \\to T$, $\\bar{\\alpha}_t \\to 0$, and the data completely loses its original structure, converging to a standard normal distribution. Use the slider below to see how a 2D point cluster dissolves into noise:<details class='deep-dive'><summary>🔍 Deep Dive: Tensor Shapes & Values in Forward Pass</summary><div class='dd-content'>Suppose our input batch $\\mathbf{x}_0$ has shape <code>[B, C, H, W] = [4, 3, 64, 64]</code>. For each image, we sample a random scalar timestep $t \\in [1, 1000]$, forming a <code>[B]</code> tensor. The corresponding $\\bar{\\alpha}_t$ is gathered from a precomputed schedule and broadcasted to <code>[B, 1, 1, 1]</code>.<br>We sample standard normal noise $\\boldsymbol{\\epsilon} \\sim \\mathcal{N}(\\mathbf{0}, \\mathbf{I})$ matching the image shape <code>[4, 3, 64, 64]</code>.<br>If $t=500$ and $\\bar{\\alpha}_{500} = 0.5$, then $\\mathbf{x}_{500} = \\sqrt{0.5}\\mathbf{x}_0 + \\sqrt{0.5}\\boldsymbol{\\epsilon}$. This allows us to jump directly to an equal mix of signal and noise without iterating 499 times.</div></details>",
     
     fwdPlay: "Play", fwdTLabel: "t=", fwdStatus: "SNR: ",
     
     sec3Heading: "3. Reverse Process",
     sec3Desc1: "If we knew the reverse conditional probability $q(\\mathbf{x}_{t-1} | \\mathbf{x}_t)$, we could recreate the data from noise. Unfortunately, this distribution depends on the entire data distribution and is intractable. Instead, we approximate it using a neural network $p_\\theta$:",
     sec3Desc2: "A key insight by Ho et al. (2020) was fixing the variance $\\sigma_t^2$ to constants and making the network directly predict the added noise $\\boldsymbol{\\epsilon}_\\theta$. The mean $\\boldsymbol{\\mu}_\\theta$ is then computed analytically:",
-    sec3Desc3: "The network does not predict the original image $\\mathbf{x}_0$ directly; it predicts the **noise**. Click the button below to watch the structure emerge from pure random noise.",
+    sec3Desc3: "The network does not predict the original image $\\mathbf{x}_0$ directly; it predicts the **noise**. Click the button below to watch the structure emerge from pure random noise.<details class='deep-dive'><summary>🔍 Deep Dive: Reverse Denoising Mean Calculation</summary><div class='dd-content'>At step $t$, the U-Net takes the noisy image $\\mathbf{x}_t$ <code>[B, 3, 64, 64]</code> and timestep embeddings $t$ <code>[B, 256]</code>, predicting the added noise $\\boldsymbol{\\epsilon}_\\theta$ with the exact same shape. Assume $\\beta_t = 0.01, \\bar{\\alpha}_t = 0.8$.<br>Using the reverse formula, the mean of our distribution is: $\\boldsymbol{\\mu}_\\theta = \\frac{1}{\\sqrt{0.99}} \\left( \\mathbf{x}_t - \\frac{0.01}{\\sqrt{0.2}} \\boldsymbol{\\epsilon}_\\theta \\right)$.<br>Conceptually, we subtract a scaled version of the predicted noise to 'clean' the image, and then slightly magnify it (since $\\frac{1}{\\sqrt{1-\\beta_t}} > 1$) to restore the signal amplitude lost during the forward pass. Finally, a small amount of new random noise $\\sigma_t^2$ is injected.</div></details>",
     
     revPlay: "Start Denoising", revStatus: "Step: ",
     
     sec4Heading: "4. Training",
     sec4Desc1: "Training DDPM is remarkably simple and elegant. By optimizing the variational lower bound (ELBO), the loss function simplifies to a basic Mean Squared Error:",
-    sec4Desc2: "In each training iteration: 1. Sample real data; 2. Sample random timestep $t$; 3. Sample random noise $\\boldsymbol{\\epsilon}$; 4. Add noise to data; 5. Have the model predict the noise and compute MSE. The PyTorch pseudocode is as follows:",
+    sec4Desc2: "In each training iteration: 1. Sample real data; 2. Sample random timestep $t$; 3. Sample random noise $\\boldsymbol{\\epsilon}$; 4. Add noise to data; 5. Have the model predict the noise and compute MSE. The PyTorch pseudocode is as follows:<details class='deep-dive'><summary>🔍 Deep Dive: Training Loss Computation</summary><div class='dd-content'>A major advantage of DDPM training is that we can randomly sample different timesteps $t$ in a single batch and train them in parallel.<br>For $B=4$, the sampled $t$ vector might be <code>[10, 250, 500, 999]</code>.<br>We draw the ground-truth noise $\\boldsymbol{\\epsilon} \\sim \\mathcal{N}(0, \\mathbf{I})$ ourselves to construct $\\mathbf{x}_t$. The model tries to reconstruct this exact $\\boldsymbol{\\epsilon}$ tensor solely from $\\mathbf{x}_t$ and $t$.<br>Finally, we compute <code>loss = MSE(eps_true, eps_pred)</code>. We do NOT backpropagate through the 1000 timesteps (no BPTT), making training memory-efficient and scalable.</div></details>",
     
     sec5Heading: "5. Sampling",
     sec5Desc1: "Sampling starts from pure Gaussian noise and runs the trained model iteratively backwards for 1000 steps. This process is deeply connected to Langevin Dynamics.",
-    sec5Desc2: "At each step, the network predicts and subtracts part of the noise, while a tiny amount of random noise $z$ is injected back in. This stochasticity prevents sample collapse and maintains diversity.",
+    sec5Desc2: "At each step, the network predicts and subtracts part of the noise, while a tiny amount of random noise $z$ is injected back in. This stochasticity prevents sample collapse and maintains diversity.<details class='deep-dive'><summary>🔍 Deep Dive: The Role of Langevin Noise Injection</summary><div class='dd-content'>If we only used the mean prediction and disabled the random noise injection $z$, the resulting images would appear overly smooth and lack high-frequency details (resembling blurry watercolor).<br>The added variance $\\sigma_t^2$ (usually $\\beta_t$ or $\\tilde{\\beta}_t$) performs a random walk around the data manifold. At the final step $t=0$, we explicitly set <code>z = 0</code> to yield a crisp, noise-free output. This stochasticity allows a single starting noise tensor <code>[1, 3, 256, 256]</code> to diverge into entirely different high-quality images across different sampling runs.</div></details>",
     
     sampPlay: "Generate Sample", sampStatus: "Ready",
     
@@ -642,6 +648,118 @@ const CODE_EN = {
     <span class="kw">return</span> x`
 };
 
+const DDPM_EXTRA = {
+  zh: {
+    sec1Desc3: `<details class='deep-dive'><summary>🧠 直觉例子：为什么要拆成 1000 个小去噪任务</summary><div class='dd-content'>可以把“直接生成一张猫图”想成一道超难题；而 DDPM 不是一次把题做完，而是把问题改写成：<pre class='code-block'><code>第 1000 步：从几乎纯噪声里恢复一点结构
+t = randint(0, T)
+xt = add_noise(x0, t, eps)
+loss = mse(model(xt, t), eps)
+
+# sampling: 必须真的从 T 一步步走回 0
+for t in reversed(range(T)):
+    x = reverse_step(x, t)</code></pre>训练时可以“跳着学”，采样时却必须“顺着走回来”，这也是 DDPM 采样慢而训练相对高效的根本原因。</div></details>`,
+    sec2Desc3: `<details class='deep-dive'><summary>🧮 数值例子：单个像素怎么被污染</summary><div class='dd-content'>设某个像素通道原值为 <code>x_0 = 0.80</code>，采样到的噪声为 <code>eps = -1.20</code>。若当前 $\bar{\alpha}_t = 0.36$，则 $\sqrt{\bar{\alpha}_t}=0.6$，$\sqrt{1-\bar{\alpha}_t}=0.8$。于是：<pre class='code-block'><code>x_t = 0.6 * 0.80 + 0.8 * (-1.20)
+    = 0.48 - 0.96
+    = -0.48</code></pre>这个数值说明：虽然原像素本来偏亮，但到了这个时间步后，噪声分量已经更强，所以该位置会看起来完全失真。</div></details><details class='deep-dive'><summary>💻 代码例子：一整个 batch 如何直接跳到任意 t</summary><div class='dd-content'><pre class='code-block'><code>x0.shape = [4, 3, 64, 64]
+t = torch.tensor([10, 200, 500, 999])      # [4]
+alpha_bar_t = alpha_bar[t].view(4, 1, 1, 1)
+eps = torch.randn_like(x0)                 # [4, 3, 64, 64]
+xt = alpha_bar_t.sqrt() * x0 + (1 - alpha_bar_t).sqrt() * eps</code></pre>注意这里同一个 batch 的 4 张图可以位于 4 个不同时间步，这也是 DDPM 训练高效的关键之一。</div></details>`,
+    sec3Desc3: `<details class='deep-dive'><summary>🧮 数值例子：一次反向步到底算了什么</summary><div class='dd-content'>设某个位置当前值为 <code>x_t = -0.48</code>，模型预测噪声为 <code>eps_theta = -1.00</code>。若 $\beta_t=0.01$，$\bar{\alpha}_t=0.36$，则：<pre class='code-block'><code>coef = beta_t / sqrt(1 - alpha_bar_t)
+     = 0.01 / 0.8
+     = 0.0125
+x_t - coef * eps_theta = -0.48 - 0.0125 * (-1.0)
+                       = -0.4675
+mu_theta ≈ (-0.4675) / sqrt(0.99)
+        ≈ -0.4698</code></pre>可以看到，均值只比原来的 <code>x_t</code> 略微更“干净”一点，因为单步去噪本来就是很小很小的一步。</div></details><details class='deep-dive'><summary>💻 代码例子：从 eps 预测恢复 x0 的常见写法</summary><div class='dd-content'><pre class='code-block'><code>eps_pred = model(xt, t)                     # [B, 3, 64, 64]
+alpha_bar_t = alpha_bar[t].view(B, 1, 1, 1)
+x0_pred = (xt - (1 - alpha_bar_t).sqrt() * eps_pred) / alpha_bar_t.sqrt()</code></pre>虽然很多 DDPM 论文讲的是预测 <code>eps</code>，但工程里我们常常会顺手把 <code>x0_pred</code> 也重建出来，用于可视化、guidance 或其它变体。</div></details>`,
+    sec4Desc2: `<details class='deep-dive'><summary>🧮 数值例子：MSE 是怎么得到的</summary><div class='dd-content'>假设某个样本某个位置上的真实噪声是 <code>eps_true = [0.2, -0.5, 1.0]</code>，模型预测为 <code>eps_pred = [0.1, -0.1, 0.4]</code>。则该位置的平方误差为：<pre class='code-block'><code>(0.2 - 0.1)^2 = 0.01
+(-0.5 - (-0.1))^2 = 0.16
+(1.0 - 0.4)^2 = 0.36</code></pre>均值就是 <code>(0.01 + 0.16 + 0.36) / 3 = 0.1767</code>。整个 batch / 整张图像的 loss 也是同样的逻辑，只是对更多元素求平均。</div></details><details class='deep-dive'><summary>💻 代码例子：训练时常见的 shape 检查</summary><div class='dd-content'><pre class='code-block'><code>x0.shape       = [8, 3, 256, 256]
+t.shape        = [8]
+eps.shape      = [8, 3, 256, 256]
+xt.shape       = [8, 3, 256, 256]
+eps_pred.shape = [8, 3, 256, 256]
+loss = F.mse_loss(eps_pred, eps)</code></pre>只要 <code>eps_pred</code> 和 <code>eps</code> 形状对不上，说明你的时间广播或网络输出就有 bug。</div></details>`,
+    sec5Desc2: `<details class='deep-dive'><summary>🧮 数值例子：一次采样更新的数值</summary><div class='dd-content'>假设当前某位置均值项是 <code>mean = -0.47</code>，方差系数为 <code>sigma_t = 0.10</code>，新采样噪声 <code>z = 0.30</code>。则：<pre class='code-block'><code>x_{t-1} = mean + sigma_t * z
+        = -0.47 + 0.10 * 0.30
+        = -0.44</code></pre>如果另一条路径里采样到 <code>z = -1.50</code>，那么同一个均值会更新成 <code>-0.62</code>。这就是为什么同一初始随机种子附近仍可能长出不同细节。</div></details><details class='deep-dive'><summary>💻 代码例子：标准 DDPM reverse loop</summary><div class='dd-content'><pre class='code-block'><code>for t in reversed(range(T)):
+    z = torch.randn_like(x) if t > 0 else 0
+    eps_pred = model(x, t)
+    mean = (x - beta[t] / sqrt_one_minus_alpha_bar[t] * eps_pred) / sqrt_alpha[t]
+    x = mean + sigma[t] * z</code></pre>这里最重要的三个量分别是：<code>eps_pred</code> 负责方向，<code>mean</code> 负责去噪后的中心，<code>z</code> 负责随机探索。</div></details>`,
+    sec6Desc2: `<details class='deep-dive'><summary>🧮 数值例子：线性调度和余弦调度差别在哪</summary><div class='dd-content'>可以把 $\bar{\alpha}_t$ 理解成“原图还剩多少”。一个非常粗糙的对比例子是：<pre class='code-block'><code>t = 100:  linear alpha_bar ≈ 0.90, cosine alpha_bar ≈ 0.97
+t = 500:  linear alpha_bar ≈ 0.28, cosine alpha_bar ≈ 0.50
+t = 900:  linear alpha_bar ≈ 0.00x, cosine alpha_bar ≈ 0.02</code></pre>直觉上，余弦调度会更久地保留信号，因此中前期训练不会那么快把图像彻底洗成纯噪声。</div></details>`
+    ,sec7Desc1: `<details class='deep-dive'><summary>🧮 数值例子：为什么 1000 步会慢</summary><div class='dd-content'>假设单次 U-Net 前向耗时 <code>15 ms</code>。那么：<pre class='code-block'><code>DDPM 1000 步 ≈ 15,000 ms = 15 s
+for t in reversed(range(1000)):
+    x = ddpm_step(model, x, t)
+
+# DDIM
+for t in ddim_schedule_50_steps:
+    x = ddim_step(model, x, t)</code></pre>即使每一步公式稍有不同，最大的速度差通常首先来自“循环次数少了很多”。</div></details>`,
+    sec7Desc2: `<details class='deep-dive'><summary>📚 对照例子：Score-based、DDPM、FM 分别在学什么</summary><div class='dd-content'><ul><li><strong>DDPM</strong>：常见是学 <code>eps_pred</code>，即“当前噪声长什么样”。</li><li><strong>Score-based</strong>：学 <code>∇_x log p_t(x)</code>，即“往哪边走概率密度更高”。</li><li><strong>Flow Matching</strong>：学 <code>v(x,t)</code>，即“当前应该朝哪个方向移动多少速度”。</li></ul>三者都在指导“从噪声走向数据”，只是训练目标的解释不同。</div></details>`
+  },
+  en: {
+    sec1Desc3: `<details class='deep-dive'><summary>🧠 Intuition: Why split generation into 1000 tiny denoising tasks?</summary><div class='dd-content'>Think of “generate a full cat image from scratch” as a nearly impossible problem. DDPM rewrites it as:<pre class='code-block'><code>step 1000: recover a tiny bit of structure from near-pure noise
+step 999: recover a little more
+...
+step 1: do the final detail cleanup</code></pre>Each subproblem only asks the model to remove a little noise, which is far easier than drawing the whole image in one shot.</div></details><details class='deep-dive'><summary>💻 Code Example: Why training and sampling look different</summary><div class='dd-content'><pre class='code-block'><code># training: jump to a random t and learn there
+t = randint(0, T)
+xt = add_noise(x0, t, eps)
+loss = mse(model(xt, t), eps)
+
+# sampling: must actually walk back from T to 0
+for t in reversed(range(T)):
+    x = reverse_step(x, t)</code></pre>Training can learn by random access, but sampling must traverse the chain backward step-by-step. That is a major reason DDPM sampling is slow while training stays relatively efficient.</div></details>`,
+    sec2Desc3: `<details class='deep-dive'><summary>🧮 Numeric Example: How a Single Pixel Gets Corrupted</summary><div class='dd-content'>Assume one channel value starts at <code>x0 = 0.80</code> and the sampled noise is <code>eps = -1.20</code>. If $\bar{\alpha}_t = 0.36$, then $\sqrt{\bar{\alpha}_t}=0.6$ and $\sqrt{1-\bar{\alpha}_t}=0.8$. So:<pre class='code-block'><code>x_t = 0.6 * 0.80 + 0.8 * (-1.20)
+    = 0.48 - 0.96
+    = -0.48</code></pre>The signal started bright, but at this timestep the noise term dominates, so the pixel becomes fully distorted.</div></details><details class='deep-dive'><summary>💻 Code Example: Jumping a Whole Batch to Arbitrary t</summary><div class='dd-content'><pre class='code-block'><code>x0.shape = [4, 3, 64, 64]
+t = torch.tensor([10, 200, 500, 999])
+alpha_bar_t = alpha_bar[t].view(4, 1, 1, 1)
+eps = torch.randn_like(x0)
+xt = alpha_bar_t.sqrt() * x0 + (1 - alpha_bar_t).sqrt() * eps</code></pre>Different images in the same batch can sit at different timesteps. That is one reason DDPM training parallelizes so well.</div></details>`,
+    sec3Desc3: `<details class='deep-dive'><summary>🧮 Numeric Example: What One Reverse Step Computes</summary><div class='dd-content'>Suppose a particular entry has <code>x_t = -0.48</code> and the network predicts <code>eps_theta = -1.00</code>. If $\beta_t=0.01$ and $\bar{\alpha}_t=0.36$, then:<pre class='code-block'><code>coef = beta_t / sqrt(1 - alpha_bar_t)
+     = 0.01 / 0.8
+     = 0.0125
+x_t - coef * eps_theta = -0.48 - 0.0125 * (-1.0)
+                       = -0.4675
+mu_theta ≈ (-0.4675) / sqrt(0.99)
+        ≈ -0.4698</code></pre>The mean is only slightly cleaner than <code>x_t</code>, which matches the intuition that every reverse step is tiny.</div></details><details class='deep-dive'><summary>💻 Code Example: Recovering x0 from an eps Prediction</summary><div class='dd-content'><pre class='code-block'><code>eps_pred = model(xt, t)                     # [B, 3, 64, 64]
+alpha_bar_t = alpha_bar[t].view(B, 1, 1, 1)
+x0_pred = (xt - (1 - alpha_bar_t).sqrt() * eps_pred) / alpha_bar_t.sqrt()</code></pre>Even when the model is trained to predict <code>eps</code>, implementations often reconstruct <code>x0_pred</code> for visualization, guidance, or sampling variants.</div></details>`,
+    sec4Desc2: `<details class='deep-dive'><summary>🧮 Numeric Example: How the MSE Is Obtained</summary><div class='dd-content'>Suppose the true noise at one location is <code>eps_true = [0.2, -0.5, 1.0]</code> and the model predicts <code>eps_pred = [0.1, -0.1, 0.4]</code>. The squared errors are:<pre class='code-block'><code>(0.2 - 0.1)^2 = 0.01
+(-0.5 - (-0.1))^2 = 0.16
+(1.0 - 0.4)^2 = 0.36</code></pre>The local mean is <code>(0.01 + 0.16 + 0.36) / 3 = 0.1767</code>. Global training loss is the same idea, averaged over all pixels and all batch elements.</div></details><details class='deep-dive'><summary>💻 Code Example: Shape Sanity Check During Training</summary><div class='dd-content'><pre class='code-block'><code>x0.shape       = [8, 3, 256, 256]
+t.shape        = [8]
+eps.shape      = [8, 3, 256, 256]
+xt.shape       = [8, 3, 256, 256]
+eps_pred.shape = [8, 3, 256, 256]
+loss = F.mse_loss(eps_pred, eps)</code></pre>If <code>eps_pred</code> and <code>eps</code> do not match exactly, your timestep broadcasting or model head is wrong.</div></details>`,
+    sec5Desc2: `<details class='deep-dive'><summary>🧮 Numeric Example: One Sampling Update</summary><div class='dd-content'>Suppose a location has <code>mean = -0.47</code>, variance scale <code>sigma_t = 0.10</code>, and fresh noise <code>z = 0.30</code>. Then:<pre class='code-block'><code>x_{t-1} = mean + sigma_t * z
+        = -0.47 + 0.10 * 0.30
+        = -0.44</code></pre>If another run samples <code>z = -1.50</code>, the same mean becomes <code>-0.62</code>. That is why two sampling trajectories can diverge in fine detail.</div></details><details class='deep-dive'><summary>💻 Code Example: Standard DDPM Reverse Loop</summary><div class='dd-content'><pre class='code-block'><code>for t in reversed(range(T)):
+    z = torch.randn_like(x) if t > 0 else 0
+    eps_pred = model(x, t)
+    mean = (x - beta[t] / sqrt_one_minus_alpha_bar[t] * eps_pred) / sqrt_alpha[t]
+    x = mean + sigma[t] * z</code></pre>The three key pieces are: <code>eps_pred</code> for direction, <code>mean</code> for the denoised center, and <code>z</code> for stochastic exploration.</div></details>`,
+    sec6Desc2: `<details class='deep-dive'><summary>🧮 Numeric Example: Linear vs Cosine Schedules</summary><div class='dd-content'>A rough comparison is:<pre class='code-block'><code>t = 100: linear alpha_bar ≈ 0.90, cosine alpha_bar ≈ 0.97
+t = 500: linear alpha_bar ≈ 0.28, cosine alpha_bar ≈ 0.50
+t = 900: linear alpha_bar ≈ 0.00x, cosine alpha_bar ≈ 0.02</code></pre>Cosine keeps usable signal around for longer, so the model is not asked to denoise almost-pure-random garbage too early in training.</div></details>`
+    ,sec7Desc1: `<details class='deep-dive'><summary>🧮 Numeric Example: Why 1000 steps is slow</summary><div class='dd-content'>Suppose one U-Net forward pass takes <code>15 ms</code>. Then:<pre class='code-block'><code>DDPM 1000 steps ≈ 15,000 ms = 15 s
+DDIM   50 steps ≈    750 ms
+FM     10 steps ≈    150 ms</code></pre>This is only a rough order-of-magnitude estimate, but it shows why reducing the step count from 1000 to 50 or 10 changes the user experience dramatically.</div></details><details class='deep-dive'><summary>💻 Code Example: DDPM vs DDIM call count</summary><div class='dd-content'><pre class='code-block'><code># DDPM
+for t in reversed(range(1000)):
+    x = ddpm_step(model, x, t)
+
+# DDIM
+for t in ddim_schedule_50_steps:
+    x = ddim_step(model, x, t)</code></pre>Even if the formulas differ slightly, the biggest speedup often starts with simply calling the network far fewer times.</div></details>`,
+    sec7Desc2: `<details class='deep-dive'><summary>📚 Comparison: what Score-based, DDPM, and FM each learn</summary><div class='dd-content'><ul><li><strong>DDPM</strong>: often learns <code>eps_pred</code>, i.e. “what noise was added here?”</li><li><strong>Score-based</strong>: learns <code>∇_x log p_t(x)</code>, i.e. “which direction increases density?”</li><li><strong>Flow Matching</strong>: learns <code>v(x,t)</code>, i.e. “what instantaneous velocity should this point have?”</li></ul>All three push noise toward data, but the training target is interpreted differently.</div></details>`
+  }
+};
+
 let currentLang = 'zh';
 
 function setLangDDPM(lang) {
@@ -653,6 +771,14 @@ function setLangDDPM(lang) {
   }
   document.getElementById('ddpm-code-train').innerHTML = lang === 'zh' ? CODE_ZH.train : CODE_EN.train;
   document.getElementById('ddpm-code-sample').innerHTML = lang === 'zh' ? CODE_ZH.sample : CODE_EN.sample;
+  document.getElementById('ddpm-sec1-desc3').innerHTML += DDPM_EXTRA[lang].sec1Desc3;
+  document.getElementById('ddpm-sec2-desc3').innerHTML += DDPM_EXTRA[lang].sec2Desc3;
+  document.getElementById('ddpm-sec3-desc3').innerHTML += DDPM_EXTRA[lang].sec3Desc3;
+  document.getElementById('ddpm-sec4-desc2').innerHTML += DDPM_EXTRA[lang].sec4Desc2;
+  document.getElementById('ddpm-sec5-desc2').innerHTML += DDPM_EXTRA[lang].sec5Desc2;
+  document.getElementById('ddpm-sec6-desc2').innerHTML += DDPM_EXTRA[lang].sec6Desc2;
+  document.getElementById('ddpm-sec7-desc1').innerHTML += DDPM_EXTRA[lang].sec7Desc1;
+  document.getElementById('ddpm-sec7-desc2').innerHTML += DDPM_EXTRA[lang].sec7Desc2;
   
   document.getElementById('lang-toggle').textContent = lang === 'zh' ? 'EN' : 'ZH';
   updateControlsLang();
@@ -1194,7 +1320,9 @@ function setupScheduleAnim() {
         }
     }
 
-    radios.forEach(r => r.addEventListener('change', () => draw(lastMouseX)));
+    radios.forEach(r => {
+        r.addEventListener('change', () => draw(lastMouseX));
+    });
     canvas.addEventListener('mousemove', e => {
         const rect = canvas.getBoundingClientRect();
         draw(e.clientX - rect.left);
@@ -1219,20 +1347,20 @@ const FM_LABELS = {
           
           sec2Heading: "2. ODE 视角 (常微分方程)",
           sec2Desc1: "连续标准化流 (CNF) 通过学习一个速度场 (Velocity Field) $v_\\theta$ 来将一个简单的分布 $p_0$ (如高斯噪声) 随时间 $t$ 平滑地传输到复杂分布 $p_1$ (数据分布)：",
-          sec2Desc2: "只要我们能准确预测每个点在每个时刻的速度，就可以通过解 ODE 从噪声生成图像。",
+          sec2Desc2: "只要我们能准确预测每个点在每个时刻的速度，就可以通过解 ODE 从噪声生成图像。<details class='deep-dive'><summary>🔍 深入理解：速度场与 ODE 求解</summary><div class='dd-content'>在 Flow Matching 中，神经网络模型 $v_\\theta(\\mathbf{x}_t, t)$ 的输出不再被解释为“噪声”或“数据”，而是纯粹的“速度向量”(Velocity Vector)。<br>其形状依然是 <code>[B, C, H, W]</code>。例如，给定当前的 $\\mathbf{x}_t$，预测的速度向量告诉我们：“为了离真实图像更近一步，每个像素通道的值应该以多少的速率增加或减少”。<br>如果我们用最基础的欧拉前向法，那么 $\\mathbf{x}_{t+\\Delta t} = \\mathbf{x}_t + v_\\theta(\\mathbf{x}_t, t) \\Delta t$。这里 $\\Delta t$ 可以远大于 DDPM 的步长，使得我们能够用 10 步甚至更少步数跨越整个 $t \\in [0, 1]$。</div></details>",
           anim1Text: "向量场与粒子传输 (ODE Flow)",
           
           sec3Heading: "3. 条件流匹配 (Conditional Flow Matching)",
           sec3Desc1: "直接学习全局的 $v_\\theta$ 极其困难。条件流匹配 (CFM) 的核心技巧是：每次只考虑一对数据点 $(x_0, x_1)$，其中 $x_0$ 是噪声，$x_1$ 是真实图片。在这两点之间构造最简单的线性插值路径：",
           sec3Desc2: "在这个路径上，目标速度 $v_{target}$ 是一个常数！这意味着模型在每个时刻 $t$ 的目标就是预测这个恒定的方向差。损失函数极其简单，完全不需要 Diffusion 中的加权系数 $\\alpha_t$：",
-          sec3Desc3: "这种设计将复杂的边缘分布匹配问题，转化为了简单的条件路径回归问题。",
+          sec3Desc3: "这种设计将复杂的边缘分布匹配问题，转化为了简单的条件路径回归问题。<details class='deep-dive'><summary>🔍 深入理解：恒定目标速度的优雅之处</summary><div class='dd-content'>当我们随机采样一张纯噪声 $x_0$ 和一张真实图片 $x_1$ 后，它们之间的直线方程为 $x_t = (1-t)x_0 + tx_1$。<br>对时间 $t$ 求导，我们得到速度 $v(t) = \\frac{d}{dt}x_t = x_1 - x_0$。<br>这就是为什么在 $t$ 的**任何时刻**，目标速度 $v_{target}$ 永远是 $x_1 - x_0$（也就是终点减起点）。这种完全抛弃了扩散调度系数的设定，使得模型不用去区分“早期该加多少噪、晚期该加多少噪”，它只需死死盯住方向差。张量层面，<code>v_target = x_1 - x_0</code> 的形状也是 <code>[B, C, H, W]</code>，直接做 MSE 对齐。</div></details>",
           anim2Text: "直线插值路径 (Straight Paths)",
 
           sec4Heading: "4. 极简的训练逻辑",
-          sec4Desc1: "与 DDPM 需要维护一套复杂的累积乘积系数不同，Flow Matching 的训练代码极其干净，甚至可以用 10 行 PyTorch 代码实现核心逻辑：",
+          sec4Desc1: "与 DDPM 需要维护一套复杂的累积乘积系数不同，Flow Matching 的训练代码极其干净，甚至可以用 10 行 PyTorch 代码实现核心逻辑：<details class='deep-dive'><summary>🔍 深入理解：极其自由的时间步采样</summary><div class='dd-content'>注意伪代码中的 <code>t = torch.rand(B, 1)</code>。在 DDPM 中，由于离散马尔可夫链的限制，时间步 $t$ 通常被划分为整数 $\\{1, 2, ..., 1000\\}$。但在 Flow Matching 中，时间 $t$ 是一个完全连续的均匀分布 $U[0, 1]$。<br>这种连续时间表述(Continuous-time Formulation)不仅让代码告别了繁琐的 <code>alpha_bar</code> 数组查找，还天然兼容任意精度的 ODE 求解器。在代码里，<code>x_t = (1 - t) * x_0 + t * x_1</code>，一切通过广播(Broadcasting)到图像空间完成插值。</div></details>",
           
           sec5Heading: "5. 采样：ODE 求解",
-          sec5Desc1: "生成图像即是在解 ODE。最简单的做法是前向欧拉法 (Euler Method)：",
+          sec5Desc1: "生成图像即是在解 ODE。最简单的做法是前向欧拉法 (Euler Method)：<details class='deep-dive'><summary>🔍 深入理解：数值求解与步长控制</summary><div class='dd-content'>采样代码中，我们定义步长 <code>dt = 1.0 / steps</code>。如果 <code>steps=10</code>，则 <code>dt=0.1</code>。<br>循环 10 次，依次在 $t = 0, 0.1, 0.2 ... 0.9$ 的位置计算速度 <code>v = model(x, t)</code>，并更新 <code>x = x + v * dt</code>。<br>这种简单的积分方式在 Flow Matching 中工作得非常好，因为其传输路径被设计成了直线，速度向量变化平滑。如果换作更复杂的路径，可能就需要用到更高阶的求解器（如 Runge-Kutta、DPM-Solver）。而且由于是常微分方程 (ODE)，整个过程是确定性的——给定相同的初始噪声 $x_0$，必然生成相同的图像。</div></details>",
           anim3Text: "欧拉法采样步数对比",
 
           cpsHeading: "5.1 系数保持采样 (CPS)",
@@ -1270,20 +1398,20 @@ const FM_LABELS = {
           
           sec2Heading: "2. The ODE Perspective",
           sec2Desc1: "Continuous Normalizing Flows (CNF) transport a simple distribution $p_0$ (e.g., Gaussian noise) to a complex distribution $p_1$ (data) smoothly over time $t$ by learning a velocity field $v_\\theta$:",
-          sec2Desc2: "If we can accurately predict the velocity vector for every point at every time, we can generate images from noise simply by solving this ODE.",
+          sec2Desc2: "If we can accurately predict the velocity vector for every point at every time, we can generate images from noise simply by solving this ODE.<details class='deep-dive'><summary>🔍 Deep Dive: Velocity Fields and ODE Solving</summary><div class='dd-content'>In Flow Matching, the neural network output $v_\\theta(\\mathbf{x}_t, t)$ is strictly interpreted as a \"velocity vector\" rather than \"noise\" or \"data.\"<br>Its shape remains <code>[B, C, H, W]</code>. Given the current spatial state $\\mathbf{x}_t$, this vector essentially dictates: \"to move towards a real image, at what rate should each pixel's color values increase or decrease?\"<br>Using a basic forward Euler solver, the update is $\\mathbf{x}_{t+\\Delta t} = \\mathbf{x}_t + v_\\theta(\\mathbf{x}_t, t) \\Delta t$. Because the learned vector field is much smoother and straighter than DDPM SDE paths, $\\Delta t$ can be large, allowing us to leap across $t \\in [0, 1]$ in just 10 steps.</div></details>",
           anim1Text: "Vector Field and Particle Transport (ODE Flow)",
 
           sec3Heading: "3. Conditional Flow Matching",
           sec3Desc1: "Learning a global $v_\\theta$ directly is intractable. The core trick of CFM is conditioning on data pairs $(x_0, x_1)$, where $x_0$ is noise and $x_1$ is real data, and constructing a linear path between them:",
           sec3Desc2: "On this path, the target velocity $v_{target}$ is constant! The model just predicts this constant directional difference. The loss function is pristine, requiring no diffusion schedule weights $\\alpha_t$:",
-          sec3Desc3: "This design reduces the complex marginal distribution matching into simple conditional path regression.",
+          sec3Desc3: "This design reduces the complex marginal distribution matching into simple conditional path regression.<details class='deep-dive'><summary>🔍 Deep Dive: The Elegance of Constant Target Velocity</summary><div class='dd-content'>Once we sample a specific noise instance $x_0$ and a real image $x_1$, the straight line connecting them is $x_t = (1-t)x_0 + tx_1$.<br>Taking the derivative with respect to time $t$, we get the velocity $v(t) = \\frac{d}{dt}x_t = x_1 - x_0$.<br>This is why, at **any point** $t$ along this specific trajectory, the target velocity $v_{target}$ is always exactly $x_1 - x_0$ (destination minus origin). This completely bypasses the complex noise schedule weights $\\bar{\\alpha}_t$ in DDPM. At the tensor level, <code>v_target = x_1 - x_0</code> has shape <code>[B, C, H, W]</code>, and the network simply minimizes the MSE against it.</div></details>",
           anim2Text: "Straight Interpolation Paths",
 
           sec4Heading: "4. Pristine Training Logic",
-          sec4Desc1: "Unlike DDPM which maintains cumulative product schedules, Flow Matching training logic is incredibly clean and can be implemented in 10 lines of PyTorch:",
+          sec4Desc1: "Unlike DDPM which maintains cumulative product schedules, Flow Matching training logic is incredibly clean and can be implemented in 10 lines of PyTorch:<details class='deep-dive'><summary>🔍 Deep Dive: Freedom of Continuous Timesteps</summary><div class='dd-content'>Notice the <code>t = torch.rand(B, 1)</code> in the pseudocode. In DDPM, the discrete Markov chain restricts timesteps to integers like $\\{1, 2, ..., 1000\\}$. In Flow Matching, time $t$ is drawn from a strictly continuous uniform distribution $U[0, 1]$.<br>This continuous-time formulation eliminates the need to lookup precomputed <code>alpha_bar</code> arrays, and natively supports arbitrary-precision ODE solvers at inference. In code, <code>x_t = (1 - t) * x_0 + t * x_1</code> elegantly interpolates between noise and data using tensor broadcasting to the image dimensions.</div></details>",
 
           sec5Heading: "5. Sampling: ODE Solvers",
-          sec5Desc1: "Generating an image is solving the ODE. The simplest approach is the forward Euler Method:",
+          sec5Desc1: "Generating an image is solving the ODE. The simplest approach is the forward Euler Method:<details class='deep-dive'><summary>🔍 Deep Dive: Numerical Solvers and Steps</summary><div class='dd-content'>In the sampling loop, the step size is defined as <code>dt = 1.0 / steps</code>. For <code>steps=10</code>, <code>dt=0.1</code>.<br>The loop iterates 10 times, querying the velocity <code>v = model(x, t)</code> at $t = 0, 0.1, 0.2 ... 0.9$, and updating the state via <code>x = x + v * dt</code>.<br>This naive Euler integration works surprisingly well for Flow Matching because the learned trajectories are nearly straight, meaning the velocity vectors change smoothly. For more curved vector fields, advanced higher-order solvers (like Runge-Kutta or DPM-Solver) would be required. Since this is an ODE, the mapping is completely deterministic—the exact same initial noise tensor $x_0$ will always map to the exact same generated image.</div></details>",
           anim3Text: "Euler Sampling Steps Comparison",
 
           cpsHeading: "5.1 Coefficients-Preserving Sampling (CPS)",
@@ -1314,6 +1442,107 @@ const FM_LABELS = {
         }
       };
 
+      const FM_EXTRA = {
+        zh: {
+          sec1Desc3: `<details class='deep-dive'><summary>🧠 直觉例子：为什么大家喜欢“直路”</summary><div class='dd-content'>假设从 A 点到 B 点有两种路线：<pre class='code-block'><code>路线1：直线，全长 10 米
+路线2：先绕右边再折回来，全长 25 米</code></pre>如果求解器每次只能向前迈一小步，那么更弯、更绕的路径需要更多步才能跟得准。Flow Matching 倾向于学“直路”，所以更容易少步采样。</div></details>`,
+          sec2Desc2: `<details class='deep-dive'><summary>🧮 数值例子：velocity 是怎么推动状态前进的</summary><div class='dd-content'>假设某个一维状态当前是 <code>x_t = -1.2</code>，模型给出的速度是 <code>v = 2.5</code>，步长 <code>dt = 0.1</code>。那么下一步就是：<pre class='code-block'><code>x_{t+dt} = x_t + v * dt
+         = -1.2 + 2.5 * 0.1
+         = -0.95</code></pre>也就是说，模型在说：'往正方向挪一点点，你会更接近真实数据流形。'</div></details><details class='deep-dive'><summary>💻 代码例子：最小 Euler 更新</summary><div class='dd-content'><pre class='code-block'><code>x = torch.randn(2, 3, 64, 64)
+t = torch.full((2,), 0.3)
+v = model(x, t)           # [2, 3, 64, 64]
+dt = 0.05
+x_next = x + v * dt</code></pre>和 DDPM 最大的不同是：这里没有 <code>beta</code> 表、没有额外噪声项，只有'当前状态 + 速度 * 时间步长'。</div></details>`,
+          sec3Desc3: `<details class='deep-dive'><summary>🧮 数值例子：同一对样本在不同 t 的路径点</summary><div class='dd-content'>设 <code>x0 = -2</code>，<code>x1 = 3</code>，则目标速度恒为 <code>v_target = 5</code>。不同时间点的插值位置是：<pre class='code-block'><code>t = 0.0 -> x_t = -2
+t = 0.25 -> x_t = -0.75
+t = 0.50 -> x_t = 0.5
+t = 0.75 -> x_t = 1.75
+t = 1.0 -> x_t = 3</code></pre>虽然位置不断变化，但速度始终是 5。这正是 Flow Matching 训练目标特别干净的原因。</div></details><details class='deep-dive'><summary>💻 代码例子：构造 path 和 target velocity</summary><div class='dd-content'><pre class='code-block'><code>x0 = torch.randn(4, 3, 64, 64)
+x1 = real_images                       # [4, 3, 64, 64]
+t = torch.rand(4, 1, 1, 1)
+xt = (1 - t) * x0 + t * x1
+v_target = x1 - x0</code></pre>在这段代码里，<code>xt</code> 依赖时间，<code>v_target</code> 不依赖时间。</div></details>`,
+          sec4Desc1: `<details class='deep-dive'><summary>🧮 数值例子：一个 mini-batch 里的 t 可以全不同</summary><div class='dd-content'>设 batch size 为 4，则可能采样出：<pre class='code-block'><code>t = [0.02, 0.18, 0.71, 0.93]</code></pre>这意味着同一个 batch 里：第 1 张图几乎还在噪声端，第 4 张图已经非常接近真实图像端。网络被迫学会在整个连续时间区间里都输出合理速度。</div></details><details class='deep-dive'><summary>💻 代码例子：完整训练 step 的 shape</summary><div class='dd-content'><pre class='code-block'><code>x1.shape       = [8, 3, 256, 256]
+x0.shape       = [8, 3, 256, 256]
+t.shape        = [8, 1, 1, 1]
+xt.shape       = [8, 3, 256, 256]
+v_target.shape = [8, 3, 256, 256]
+v_pred.shape   = [8, 3, 256, 256]</code></pre>Flow Matching 的训练 pipeline 非常整齐：除了 <code>t</code> 需要 broadcast，几乎所有核心张量形状都一致。</div></details>`,
+          sec5Desc1: `<details class='deep-dive'><summary>🧮 数值例子：10 步 Euler 如何走完一条 1D 路径</summary><div class='dd-content'>设当前状态从 <code>x=0</code> 出发，而模型始终预测速度 <code>v=2</code>，步长 <code>dt=0.1</code>。那么 10 步后：<pre class='code-block'><code>step1: x = 0.0 + 2 * 0.1 = 0.2
+step2: x = 0.2 + 2 * 0.1 = 0.4
+...
+step10: x = 2.0</code></pre>这和解析解完全一致，因为这里路径就是直线、速度也是常数。</div></details><details class='deep-dive'><summary>💻 代码例子：更接近真实推理循环</summary><div class='dd-content'><pre class='code-block'><code>x = torch.randn(1, 3, 256, 256)
+for i in range(10):
+    t = torch.full((1,), i / 10)
+    v = model(x, t)
+    x = x + v * 0.1</code></pre>如果你把步数从 10 提到 50，本质上只是把 <code>dt</code> 变小、求解更精细。</div></details>`,
+          cpsDesc4: `<details class='deep-dive'><summary>🧮 数值例子：η=0、0.5、1 时系数怎么变</summary><div class='dd-content'>设某一步里剩余噪声预算是 <code>t-dt = 0.2</code>。<pre class='code-block'><code>eta = 0.0 -> cos(0)=1,   sin(0)=0
+eta = 0.5 -> cos(pi/4)=0.707, sin(pi/4)=0.707
+eta = 1.0 -> cos(pi/2)=0, sin(pi/2)=1</code></pre>因此：<ul><li><code>eta=0</code>：全部走预测噪声，完全确定性。</li><li><code>eta=0.5</code>：预测噪声和 fresh noise 各分一半预算。</li><li><code>eta=1</code>：全部给 fresh noise，随机性最强。</li></ul>但三种情况下总噪声能量都仍然被严格锁在调度器允许范围内。</div></details>`,
+          cpsDesc2: `<details class='deep-dive'><summary>🧮 数值例子：Flow-SDE 为什么会“噪声超支”</summary><div class='dd-content'>假设调度器本来只允许本步加入 <code>0.20</code> 的噪声预算，但近似的 Flow-SDE 实际加出了 <code>0.26</code>。这多出来的 <code>0.06</code> 看起来很小，可是在图像高频区域就会变成可见颗粒。对奖励模型来说，它会误以为“图像质量下降了”，即使主体结构其实没错。</div></details>`,
+          cpsDesc3: `<details class='deep-dive'><summary>🧠 直觉例子：CPS 像预算分账</summary><div class='dd-content'>可以把总噪声看成一笔固定预算 100 元。<ul><li>Flow-SDE：边花边算，最后常常超支到 110 元。</li><li>CPS：先规定总额就是 100 元，再决定其中多少给预测噪声、多少给 fresh noise。</li></ul>所以 CPS 的关键不是“随机性更小”，而是“随机性可控，而且绝不超预算”。</div></details>`,
+          cpsDesc5: `<details class='deep-dive'><summary>💻 代码例子：CPS 一步更新的伪代码</summary><div class='dd-content'><pre class='code-block'><code>signal = (1 - (t - dt)) * x0_hat
+pred_noise = (t - dt) * math.cos(eta * math.pi / 2) * x1_hat
+fresh_noise = (t - dt) * math.sin(eta * math.pi / 2) * eps
+x_next = signal + pred_noise + fresh_noise</code></pre>和普通 Flow-SDE 的关键差别是：CPS 不是'随便再加一点噪声'，而是先把总噪声预算分账，再分别分给 predicted noise 和 fresh noise。</div></details>`,
+          sec6Desc2: `<details class='deep-dive'><summary>🧮 数值例子：Reflow 在做什么</summary><div class='dd-content'>第一次训练后，模型可能把 <code>x0=-1</code> 传到 <code>x1=2</code> 时走一条弯曲路线，比如中间先跑到 <code>0.5</code> 再回到 <code>0.2</code>。Reflow 会直接把'起点噪声 -1'和'最终生成结果 2'配成一对新监督数据，再重新训练成更接近直线的传输。于是下一轮模型更可能学到：<pre class='code-block'><code>-1 -> -0.25 -> 0.5 -> 1.25 -> 2</code></pre>而不是绕远路。</div></details>`
+          ,sec6Desc1: `<details class='deep-dive'><summary>🧠 直觉例子：路径交叉为什么会让向量场变弯</summary><div class='dd-content'>如果两条样本路径在同一空间位置相遇，但它们接下来想去的方向不同，那么全局向量场就不能同时满足二者，只能学一个折中的弯曲方向。这就是为什么“局部直线”不一定自动变成“全局直线”。</div></details>`,
+          sec7Desc1: `<details class='deep-dive'><summary>🧮 数值例子：曲率大时 Euler 误差为什么会上升</summary><div class='dd-content'>粗略地说，如果某条路径的局部弯曲强度是直线路径的 5 倍，那么相同步长下 Euler 的局部截断误差也会放大很多。于是你只能：<pre class='code-block'><code>要么减小 dt
+要么增加步数
+要么换更高阶 solver</code></pre>这正是“直路径更适合少步采样”的数学直觉。</div></details>`,
+          sec8Desc2: `<details class='deep-dive'><summary>📚 工程对照：DDPM 和 FM 的心智模型差别</summary><div class='dd-content'><ul><li><strong>DDPM</strong>：更像“逐步擦掉噪声”。</li><li><strong>FM</strong>：更像“沿着学习到的交通流直接开过去”。</li></ul>所以 FM 往往在工程实现上更像 ODE 求解问题，而 DDPM 更像带调度器的随机去噪链。</div></details>`
+        },
+        en: {
+          sec1Desc3: `<details class='deep-dive'><summary>🧠 Intuition: Why people love the “straight road” view</summary><div class='dd-content'>Suppose there are two routes from A to B:<pre class='code-block'><code>route 1: straight line, length 10
+route 2: detour to the right, then bend back, length 25</code></pre>If your solver can only move in small steps, the more curved route requires many more steps to track accurately. Flow Matching prefers the straight road, so low-step sampling becomes much easier.</div></details>`,
+          sec2Desc2: `<details class='deep-dive'><summary>🧮 Numeric Example: How a Velocity Moves the State</summary><div class='dd-content'>Suppose a 1D state is currently <code>x_t = -1.2</code>, the network predicts <code>v = 2.5</code>, and the solver uses <code>dt = 0.1</code>. Then:<pre class='code-block'><code>x_{t+dt} = x_t + v * dt
+         = -1.2 + 2.5 * 0.1
+         = -0.95</code></pre>The model is literally saying: 'move a little in the positive direction, and you will be closer to the data manifold.'</div></details><details class='deep-dive'><summary>💻 Code Example: Minimal Euler Update</summary><div class='dd-content'><pre class='code-block'><code>x = torch.randn(2, 3, 64, 64)
+t = torch.full((2,), 0.3)
+v = model(x, t)           # [2, 3, 64, 64]
+dt = 0.05
+x_next = x + v * dt</code></pre>Unlike DDPM, there is no <code>beta</code> table and no extra noise term here — just current state plus velocity times step size.</div></details>`,
+          sec3Desc3: `<details class='deep-dive'><summary>🧮 Numeric Example: Same Pair, Different t, Same Velocity</summary><div class='dd-content'>Let <code>x0 = -2</code> and <code>x1 = 3</code>. Then the target velocity is always <code>v_target = 5</code>. The interpolated positions are:<pre class='code-block'><code>t = 0.0 -> x_t = -2
+t = 0.25 -> x_t = -0.75
+t = 0.50 -> x_t = 0.5
+t = 0.75 -> x_t = 1.75
+t = 1.0 -> x_t = 3</code></pre>The position changes with time, but the target velocity stays fixed at 5. That is exactly what makes Flow Matching training so clean.</div></details><details class='deep-dive'><summary>💻 Code Example: Building the Path and Target Velocity</summary><div class='dd-content'><pre class='code-block'><code>x0 = torch.randn(4, 3, 64, 64)
+x1 = real_images
+t = torch.rand(4, 1, 1, 1)
+xt = (1 - t) * x0 + t * x1
+v_target = x1 - x0</code></pre>In this snippet, <code>xt</code> depends on time, but <code>v_target</code> does not.</div></details>`,
+          sec4Desc1: `<details class='deep-dive'><summary>🧮 Numeric Example: A Mini-Batch Can Contain Totally Different t Values</summary><div class='dd-content'>For batch size 4, you might sample:<pre class='code-block'><code>t = [0.02, 0.18, 0.71, 0.93]</code></pre>That means the first sample is still near the noise endpoint, while the fourth sample is already close to the data endpoint. The model must learn to output a meaningful velocity across the entire continuous interval.</div></details><details class='deep-dive'><summary>💻 Code Example: Full Training-Step Shapes</summary><div class='dd-content'><pre class='code-block'><code>x1.shape       = [8, 3, 256, 256]
+x0.shape       = [8, 3, 256, 256]
+t.shape        = [8, 1, 1, 1]
+xt.shape       = [8, 3, 256, 256]
+v_target.shape = [8, 3, 256, 256]
+v_pred.shape   = [8, 3, 256, 256]</code></pre>Other than broadcasting <code>t</code>, almost every core tensor in Flow Matching shares the same image-like shape.</div></details>`,
+          sec5Desc1: `<details class='deep-dive'><summary>🧮 Numeric Example: A 10-Step Euler Trajectory in 1D</summary><div class='dd-content'>Suppose the system starts at <code>x=0</code>, the network always predicts <code>v=2</code>, and <code>dt=0.1</code>. Then after 10 steps:<pre class='code-block'><code>step1: x = 0.0 + 2 * 0.1 = 0.2
+step2: x = 0.2 + 2 * 0.1 = 0.4
+...
+step10: x = 2.0</code></pre>This matches the exact solution perfectly because the path is straight and the velocity is constant.</div></details><details class='deep-dive'><summary>💻 Code Example: A More Realistic Inference Loop</summary><div class='dd-content'><pre class='code-block'><code>x = torch.randn(1, 3, 256, 256)
+for i in range(10):
+    t = torch.full((1,), i / 10)
+    v = model(x, t)
+    x = x + v * 0.1</code></pre>Increasing the step count from 10 to 50 simply means using a smaller <code>dt</code> and integrating more finely.</div></details>`,
+          cpsDesc4: `<details class='deep-dive'><summary>🧮 Numeric Example: What Happens at η=0, 0.5, 1</summary><div class='dd-content'>Suppose the remaining noise budget is <code>t-dt = 0.2</code>.<pre class='code-block'><code>eta = 0.0 -> cos(0)=1,   sin(0)=0
+eta = 0.5 -> cos(pi/4)=0.707, sin(pi/4)=0.707
+eta = 1.0 -> cos(pi/2)=0, sin(pi/2)=1</code></pre>So:<ul><li><code>eta=0</code>: all budget goes to predicted noise, fully deterministic.</li><li><code>eta=0.5</code>: predicted noise and fresh noise split the budget evenly.</li><li><code>eta=1</code>: all budget goes to fresh noise, maximum stochasticity.</li></ul>In all three cases, the total noise energy still exactly matches the scheduler budget.</div></details>`,
+          cpsDesc2: `<details class='deep-dive'><summary>🧮 Numeric Example: Why Flow-SDE can overspend the noise budget</summary><div class='dd-content'>Suppose the scheduler intended to inject only <code>0.20</code> of noise budget this step, but the approximate Flow-SDE update effectively injects <code>0.26</code>. That extra <code>0.06</code> may look small, but in high-frequency image regions it can become visible grain. A reward model may then think image quality dropped even if the semantic structure is still correct.</div></details>`,
+          cpsDesc3: `<details class='deep-dive'><summary>🧠 Intuition: CPS is like strict budget accounting</summary><div class='dd-content'>Think of total noise as a fixed budget of 100 dollars.<ul><li>Flow-SDE: spend while approximating, often ending up at 110.</li><li>CPS: first declare the total budget is exactly 100, then decide how much goes to predicted noise and how much goes to fresh noise.</li></ul>So the key point is not “less randomness”, but “controllable randomness with no budget overflow”.</div></details>`,
+          cpsDesc5: `<details class='deep-dive'><summary>💻 Code Example: One CPS Update Step</summary><div class='dd-content'><pre class='code-block'><code>signal = (1 - (t - dt)) * x0_hat
+pred_noise = (t - dt) * math.cos(eta * math.pi / 2) * x1_hat
+fresh_noise = (t - dt) * math.sin(eta * math.pi / 2) * eps
+x_next = signal + pred_noise + fresh_noise</code></pre>The key difference from Flow-SDE is that CPS explicitly budgets the total noise first, then allocates it between predicted noise and fresh noise.</div></details>`,
+          sec6Desc2: `<details class='deep-dive'><summary>🧮 Numeric Example: What Reflow Is Actually Doing</summary><div class='dd-content'>After the first round of training, the model might transport <code>x0=-1</code> to <code>x1=2</code> along a curved path, perhaps visiting <code>0.5</code> and then <code>0.2</code> before arriving. Reflow directly pairs the starting noise <code>-1</code> with the final generated result <code>2</code> and retrains on that pair. The next model is encouraged to learn something closer to:<pre class='code-block'><code>-1 -> -0.25 -> 0.5 -> 1.25 -> 2</code></pre>instead of taking a detour.</div></details>`
+          ,sec6Desc1: `<details class='deep-dive'><summary>🧠 Intuition: Why crossing paths bend the global vector field</summary><div class='dd-content'>If two sample paths pass through nearly the same spatial location but want to leave in different directions, one global vector field cannot satisfy both perfectly. It learns a compromise direction, which introduces curvature. That is why “locally straight” does not automatically mean “globally straight.”</div></details>`,
+          sec7Desc1: `<details class='deep-dive'><summary>🧮 Numeric Example: Why large curvature hurts Euler</summary><div class='dd-content'>Very roughly, if one path has 5x larger local curvature than another, then with the same step size Euler’s local truncation error becomes much worse. So you must either:<pre class='code-block'><code>shrink dt
+increase the number of steps
+or use a higher-order solver</code></pre>This is the mathematical intuition behind “straighter paths support fewer sampling steps.”</div></details>`,
+          sec8Desc2: `<details class='deep-dive'><summary>📚 Engineering comparison: DDPM vs FM mental models</summary><div class='dd-content'><ul><li><strong>DDPM</strong>: think “gradually erase noise”.</li><li><strong>FM</strong>: think “follow a learned traffic flow directly to data”.</li></ul>That is why FM often feels like an ODE-solving problem in code, while DDPM feels like a stochastic denoising chain with a scheduler.</div></details>`
+        }
+      };
+
       let currentLang = 'zh';
       
 
@@ -1325,35 +1554,44 @@ const FM_LABELS = {
         document.getElementById('fm-sec1-desc1').innerHTML = d.sec1Desc1;
         document.getElementById('fm-sec1-desc2').innerHTML = d.sec1Desc2;
         document.getElementById('fm-sec1-desc3').innerHTML = d.sec1Desc3;
+        document.getElementById('fm-sec1-desc3').innerHTML += FM_EXTRA[currentLang].sec1Desc3;
         
         document.getElementById('fm-sec2-heading').innerHTML = d.sec2Heading;
         document.getElementById('fm-sec2-desc1').innerHTML = d.sec2Desc1;
         document.getElementById('fm-sec2-desc2').innerHTML = d.sec2Desc2;
+        document.getElementById('fm-sec2-desc2').innerHTML += FM_EXTRA[currentLang].sec2Desc2;
         document.getElementById('fm-anim1-text').innerHTML = d.anim1Text;
         
         document.getElementById('fm-sec3-heading').innerHTML = d.sec3Heading;
         document.getElementById('fm-sec3-desc1').innerHTML = d.sec3Desc1;
         document.getElementById('fm-sec3-desc2').innerHTML = d.sec3Desc2;
         document.getElementById('fm-sec3-desc3').innerHTML = d.sec3Desc3;
+        document.getElementById('fm-sec3-desc3').innerHTML += FM_EXTRA[currentLang].sec3Desc3;
         document.getElementById('fm-anim2-text').innerHTML = d.anim2Text;
         
         document.getElementById('fm-sec4-heading').innerHTML = d.sec4Heading;
         document.getElementById('fm-sec4-desc1').innerHTML = d.sec4Desc1;
+        document.getElementById('fm-sec4-desc1').innerHTML += FM_EXTRA[currentLang].sec4Desc1;
         
         document.getElementById('fm-sec5-heading').innerHTML = d.sec5Heading;
         document.getElementById('fm-sec5-desc1').innerHTML = d.sec5Desc1;
+        document.getElementById('fm-sec5-desc1').innerHTML += FM_EXTRA[currentLang].sec5Desc1;
         document.getElementById('fm-anim3-text').innerHTML = d.anim3Text;
         
         document.getElementById('fm-cps-heading').innerHTML = d.cpsHeading;
         document.getElementById('fm-cps-desc1').innerHTML = d.cpsDesc1;
         document.getElementById('fm-cps-desc2').innerHTML = d.cpsDesc2;
         document.getElementById('fm-cps-desc3').innerHTML = d.cpsDesc3;
+        document.getElementById('fm-cps-desc2').innerHTML += FM_EXTRA[currentLang].cpsDesc2;
+        document.getElementById('fm-cps-desc3').innerHTML += FM_EXTRA[currentLang].cpsDesc3;
         document.getElementById('fm-cps-desc4').innerHTML = d.cpsDesc4;
+        document.getElementById('fm-cps-desc4').innerHTML += FM_EXTRA[currentLang].cpsDesc4;
         document.getElementById('fm-cps-anim1-text').innerHTML = d.cpsAnim1Text;
         document.getElementById('fm-cps-anim2-text').innerHTML = d.cpsAnim2Text;
         document.getElementById('fm-cps-anim3-text').innerHTML = d.cpsAnim3Text;
         document.getElementById('fm-cps-anim4-text').innerHTML = d.cpsAnim4Text;
         document.getElementById('fm-cps-desc5').innerHTML = d.cpsDesc5;
+        document.getElementById('fm-cps-desc5').innerHTML += FM_EXTRA[currentLang].cpsDesc5;
 
         document.getElementById('fm-cps-th-method').innerHTML = currentLang === 'zh' ? '方法' : 'Method';
         document.getElementById('fm-cps-th-stoch').innerHTML = currentLang === 'zh' ? '随机性' : 'Stochasticity';
@@ -1373,15 +1611,19 @@ const FM_LABELS = {
         document.getElementById('fm-sec6-heading').innerHTML = d.sec6Heading;
         document.getElementById('fm-sec6-desc1').innerHTML = d.sec6Desc1;
         document.getElementById('fm-sec6-desc2').innerHTML = d.sec6Desc2;
+        document.getElementById('fm-sec6-desc1').innerHTML += FM_EXTRA[currentLang].sec6Desc1;
+        document.getElementById('fm-sec6-desc2').innerHTML += FM_EXTRA[currentLang].sec6Desc2;
         document.getElementById('fm-anim4-text').innerHTML = d.anim4Text;
         
         document.getElementById('fm-sec7-heading').innerHTML = d.sec7Heading;
         document.getElementById('fm-sec7-desc1').innerHTML = d.sec7Desc1;
         document.getElementById('fm-sec7-desc2').innerHTML = d.sec7Desc2;
+        document.getElementById('fm-sec7-desc1').innerHTML += FM_EXTRA[currentLang].sec7Desc1;
         
         document.getElementById('fm-sec8-heading').innerHTML = d.sec8Heading;
         document.getElementById('fm-sec8-desc1').innerHTML = d.sec8Desc1;
         document.getElementById('fm-sec8-desc2').innerHTML = d.sec8Desc2;
+        document.getElementById('fm-sec8-desc2').innerHTML += FM_EXTRA[currentLang].sec8Desc2;
         
         document.getElementById('fm-th-feature').innerHTML = d.thFeature;
         document.getElementById('fm-th-ddpm').innerHTML = d.thDdpm;
