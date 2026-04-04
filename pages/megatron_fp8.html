@@ -313,7 +313,7 @@
           <h4 data-en="🔁 4-Phase Loop (per GEMM call)" data-zh="🔁 4 阶段循环（每次 GEMM 调用）">🔁 4 阶段循环（每次 GEMM 调用）</h4>
           <ol style="padding-left:1.1rem;line-height:1.9;margin-top:.4rem;"
             data-en="<li><strong>Read scale</strong> s = max(history) / fp8_max</li><li><strong>Cast</strong> x → FP8 using s</li><li><strong>GEMM</strong> in FP8 on Tensor Core</li><li><strong>Record</strong> amax(x) into history buffer</li>"
-            data-zh="<li><strong>读取缩放因子</strong> s = max(history) / fp8_max</li><li><strong>转换</strong> x → FP8（使用 s）</li><li><strong>GEMM</strong>在 Tensor Core 上以 FP8 执行</li><li><strong>记录</strong> amax(x) 到历史缓冲区</li>"><li><strong>读取缩放因子</strong> s = max(history) / fp8_max</li><li><strong>转换</strong> x → FP8（使用 s）</li><li><strong>GEMM</strong>在 Tensor Core 上以 FP8 执行</li><li><strong>记录</strong> amax(x) 到历史缓冲区</li></ol>
+            data-zh="<li><strong>读取缩放因子</strong> s = max(history) / fp8_max</li><li><strong>转换</strong> x → FP8（使用 s）</li><li><strong>GEMM</strong> 在 Tensor Core 上以 FP8 执行</li><li><strong>记录</strong> amax(x) 到历史缓冲区</li>"><li><strong>读取缩放因子</strong> s = max(history) / fp8_max</li><li><strong>转换</strong> x → FP8（使用 s）</li><li><strong>GEMM</strong> 在 Tensor Core 上以 FP8 执行</li><li><strong>记录</strong> amax(x) 到历史缓冲区</li></ol>
         </div>
       </div>
 
@@ -1407,6 +1407,7 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
 
       var FP8_MAX = 448;
       var N = 36;
+      var OVERFLOW_THRESHOLD_FACTOR = 0.99; /* bar is "overflow" if |v| > FP8_MAX * scale * OVERFLOW_THRESHOLD_FACTOR */
       var rawVals = [], animId = null, mode = 'before', animProg = 1.0;
 
       function genTensor() {
@@ -1512,7 +1513,7 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
           var bh = Math.abs(v) / maxAbs * ch / 2;
           var bx = pad.l + i * (cw / N) + 1;
           var by = v >= 0 ? zeroY - bh : zeroY;
-          var overflow = mode === 'before' && Math.abs(v) > FP8_MAX * (scale * 0.99);
+          var overflow = mode === 'before' && Math.abs(v) > FP8_MAX * (scale * OVERFLOW_THRESHOLD_FACTOR);
           ctx.fillStyle = overflow ? 'rgba(220,38,38,0.75)' : 'rgba(37,99,235,0.65)';
           ctx.beginPath();
           if (v >= 0) ctx.roundRect(bx, by, bw, bh, [3, 3, 0, 0]);
@@ -1583,6 +1584,7 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
 
       /* Simulation parameters */
       var W_HIST = 6;       /* history window size (small for clarity) */
+      var AUTO_PLAY_INTERVAL_MS = 700; /* ms between auto-play phase advances */
       var N_STEPS = 12;     /* total training steps to simulate */
       var FP8_MAX = 448;
 
@@ -1903,7 +1905,7 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
             return;
           }
           advance();
-        }, 700);
+        }, AUTO_PLAY_INTERVAL_MS);
       });
 
       window.addEventListener('resize', function() { resize(); draw(); });
