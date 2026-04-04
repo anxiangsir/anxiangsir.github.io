@@ -495,7 +495,7 @@
       html { scroll-behavior: auto; }
       * { transition: none !important; animation: none !important; }
     }
-    /* === VISITOR MAP === */
+    /* === VISITOR MAP (hidden) ===
     .visitor-map-container {
       width: 100%;
       border: 1px solid var(--color-border-light, #d8d8d8);
@@ -533,6 +533,7 @@
       transition: opacity 0.2s ease;
       white-space: nowrap;
     }
+    === end visitor map CSS */
     /* === CITATION MAP === */
     .citation-map-container {
       width: 100%;
@@ -650,7 +651,7 @@
           </ol>
         </li>
         <li><a href="#external-links">External Links</a></li>
-        <li><a href="#visitor-map">Visitor Map</a></li>
+        <!-- <li><a href="#visitor-map">Visitor Map</a></li> -->
         <li><a href="#citation-map">Citation Map</a></li>
       </ol>
     </aside>
@@ -889,11 +890,13 @@
     </aside>
   </div>
 
+  <!-- Visitor Map section hidden (先隐藏)
   <div style="max-width: 960px; margin: 16px auto 0; padding: 0 20px;">
       <h2 id="visitor-map">Visitor Map <a class="section-anchor" href="#visitor-map">§</a></h2>
       <div id="visitor-stats" style="margin-bottom: 12px; font-weight: bold; color: var(--color-text);">Loading visitor data...</div>
       <div id="visitor-map-container" class="visitor-map-container"></div>
   </div>
+  -->
 
   <div style="max-width: 960px; margin: 16px auto 0; padding: 0 20px;">
       <h2 id="citation-map">Citation Map <a class="section-anchor" href="#citation-map">§</a></h2>
@@ -953,7 +956,7 @@
     })();
   </script>
 
-  <!-- Visitor Map Integration -->
+  <!-- Visitor Map Integration (hidden)
   <script>
     (function() {
       const VERCEL_ORIGIN = 'https://anxiangsir-github-io.vercel.app';
@@ -1066,6 +1069,7 @@
     })();
     // end of map script
   </script>
+  -->
 
   <!-- Citation Map Integration -->
   <script>
@@ -1128,8 +1132,8 @@
       }
 
       // Robinson projection: lat/lng -> SVG coordinates
-      // Calibrated against world-map.min.svg (viewBox: 30.767 241.591 784.077 458.627)
-      // X mean error: 0.94 SVG units, Y mean error: 3.07 SVG units (from 65 reference points)
+      // Calibrated against world-map.min.svg using 43 tiny-country centroids
+      // +3 SVG-unit X nudge to compensate for simplified SVG coastlines
       function latLngToSvg(lat, lng) {
         var ROBINSON_PLEN = [
           1.0000, 0.9986, 0.9954, 0.9900, 0.9822, 0.9730, 0.9600, 0.9427,
@@ -1142,8 +1146,8 @@
         var t = (absLat - idx * 5) / 5;
         var plen = ROBINSON_PLEN[idx] + t * (ROBINSON_PLEN[idx + 1] - ROBINSON_PLEN[idx]);
         var robX = plen * lng / 180.0;
-        var x = 438.6944 * robX + 406.95;
-        var y = -0.000459 * lat * lat + -2.7228 * lat + 531.88;
+        var x = 439.5259 * robX + 410.0264;
+        var y = 0.00008037 * lat * lat * lat - 0.006053 * lat * lat - 2.7430 * lat + 532.9403;
         return { x: x, y: y };
       }
 
