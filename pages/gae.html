@@ -505,7 +505,6 @@
         const T = 6;
         const rewards  = [0.3, -0.1, 0.8, 0.2, 0.5, 0.4];
         const values   = [2.1, 2.4, 1.9, 2.6, 2.3, 2.0, 1.8]; // V(s0)...V(s6)
-        const gamma_fixed = 0.99;
 
         let lam = 0.95;
         let gam = 0.99;
@@ -713,11 +712,6 @@
         window.addEventListener('resize', () => { resize(); draw(); });
         resize();
         draw();
-
-        // expose currentLang for button text sync
-        Object.defineProperty(window, 'currentLang', {
-          get() { return currentLang; }
-        });
       })();
     </script>
   </body>
