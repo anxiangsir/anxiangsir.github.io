@@ -1,0 +1,1785 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <script defer src="/_vercel/insights/script.js"></script>
+    <title>RaBitQ: Random Rotation for Binary Quantization</title>
+    <meta
+      name="description"
+      content="Interactive visualization of RaBitQ — random rotation and binary quantization for high-dimensional vector search"
+    />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- KaTeX for math rendering -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+    ></script>
+
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-alt: #f8f9fa;
+        --text: #1a1a2e;
+        --text-secondary: #555;
+        --accent: #2563eb;
+        --border: #e2e8f0;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif: "Cormorant Garamond", "Palatino Linotype",
+          "Book Antiqua", Palatino, serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-math: "JetBrains Mono", monospace;
+        --color-original: #e74c3c;
+        --color-rotated: #2ecc71;
+        --color-quantized: #3498db;
+        --color-query: #f39c12;
+      }
+
+      /* === Progress bar === */
+      .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: var(--accent);
+        z-index: 999;
+        transition: width 0.1s;
+      }
+
+      .site-nav {
+        max-width: 860px;
+        margin: 0 auto 1rem;
+        padding: 0 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--font-sans);
+        font-size: 0.85em;
+        flex-wrap: wrap;
+      }
+      .site-nav a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        padding: 2px 4px;
+      }
+      .site-nav a:hover {
+        color: var(--accent);
+        text-decoration: underline;
+      }
+      .site-nav .nav-sep {
+        color: var(--border);
+        user-select: none;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-serif);
+        line-height: 1.5;
+        padding: 2rem 1rem;
+        -webkit-text-size-adjust: 100%;
+      }
+      .article {
+        max-width: 860px;
+        margin: 0 auto;
+        background: var(--bg);
+        padding: 0 1rem 3rem;
+        position: relative;
+      }
+      .masthead {
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2.5rem;
+        position: relative;
+      }
+      .masthead-title {
+        font-family: var(--font-headline);
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        font-weight: 900;
+        line-height: 1.1;
+        margin: 0 0 10px;
+        color: var(--text);
+      }
+      .masthead-sub {
+        font-size: 1rem;
+        font-family: var(--font-sans);
+        margin-bottom: 10px;
+        color: var(--text-secondary);
+      }
+
+      .lang-toggle {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 40;
+        font-family: var(--font-sans);
+        padding: 6px 16px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-weight: bold;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        touch-action: manipulation;
+      }
+      .lang-toggle:hover {
+        background: var(--bg-alt);
+        color: var(--text);
+        border-color: var(--text-secondary);
+      }
+
+      /* === Canvas wrapper === */
+      .stage-wrapper {
+        width: 100%;
+        height: 420px;
+        position: relative;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 0 auto 35px;
+        background: var(--bg-alt);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        contain: layout style paint;
+      }
+      .stage-wrapper canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 60px);
+      }
+
+      .controls {
+        padding: 12px 20px;
+        background: var(--bg-alt);
+        border-top: 1px solid var(--border);
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: 10;
+        font-family: var(--font-sans);
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 120px;
+        gap: 4px;
+      }
+      .control-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        font-weight: bold;
+        color: var(--text);
+      }
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 6px;
+        background: var(--border);
+        border-radius: 4px;
+        outline: none;
+        touch-action: manipulation;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        margin-top: -7px;
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-play {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 16px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        transition: background 0.2s;
+        touch-action: manipulation;
+        white-space: nowrap;
+      }
+      .btn-play:hover {
+        background: #1d4ed8;
+      }
+
+      /* === Content styles === */
+      .phase-heading {
+        font-family: var(--font-headline);
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: left;
+        margin: 2.5rem 0 1rem;
+        border-top: 2px solid var(--border);
+        padding-top: 1.5rem;
+        color: var(--text);
+      }
+      .phase-desc {
+        font-family: var(--font-serif);
+        font-size: 1.05rem;
+        text-align: left;
+        max-width: none;
+        margin: 0 0 15px;
+        color: var(--text-secondary);
+        line-height: 1.75;
+      }
+
+      .math-block {
+        display: block;
+        text-align: center;
+        padding: 1.5rem 1rem;
+        background: var(--bg-alt);
+        border-left: 3px solid var(--accent);
+        margin: 2rem 0;
+        border-radius: 4px;
+        color: var(--text);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .key-stats {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+        margin: 25px 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        padding: 15px 0;
+        font-family: var(--font-headline);
+        font-weight: bold;
+        color: var(--text);
+      }
+      .key-stats div {
+        flex: 1;
+        border-right: 1px solid var(--border);
+      }
+      .key-stats div:last-child {
+        border-right: none;
+      }
+      .key-stats span {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 5px;
+        font-family: var(--font-sans);
+      }
+
+      .hero-content {
+        text-align: left;
+        padding: 1rem 0 2rem;
+      }
+      .hero-text {
+        font-size: 1.1rem;
+        max-width: none;
+        margin: 0;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      /* === Legend === */
+      .viz-legend {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.92);
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      .viz-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text);
+        font-weight: 600;
+      }
+      .viz-legend-color {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+      }
+
+      /* === Info counter === */
+      .viz-info {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        font-family: var(--font-math);
+        font-size: 0.85rem;
+        font-weight: bold;
+        z-index: 10;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.92);
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+
+      /* === Pipeline diagram === */
+      .pipeline {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+      }
+      .pipeline-step {
+        background: var(--bg-alt);
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 18px;
+        text-align: center;
+        font-family: var(--font-sans);
+        font-size: 0.88rem;
+        font-weight: 600;
+        min-width: 130px;
+        transition: all 0.2s;
+      }
+      .pipeline-step:hover {
+        border-color: var(--accent);
+        box-shadow: 0 2px 10px rgba(37, 99, 235, 0.15);
+      }
+      .pipeline-step small {
+        display: block;
+        font-weight: 400;
+        color: var(--text-secondary);
+        margin-top: 4px;
+        font-size: 0.8em;
+      }
+      .pipeline-arrow {
+        font-size: 1.5rem;
+        color: var(--accent);
+        padding: 0 6px;
+        font-weight: bold;
+      }
+
+      /* === TOC === */
+      .toc {
+        position: fixed;
+        right: max(calc((100vw - 860px) / 2 - 220px), 12px);
+        top: 120px;
+        width: 180px;
+        font-family: var(--font-sans);
+        font-size: 0.78rem;
+        z-index: 50;
+      }
+      .toc a {
+        display: block;
+        padding: 4px 0;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-left: 2px solid transparent;
+        padding-left: 10px;
+        transition: all 0.15s;
+      }
+      .toc a:hover,
+      .toc a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+      }
+
+      /* === Insight box === */
+      .insight-box {
+        background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+        border: 1px solid #bfdbfe;
+        border-left: 4px solid var(--accent);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin: 1.5rem 0;
+        font-family: var(--font-sans);
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+      .insight-box strong {
+        color: var(--accent);
+      }
+
+      /* === Responsive === */
+      @media (max-width: 1200px) {
+        .toc {
+          display: none;
+        }
+      }
+      @media (max-width: 600px) {
+        .stage-wrapper {
+          height: 350px;
+        }
+        .controls {
+          padding: 8px 12px;
+        }
+        .pipeline {
+          flex-direction: column;
+          gap: 0;
+        }
+        .pipeline-arrow {
+          transform: rotate(90deg);
+          padding: 4px 0;
+        }
+        .key-stats {
+          flex-direction: column;
+          gap: 12px;
+        }
+        .key-stats div {
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding-bottom: 8px;
+        }
+        .key-stats div:last-child {
+          border-bottom: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="progress-bar" id="progress-bar"></div>
+
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+    </nav>
+
+    <article class="article">
+      <div class="masthead">
+        <button class="lang-toggle" id="langBtn" type="button">中/EN</button>
+        <h1 class="masthead-title">
+          RaBitQ: Random Rotation for Binary Quantization
+        </h1>
+        <p class="masthead-sub" id="masthead-sub">
+          Quantizing High-Dimensional Vectors with a Theoretical Error Bound
+          for Approximate Nearest Neighbor Search
+        </p>
+        <p
+          style="
+            font-family: var(--font-sans);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+          "
+        >
+          Gao &amp; Long · SIGMOD 2024 ·
+          <a
+            href="https://arxiv.org/abs/2405.12497"
+            target="_blank"
+            style="color: var(--accent)"
+            >arXiv:2405.12497</a
+          >
+        </p>
+      </div>
+
+      <!-- ========== TOC ========== -->
+      <nav class="toc" id="toc"></nav>
+
+      <!-- ========== Key Stats ========== -->
+      <div class="key-stats">
+        <div>
+          32×
+          <span data-en="Compression Ratio" data-zh="压缩比率"
+            >Compression Ratio</span
+          >
+        </div>
+        <div>
+          1 bit
+          <span data-en="Per Dimension" data-zh="每维仅需">Per Dimension</span>
+        </div>
+        <div>
+          O(1/√D)
+          <span data-en="Error Bound" data-zh="误差上界">Error Bound</span>
+        </div>
+        <div>
+          4× QPS
+          <span data-en="Speed Boost" data-zh="速度提升">Speed Boost</span>
+        </div>
+      </div>
+
+      <!-- ========== Hero ========== -->
+      <div class="hero-content">
+        <p class="hero-text" data-en="RaBitQ is a theoretically grounded quantization method that compresses each float32 vector dimension into a single bit — achieving 32× compression — while maintaining over 95% recall on benchmarks. The key innovation is a <strong>random rotation</strong> preprocessing step that uniformly distributes information across dimensions, enabling effective binary quantization with provable error bounds." data-zh="RaBitQ 是一种有理论保证的量化方法，将每个 float32 维度压缩为单个比特——实现 32 倍压缩——同时在基准测试中保持 95% 以上的召回率。核心创新是 <strong>随机旋转</strong> 预处理步骤，使信息均匀分布在各维度上，从而实现有可证明误差界的有效二值量化。">
+          RaBitQ is a theoretically grounded quantization method that compresses
+          each float32 vector dimension into a single bit — achieving 32×
+          compression — while maintaining over 95% recall on benchmarks. The key
+          innovation is a <strong>random rotation</strong> preprocessing step
+          that uniformly distributes information across dimensions, enabling
+          effective binary quantization with provable error bounds.
+        </p>
+      </div>
+
+      <!-- ========== Pipeline Overview ========== -->
+      <h2 class="phase-heading" id="sec-pipeline"
+        data-en="§1 Algorithm Pipeline"
+        data-zh="§1 算法流程">
+        §1 Algorithm Pipeline
+      </h2>
+      <p class="phase-desc"
+        data-en="RaBitQ transforms high-dimensional float vectors into compact binary codes through a four-step pipeline. The random rotation is the key step that makes the subsequent binary quantization work effectively."
+        data-zh="RaBitQ 通过四步流程将高维浮点向量转换为紧凑的二进制编码。随机旋转是关键步骤，使后续的二值量化能够有效工作。">
+        RaBitQ transforms high-dimensional float vectors into compact binary
+        codes through a four-step pipeline. The random rotation is the key step
+        that makes the subsequent binary quantization work effectively.
+      </p>
+
+      <div class="pipeline">
+        <div class="pipeline-step">
+          📐
+          <span data-en="Centroid" data-zh="中心偏移">Centroid</span>
+          <small data-en="v = x − c" data-zh="v = x − c">v = x − c</small>
+        </div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-step">
+          📏
+          <span data-en="Normalize" data-zh="归一化">Normalize</span>
+          <small data-en="v̂ = v / ‖v‖" data-zh="v̂ = v / ‖v‖"
+            >v̂ = v / ‖v‖</small
+          >
+        </div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-step" style="border-color: var(--accent)">
+          🔄
+          <span data-en="Random Rotate" data-zh="随机旋转">Random Rotate</span>
+          <small data-en="z = P · v̂" data-zh="z = P · v̂">z = P · v̂</small>
+        </div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-step">
+          ⚡
+          <span data-en="Quantize" data-zh="二值量化">Quantize</span>
+          <small data-en="bᵢ = sign(zᵢ)" data-zh="bᵢ = sign(zᵢ)"
+            >bᵢ = sign(zᵢ)</small
+          >
+        </div>
+      </div>
+
+      <!-- ========== §2 Random Rotation ========== -->
+      <h2 class="phase-heading" id="sec-rotation"
+        data-en="§2 The Random Rotation Technique"
+        data-zh="§2 随机旋转技术">
+        §2 The Random Rotation Technique
+      </h2>
+      <p class="phase-desc"
+        data-en="The core insight of RaBitQ is: before quantizing, apply a random orthogonal transformation P to each vector. This rotation spreads information evenly across all coordinates, so that no single dimension dominates. After rotation, binary quantization (taking the sign of each coordinate) produces a high-quality approximation."
+        data-zh="RaBitQ 的核心洞察：在量化之前，对每个向量施加随机正交变换 P。这个旋转将信息均匀分散到所有坐标上，使得没有单一维度占主导。旋转之后，二值量化（取每个坐标的符号）就能产生高质量的近似。">
+        The core insight of RaBitQ is: before quantizing, apply a random
+        orthogonal transformation P to each vector. This rotation spreads
+        information evenly across all coordinates, so that no single dimension
+        dominates. After rotation, binary quantization (taking the sign of each
+        coordinate) produces a high-quality approximation.
+      </p>
+
+      <div class="math-block">
+        $$\hat{v} = \frac{x - c}{\|x - c\|_2}, \quad z = P \cdot \hat{v},
+        \quad b_i = \begin{cases} +1 & \text{if } z_i \geq 0 \\ -1 &
+        \text{if } z_i < 0 \end{cases}$$
+      </div>
+
+      <div class="insight-box"
+        data-en="<strong>💡 Why rotate?</strong> In the original space, vectors may have most of their energy concentrated in a few dimensions. Direct binary quantization would lose critical information. Random rotation 'spreads' the energy uniformly, so each bit of the binary code carries roughly equal information — maximizing the utility of every bit."
+        data-zh="<strong>💡 为什么要旋转？</strong> 在原始空间中，向量的大部分能量可能集中在少数维度上。直接二值量化会丢失关键信息。随机旋转将能量均匀'分散'，使二进制码的每个比特携带大致相等的信息——最大化每个比特的利用率。">
+        <strong>💡 Why rotate?</strong> In the original space, vectors may have
+        most of their energy concentrated in a few dimensions. Direct binary
+        quantization would lose critical information. Random rotation "spreads"
+        the energy uniformly, so each bit of the binary code carries roughly
+        equal information — maximizing the utility of every bit.
+      </div>
+
+      <!-- ========== Viz 1: Random Rotation ========== -->
+      <h2 class="phase-heading" id="sec-viz-rotation"
+        data-en="§3 Interactive: 2D Random Rotation"
+        data-zh="§3 交互演示：二维随机旋转">
+        §3 Interactive: 2D Random Rotation
+      </h2>
+      <p class="phase-desc"
+        data-en="The canvas below shows how random rotation transforms vectors in 2D. Original vectors (red) are rotated by angle θ to produce rotated vectors (green). Notice how after rotation, the vectors are more 'spread out' — their projections onto the X and Y axes become more balanced. Click 'Animate' to see the rotation in action."
+        data-zh="下方画布展示了随机旋转在二维中如何变换向量。原始向量（红色）被旋转角度 θ 后产生旋转向量（绿色）。注意旋转后向量更加"分散"——它们在 X 和 Y 轴上的投影变得更均衡。点击"动画"可以看到旋转过程。">
+        The canvas below shows how random rotation transforms vectors in 2D.
+        Original vectors (red) are rotated by angle θ to produce rotated vectors
+        (green). Notice how after rotation, the vectors are more "spread out" —
+        their projections onto the X and Y axes become more balanced. Click
+        "Animate" to see the rotation in action.
+      </p>
+
+      <div class="stage-wrapper" id="stage-rotation">
+        <canvas id="canvas-rotation"></canvas>
+        <div class="viz-legend">
+          <div class="viz-legend-item">
+            <div
+              class="viz-legend-color"
+              style="background: var(--color-original)"
+            ></div>
+            <span data-en="Original" data-zh="原始向量">Original</span>
+          </div>
+          <div class="viz-legend-item">
+            <div
+              class="viz-legend-color"
+              style="background: var(--color-rotated)"
+            ></div>
+            <span data-en="Rotated" data-zh="旋转后">Rotated</span>
+          </div>
+        </div>
+        <div class="viz-info" id="rotation-info">θ = 0°</div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span data-en="Rotation θ" data-zh="旋转角 θ">Rotation θ</span>
+              <span id="label-theta">0°</span>
+            </div>
+            <input
+              type="range"
+              id="slider-theta"
+              min="0"
+              max="360"
+              value="0"
+              step="1"
+            />
+          </div>
+          <button class="btn-play" id="btn-rotate" type="button"
+            data-en="▶ Animate" data-zh="▶ 动画">
+            ▶ Animate
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== §4 Binary Quantization ========== -->
+      <h2 class="phase-heading" id="sec-quantization"
+        data-en="§4 Binary Quantization: Snapping to the Hypercube"
+        data-zh="§4 二值量化：映射到超立方体">
+        §4 Binary Quantization: Snapping to the Hypercube
+      </h2>
+      <p class="phase-desc"
+        data-en="After rotation, each coordinate of z is quantized to a single bit based on its sign. Geometrically, this 'snaps' the vector to the nearest vertex of the {±1/√D}ᴰ hypercube. Each D-dimensional vector becomes a D-bit binary code, achieving 32× compression over float32 storage."
+        data-zh="旋转之后，z 的每个坐标根据其符号被量化为单个比特。几何上，这将向量'吸附'到 {±1/√D}ᴰ 超立方体的最近顶点。每个 D 维向量变成 D 位二进制编码，相比 float32 存储实现 32 倍压缩。">
+        After rotation, each coordinate of z is quantized to a single bit based
+        on its sign. Geometrically, this "snaps" the vector to the nearest
+        vertex of the {±1/√D}ᴰ hypercube. Each D-dimensional vector becomes a
+        D-bit binary code, achieving 32× compression over float32 storage.
+      </p>
+
+      <div class="math-block">
+        $$\bar{o}_i = \begin{cases} +\frac{1}{\sqrt{D}} & \text{if } z_i \geq 0
+        \\ -\frac{1}{\sqrt{D}} & \text{if } z_i < 0 \end{cases}$$
+      </div>
+
+      <!-- ========== Viz 2: Quantization ========== -->
+      <h2 class="phase-heading" id="sec-viz-quantize"
+        data-en="§5 Interactive: Quantization in 2D"
+        data-zh="§5 交互演示：二维量化过程">
+        §5 Interactive: Quantization in 2D
+      </h2>
+      <p class="phase-desc"
+        data-en="This visualization shows the full pipeline: original vectors → random rotation → binary quantization. The blue dots are the quantized positions (vertices of the unit square in 2D). Drag the slider to rotate, and observe how different rotation angles lead to different quantization results."
+        data-zh="这个可视化展示了完整流程：原始向量 → 随机旋转 → 二值量化。蓝色点是量化后的位置（二维中正方形的顶点）。拖动滑块旋转，观察不同旋转角度如何导致不同的量化结果。">
+        This visualization shows the full pipeline: original vectors → random
+        rotation → binary quantization. The blue dots are the quantized
+        positions (vertices of the unit square in 2D). Drag the slider to
+        rotate, and observe how different rotation angles lead to different
+        quantization results.
+      </p>
+
+      <div class="stage-wrapper" id="stage-quantize">
+        <canvas id="canvas-quantize"></canvas>
+        <div class="viz-legend">
+          <div class="viz-legend-item">
+            <div
+              class="viz-legend-color"
+              style="background: var(--color-original)"
+            ></div>
+            <span data-en="Original" data-zh="原始">Original</span>
+          </div>
+          <div class="viz-legend-item">
+            <div
+              class="viz-legend-color"
+              style="background: var(--color-rotated)"
+            ></div>
+            <span data-en="Rotated" data-zh="旋转后">Rotated</span>
+          </div>
+          <div class="viz-legend-item">
+            <div
+              class="viz-legend-color"
+              style="background: var(--color-quantized)"
+            ></div>
+            <span data-en="Quantized" data-zh="量化后">Quantized</span>
+          </div>
+        </div>
+        <div class="viz-info" id="quantize-info">Error: 0.000</div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span data-en="Rotation θ" data-zh="旋转角 θ">Rotation θ</span>
+              <span id="label-theta2">0°</span>
+            </div>
+            <input
+              type="range"
+              id="slider-theta2"
+              min="0"
+              max="360"
+              value="45"
+              step="1"
+            />
+          </div>
+          <button class="btn-play" id="btn-randomize" type="button"
+            data-en="🔀 New Vectors" data-zh="🔀 新向量">
+            🔀 New Vectors
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== §6 Distance Estimation ========== -->
+      <h2 class="phase-heading" id="sec-distance"
+        data-en="§6 Distance Estimation"
+        data-zh="§6 距离估计">
+        §6 Distance Estimation
+      </h2>
+      <p class="phase-desc"
+        data-en="RaBitQ provides an unbiased estimator for the inner product between any data vector and a query vector. The query is also rotated by the same matrix P, and the distance is estimated using the quantized binary codes combined with stored scalar corrections (norms and dot products)."
+        data-zh="RaBitQ 为任意数据向量与查询向量之间的内积提供了无偏估计器。查询向量也用同一矩阵 P 旋转，距离则通过量化的二进制编码结合存储的标量校正值（范数和点积）来估计。">
+        RaBitQ provides an unbiased estimator for the inner product between any
+        data vector and a query vector. The query is also rotated by the same
+        matrix P, and the distance is estimated using the quantized binary codes
+        combined with stored scalar corrections (norms and dot products).
+      </p>
+
+      <div class="math-block">
+        $$\widehat{\langle x, q \rangle} \;=\; \|x-c\| \cdot \|q-c\| \cdot
+        \left[ \frac{2}{\sqrt{D}} \sum_{i} \bar{o}_i \cdot (P\hat{q})_i
+        \;+\; \langle \hat{v}, \bar{o} \rangle \;-\;
+        \frac{1}{\sqrt{D}} \sum_i (P\hat{q})_i \right]$$
+      </div>
+
+      <div class="insight-box"
+        data-en="<strong>💡 Bitwise acceleration:</strong> The summation Σ o̅ᵢ · (Pq̂)ᵢ can be decomposed into additions and subtractions controlled by the binary code bits. Using SIMD <code>POPCNT</code> instructions, this computes at hardware speed — turning expensive float multiplications into fast bit-counting operations."
+        data-zh="<strong>💡 位运算加速：</strong> 求和 Σ o̅ᵢ · (Pq̂)ᵢ 可以分解为由二进制码位控制的加减运算。利用 SIMD <code>POPCNT</code> 指令，这在硬件速度下计算——将昂贵的浮点乘法转为快速的比特计数操作。">
+        <strong>💡 Bitwise acceleration:</strong> The summation Σ o̅ᵢ · (Pq̂)ᵢ
+        can be decomposed into additions and subtractions controlled by the
+        binary code bits. Using SIMD <code>POPCNT</code> instructions, this
+        computes at hardware speed — turning expensive float multiplications
+        into fast bit-counting operations.
+      </div>
+
+      <!-- ========== Viz 3: Distance Estimation ========== -->
+      <h2 class="phase-heading" id="sec-viz-distance"
+        data-en="§7 Interactive: Distance Estimation Quality"
+        data-zh="§7 交互演示：距离估计质量">
+        §7 Interactive: Distance Estimation Quality
+      </h2>
+      <p class="phase-desc"
+        data-en="This chart shows how the quantization error decreases as dimension D increases. Each bar represents the average error (|estimated - true| / true) over many random vector pairs. The theoretical O(1/√D) bound is shown as a dashed line. As D grows, binary quantization becomes increasingly accurate."
+        data-zh="这张图展示了量化误差如何随维度 D 增大而减小。每个柱形代表大量随机向量对的平均误差（|估计值 - 真实值| / 真实值）。理论 O(1/√D) 界显示为虚线。随着 D 增大，二值量化变得越来越准确。">
+        This chart shows how the quantization error decreases as dimension D
+        increases. Each bar represents the average error (|estimated - true| /
+        true) over many random vector pairs. The theoretical O(1/√D) bound is
+        shown as a dashed line. As D grows, binary quantization becomes
+        increasingly accurate.
+      </p>
+
+      <div class="stage-wrapper" id="stage-error" style="height: 380px">
+        <canvas id="canvas-error"></canvas>
+        <div class="viz-info" id="error-info"
+          data-en="Hover for details" data-zh="悬停查看详情">
+          Hover for details
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span data-en="Num Trials" data-zh="试验次数">Num Trials</span>
+              <span id="label-trials">500</span>
+            </div>
+            <input
+              type="range"
+              id="slider-trials"
+              min="100"
+              max="2000"
+              value="500"
+              step="100"
+            />
+          </div>
+          <button class="btn-play" id="btn-rerun" type="button"
+            data-en="🔄 Re-run" data-zh="🔄 重新计算">
+            🔄 Re-run
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== §8 Concentration of Measure ========== -->
+      <h2 class="phase-heading" id="sec-concentration"
+        data-en="§8 Why It Works: Concentration of Measure"
+        data-zh="§8 为什么有效：测度集中现象">
+        §8 Why It Works: Concentration of Measure
+      </h2>
+      <p class="phase-desc"
+        data-en="In high-dimensional spaces, a remarkable phenomenon occurs: after random rotation, each coordinate of a unit vector concentrates around ±1/√D with high probability. This is the 'concentration of measure' phenomenon. It means binary quantization (snapping to ±1/√D) introduces only tiny errors per coordinate, and these errors average out across many dimensions."
+        data-zh="在高维空间中，一个显著的现象发生了：随机旋转后，单位向量的每个坐标以高概率集中在 ±1/√D 附近。这就是"测度集中"现象。它意味着二值量化（吸附到 ±1/√D）在每个坐标上只引入微小误差，而这些误差在多个维度上会互相抵消。">
+        In high-dimensional spaces, a remarkable phenomenon occurs: after random
+        rotation, each coordinate of a unit vector concentrates around ±1/√D
+        with high probability. This is the "concentration of measure"
+        phenomenon. It means binary quantization (snapping to ±1/√D) introduces
+        only tiny errors per coordinate, and these errors average out across
+        many dimensions.
+      </p>
+
+      <div class="math-block">
+        $$\text{After rotation: } z_i \approx \pm \frac{1}{\sqrt{D}} \quad
+        \Rightarrow \quad \|z - \bar{o}\|^2 = O\!\left(\frac{1}{D}\right)$$
+      </div>
+
+      <!-- ========== Viz 4: Concentration ========== -->
+      <h2 class="phase-heading" id="sec-viz-concentration"
+        data-en="§9 Interactive: Coordinate Distribution After Rotation"
+        data-zh="§9 交互演示：旋转后的坐标分布">
+        §9 Interactive: Coordinate Distribution After Rotation
+      </h2>
+      <p class="phase-desc"
+        data-en="This histogram shows the distribution of coordinate values after applying a random rotation to a unit vector in D dimensions. As D increases, the distribution concentrates tightly around ±1/√D (shown by blue dashed lines). This is why 1-bit quantization works well in high dimensions."
+        data-zh="这个直方图展示了在 D 维中对单位向量施加随机旋转后坐标值的分布。随着 D 增大，分布紧密地集中在 ±1/√D 附近（蓝色虚线所示）。这就是为什么 1 比特量化在高维中效果很好。">
+        This histogram shows the distribution of coordinate values after
+        applying a random rotation to a unit vector in D dimensions. As D
+        increases, the distribution concentrates tightly around ±1/√D (shown by
+        blue dashed lines). This is why 1-bit quantization works well in high
+        dimensions.
+      </p>
+
+      <div class="stage-wrapper" id="stage-histogram" style="height: 380px">
+        <canvas id="canvas-histogram"></canvas>
+        <div class="viz-info" id="hist-info">D = 128</div>
+        <div class="controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span data-en="Dimension D" data-zh="维度 D">Dimension D</span>
+              <span id="label-dim">128</span>
+            </div>
+            <input
+              type="range"
+              id="slider-dim"
+              min="2"
+              max="1024"
+              value="128"
+              step="1"
+            />
+          </div>
+          <button class="btn-play" id="btn-resample" type="button"
+            data-en="🔀 Resample" data-zh="🔀 重采样">
+            🔀 Resample
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== §10 Error Bound ========== -->
+      <h2 class="phase-heading" id="sec-error-bound"
+        data-en="§10 Theoretical Error Bound"
+        data-zh="§10 理论误差界">
+        §10 Theoretical Error Bound
+      </h2>
+      <p class="phase-desc"
+        data-en="RaBitQ's major theoretical contribution is an explicit, sharp error bound. For any pair of vectors, the estimated inner product is unbiased, and the estimation error is bounded by O(1/√D). This guarantee is asymptotically optimal and vastly superior to Product Quantization (PQ) which has no such theoretical bound."
+        data-zh="RaBitQ 的主要理论贡献是一个明确且紧致的误差界。对于任意向量对，估计的内积是无偏的，估计误差的界为 O(1/√D)。这个保证是渐近最优的，远优于没有此类理论界的乘积量化（PQ）。">
+        RaBitQ's major theoretical contribution is an explicit, sharp error
+        bound. For any pair of vectors, the estimated inner product is unbiased,
+        and the estimation error is bounded by O(1/√D). This guarantee is
+        asymptotically optimal and vastly superior to Product Quantization (PQ)
+        which has no such theoretical bound.
+      </p>
+
+      <div class="math-block">
+        $$\Pr\!\left[\;\left|\widehat{\langle x,q\rangle} - \langle
+        x,q\rangle\right| \;\geq\; \epsilon \;\right] \;\leq\;
+        2\exp\!\left(-\frac{\epsilon^2 D}{2}\right)$$
+      </div>
+
+      <div class="insight-box"
+        data-en="<strong>💡 Comparison with PQ:</strong> Product Quantization lacks theoretical error bounds. Its codebook-based approach can fail catastrophically on certain data distributions. RaBitQ's randomization-based approach provides worst-case guarantees while achieving better or comparable empirical performance."
+        data-zh="<strong>💡 与 PQ 对比：</strong> 乘积量化缺乏理论误差界。其基于码本的方法在某些数据分布上可能灾难性地失败。RaBitQ 基于随机化的方法提供最坏情况保证，同时实现更好或可比的实际性能。">
+        <strong>💡 Comparison with PQ:</strong> Product Quantization lacks
+        theoretical error bounds. Its codebook-based approach can fail
+        catastrophically on certain data distributions. RaBitQ's
+        randomization-based approach provides worst-case guarantees while
+        achieving better or comparable empirical performance.
+      </div>
+
+      <!-- ========== §11 Summary ========== -->
+      <h2 class="phase-heading" id="sec-summary"
+        data-en="§11 Summary"
+        data-zh="§11 总结">
+        §11 Summary
+      </h2>
+      <p class="phase-desc"
+        data-en="RaBitQ demonstrates that a simple random rotation before quantization can dramatically improve binary quantization quality. The method is elegant, theoretically grounded, and practically efficient — making it an excellent choice for large-scale approximate nearest neighbor search in vector databases."
+        data-zh="RaBitQ 证明了在量化之前进行简单的随机旋转可以显著提高二值量化质量。该方法优雅、有理论基础且实际高效——使其成为向量数据库中大规模近似最近邻搜索的极佳选择。">
+        RaBitQ demonstrates that a simple random rotation before quantization
+        can dramatically improve binary quantization quality. The method is
+        elegant, theoretically grounded, and practically efficient — making it
+        an excellent choice for large-scale approximate nearest neighbor search
+        in vector databases.
+      </p>
+
+      <div class="insight-box"
+        data-en="<strong>🔗 Resources:</strong> <a href='https://arxiv.org/abs/2405.12497' target='_blank'>Paper (arXiv)</a> · <a href='https://github.com/gaoj0017/RaBitQ' target='_blank'>Original Code</a> · <a href='https://github.com/VectorDB-NTU/RaBitQ-Library' target='_blank'>RaBitQ Library</a> · Adopted by Milvus, LanceDB, Tencent Cloud VDB and more."
+        data-zh="<strong>🔗 相关资源：</strong> <a href='https://arxiv.org/abs/2405.12497' target='_blank'>论文 (arXiv)</a> · <a href='https://github.com/gaoj0017/RaBitQ' target='_blank'>原始代码</a> · <a href='https://github.com/VectorDB-NTU/RaBitQ-Library' target='_blank'>RaBitQ 库</a> · 已被 Milvus、LanceDB、腾讯云 VDB 等采用。">
+        <strong>🔗 Resources:</strong>
+        <a href="https://arxiv.org/abs/2405.12497" target="_blank">Paper (arXiv)</a>
+        ·
+        <a href="https://github.com/gaoj0017/RaBitQ" target="_blank">Original Code</a>
+        ·
+        <a href="https://github.com/VectorDB-NTU/RaBitQ-Library" target="_blank">RaBitQ Library</a>
+        · Adopted by Milvus, LanceDB, Tencent Cloud VDB and more.
+      </div>
+    </article>
+
+    <script>
+      /* =========================================================
+         RaBitQ Interactive Visualizations
+         ========================================================= */
+
+      // ---------- i18n ----------
+      let lang = "en";
+      const langBtn = document.getElementById("langBtn");
+      function updateI18n() {
+        document
+          .querySelectorAll("[data-en]")
+          .forEach(
+            (el) => (el.innerHTML = el.getAttribute("data-" + lang) || "")
+          );
+        langBtn.textContent = lang === "en" ? "中/EN" : "EN/中";
+      }
+      langBtn.addEventListener("click", () => {
+        lang = lang === "en" ? "zh" : "en";
+        updateI18n();
+      });
+
+      // ---------- TOC ----------
+      function renderTOC() {
+        const toc = document.getElementById("toc");
+        const headings = document.querySelectorAll(".phase-heading[id]");
+        toc.innerHTML = "";
+        headings.forEach((h) => {
+          const a = document.createElement("a");
+          a.href = "#" + h.id;
+          a.textContent = h.textContent.replace(/^§\d+\s*/, "");
+          toc.appendChild(a);
+        });
+      }
+
+      // ---------- Progress bar ----------
+      function updateProgress() {
+        const scroll = window.scrollY;
+        const total =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const pct = total > 0 ? (scroll / total) * 100 : 0;
+        document.getElementById("progress-bar").style.width = pct + "%";
+      }
+      window.addEventListener("scroll", updateProgress);
+
+      // ---------- Active TOC highlight ----------
+      function updateActiveTOC() {
+        const headings = document.querySelectorAll(".phase-heading[id]");
+        const links = document.querySelectorAll(".toc a");
+        let current = "";
+        headings.forEach((h) => {
+          if (h.getBoundingClientRect().top < 150) current = h.id;
+        });
+        links.forEach((a) => {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + current);
+        });
+      }
+      window.addEventListener("scroll", updateActiveTOC);
+
+      // ============ UTILITY ============
+      function randGauss() {
+        let u = 0,
+          v = 0;
+        while (u === 0) u = Math.random();
+        while (v === 0) v = Math.random();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+      }
+
+      function randomUnitVector(D) {
+        const v = new Float64Array(D);
+        let norm = 0;
+        for (let i = 0; i < D; i++) {
+          v[i] = randGauss();
+          norm += v[i] * v[i];
+        }
+        norm = Math.sqrt(norm);
+        for (let i = 0; i < D; i++) v[i] /= norm;
+        return v;
+      }
+
+      // Random orthogonal matrix via QR of Gaussian (Gram-Schmidt for D small)
+      function randomOrthogonal(D) {
+        const Q = [];
+        for (let i = 0; i < D; i++) {
+          const row = new Float64Array(D);
+          for (let j = 0; j < D; j++) row[j] = randGauss();
+          // Gram-Schmidt
+          for (let k = 0; k < i; k++) {
+            let dot = 0;
+            for (let j = 0; j < D; j++) dot += row[j] * Q[k][j];
+            for (let j = 0; j < D; j++) row[j] -= dot * Q[k][j];
+          }
+          let norm = 0;
+          for (let j = 0; j < D; j++) norm += row[j] * row[j];
+          norm = Math.sqrt(norm);
+          for (let j = 0; j < D; j++) row[j] /= norm;
+          Q.push(row);
+        }
+        return Q;
+      }
+
+      function matVecMul(M, v) {
+        const D = v.length;
+        const r = new Float64Array(D);
+        for (let i = 0; i < D; i++) {
+          let s = 0;
+          for (let j = 0; j < D; j++) s += M[i][j] * v[j];
+          r[i] = s;
+        }
+        return r;
+      }
+
+      function dot(a, b) {
+        let s = 0;
+        for (let i = 0; i < a.length; i++) s += a[i] * b[i];
+        return s;
+      }
+
+      // ============ VIZ 1: ROTATION ============
+      ;(function () {
+        const canvas = document.getElementById("canvas-rotation");
+        const ctx = canvas.getContext("2d");
+        const slider = document.getElementById("slider-theta");
+        const label = document.getElementById("label-theta");
+        const info = document.getElementById("rotation-info");
+        const btn = document.getElementById("btn-rotate");
+
+        // Generate some random 2D unit vectors
+        const N = 8;
+        const origVecs = [];
+        for (let i = 0; i < N; i++) {
+          const angle = (Math.PI * 2 * i) / N + (Math.random() - 0.5) * 0.5;
+          const r = 0.5 + Math.random() * 0.4;
+          origVecs.push([Math.cos(angle) * r, Math.sin(angle) * r]);
+        }
+
+        let animating = false;
+        let animId = null;
+
+        function resize() {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = rect.width * dpr;
+          canvas.height = (rect.height - 60) * dpr;
+          canvas.style.width = rect.width + "px";
+          canvas.style.height = rect.height - 60 + "px";
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function draw() {
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          const h = canvas.height / (window.devicePixelRatio || 1);
+          const cx = w / 2;
+          const cy = h / 2;
+          const scale = Math.min(w, h) * 0.38;
+          const theta = (parseFloat(slider.value) * Math.PI) / 180;
+
+          ctx.clearRect(0, 0, w, h);
+
+          // Grid
+          ctx.strokeStyle = "#e0e0e0";
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(0, cy);
+          ctx.lineTo(w, cy);
+          ctx.moveTo(cx, 0);
+          ctx.lineTo(cx, h);
+          ctx.stroke();
+
+          // Unit circle
+          ctx.strokeStyle = "#d0d0d0";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.arc(cx, cy, scale, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          const cosT = Math.cos(theta);
+          const sinT = Math.sin(theta);
+
+          // Draw vectors
+          origVecs.forEach((v) => {
+            const ox = v[0],
+              oy = v[1];
+            const rx = ox * cosT - oy * sinT;
+            const ry = ox * sinT + oy * cosT;
+
+            // Original (red)
+            ctx.strokeStyle = "rgba(231, 76, 60, 0.5)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + ox * scale, cy - oy * scale);
+            ctx.stroke();
+            ctx.fillStyle = "rgba(231, 76, 60, 0.8)";
+            ctx.beginPath();
+            ctx.arc(cx + ox * scale, cy - oy * scale, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Rotated (green)
+            ctx.strokeStyle = "rgba(46, 204, 113, 0.8)";
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + rx * scale, cy - ry * scale);
+            ctx.stroke();
+            ctx.fillStyle = "rgba(46, 204, 113, 0.9)";
+            ctx.beginPath();
+            ctx.arc(cx + rx * scale, cy - ry * scale, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Rotation arc
+            if (Math.abs(theta) > 0.01) {
+              const origAngle = Math.atan2(oy, ox);
+              ctx.strokeStyle = "rgba(46, 204, 113, 0.25)";
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              const r2 = Math.sqrt(ox * ox + oy * oy) * scale;
+              ctx.arc(cx, cy, r2, -origAngle, -(origAngle + theta), theta > 0);
+              ctx.stroke();
+            }
+          });
+
+          label.textContent = slider.value + "°";
+          info.textContent = "θ = " + slider.value + "°";
+        }
+
+        slider.addEventListener("input", draw);
+
+        btn.addEventListener("click", () => {
+          if (animating) {
+            animating = false;
+            btn.innerHTML = lang === "zh" ? "▶ 动画" : "▶ Animate";
+            if (animId) cancelAnimationFrame(animId);
+            return;
+          }
+          animating = true;
+          btn.innerHTML = lang === "zh" ? "⏸ 暂停" : "⏸ Pause";
+          function anim() {
+            if (!animating) return;
+            let v = parseFloat(slider.value) + 0.5;
+            if (v > 360) v = 0;
+            slider.value = v;
+            draw();
+            animId = requestAnimationFrame(anim);
+          }
+          anim();
+        });
+
+        window.addEventListener("resize", () => {
+          resize();
+          draw();
+        });
+        resize();
+        draw();
+      })();
+
+      // ============ VIZ 2: QUANTIZATION ============
+      ;(function () {
+        const canvas = document.getElementById("canvas-quantize");
+        const ctx = canvas.getContext("2d");
+        const slider = document.getElementById("slider-theta2");
+        const label = document.getElementById("label-theta2");
+        const info = document.getElementById("quantize-info");
+        const btn = document.getElementById("btn-randomize");
+
+        let vectors = generateVecs();
+
+        function generateVecs() {
+          const vecs = [];
+          for (let i = 0; i < 12; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = 0.3 + Math.random() * 0.6;
+            vecs.push([Math.cos(a) * r, Math.sin(a) * r]);
+          }
+          return vecs;
+        }
+
+        function resize() {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = rect.width * dpr;
+          canvas.height = (rect.height - 60) * dpr;
+          canvas.style.width = rect.width + "px";
+          canvas.style.height = rect.height - 60 + "px";
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function draw() {
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          const h = canvas.height / (window.devicePixelRatio || 1);
+          const cx = w / 2;
+          const cy = h / 2;
+          const scale = Math.min(w, h) * 0.35;
+          const theta = (parseFloat(slider.value) * Math.PI) / 180;
+          const cosT = Math.cos(theta);
+          const sinT = Math.sin(theta);
+          const inv2 = 1 / Math.sqrt(2);
+
+          ctx.clearRect(0, 0, w, h);
+
+          // Grid
+          ctx.strokeStyle = "#e0e0e0";
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(0, cy);
+          ctx.lineTo(w, cy);
+          ctx.moveTo(cx, 0);
+          ctx.lineTo(cx, h);
+          ctx.stroke();
+
+          // Hypercube vertices in 2D: (±1/√2, ±1/√2)
+          const corners = [
+            [inv2, inv2],
+            [inv2, -inv2],
+            [-inv2, inv2],
+            [-inv2, -inv2],
+          ];
+          ctx.fillStyle = "rgba(52, 152, 219, 0.15)";
+          corners.forEach(([px, py]) => {
+            ctx.beginPath();
+            ctx.arc(cx + px * scale, cy - py * scale, 10, 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          // Draw hypercube box
+          ctx.strokeStyle = "rgba(52, 152, 219, 0.3)";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.strokeRect(
+            cx - inv2 * scale,
+            cy - inv2 * scale,
+            2 * inv2 * scale,
+            2 * inv2 * scale
+          );
+          ctx.setLineDash([]);
+
+          let totalError = 0;
+
+          vectors.forEach((v) => {
+            const ox = v[0],
+              oy = v[1];
+            // Normalize
+            const norm = Math.sqrt(ox * ox + oy * oy);
+            const nx = ox / norm,
+              ny = oy / norm;
+            // Rotate
+            const rx = nx * cosT - ny * sinT;
+            const ry = nx * sinT + ny * cosT;
+            // Quantize: snap to nearest hypercube vertex
+            const qx = rx >= 0 ? inv2 : -inv2;
+            const qy = ry >= 0 ? inv2 : -inv2;
+
+            // Error
+            const err = Math.sqrt(
+              (rx - qx) * (rx - qx) + (ry - qy) * (ry - qy)
+            );
+            totalError += err;
+
+            // Original (red, thin)
+            ctx.strokeStyle = "rgba(231, 76, 60, 0.35)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + nx * scale, cy - ny * scale);
+            ctx.stroke();
+            ctx.fillStyle = "rgba(231, 76, 60, 0.6)";
+            ctx.beginPath();
+            ctx.arc(cx + nx * scale, cy - ny * scale, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Rotated (green)
+            ctx.strokeStyle = "rgba(46, 204, 113, 0.6)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + rx * scale, cy - ry * scale);
+            ctx.stroke();
+            ctx.fillStyle = "rgba(46, 204, 113, 0.8)";
+            ctx.beginPath();
+            ctx.arc(cx + rx * scale, cy - ry * scale, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Quantized (blue)
+            ctx.fillStyle = "rgba(52, 152, 219, 0.9)";
+            ctx.beginPath();
+            ctx.arc(cx + qx * scale, cy - qy * scale, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Line from rotated to quantized
+            ctx.strokeStyle = "rgba(52, 152, 219, 0.4)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.moveTo(cx + rx * scale, cy - ry * scale);
+            ctx.lineTo(cx + qx * scale, cy - qy * scale);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          });
+
+          const avgErr = totalError / vectors.length;
+          label.textContent = slider.value + "°";
+          info.textContent =
+            (lang === "zh" ? "平均误差: " : "Avg Error: ") + avgErr.toFixed(3);
+        }
+
+        slider.addEventListener("input", draw);
+        btn.addEventListener("click", () => {
+          vectors = generateVecs();
+          draw();
+        });
+        window.addEventListener("resize", () => {
+          resize();
+          draw();
+        });
+        resize();
+        draw();
+      })();
+
+      // ============ VIZ 3: ERROR vs DIMENSION ============
+      ;(function () {
+        const canvas = document.getElementById("canvas-error");
+        const ctx = canvas.getContext("2d");
+        const slider = document.getElementById("slider-trials");
+        const label = document.getElementById("label-trials");
+        const info = document.getElementById("error-info");
+        const btn = document.getElementById("btn-rerun");
+
+        const dims = [4, 8, 16, 32, 64, 128, 256, 512, 1024];
+        let results = [];
+
+        function resize() {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = rect.width * dpr;
+          canvas.height = (rect.height - 60) * dpr;
+          canvas.style.width = rect.width + "px";
+          canvas.style.height = rect.height - 60 + "px";
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function runExperiment() {
+          const numTrials = parseInt(slider.value);
+          label.textContent = numTrials;
+          results = [];
+
+          dims.forEach((D) => {
+            let totalRelErr = 0;
+            const P = randomOrthogonal(D);
+
+            for (let t = 0; t < numTrials; t++) {
+              const x = randomUnitVector(D);
+              const q = randomUnitVector(D);
+
+              // True inner product
+              const trueDot = dot(x, q);
+
+              // Rotate
+              const zx = matVecMul(P, x);
+              const zq = matVecMul(P, q);
+
+              // Quantize x
+              const invSqrtD = 1 / Math.sqrt(D);
+              let estDot = 0;
+              for (let i = 0; i < D; i++) {
+                const sign = zx[i] >= 0 ? 1 : -1;
+                estDot += sign * invSqrtD * zq[i];
+              }
+
+              // Relative error
+              const absTrue = Math.abs(trueDot);
+              if (absTrue > 1e-8) {
+                totalRelErr += Math.abs(estDot - trueDot) / absTrue;
+              }
+            }
+            results.push(totalRelErr / numTrials);
+          });
+
+          drawChart();
+        }
+
+        let hoveredBar = -1;
+        function drawChart() {
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          const h = canvas.height / (window.devicePixelRatio || 1);
+          const pad = { top: 30, right: 30, bottom: 50, left: 60 };
+          const cw = w - pad.left - pad.right;
+          const ch = h - pad.top - pad.bottom;
+
+          ctx.clearRect(0, 0, w, h);
+
+          if (results.length === 0) return;
+
+          const maxVal = Math.max(...results) * 1.2;
+          const barW = cw / dims.length * 0.6;
+          const gap = cw / dims.length;
+
+          // Y axis
+          ctx.strokeStyle = "#ccc";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(pad.left, pad.top);
+          ctx.lineTo(pad.left, pad.top + ch);
+          ctx.lineTo(pad.left + cw, pad.top + ch);
+          ctx.stroke();
+
+          // Y ticks
+          ctx.fillStyle = "#666";
+          ctx.font = "11px 'JetBrains Mono', monospace";
+          ctx.textAlign = "right";
+          for (let i = 0; i <= 4; i++) {
+            const val = (maxVal * i) / 4;
+            const y = pad.top + ch - (val / maxVal) * ch;
+            ctx.fillText(val.toFixed(2), pad.left - 8, y + 4);
+            ctx.strokeStyle = "#eee";
+            ctx.beginPath();
+            ctx.moveTo(pad.left, y);
+            ctx.lineTo(pad.left + cw, y);
+            ctx.stroke();
+          }
+
+          // Bars
+          dims.forEach((d, i) => {
+            const x = pad.left + i * gap + (gap - barW) / 2;
+            const barH = (results[i] / maxVal) * ch;
+            const y = pad.top + ch - barH;
+
+            const isHovered = hoveredBar === i;
+            ctx.fillStyle = isHovered
+              ? "rgba(37, 99, 235, 0.9)"
+              : "rgba(37, 99, 235, 0.6)";
+            ctx.beginPath();
+            ctx.roundRect(x, y, barW, barH, [4, 4, 0, 0]);
+            ctx.fill();
+
+            // X label
+            ctx.fillStyle = "#666";
+            ctx.font = "11px 'JetBrains Mono', monospace";
+            ctx.textAlign = "center";
+            ctx.fillText(d.toString(), x + barW / 2, pad.top + ch + 18);
+
+            // Value on hover
+            if (isHovered) {
+              ctx.fillStyle = "#1a1a2e";
+              ctx.font = "bold 12px 'JetBrains Mono', monospace";
+              ctx.fillText(results[i].toFixed(4), x + barW / 2, y - 8);
+            }
+          });
+
+          // X axis label
+          ctx.fillStyle = "#999";
+          ctx.font = "12px 'Helvetica Neue', sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            lang === "zh" ? "维度 D" : "Dimension D",
+            pad.left + cw / 2,
+            pad.top + ch + 40
+          );
+
+          // Y axis label
+          ctx.save();
+          ctx.translate(15, pad.top + ch / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillStyle = "#999";
+          ctx.font = "12px 'Helvetica Neue', sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            lang === "zh" ? "相对误差" : "Relative Error",
+            0,
+            0
+          );
+          ctx.restore();
+
+          // Theoretical O(1/√D) line
+          ctx.strokeStyle = "rgba(231, 76, 60, 0.7)";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          // Scale: fit the line to be comparable with actual data
+          const c_theory = results[0] * Math.sqrt(dims[0]);
+          dims.forEach((d, i) => {
+            const theorVal = c_theory / Math.sqrt(d);
+            const x = pad.left + i * gap + gap / 2;
+            const y = pad.top + ch - (theorVal / maxVal) * ch;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Legend for theoretical line
+          ctx.fillStyle = "rgba(231, 76, 60, 0.9)";
+          ctx.font = "11px 'Helvetica Neue', sans-serif";
+          ctx.textAlign = "left";
+          ctx.fillText("— O(1/√D) bound", pad.left + cw - 110, pad.top + 15);
+        }
+
+        // Mouse hover
+        canvas.addEventListener("mousemove", (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const mx = e.clientX - rect.left;
+          const w = rect.width;
+          const pad_left = 60;
+          const pad_right = 30;
+          const cw = w - pad_left - pad_right;
+          const gap = cw / dims.length;
+
+          hoveredBar = -1;
+          dims.forEach((d, i) => {
+            const barX = pad_left + i * gap;
+            if (mx >= barX && mx < barX + gap) {
+              hoveredBar = i;
+              info.textContent = `D=${d}, Error=${results[i] ? results[i].toFixed(4) : "?"}`;
+            }
+          });
+          drawChart();
+        });
+
+        canvas.addEventListener("mouseleave", () => {
+          hoveredBar = -1;
+          info.textContent = lang === "zh" ? "悬停查看详情" : "Hover for details";
+          drawChart();
+        });
+
+        slider.addEventListener("input", () => {
+          label.textContent = slider.value;
+        });
+        btn.addEventListener("click", runExperiment);
+        window.addEventListener("resize", () => {
+          resize();
+          drawChart();
+        });
+        resize();
+        runExperiment();
+      })();
+
+      // ============ VIZ 4: HISTOGRAM ============
+      ;(function () {
+        const canvas = document.getElementById("canvas-histogram");
+        const ctx = canvas.getContext("2d");
+        const slider = document.getElementById("slider-dim");
+        const label = document.getElementById("label-dim");
+        const info = document.getElementById("hist-info");
+        const btn = document.getElementById("btn-resample");
+
+        function resize() {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = rect.width * dpr;
+          canvas.height = (rect.height - 60) * dpr;
+          canvas.style.width = rect.width + "px";
+          canvas.style.height = rect.height - 60 + "px";
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function draw() {
+          const D = parseInt(slider.value);
+          label.textContent = D;
+          info.textContent = "D = " + D;
+
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          const h = canvas.height / (window.devicePixelRatio || 1);
+          const pad = { top: 25, right: 20, bottom: 50, left: 50 };
+          const cw = w - pad.left - pad.right;
+          const ch = h - pad.top - pad.bottom;
+
+          ctx.clearRect(0, 0, w, h);
+
+          // Generate random rotated coordinates
+          const numVecs = 20;
+          const allCoords = [];
+          for (let v = 0; v < numVecs; v++) {
+            const vec = randomUnitVector(D);
+            // Apply a random rotation (implicit — random unit vector already
+            // has the right distribution after rotation)
+            for (let i = 0; i < D; i++) {
+              allCoords.push(vec[i]);
+            }
+          }
+
+          // Build histogram
+          const numBins = 40;
+          const range = D < 10 ? 1.5 : 0.6;
+          const binWidth = (2 * range) / numBins;
+          const bins = new Array(numBins).fill(0);
+
+          allCoords.forEach((val) => {
+            const idx = Math.floor((val + range) / binWidth);
+            if (idx >= 0 && idx < numBins) bins[idx]++;
+          });
+
+          const maxBin = Math.max(...bins);
+          const barW = cw / numBins;
+
+          // Axes
+          ctx.strokeStyle = "#ccc";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(pad.left, pad.top);
+          ctx.lineTo(pad.left, pad.top + ch);
+          ctx.lineTo(pad.left + cw, pad.top + ch);
+          ctx.stroke();
+
+          // Draw bars
+          bins.forEach((count, i) => {
+            const x = pad.left + i * barW;
+            const barH = maxBin > 0 ? (count / maxBin) * ch : 0;
+            const y = pad.top + ch - barH;
+
+            ctx.fillStyle = "rgba(37, 99, 235, 0.5)";
+            ctx.fillRect(x, y, barW - 1, barH);
+          });
+
+          // ±1/√D lines
+          const invSqrtD = 1 / Math.sqrt(D);
+          const posX =
+            pad.left + ((invSqrtD + range) / (2 * range)) * cw;
+          const negX =
+            pad.left + ((-invSqrtD + range) / (2 * range)) * cw;
+
+          ctx.strokeStyle = "rgba(52, 152, 219, 0.8)";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 3]);
+          [posX, negX].forEach((lx) => {
+            ctx.beginPath();
+            ctx.moveTo(lx, pad.top);
+            ctx.lineTo(lx, pad.top + ch);
+            ctx.stroke();
+          });
+          ctx.setLineDash([]);
+
+          // Labels for ±1/√D
+          ctx.fillStyle = "rgba(52, 152, 219, 0.9)";
+          ctx.font = "bold 11px 'JetBrains Mono', monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("+1/√" + D, posX, pad.top + ch + 30);
+          ctx.fillText("-1/√" + D, negX, pad.top + ch + 30);
+
+          // Zero line
+          const zeroX = pad.left + (range / (2 * range)) * cw;
+          ctx.strokeStyle = "#ddd";
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(zeroX, pad.top);
+          ctx.lineTo(zeroX, pad.top + ch);
+          ctx.stroke();
+          ctx.fillStyle = "#999";
+          ctx.font = "10px 'Helvetica Neue', sans-serif";
+          ctx.fillText("0", zeroX, pad.top + ch + 15);
+
+          // X axis label
+          ctx.fillStyle = "#999";
+          ctx.font = "12px 'Helvetica Neue', sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            lang === "zh" ? "坐标值" : "Coordinate Value",
+            pad.left + cw / 2,
+            pad.top + ch + 45
+          );
+
+          // Y axis label
+          ctx.save();
+          ctx.translate(14, pad.top + ch / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillStyle = "#999";
+          ctx.font = "12px 'Helvetica Neue', sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            lang === "zh" ? "频次" : "Count",
+            0,
+            0
+          );
+          ctx.restore();
+        }
+
+        slider.addEventListener("input", draw);
+        btn.addEventListener("click", draw);
+        window.addEventListener("resize", () => {
+          resize();
+          draw();
+        });
+        resize();
+        draw();
+      })();
+
+      // ---------- Init ----------
+      setTimeout(() => {
+        updateI18n();
+        renderTOC();
+        updateProgress();
+        updateActiveTOC();
+      }, 100);
+    </script>
+  </body>
+</html>
