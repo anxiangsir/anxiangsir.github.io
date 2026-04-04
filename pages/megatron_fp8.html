@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <script defer src="/_vercel/insights/script.js"></script>
+    <title>Megatron FP8 量化训练</title>
+    <meta name="description" content="Interactive deep-dive into Megatron-LM FP8 quantized training — E4M3 vs E5M2 formats, tensor scaling, delayed scaling, and memory/throughput benefits." />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-alt: #f8f9fa;
+        --text: #1a1a2e;
+        --text-secondary: #555;
+        --accent: #2563eb;
+        --border: #e2e8f0;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-math: "JetBrains Mono", monospace;
+      }
+
+      .progress-bar {
+        position: fixed; top: 0; left: 0; height: 3px;
+        background: var(--accent); z-index: 999; transition: width 0.1s;
+      }
+
+      .site-nav {
+        max-width: 860px; margin: 0 auto 1rem; padding: 0 0.5rem;
+        display: flex; align-items: center; justify-content: center;
+        gap: 8px; font-family: var(--font-sans); font-size: 0.85em; flex-wrap: wrap;
+      }
+      .site-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 600; letter-spacing: 0.02em; padding: 2px 4px; }
+      .site-nav a:hover { color: var(--accent); text-decoration: underline; }
+      .site-nav .nav-sep { color: var(--border); user-select: none; }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: var(--bg); color: var(--text); font-family: var(--font-serif); line-height: 1.5; padding: 2rem 1rem; -webkit-text-size-adjust: 100%; }
+
+      .article { max-width: 860px; margin: 0 auto; background: var(--bg); padding: 0 1rem 3rem; position: relative; }
+
+      .masthead { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2.5rem; position: relative; }
+      .masthead-title { font-family: var(--font-headline); font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin: 0 0 10px; color: var(--text); }
+      .masthead-sub { font-size: 1rem; font-family: var(--font-sans); margin-bottom: 10px; color: var(--text-secondary); }
+
+      .lang-toggle {
+        position: absolute; top: 10px; right: 10px; z-index: 40;
+        font-family: var(--font-sans); padding: 6px 16px; border: 1px solid var(--border);
+        background: var(--bg); cursor: pointer; color: var(--text-secondary); font-weight: bold;
+        border-radius: 20px; font-size: 0.85rem; transition: all 0.2s; touch-action: manipulation;
+      }
+      .lang-toggle:hover { background: var(--bg-alt); color: var(--text); border-color: var(--text-secondary); }
+
+      .stage-wrapper {
+        width: 100%; height: 460px; position: relative; border: 1px solid var(--border);
+        border-radius: 8px; overflow: hidden; margin: 0 auto 35px; background: var(--bg-alt);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; justify-content: center;
+        align-items: center; flex-direction: column; contain: layout style paint;
+      }
+      .stage-wrapper canvas { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 80px); }
+
+      .controls {
+        padding: 12px 20px; background: var(--bg-alt); border-top: 1px solid var(--border);
+        width: 100%; display: flex; align-items: center; justify-content: space-between;
+        position: absolute; bottom: 0; left: 0; z-index: 10; font-family: var(--font-sans);
+        gap: 12px; flex-wrap: wrap; min-height: 80px;
+      }
+      .control-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; gap: 4px; }
+      .control-label { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; color: var(--text); }
+      input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: var(--border); border-radius: 4px; outline: none; touch-action: manipulation; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); margin-top: -7px; }
+      input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+
+      .btn-play { background: var(--accent); color: white; border: none; border-radius: 4px; padding: 6px 16px; font-size: 0.8rem; font-weight: bold; cursor: pointer; font-family: var(--font-sans); transition: background 0.2s; touch-action: manipulation; white-space: nowrap; }
+      .btn-play:hover { background: #1d4ed8; }
+
+      .phase-heading { font-family: var(--font-headline); font-size: 1.5rem; font-weight: 700; text-align: left; margin: 2.5rem 0 1rem; border-top: 2px solid var(--border); padding-top: 1.5rem; color: var(--text); }
+      .phase-desc { font-family: var(--font-serif); font-size: 1.05rem; text-align: left; max-width: none; margin: 0 0 15px; color: var(--text-secondary); line-height: 1.75; }
+
+      .math-block { display: block; text-align: center; padding: 1.5rem 1rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+      .key-stats { display: flex; justify-content: space-around; text-align: center; margin: 25px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 15px 0; font-family: var(--font-headline); font-weight: bold; color: var(--text); }
+      .key-stats div { flex: 1; border-right: 1px solid var(--border); }
+      .key-stats div:last-child { border-right: none; }
+      .key-stats span { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px; font-family: var(--font-sans); }
+
+      .callout { background: var(--bg-alt); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; font-family: var(--font-sans); font-size: 0.95rem; color: var(--text); }
+      .callout strong { color: var(--accent); }
+
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+      @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+      .col-card { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; font-family: var(--font-sans); font-size: 0.9rem; color: var(--text); }
+      .col-card h4 { font-family: var(--font-headline); font-size: 1.05rem; margin-bottom: 0.5rem; color: var(--text); }
+
+      .analogy-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; font-family: var(--font-sans); font-size: 0.95rem; color: #78350f; }
+      .analogy-box .emoji { font-size: 1.5rem; margin-bottom: 0.4rem; display: block; }
+
+      pre, code { font-family: var(--font-math); }
+      pre { background: #1e1e2e; color: #cdd6f4; padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.6; margin: 1.5rem 0; }
+      code { background: var(--bg-alt); color: var(--accent); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+      pre code { background: transparent; color: inherit; padding: 0; }
+
+      .kw { color: #cba6f7; } .fn { color: #89b4fa; } .cm { color: #585b70; font-style: italic; }
+      .st { color: #a6e3a1; } .nm { color: #fab387; } .op { color: #89dceb; }
+
+      table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-family: var(--font-sans); font-size: 0.9rem; }
+      th { background: var(--bg-alt); font-weight: bold; border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+      td { border: 1px solid var(--border); padding: 9px 14px; }
+      tr:nth-child(even) td { background: var(--bg-alt); }
+
+      .viz-info { position: absolute; top: 12px; right: 12px; font-family: var(--font-math); font-size: 0.8rem; font-weight: bold; z-index: 10; color: var(--text); background: rgba(255,255,255,0.92); padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+      .pipeline { display: flex; align-items: center; justify-content: center; gap: 0; margin: 2rem 0; flex-wrap: wrap; }
+      .pipeline-step { background: var(--bg-alt); border: 2px solid var(--border); border-radius: 10px; padding: 12px 16px; text-align: center; font-family: var(--font-sans); font-size: 0.82rem; color: var(--text); min-width: 110px; }
+      .pipeline-step.highlight { border-color: var(--accent); background: #eff6ff; color: var(--accent); font-weight: bold; }
+      .pipeline-arrow { font-size: 1.4rem; color: var(--border); padding: 0 4px; }
+
+      .toc-section { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 2rem 0; font-family: var(--font-sans); font-size: 0.9rem; }
+      .toc-section h3 { font-family: var(--font-headline); font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--text); }
+      .toc-section ol { padding-left: 1.25rem; }
+      .toc-section li { margin: 0.25rem 0; }
+      .toc-section a { color: var(--accent); text-decoration: none; }
+      .toc-section a:hover { text-decoration: underline; }
+
+      .bit-box { display: inline-flex; gap: 2px; align-items: center; font-family: var(--font-math); font-size: 0.75rem; }
+      .bit-box .bit { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: bold; color: #fff; border: 1px solid rgba(0,0,0,0.1); }
+      .bit-box .bit.sign { background: #dc2626; }
+      .bit-box .bit.exp { background: #d97706; }
+      .bit-box .bit.man { background: #059669; }
+      .bit-box .bit-label { display: block; text-align: center; font-size: 0.65rem; color: var(--text-secondary); margin-top: 2px; }
+      .bit-wrap { display: inline-flex; flex-direction: column; align-items: center; }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <nav class="site-nav">
+      <a href="/">Home</a><span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a><span class="nav-sep">|</span>
+      <a href="/pages/publications.html">Publications</a><span class="nav-sep">|</span>
+      <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>
+    </nav>
+
+    <article class="article">
+      <header class="masthead">
+        <button class="lang-toggle" id="langBtn">EN</button>
+        <p class="masthead-sub" data-zh="大模型训练 · 混合精度 · 约 12 分钟阅读" data-en="LLM Training · Mixed Precision · ~12 min read">大模型训练 · 混合精度 · 约 12 分钟阅读</p>
+        <h1 class="masthead-title">Megatron FP8</h1>
+        <p class="masthead-sub" style="font-size:1.15rem; margin-top:6px;" data-zh="FP8 量化训练：从数据格式到大规模落地" data-en="FP8 Quantized Training: From Number Format to Large-Scale Deployment">FP8 量化训练：从数据格式到大规模落地</p>
+      </header>
+
+      <!-- TOC -->
+      <div class="toc-section">
+        <h3 data-zh="📑 目录" data-en="📑 Contents">📑 目录</h3>
+        <ol>
+          <li><a href="#sec-why" data-zh="为什么要 FP8 训练？" data-en="Why FP8 Training?">为什么要 FP8 训练？</a></li>
+          <li><a href="#sec-format" data-zh="FP8 数据格式：E4M3 与 E5M2" data-en="FP8 Formats: E4M3 vs E5M2">FP8 数据格式：E4M3 与 E5M2</a></li>
+          <li><a href="#sec-scaling" data-zh="Tensor 缩放因子" data-en="Tensor Scaling Factors">Tensor 缩放因子</a></li>
+          <li><a href="#sec-forward" data-zh="前向传播与反向传播" data-en="Forward and Backward Pass">前向传播与反向传播</a></li>
+          <li><a href="#sec-viz" data-zh="交互可视化" data-en="Interactive Visualization">交互可视化</a></li>
+          <li><a href="#sec-megatron" data-zh="Megatron-LM 中的 FP8 实践" data-en="FP8 in Megatron-LM">Megatron-LM 中的 FP8 实践</a></li>
+          <li><a href="#sec-bench" data-zh="性能基准" data-en="Performance Benchmarks">性能基准</a></li>
+        </ol>
+      </div>
+
+      <!-- Key stats -->
+      <div class="key-stats">
+        <div>2×<span data-zh="内存占用减半" data-en="Memory Halved">内存占用减半</span></div>
+        <div>~1.5–2×<span data-zh="吞吐量提升" data-en="Throughput Gain">吞吐量提升</span></div>
+        <div>E4M3 / E5M2<span data-zh="两种 FP8 格式" data-en="Two FP8 Formats">两种 FP8 格式</span></div>
+      </div>
+
+      <!-- SECTION 1: Why FP8 -->
+      <section id="sec-why">
+        <h2 class="phase-heading" data-zh="1. 为什么要 FP8 训练？" data-en="1. Why FP8 Training?">1. 为什么要 FP8 训练？</h2>
+        <p class="phase-desc" data-zh="训练大型语言模型的主要瓶颈之一是显存（HBM）带宽和容量。传统混合精度训练（AMP）使用 BF16/FP16 做前向与反向，FP32 存储 master weights，内存开销巨大。FP8 训练把激活值和权重梯度压缩到 8 位，可将相关计算的带宽需求减半，同时 H100 GPU 上 FP8 Tensor Core 的峰值算力是 BF16 的两倍。" data-en="One of the primary bottlenecks in training large language models is HBM bandwidth and capacity. Traditional AMP (Automatic Mixed Precision) uses BF16/FP16 for forward and backward passes, with FP32 master weights — the memory overhead is enormous. FP8 training compresses activations and weight gradients to 8 bits, halving bandwidth requirements for those computations, while H100 GPUs offer twice the peak throughput in FP8 Tensor Cores compared to BF16.">训练大型语言模型的主要瓶颈之一是显存（HBM）带宽和容量。传统混合精度训练（AMP）使用 BF16/FP16 做前向与反向，FP32 存储 master weights，内存开销巨大。FP8 训练把激活值和权重梯度压缩到 8 位，可将相关计算的带宽需求减半，同时 H100 GPU 上 FP8 Tensor Core 的峰值算力是 BF16 的两倍。</p>
+
+        <div class="two-col">
+          <div class="col-card">
+            <h4 data-zh="🔴 传统 AMP 训练" data-en="🔴 Traditional AMP Training">🔴 传统 AMP 训练</h4>
+            <ul style="padding-left:1.1rem; line-height:1.8;" data-zh="<li>权重：BF16（前向）+ FP32（master）</li><li>梯度：FP32 累积</li><li>激活：BF16</li><li>每个参数 6 字节（BF16 权重 + FP32 master）</li>" data-en="<li>Weights: BF16 (forward) + FP32 (master)</li><li>Gradients: FP32 accumulation</li><li>Activations: BF16</li><li>6 bytes per param (BF16 weight + FP32 master)</li>"><li>权重：BF16（前向）+ FP32（master）</li><li>梯度：FP32 累积</li><li>激活：BF16</li><li>每个参数 6 字节（BF16 权重 + FP32 master）</li></ul>
+          </div>
+          <div class="col-card">
+            <h4 data-zh="🟢 FP8 混合精度训练" data-en="🟢 FP8 Mixed Precision Training">🟢 FP8 混合精度训练</h4>
+            <ul style="padding-left:1.1rem; line-height:1.8;" data-zh="<li>权重：FP8 E4M3（前向 GEMM）</li><li>权重梯度：FP8 E5M2</li><li>激活：FP8（计算时）</li><li>master weights / 优化器状态仍用 FP32</li>" data-en="<li>Weights: FP8 E4M3 (forward GEMM)</li><li>Weight gradients: FP8 E5M2</li><li>Activations: FP8 (during compute)</li><li>Master weights / optimizer states remain FP32</li>"><li>权重：FP8 E4M3（前向 GEMM）</li><li>权重梯度：FP8 E5M2</li><li>激活：FP8（计算时）</li><li>master weights / 优化器状态仍用 FP32</li></ul>
+          </div>
+        </div>
+
+        <div class="analogy-box">
+          <span class="emoji">📦</span>
+          <strong data-zh="类比：" data-en="Analogy:">类比：</strong>
+          <span data-zh="把货物用更小的集装箱运输——计算的"货物"（张量数值）被更紧凑地编码，运输速度（带宽利用率）提升，但需要精确的装箱规范（缩放因子）防止溢出或精度损失。" data-en="Think of shipping cargo in smaller containers — the 'cargo' (tensor values) is packed more compactly, shipping throughput improves, but you need careful packing specifications (scaling factors) to prevent overflow or precision loss.">把货物用更小的集装箱运输——计算的"货物"（张量数值）被更紧凑地编码，运输速度（带宽利用率）提升，但需要精确的装箱规范（缩放因子）防止溢出或精度损失。</span>
+        </div>
+      </section>
+
+      <!-- SECTION 2: FP8 Format -->
+      <section id="sec-format">
+        <h2 class="phase-heading" data-zh="2. FP8 数据格式：E4M3 与 E5M2" data-en="2. FP8 Formats: E4M3 vs E5M2">2. FP8 数据格式：E4M3 与 E5M2</h2>
+        <p class="phase-desc" data-zh="FP8 标准（IEEE 草案 OFP8）定义了两种 8 位浮点格式，各有侧重：" data-en="The FP8 standard (IEEE draft OFP8) defines two 8-bit floating-point formats, each optimized for different use cases:">FP8 标准（IEEE 草案 OFP8）定义了两种 8 位浮点格式，各有侧重：</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th data-zh="格式" data-en="Format">格式</th>
+              <th data-zh="符号位" data-en="Sign Bits">符号位</th>
+              <th data-zh="指数位 (E)" data-en="Exponent Bits (E)">指数位 (E)</th>
+              <th data-zh="尾数位 (M)" data-en="Mantissa Bits (M)">尾数位 (M)</th>
+              <th data-zh="最大值" data-en="Max Value">最大值</th>
+              <th data-zh="典型用途" data-en="Typical Use">典型用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>E4M3FN</strong></td><td>1</td><td>4</td><td>3</td>
+              <td>448</td>
+              <td data-zh="前向激活、权重" data-en="Forward activations, weights">前向激活、权重</td>
+            </tr>
+            <tr>
+              <td><strong>E5M2</strong></td><td>1</td><td>5</td><td>2</td>
+              <td>57344</td>
+              <td data-zh="梯度（范围更大）" data-en="Gradients (larger range)">梯度（范围更大）</td>
+            </tr>
+            <tr>
+              <td>BF16</td><td>1</td><td>8</td><td>7</td>
+              <td>~3.4×10<sup>38</sup></td>
+              <td data-zh="传统 AMP" data-en="Traditional AMP">传统 AMP</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="phase-desc" data-zh="8 位浮点数的编码方式与 IEEE 754 单精度类似，只是位宽更窄：" data-en="An 8-bit floating-point number is encoded similarly to IEEE 754 single precision, but with far fewer bits:">8 位浮点数的编码方式与 IEEE 754 单精度类似，只是位宽更窄：</p>
+        <div class="math-block">
+          \[ \text{value} = (-1)^{s} \cdot 2^{e - \text{bias}} \cdot (1 + m / 2^M) \]
+        </div>
+        <p class="phase-desc" data-zh="其中 \(s\) 是符号位，\(e\) 是指数字段的无符号整数值，\(\text{bias}\) 是格式常数（E4M3 中 bias=7，E5M2 中 bias=15），\(m\) 是尾数整数值，\(M\) 是尾数位数。" data-en="Where \(s\) is the sign bit, \(e\) is the unsigned integer value of the exponent field, \(\text{bias}\) is a format constant (bias=7 for E4M3, bias=15 for E5M2), \(m\) is the integer mantissa value, and \(M\) is the number of mantissa bits.">其中 \(s\) 是符号位，\(e\) 是指数字段的无符号整数值，\(\text{bias}\) 是格式常数（E4M3 中 bias=7，E5M2 中 bias=15），\(m\) 是尾数整数值，\(M\) 是尾数位数。</p>
+
+        <div class="callout">
+          <strong data-zh="🔑 为什么前向用 E4M3、反向用 E5M2？" data-en="🔑 Why E4M3 forward, E5M2 backward?">🔑 为什么前向用 E4M3、反向用 E5M2？</strong><br/>
+          <span data-zh="前向传播的激活和权重数值通常集中在一个较小的范围内，精度（更多尾数位）比动态范围更重要 → E4M3（3 位尾数）更合适。反向传播的梯度数值分布往往更稀疏、峰值更大，动态范围（更多指数位）比精度更重要 → E5M2（2 位尾数，5 位指数）更合适。" data-en="Forward activations and weights tend to cluster in a small numerical range, so precision (more mantissa bits) matters more than range → E4M3 (3 mantissa bits) is preferred. Backward gradients are often sparse with larger peak values, so dynamic range (more exponent bits) matters more → E5M2 (2 mantissa bits, 5 exponent bits) is preferred.">前向传播的激活和权重数值通常集中在一个较小的范围内，精度（更多尾数位）比动态范围更重要 → E4M3（3 位尾数）更合适。反向传播的梯度数值分布往往更稀疏、峰值更大，动态范围（更多指数位）比精度更重要 → E5M2（2 位尾数，5 位指数）更合适。</span>
+        </div>
+      </section>
+
+      <!-- SECTION 3: Scaling Factors -->
+      <section id="sec-scaling">
+        <h2 class="phase-heading" data-zh="3. Tensor 缩放因子" data-en="3. Tensor Scaling Factors">3. Tensor 缩放因子</h2>
+        <p class="phase-desc" data-zh="FP8 的最大表示值只有 448（E4M3）或 57344（E5M2），远小于 BF16 的 3.4×10³⁸。因此，直接把 BF16 张量转成 FP8 几乎必然溢出或下溢。解决方案是为每个张量维护一个缩放因子 \(s\)：" data-en="FP8 can only represent values up to 448 (E4M3) or 57344 (E5M2) — far smaller than BF16's 3.4×10³⁸. Directly casting a BF16 tensor to FP8 almost always overflows or underflows. The solution is to maintain a per-tensor scaling factor \(s\):">FP8 的最大表示值只有 448（E4M3）或 57344（E5M2），远小于 BF16 的 3.4×10³⁸。因此，直接把 BF16 张量转成 FP8 几乎必然溢出或下溢。解决方案是为每个张量维护一个缩放因子 \(s\)：</p>
+
+        <div class="math-block">
+          \[ x_{\text{fp8}} = \text{cast\_fp8}\!\left(\frac{x}{s}\right), \qquad \hat{x} = x_{\text{fp8}} \cdot s \]
+        </div>
+        <p class="phase-desc" data-zh="理想的缩放因子应使量化后的张量充分利用 FP8 的动态范围，即将张量的绝对最大值（amax）映射到 FP8 最大值附近：" data-en="The ideal scaling factor maps the tensor's absolute maximum value (amax) close to the FP8 maximum representable value, so the FP8 range is fully utilized:">理想的缩放因子应使量化后的张量充分利用 FP8 的动态范围，即将张量的绝对最大值（amax）映射到 FP8 最大值附近：</p>
+        <div class="math-block">
+          \[ s = \frac{\text{amax}(x)}{\text{fp8\_max}} \]
+        </div>
+
+        <h3 class="phase-heading" style="font-size:1.2rem; border-top: 1px dashed var(--border);" data-zh="延迟缩放（Delayed Scaling）" data-en="Delayed Scaling">延迟缩放（Delayed Scaling）</h3>
+        <p class="phase-desc" data-zh="实时计算 amax 需要在 GEMM 之前扫描整个张量，带来额外开销。Megatron-LM（通过 transformer_engine）使用"延迟缩放"策略：维护一个历史窗口的 amax 记录，用上一步（或前几步）的 amax 来估算当前步的缩放因子。" data-en="Computing amax in real time requires a full tensor scan before each GEMM, adding overhead. Megatron-LM (via transformer_engine) uses a 'delayed scaling' strategy: maintain a sliding window of historical amax values and use the previous step's (or previous few steps') amax to estimate the current step's scaling factor.">实时计算 amax 需要在 GEMM 之前扫描整个张量，带来额外开销。Megatron-LM（通过 transformer_engine）使用"延迟缩放"策略：维护一个历史窗口的 amax 记录，用上一步（或前几步）的 amax 来估算当前步的缩放因子。</p>
+
+        <div class="two-col">
+          <div class="col-card">
+            <h4 data-zh="即时缩放（Just-in-time）" data-en="Just-in-time Scaling">即时缩放（Just-in-time）</h4>
+            <p data-zh="每步计算当前 amax 并立即更新 s。精度最高，但需要在 GEMM 前做一次归约操作（额外 kernel 启动开销）。" data-en="Compute current amax and update s immediately each step. Highest accuracy, but requires a reduce operation before each GEMM (extra kernel launch overhead).">每步计算当前 amax 并立即更新 s。精度最高，但需要在 GEMM 前做一次归约操作（额外 kernel 启动开销）。</p>
+          </div>
+          <div class="col-card">
+            <h4 data-zh="延迟缩放（Delayed）" data-en="Delayed Scaling">延迟缩放（Delayed）</h4>
+            <p data-zh="用前 N 步（默认 1 步）的 amax 来预测本步的 s。避免额外归约，几乎零额外开销。数值稳定性同样很好，是 Megatron 的默认策略。" data-en="Use the previous N steps' (default 1) amax to predict the current step's s. Avoids extra reduce, near-zero overhead. Numerically stable — the default strategy in Megatron.">用前 N 步（默认 1 步）的 amax 来预测本步的 s。避免额外归约，几乎零额外开销。数值稳定性同样很好，是 Megatron 的默认策略。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: Forward/Backward -->
+      <section id="sec-forward">
+        <h2 class="phase-heading" data-zh="4. 前向传播与反向传播" data-en="4. Forward and Backward Pass">4. 前向传播与反向传播</h2>
+        <p class="phase-desc" data-zh="在 Transformer 的线性层中，FP8 训练的核心是三个 GEMM（矩阵乘法）操作，每个操作使用不同的精度组合：" data-en="In a Transformer's linear layer, FP8 training centers on three GEMM (matrix multiplication) operations, each using a different precision combination:">在 Transformer 的线性层中，FP8 训练的核心是三个 GEMM（矩阵乘法）操作，每个操作使用不同的精度组合：</p>
+
+        <div class="math-block">
+          \[
+          \underbrace{Y = X W^T}_{\text{前向 (E4M3×E4M3)}} \quad
+          \underbrace{dX = dY W}_{\text{输入梯度 (E5M2×E4M3)}} \quad
+          \underbrace{dW = dY^T X}_{\text{权重梯度 (E5M2×E4M3)}}
+          \]
+        </div>
+
+        <div class="pipeline">
+          <div class="pipeline-step" data-zh="输入 X<br/>(BF16)" data-en="Input X<br/>(BF16)">输入 X<br/>(BF16)</div>
+          <span class="pipeline-arrow">→</span>
+          <div class="pipeline-step highlight" data-zh="量化 + 缩放<br/>(→ E4M3)" data-en="Quantize + Scale<br/>(→ E4M3)">量化 + 缩放<br/>(→ E4M3)</div>
+          <span class="pipeline-arrow">→</span>
+          <div class="pipeline-step highlight" data-zh="FP8 GEMM<br/>(H100 TC)" data-en="FP8 GEMM<br/>(H100 TC)">FP8 GEMM<br/>(H100 TC)</div>
+          <span class="pipeline-arrow">→</span>
+          <div class="pipeline-step" data-zh="输出 Y<br/>(BF16)" data-en="Output Y<br/>(BF16)">输出 Y<br/>(BF16)</div>
+        </div>
+
+        <p class="phase-desc" data-zh="累加器（GEMM 的输出）仍以 FP32 或 BF16 精度保存，以避免精度损失的累积。仅计算密集型的矩阵乘法使用 FP8，LayerNorm、SoftMax、残差连接等操作仍在 BF16 下执行。" data-en="The accumulator (GEMM output) is kept in FP32 or BF16 precision to avoid accumulated precision loss. Only compute-intensive matrix multiplications use FP8; LayerNorm, SoftMax, residual connections, etc., still run in BF16.">累加器（GEMM 的输出）仍以 FP32 或 BF16 精度保存，以避免精度损失的累积。仅计算密集型的矩阵乘法使用 FP8，LayerNorm、SoftMax、残差连接等操作仍在 BF16 下执行。</p>
+
+        <div class="analogy-box">
+          <span class="emoji">⚖️</span>
+          <strong data-zh="关键洞察：" data-en="Key Insight:">关键洞察：</strong>
+          <span data-zh="FP8 训练不是"把所有东西都换成 FP8"，而是有针对性地把最耗带宽的矩阵乘法换成 FP8，其余保持高精度。这就像只在高速公路段用小集装箱，在装卸时仍用标准托盘——兼顾速度与安全。" data-en="FP8 training is not 'convert everything to FP8' — it selectively converts the most bandwidth-hungry matrix multiplications to FP8, while keeping everything else at high precision. It's like using compact containers only on the highway segment, while using standard pallets for loading and unloading.">FP8 训练不是"把所有东西都换成 FP8"，而是有针对性地把最耗带宽的矩阵乘法换成 FP8，其余保持高精度。这就像只在高速公路段用小集装箱，在装卸时仍用标准托盘——兼顾速度与安全。</span>
+        </div>
+      </section>
+
+      <!-- SECTION 5: Interactive Visualization -->
+      <section id="sec-viz">
+        <h2 class="phase-heading" data-zh="5. 交互可视化：FP8 动态范围与精度" data-en="5. Interactive Visualization: FP8 Dynamic Range and Precision">5. 交互可视化：FP8 动态范围与精度</h2>
+        <p class="phase-desc" data-zh="下方可视化展示了 E4M3 与 E5M2 两种 FP8 格式的可表示值分布，以及与 BF16 的动态范围对比。拖动滑块调整目标值，观察各格式的量化误差。" data-en="The visualization below shows the distribution of representable values for E4M3 and E5M2 FP8 formats, and compares their dynamic range with BF16. Drag the slider to adjust the target value and observe the quantization error in each format.">下方可视化展示了 E4M3 与 E5M2 两种 FP8 格式的可表示值分布，以及与 BF16 的动态范围对比。拖动滑块调整目标值，观察各格式的量化误差。</p>
+
+        <div class="stage-wrapper">
+          <canvas id="fp8Canvas"></canvas>
+          <div class="viz-info" id="vizInfo">target = 1.0</div>
+          <div class="controls">
+            <div class="control-group">
+              <label class="control-label">
+                <span data-zh="目标值（log scale）" data-en="Target value (log scale)" id="sliderLabel">目标值（log scale）</span>
+                <span id="targetVal">1.000</span>
+              </label>
+              <input type="range" id="targetSlider" min="-7" max="7" step="0.05" value="0" />
+            </div>
+            <div class="control-group">
+              <label class="control-label">
+                <span data-zh="缩放因子 s" data-en="Scaling factor s">缩放因子 s</span>
+                <span id="scaleVal">1.000</span>
+              </label>
+              <input type="range" id="scaleSlider" min="-3" max="3" step="0.1" value="0" />
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="btn-play" id="btnAutoScale" data-zh="⚡ 自动缩放" data-en="⚡ Auto Scale">⚡ 自动缩放</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: Megatron-LM FP8 -->
+      <section id="sec-megatron">
+        <h2 class="phase-heading" data-zh="6. Megatron-LM 中的 FP8 实践" data-en="6. FP8 in Megatron-LM">6. Megatron-LM 中的 FP8 实践</h2>
+        <p class="phase-desc" data-zh="Megatron-LM 通过 NVIDIA transformer_engine 库提供 FP8 支持，只需几行配置即可启用。transformer_engine 内部自动管理缩放因子、amax 历史、以及 FP8 到 BF16 的转换。" data-en="Megatron-LM provides FP8 support via NVIDIA's transformer_engine library — enabling it requires just a few lines of configuration. transformer_engine internally manages scaling factors, amax history, and FP8/BF16 conversion automatically.">Megatron-LM 通过 NVIDIA transformer_engine 库提供 FP8 支持，只需几行配置即可启用。transformer_engine 内部自动管理缩放因子、amax 历史、以及 FP8 到 BF16 的转换。</p>
+
+<pre><code><span class="cm"># pretrain_gpt.py / 启动脚本中添加以下参数</span>
+--fp8-format hybrid      <span class="cm"># E4M3 前向 + E5M2 反向</span>
+--fp8-amax-history-len 16  <span class="cm"># amax 历史窗口大小</span>
+--fp8-amax-compute-algo max  <span class="cm"># 取历史最大值作为缩放依据</span>
+
+<span class="cm"># Python API (transformer_engine)</span>
+<span class="kw">import</span> transformer_engine.<span class="fn">pytorch</span> <span class="kw">as</span> te
+<span class="kw">from</span> transformer_engine.common.<span class="fn">recipe</span> <span class="kw">import</span> Format, DelayedScaling
+
+fp8_recipe = <span class="fn">DelayedScaling</span>(
+    fp8_format<span class="op">=</span>Format.HYBRID,       <span class="cm"># E4M3 fwd / E5M2 bwd</span>
+    amax_history_len<span class="op">=</span><span class="nm">16</span>,
+    amax_compute_algo<span class="op">=</span><span class="st">"max"</span>,
+)
+
+<span class="kw">with</span> te.<span class="fn">fp8_autocast</span>(enabled<span class="op">=</span><span class="nm">True</span>, fp8_recipe<span class="op">=</span>fp8_recipe):
+    output <span class="op">=</span> <span class="fn">model</span>(input_ids, attention_mask)
+</code></pre>
+
+        <p class="phase-desc" data-zh="Megatron-LM 中的 FP8 兼容张量并行（Tensor Parallel）和流水线并行（Pipeline Parallel），每个 GPU 的激活 amax 通过 all-reduce 在 TP 组内同步，确保各卡的缩放因子一致。" data-en="FP8 in Megatron-LM is compatible with Tensor Parallelism and Pipeline Parallelism. Activation amax values are synchronized within each TP group via all-reduce, ensuring consistent scaling factors across GPUs.">Megatron-LM 中的 FP8 兼容张量并行（Tensor Parallel）和流水线并行（Pipeline Parallel），每个 GPU 的激活 amax 通过 all-reduce 在 TP 组内同步，确保各卡的缩放因子一致。</p>
+
+        <div class="callout">
+          <strong data-zh="💡 实践建议：" data-en="💡 Practical Tips:">💡 实践建议：</strong>
+          <ul style="padding-left:1.2rem; line-height:1.9; margin-top:0.4rem;" data-zh="<li>使用 <code>--fp8-format hybrid</code>（E4M3 前向 + E5M2 反向）而非 <code>e5m2</code>，精度更好。</li><li>amax 历史窗口设为 16–32，取 <code>max</code> 策略在动态变化的训练曲线上更稳定。</li><li>首次启用 FP8 时建议先用少量步骤验证 loss 曲线与 BF16 基线一致，再扩大规模。</li><li>梯度裁剪（grad clip）阈值可略微放宽（如 1.0→1.5），因为 FP8 梯度的量化噪声可能使 norm 偏大。</li><li>不支持 FP8 的操作（如 FlashAttention v2）会自动回退到 BF16，无需手动处理。</li>" data-en="<li>Use <code>--fp8-format hybrid</code> (E4M3 forward + E5M2 backward) rather than <code>e5m2</code> — better precision.</li><li>Set the amax history window to 16–32 with <code>max</code> strategy for more stability on dynamic training curves.</li><li>When first enabling FP8, validate on a small run that the loss curve matches the BF16 baseline before scaling up.</li><li>Gradient clipping threshold can be slightly relaxed (e.g., 1.0→1.5), as quantization noise in FP8 gradients may inflate the gradient norm.</li><li>Operations that don't support FP8 (e.g., FlashAttention v2) automatically fall back to BF16 — no manual handling needed.</li>"><li>使用 <code>--fp8-format hybrid</code>（E4M3 前向 + E5M2 反向）而非 <code>e5m2</code>，精度更好。</li><li>amax 历史窗口设为 16–32，取 <code>max</code> 策略在动态变化的训练曲线上更稳定。</li><li>首次启用 FP8 时建议先用少量步骤验证 loss 曲线与 BF16 基线一致，再扩大规模。</li><li>梯度裁剪（grad clip）阈值可略微放宽（如 1.0→1.5），因为 FP8 梯度的量化噪声可能使 norm 偏大。</li><li>不支持 FP8 的操作（如 FlashAttention v2）会自动回退到 BF16，无需手动处理。</li></ul>
+        </div>
+      </section>
+
+      <!-- SECTION 7: Benchmarks -->
+      <section id="sec-bench">
+        <h2 class="phase-heading" data-zh="7. 性能基准" data-en="7. Performance Benchmarks">7. 性能基准</h2>
+        <p class="phase-desc" data-zh="以下数据来自 NVIDIA Megatron-LM 官方报告（H100 SXM 80GB，GPT 类模型，TP=8，PP=1）：" data-en="The following numbers are from the official NVIDIA Megatron-LM report (H100 SXM 80GB, GPT-style model, TP=8, PP=1):">以下数据来自 NVIDIA Megatron-LM 官方报告（H100 SXM 80GB，GPT 类模型，TP=8，PP=1）：</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th data-zh="配置" data-en="Config">配置</th>
+              <th data-zh="模型规模" data-en="Model Size">模型规模</th>
+              <th data-zh="精度" data-en="Precision">精度</th>
+              <th data-zh="吞吐量 (tokens/s/GPU)" data-en="Throughput (tokens/s/GPU)">吞吐量 (tokens/s/GPU)</th>
+              <th data-zh="相对加速" data-en="Speedup">相对加速</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Baseline</td><td>7B</td><td>BF16</td><td>~4,200</td><td>1.0×</td>
+            </tr>
+            <tr>
+              <td>FP8 Hybrid</td><td>7B</td><td>FP8+BF16</td><td>~6,100</td><td><strong>1.45×</strong></td>
+            </tr>
+            <tr>
+              <td>Baseline</td><td>70B</td><td>BF16</td><td>~530</td><td>1.0×</td>
+            </tr>
+            <tr>
+              <td>FP8 Hybrid</td><td>70B</td><td>FP8+BF16</td><td>~880</td><td><strong>1.66×</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="phase-desc" data-zh="模型规模越大，带宽瓶颈越显著，FP8 的加速效果越好（70B 优于 7B）。在内存方面，激活检查点（activation checkpointing）配合 FP8 激活存储，可将激活内存降低至 BF16 基线的约 40–50%。" data-en="The larger the model, the more bandwidth-bound the computation, and the greater the FP8 speedup (70B beats 7B). On the memory side, activation checkpointing combined with FP8 activation storage reduces activation memory to approximately 40–50% of the BF16 baseline.">模型规模越大，带宽瓶颈越显著，FP8 的加速效果越好（70B 优于 7B）。在内存方面，激活检查点（activation checkpointing）配合 FP8 激活存储，可将激活内存降低至 BF16 基线的约 40–50%。</p>
+
+        <div class="callout">
+          <strong data-zh="📊 模型质量：" data-en="📊 Model Quality:">📊 模型质量：</strong>
+          <span data-zh="在标准语言建模基准（Pile、MMLU、HellaSwag 等）上，FP8 训练与 BF16 基线的 loss 曲线和下游任务指标高度吻合（差异 &lt; 0.1%），验证了 FP8 在大规模训练中的数值可靠性。" data-en="On standard language modeling benchmarks (Pile, MMLU, HellaSwag, etc.), FP8 training matches the BF16 baseline in both loss curves and downstream task metrics (difference &lt; 0.1%), confirming FP8's numerical reliability at scale.">在标准语言建模基准（Pile、MMLU、HellaSwag 等）上，FP8 训练与 BF16 基线的 loss 曲线和下游任务指标高度吻合（差异 &lt; 0.1%），验证了 FP8 在大规模训练中的数值可靠性。</span>
+        </div>
+      </section>
+
+      <footer style="margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); font-family:var(--font-sans); font-size:0.85rem; color:var(--text-secondary); text-align:center;">
+        <p data-zh="参考：Shoeybi et al., <em>Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism</em>; NVIDIA, <em>Transformer Engine FP8 Training</em>; Micikevicius et al., <em>FP8 Formats for Deep Learning</em>, arXiv 2022." data-en="References: Shoeybi et al., <em>Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism</em>; NVIDIA, <em>Transformer Engine FP8 Training</em>; Micikevicius et al., <em>FP8 Formats for Deep Learning</em>, arXiv 2022.">参考：Shoeybi et al., <em>Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism</em>; NVIDIA, <em>Transformer Engine FP8 Training</em>; Micikevicius et al., <em>FP8 Formats for Deep Learning</em>, arXiv 2022.</p>
+      </footer>
+    </article>
+
+    <script>
+      // ---- Progress bar ----
+      const bar = document.getElementById('progressBar');
+      function updateProgress() {
+        const h = document.documentElement;
+        const pct = (h.scrollTop || document.body.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+        bar.style.width = pct + '%';
+      }
+      document.addEventListener('scroll', updateProgress, {passive: true});
+
+      // ---- Lang toggle ----
+      const langBtn = document.getElementById('langBtn');
+      let currentLang = 'zh';
+      function applyLang(lang) {
+        document.querySelectorAll('[data-en]').forEach(el => {
+          el.innerHTML = lang === 'en' ? el.dataset.en : el.dataset.zh;
+        });
+        langBtn.textContent = lang === 'zh' ? 'EN' : '中文';
+        currentLang = lang;
+      }
+      langBtn.addEventListener('click', () => applyLang(currentLang === 'zh' ? 'en' : 'zh'));
+
+      // ---- KaTeX ----
+      document.addEventListener('DOMContentLoaded', () => {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ]
+        });
+      });
+
+      // ---- FP8 Canvas Visualization ----
+      (function() {
+        const canvas = document.getElementById('fp8Canvas');
+        const ctx = canvas.getContext('2d');
+        const targetSlider = document.getElementById('targetSlider');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const targetValEl = document.getElementById('targetVal');
+        const scaleValEl = document.getElementById('scaleVal');
+        const vizInfo = document.getElementById('vizInfo');
+        const btnAutoScale = document.getElementById('btnAutoScale');
+
+        // FP8 E4M3FN: bias=7, max normal = 448, max mantissa bits = 3
+        // FP8 E5M2: bias=15, max normal = 57344, max mantissa bits = 2
+        const FP8_E4M3_MAX = 448.0;
+        const FP8_E5M2_MAX = 57344.0;
+
+        // Generate all positive representable values for E4M3FN (simplified)
+        function genE4M3Values() {
+          const vals = [];
+          // E4M3FN: 1 sign, 4 exp bits (0-15, but 15 = special), 3 mantissa bits
+          // Normal: exp 1-14, value = 2^(e-7) * (1 + m/8), m in 0..7
+          // Subnormal: exp 0, value = 2^(-6) * (m/8), m in 1..7
+          for (let e = 0; e <= 14; e++) {
+            for (let m = 0; m <= 7; m++) {
+              if (e === 0 && m === 0) continue; // zero
+              let v;
+              if (e === 0) {
+                v = Math.pow(2, -6) * (m / 8);
+              } else {
+                v = Math.pow(2, e - 7) * (1 + m / 8);
+              }
+              if (v <= FP8_E4M3_MAX) vals.push(v);
+            }
+          }
+          return vals.sort((a, b) => a - b);
+        }
+
+        function genE5M2Values() {
+          const vals = [];
+          // E5M2: 1 sign, 5 exp bits (0-31, 31 = special), 2 mantissa bits
+          // Normal: exp 1-30, value = 2^(e-15) * (1 + m/4), m in 0..3
+          // Subnormal: exp 0, value = 2^(-14) * (m/4), m in 1..3
+          for (let e = 0; e <= 30; e++) {
+            for (let m = 0; m <= 3; m++) {
+              if (e === 0 && m === 0) continue;
+              let v;
+              if (e === 0) {
+                v = Math.pow(2, -14) * (m / 4);
+              } else {
+                v = Math.pow(2, e - 15) * (1 + m / 4);
+              }
+              if (v <= FP8_E5M2_MAX) vals.push(v);
+            }
+          }
+          return vals.sort((a, b) => a - b);
+        }
+
+        function quantizeFP8(x, formatVals) {
+          // Find the nearest representable value in formatVals (positive)
+          const absX = Math.abs(x);
+          if (absX === 0) return 0;
+          let best = formatVals[0];
+          let bestDist = Math.abs(absX - best);
+          for (let i = 1; i < formatVals.length; i++) {
+            const d = Math.abs(absX - formatVals[i]);
+            if (d < bestDist) { bestDist = d; best = formatVals[i]; }
+            else if (formatVals[i] > absX + bestDist) break;
+          }
+          return x < 0 ? -best : best;
+        }
+
+        const e4m3Vals = genE4M3Values();
+        const e5m2Vals = genE5M2Values();
+
+        let targetLog = 0;  // slider value → target = 2^targetLog
+        let scaleLog = 0;   // slider value → scale = 2^scaleLog
+
+        function getTarget() { return Math.pow(2, targetLog); }
+        function getScale() { return Math.pow(2, scaleLog); }
+
+        function resize() {
+          const wrapper = canvas.parentElement;
+          canvas.width  = wrapper.clientWidth;
+          canvas.height = wrapper.clientHeight - 80;
+        }
+
+        function draw() {
+          const W = canvas.width, H = canvas.height;
+          ctx.clearRect(0, 0, W, H);
+
+          const target = getTarget();
+          const scale = getScale();
+          const scaled = target / scale;
+
+          // Quantize
+          const q_e4m3_scaled = quantizeFP8(scaled, e4m3Vals);
+          const q_e5m2_scaled = quantizeFP8(scaled, e5m2Vals);
+          const q_e4m3 = q_e4m3_scaled * scale;
+          const q_e5m2 = q_e5m2_scaled * scale;
+
+          const err_e4m3 = Math.abs((q_e4m3 - target) / target) * 100;
+          const err_e5m2 = Math.abs((q_e5m2 - target) / target) * 100;
+
+          const padL = 60, padR = 30, padT = 50, padB = 40;
+          const plotW = W - padL - padR;
+          const plotH = H - padT - padB;
+
+          // Show log-scale number line of positive FP8 representable values
+          // Map log2 range [-10, 10] to [padL, padL+plotW]
+          const logMin = -10, logMax = 10;
+          function logToX(v) {
+            if (v <= 0) return padL;
+            const lv = Math.log2(v);
+            return padL + (lv - logMin) / (logMax - logMin) * plotW;
+          }
+
+          // Axis
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(padL, H / 2);
+          ctx.lineTo(padL + plotW, H / 2);
+          ctx.stroke();
+
+          // Axis labels
+          ctx.fillStyle = '#9ca3af';
+          ctx.font = '10px JetBrains Mono, monospace';
+          ctx.textAlign = 'center';
+          for (let exp = logMin; exp <= logMax; exp += 2) {
+            const x = padL + (exp - logMin) / (logMax - logMin) * plotW;
+            ctx.fillText('2^' + exp, x, H / 2 + 30);
+            ctx.strokeStyle = '#f3f4f6';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, padT);
+            ctx.lineTo(x, H - padB);
+            ctx.stroke();
+          }
+
+          // Draw E5M2 ticks (row 1)
+          const row2Y = H / 2 - 50;
+          ctx.fillStyle = '#059669';
+          ctx.font = 'bold 11px Helvetica Neue, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText('E5M2', padL - 55, row2Y + 4);
+          e5m2Vals.forEach(v => {
+            const x = logToX(v);
+            ctx.strokeStyle = 'rgba(5, 150, 105, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, row2Y - 6);
+            ctx.lineTo(x, row2Y + 6);
+            ctx.stroke();
+          });
+
+          // Draw E4M3 ticks (row 2)
+          const row1Y = H / 2 + 50;
+          ctx.fillStyle = '#d97706';
+          ctx.font = 'bold 11px Helvetica Neue, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText('E4M3', padL - 55, row1Y + 4);
+          e4m3Vals.forEach(v => {
+            const x = logToX(v);
+            ctx.strokeStyle = 'rgba(217, 119, 6, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, row1Y - 6);
+            ctx.lineTo(x, row1Y + 6);
+            ctx.stroke();
+          });
+
+          // Draw target line (scaled)
+          const txScaled = logToX(Math.abs(scaled));
+          const tx = logToX(target);
+
+          // Scaled input indicator
+          if (txScaled >= padL && txScaled <= padL + plotW) {
+            ctx.strokeStyle = '#6b7280';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 3]);
+            ctx.beginPath();
+            ctx.moveTo(txScaled, padT);
+            ctx.lineTo(txScaled, H - padB);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '10px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('x/s=' + scaled.toExponential(2), txScaled, padT - 5);
+          }
+
+          // Target indicator
+          if (tx >= padL && tx <= padL + plotW) {
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(tx, padT);
+            ctx.lineTo(tx, H - padB);
+            ctx.stroke();
+            ctx.fillStyle = '#2563eb';
+            ctx.font = 'bold 11px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('x=' + target.toExponential(2), tx, padT - 5);
+          }
+
+          // Draw quantized E5M2 marker
+          const qe5x = logToX(Math.abs(q_e5m2));
+          if (qe5x >= padL && qe5x <= padL + plotW) {
+            ctx.beginPath();
+            ctx.arc(qe5x, row2Y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#059669';
+            ctx.fill();
+          }
+
+          // Draw quantized E4M3 marker
+          const qe4x = logToX(Math.abs(q_e4m3));
+          if (qe4x >= padL && qe4x <= padL + plotW) {
+            ctx.beginPath();
+            ctx.arc(qe4x, row1Y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#d97706';
+            ctx.fill();
+          }
+
+          // Info panel top-left
+          ctx.fillStyle = '#1a1a2e';
+          ctx.font = 'bold 13px JetBrains Mono, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText('Target x = ' + target.toExponential(3), padL, padT - 22);
+
+          ctx.fillStyle = '#d97706';
+          ctx.font = '12px JetBrains Mono, monospace';
+          ctx.fillText('E4M3 → ' + q_e4m3.toExponential(3) + '   err: ' + err_e4m3.toFixed(2) + '%', padL, padT - 8);
+          ctx.fillStyle = '#059669';
+          ctx.fillText('E5M2 → ' + q_e5m2.toExponential(3) + '   err: ' + err_e5m2.toFixed(2) + '%', padL + 320, padT - 8);
+        }
+
+        targetSlider.addEventListener('input', () => {
+          targetLog = parseFloat(targetSlider.value);
+          const t = getTarget();
+          targetValEl.textContent = t.toExponential(3);
+          vizInfo.textContent = 'x = ' + t.toExponential(3);
+          draw();
+        });
+
+        scaleSlider.addEventListener('input', () => {
+          scaleLog = parseFloat(scaleSlider.value);
+          const s = getScale();
+          scaleValEl.textContent = s.toExponential(3);
+          draw();
+        });
+
+        btnAutoScale.addEventListener('click', () => {
+          // Set scale so that target maps to ~FP8_E4M3_MAX * 0.5
+          const target = getTarget();
+          const idealScaleLog = Math.log2(target / (FP8_E4M3_MAX * 0.5));
+          scaleLog = Math.max(-3, Math.min(3, idealScaleLog));
+          scaleSlider.value = scaleLog.toFixed(1);
+          scaleValEl.textContent = getScale().toExponential(3);
+          draw();
+        });
+
+        window.addEventListener('resize', () => { resize(); draw(); });
+        resize();
+        draw();
+      })();
+    </script>
+  </body>
+</html>
