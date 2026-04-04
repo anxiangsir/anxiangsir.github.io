@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <script defer src="/_vercel/insights/script.js"></script>
+    <title>GAE: Generalized Advantage Estimation in RL</title>
+    <meta name="description" content="Interactive deep-dive into GAE (Generalized Advantage Estimation) — what is the critic, TD residuals, and the bias-variance tradeoff in policy gradient methods." />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-alt: #f8f9fa;
+        --text: #1a1a2e;
+        --text-secondary: #555;
+        --accent: #2563eb;
+        --border: #e2e8f0;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-math: "JetBrains Mono", monospace;
+      }
+
+      .progress-bar {
+        position: fixed; top: 0; left: 0; height: 3px;
+        background: var(--accent); z-index: 999; transition: width 0.1s;
+      }
+
+      .site-nav {
+        max-width: 860px; margin: 0 auto 1rem; padding: 0 0.5rem;
+        display: flex; align-items: center; justify-content: center;
+        gap: 8px; font-family: var(--font-sans); font-size: 0.85em; flex-wrap: wrap;
+      }
+      .site-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 600; letter-spacing: 0.02em; padding: 2px 4px; }
+      .site-nav a:hover { color: var(--accent); text-decoration: underline; }
+      .site-nav .nav-sep { color: var(--border); user-select: none; }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: var(--bg); color: var(--text); font-family: var(--font-serif); line-height: 1.5; padding: 2rem 1rem; -webkit-text-size-adjust: 100%; }
+
+      .article { max-width: 860px; margin: 0 auto; background: var(--bg); padding: 0 1rem 3rem; position: relative; }
+
+      .masthead { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2.5rem; position: relative; }
+      .masthead-title { font-family: var(--font-headline); font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin: 0 0 10px; color: var(--text); }
+      .masthead-sub { font-size: 1rem; font-family: var(--font-sans); margin-bottom: 10px; color: var(--text-secondary); }
+
+      .lang-toggle {
+        position: absolute; top: 10px; right: 10px; z-index: 40;
+        font-family: var(--font-sans); padding: 6px 16px; border: 1px solid var(--border);
+        background: var(--bg); cursor: pointer; color: var(--text-secondary); font-weight: bold;
+        border-radius: 20px; font-size: 0.85rem; transition: all 0.2s; touch-action: manipulation;
+      }
+      .lang-toggle:hover { background: var(--bg-alt); color: var(--text); border-color: var(--text-secondary); }
+
+      .stage-wrapper {
+        width: 100%; height: 460px; position: relative; border: 1px solid var(--border);
+        border-radius: 8px; overflow: hidden; margin: 0 auto 35px; background: var(--bg-alt);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; justify-content: center;
+        align-items: center; flex-direction: column; contain: layout style paint;
+      }
+      .stage-wrapper canvas { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 80px); }
+
+      .controls {
+        padding: 12px 20px; background: var(--bg-alt); border-top: 1px solid var(--border);
+        width: 100%; display: flex; align-items: center; justify-content: space-between;
+        position: absolute; bottom: 0; left: 0; z-index: 10; font-family: var(--font-sans);
+        gap: 12px; flex-wrap: wrap; min-height: 80px;
+      }
+      .control-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; gap: 4px; }
+      .control-label { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; color: var(--text); }
+      input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: var(--border); border-radius: 4px; outline: none; touch-action: manipulation; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); margin-top: -7px; }
+      input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+
+      .btn-play { background: var(--accent); color: white; border: none; border-radius: 4px; padding: 6px 16px; font-size: 0.8rem; font-weight: bold; cursor: pointer; font-family: var(--font-sans); transition: background 0.2s; touch-action: manipulation; white-space: nowrap; }
+      .btn-play:hover { background: #1d4ed8; }
+
+      .phase-heading { font-family: var(--font-headline); font-size: 1.5rem; font-weight: 700; text-align: left; margin: 2.5rem 0 1rem; border-top: 2px solid var(--border); padding-top: 1.5rem; color: var(--text); }
+      .phase-desc { font-family: var(--font-serif); font-size: 1.05rem; text-align: left; max-width: none; margin: 0 0 15px; color: var(--text-secondary); line-height: 1.75; }
+
+      .math-block { display: block; text-align: center; padding: 1.5rem 1rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+      .key-stats { display: flex; justify-content: space-around; text-align: center; margin: 25px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 15px 0; font-family: var(--font-headline); font-weight: bold; color: var(--text); }
+      .key-stats div { flex: 1; border-right: 1px solid var(--border); }
+      .key-stats div:last-child { border-right: none; }
+      .key-stats span { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px; font-family: var(--font-sans); }
+
+      .hero-content { text-align: left; padding: 1rem 0 2rem; }
+      .hero-text { font-size: 1.1rem; max-width: none; margin: 0; color: var(--text-secondary); line-height: 1.6; }
+
+      .callout { background: var(--bg-alt); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; font-family: var(--font-sans); font-size: 0.95rem; color: var(--text); }
+      .callout strong { color: var(--accent); }
+
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+      @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+      .col-card { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; font-family: var(--font-sans); font-size: 0.9rem; color: var(--text); }
+      .col-card h4 { font-family: var(--font-headline); font-size: 1.05rem; margin-bottom: 0.5rem; color: var(--text); }
+
+      .analogy-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; font-family: var(--font-sans); font-size: 0.95rem; color: #78350f; }
+      .analogy-box .emoji { font-size: 1.5rem; margin-bottom: 0.4rem; display: block; }
+
+      pre, code { font-family: var(--font-math); }
+      pre { background: #1e1e2e; color: #cdd6f4; padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.6; margin: 1.5rem 0; }
+      code { background: var(--bg-alt); color: var(--accent); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+      pre code { background: transparent; color: inherit; padding: 0; }
+
+      .kw { color: #cba6f7; } .fn { color: #89b4fa; } .cm { color: #585b70; font-style: italic; }
+      .st { color: #a6e3a1; } .nm { color: #fab387; } .op { color: #89dceb; }
+
+      table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-family: var(--font-sans); font-size: 0.9rem; }
+      th { background: var(--bg-alt); font-weight: bold; border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+      td { border: 1px solid var(--border); padding: 9px 14px; }
+      tr:nth-child(even) td { background: var(--bg-alt); }
+
+      .viz-info { position: absolute; top: 12px; right: 12px; font-family: var(--font-math); font-size: 0.8rem; font-weight: bold; z-index: 10; color: var(--text); background: rgba(255,255,255,0.92); padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+      .pipeline { display: flex; align-items: center; justify-content: center; gap: 0; margin: 2rem 0; flex-wrap: wrap; }
+      .pipeline-step { background: var(--bg-alt); border: 2px solid var(--border); border-radius: 10px; padding: 12px 16px; text-align: center; font-family: var(--font-sans); font-size: 0.82rem; color: var(--text); min-width: 110px; }
+      .pipeline-step.highlight { border-color: var(--accent); background: #eff6ff; color: var(--accent); font-weight: bold; }
+      .pipeline-arrow { font-size: 1.4rem; color: var(--border); padding: 0 4px; }
+
+      .toc-section { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 2rem 0; font-family: var(--font-sans); font-size: 0.9rem; }
+      .toc-section h3 { font-family: var(--font-headline); font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--text); }
+      .toc-section ol { padding-left: 1.25rem; }
+      .toc-section li { margin: 0.25rem 0; }
+      .toc-section a { color: var(--accent); text-decoration: none; }
+      .toc-section a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <nav class="site-nav">
+      <a href="/">Home</a><span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a><span class="nav-sep">|</span>
+      <a href="/pages/publications.html">Publications</a><span class="nav-sep">|</span>
+      <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>
+    </nav>
+
+    <article class="article">
+      <header class="masthead">
+        <button class="lang-toggle" id="langBtn">EN</button>
+        <p class="masthead-sub" data-zh="强化学习 · 策略梯度 · 约 10 分钟阅读" data-en="Reinforcement Learning · Policy Gradient · ~10 min read">强化学习 · 策略梯度 · 约 10 分钟阅读</p>
+        <h1 class="masthead-title">GAE</h1>
+        <p class="masthead-sub" style="font-size:1.15rem; margin-top:6px;" data-zh="广义优势估计：从 Critic 到偏差-方差权衡" data-en="Generalized Advantage Estimation: From Critic to Bias-Variance Tradeoff">广义优势估计：从 Critic 到偏差-方差权衡</p>
+      </header>
+
+      <!-- TOC -->
+      <div class="toc-section">
+        <h3 data-zh="📑 目录" data-en="📑 Contents">📑 目录</h3>
+        <ol>
+          <li><a href="#sec-critic" data-zh="Critic 是什么？" data-en="What is the Critic?">Critic 是什么？</a></li>
+          <li><a href="#sec-advantage" data-zh="优势函数 A(s,a)" data-en="The Advantage Function A(s,a)">优势函数 A(s,a)</a></li>
+          <li><a href="#sec-td" data-zh="TD 残差：单步优势估计" data-en="TD Residuals: One-Step Advantage">TD 残差：单步优势估计</a></li>
+          <li><a href="#sec-mc" data-zh="蒙特卡洛回报：N 步优势" data-en="Monte Carlo Returns: N-Step Advantage">蒙特卡洛回报：N 步优势</a></li>
+          <li><a href="#sec-gae" data-zh="GAE：广义优势估计" data-en="GAE: Generalized Advantage Estimation">GAE：广义优势估计</a></li>
+          <li><a href="#sec-viz" data-zh="交互可视化" data-en="Interactive Visualization">交互可视化</a></li>
+          <li><a href="#sec-ppo" data-zh="GAE 在 PPO 中的位置" data-en="GAE in PPO Training Loop">GAE 在 PPO 中的位置</a></li>
+        </ol>
+      </div>
+
+      <!-- Key stats -->
+      <div class="key-stats">
+        <div>λ = 0<span data-zh="高偏差 / 低方差" data-en="High Bias / Low Var">高偏差 / 低方差</span></div>
+        <div>λ ∈ (0,1)<span data-zh="偏差-方差折中" data-en="Bias-Variance Tradeoff">偏差-方差折中</span></div>
+        <div>λ = 1<span data-zh="低偏差 / 高方差" data-en="Low Bias / High Var">低偏差 / 高方差</span></div>
+      </div>
+
+      <!-- SECTION 1: Critic -->
+      <section id="sec-critic">
+        <h2 class="phase-heading" data-zh="1. Critic 是什么？" data-en="1. What is the Critic?">1. Critic 是什么？</h2>
+        <p class="phase-desc" data-zh="在强化学习里，智能体（Agent）要在环境中做决策。Actor-Critic 框架把智能体拆成两个部分：" data-en="In reinforcement learning, an agent must make decisions in an environment. The Actor-Critic framework splits the agent into two parts:">在强化学习里，智能体（Agent）要在环境中做决策。Actor-Critic 框架把智能体拆成两个部分：</p>
+
+        <div class="two-col">
+          <div class="col-card">
+            <h4>🎭 Actor（演员）</h4>
+            <p data-zh="策略网络 \( \pi_\theta(a \mid s) \)，给定状态 \(s\)，输出各动作的概率分布。它是真正做决策的那个。" data-en="Policy network \( \pi_\theta(a \mid s) \). Given state \(s\), it outputs a probability distribution over actions. This is the decision-maker.">策略网络 \( \pi_\theta(a \mid s) \)，给定状态 \(s\)，输出各动作的概率分布。它是真正做决策的那个。</p>
+          </div>
+          <div class="col-card">
+            <h4>🧠 Critic（评论家）</h4>
+            <p data-zh="价值网络 \( V_\phi(s) \)，给定状态 \(s\)，估计从该状态出发能拿到的期望折扣回报。它不做决策，只负责"打分"。" data-en="Value network \( V_\phi(s) \). Given state \(s\), it estimates the expected discounted return from that state. It does not act — it only evaluates.">价值网络 \( V_\phi(s) \)，给定状态 \(s\)，估计从该状态出发能拿到的期望折扣回报。它不做决策，只负责"打分"。</p>
+          </div>
+        </div>
+
+        <p class="phase-desc" data-zh="Critic 估计的价值函数定义为：" data-en="The value function estimated by the Critic is defined as:">Critic 估计的价值函数定义为：</p>
+        <div class="math-block">
+          \[ V^\pi(s) = \mathbb{E}_\pi\!\left[\sum_{k=0}^{\infty} \gamma^k r_{t+k} \;\Bigg|\; s_t = s\right] \]
+        </div>
+        <p class="phase-desc" data-zh="即：从状态 \(s\) 出发，按照策略 \(\pi\) 执行动作，未来所有奖励的折扣之和的期望值。\(\gamma \in [0,1)\) 是折扣因子，控制未来奖励相对于即时奖励的重要程度。" data-en="That is: starting from state \(s\), following policy \(\pi\), the expected sum of all future discounted rewards. \(\gamma \in [0,1)\) is the discount factor, controlling how much we value future rewards relative to immediate ones.">即：从状态 \(s\) 出发，按照策略 \(\pi\) 执行动作，未来所有奖励的折扣之和的期望值。\(\gamma \in [0,1)\) 是折扣因子，控制未来奖励相对于即时奖励的重要程度。</p>
+
+        <div class="analogy-box">
+          <span class="emoji">🍜</span>
+          <strong data-zh="类比：" data-en="Analogy:">类比：</strong>
+          <span data-zh="你在一家餐厅点菜（Actor 选动作）。Critic 就像一位资深食评人，在你点菜之前就告诉你"从这桌的当前情况看，你大概能吃到 8 分满意度"。有了这个基准，你就能判断某道菜是否比平均水平更好。" data-en="You're ordering food at a restaurant (Actor chooses actions). The Critic is like an experienced food critic who tells you before you order: 'Given the current situation at this table, you can expect about an 8/10 satisfaction.' With this baseline, you can judge whether a specific dish is better than average.">你在一家餐厅点菜（Actor 选动作）。Critic 就像一位资深食评人，在你点菜之前就告诉你"从这桌的当前情况看，你大概能吃到 8 分满意度"。有了这个基准，你就能判断某道菜是否比平均水平更好。</span>
+        </div>
+
+        <p class="phase-desc" data-zh="为什么需要 Critic？在纯策略梯度（REINFORCE）中，我们用整个轨迹的回报 \(G_t\) 来估计梯度，方差极高（噪声大，训练不稳定）。Critic 提供一个基准值（baseline），大幅降低方差，同时训练更快更稳定。" data-en="Why do we need the Critic? In pure policy gradient (REINFORCE), we use the full trajectory return \(G_t\) to estimate gradients — this has extremely high variance (noisy, unstable training). The Critic provides a baseline, drastically reducing variance while making training faster and more stable.">为什么需要 Critic？在纯策略梯度（REINFORCE）中，我们用整个轨迹的回报 \(G_t\) 来估计梯度，方差极高（噪声大，训练不稳定）。Critic 提供一个基准值（baseline），大幅降低方差，同时训练更快更稳定。</p>
+      </section>
+
+      <!-- SECTION 2: Advantage -->
+      <section id="sec-advantage">
+        <h2 class="phase-heading" data-zh="2. 优势函数 A(s, a)" data-en="2. The Advantage Function A(s, a)">2. 优势函数 A(s, a)</h2>
+        <p class="phase-desc" data-zh="光有 \(V(s)\) 还不够。我们真正关心的是：某个具体动作 \(a\) 比"平均水平"好多少？这正是优势函数的定义：" data-en="Having \(V(s)\) alone is not enough. What we really care about is: how much better is a specific action \(a\) compared to the 'average'? This is exactly the Advantage function:">光有 \(V(s)\) 还不够。我们真正关心的是：某个具体动作 \(a\) 比"平均水平"好多少？这正是优势函数的定义：</p>
+        <div class="math-block">
+          \[ A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s) \]
+        </div>
+        <p class="phase-desc" data-zh="其中 \(Q^\pi(s,a)\) 是动作价值函数（Q 函数）：在状态 \(s\) 执行动作 \(a\)，然后继续按策略 \(\pi\) 行动的期望总回报：" data-en="Where \(Q^\pi(s,a)\) is the action-value function (Q-function): the expected total return when taking action \(a\) in state \(s\) and then continuing to follow policy \(\pi\):">其中 \(Q^\pi(s,a)\) 是动作价值函数（Q 函数）：在状态 \(s\) 执行动作 \(a\)，然后继续按策略 \(\pi\) 行动的期望总回报：</p>
+        <div class="math-block">
+          \[ Q^\pi(s, a) = \mathbb{E}_\pi\!\left[\sum_{k=0}^{\infty} \gamma^k r_{t+k} \;\Bigg|\; s_t=s,\, a_t=a\right] \]
+        </div>
+
+        <div class="callout">
+          <strong data-zh="直觉解读：" data-en="Intuition:">直觉解读：</strong>
+          <span data-zh="\(A(s,a) > 0\)：这个动作比平均水平更好，应该增大它的概率。&nbsp;&nbsp;\(A(s,a) < 0\)：这个动作比平均水平差，应该减小它的概率。&nbsp;&nbsp;\(A(s,a) = 0\)：刚好等于平均水平。" data-en="\(A(s,a) > 0\): this action is better than average — increase its probability. &nbsp;&nbsp;\(A(s,a) < 0\): this action is worse than average — decrease its probability. &nbsp;&nbsp;\(A(s,a) = 0\): exactly average.">\(A(s,a) > 0\)：这个动作比平均水平更好，应该增大它的概率。&nbsp;&nbsp;\(A(s,a) < 0\)：这个动作比平均水平差，应该减小它的概率。&nbsp;&nbsp;\(A(s,a) = 0\)：刚好等于平均水平。</span>
+        </div>
+
+        <p class="phase-desc" data-zh="策略梯度定理可以用优势函数表达（这是 Actor-Critic 的核心）：" data-en="The policy gradient theorem can be expressed using the advantage function (this is the core of Actor-Critic):">策略梯度定理可以用优势函数表达（这是 Actor-Critic 的核心）：</p>
+        <div class="math-block">
+          \[ \nabla_\theta J(\theta) = \mathbb{E}\!\left[\nabla_\theta \log \pi_\theta(a_t \mid s_t) \cdot A^\pi(s_t, a_t)\right] \]
+        </div>
+        <p class="phase-desc" data-zh="问题来了：\(A^\pi(s,a)\) 无法直接计算（需要知道真实的 \(Q\) 和 \(V\)）。我们只能用 Critic 来估计它——这就引出了下面的内容。" data-en="The problem: \(A^\pi(s,a)\) cannot be computed directly (it requires knowing the true \(Q\) and \(V\)). We can only estimate it using the Critic — which leads us to the next sections.">问题来了：\(A^\pi(s,a)\) 无法直接计算（需要知道真实的 \(Q\) 和 \(V\)）。我们只能用 Critic 来估计它——这就引出了下面的内容。</p>
+      </section>
+
+      <!-- SECTION 3: TD Residuals -->
+      <section id="sec-td">
+        <h2 class="phase-heading" data-zh="3. TD 残差：单步优势估计" data-en="3. TD Residuals: One-Step Advantage">3. TD 残差：单步优势估计</h2>
+        <p class="phase-desc" data-zh="最简单的优势估计：只走一步，然后用 Critic 估计剩余价值。这就是时序差分（TD）残差：" data-en="The simplest advantage estimate: take one step, then use the Critic to estimate remaining value. This is the Temporal Difference (TD) residual:">最简单的优势估计：只走一步，然后用 Critic 估计剩余价值。这就是时序差分（TD）残差：</p>
+        <div class="math-block">
+          \[ \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t) \]
+        </div>
+        <p class="phase-desc" data-zh="解读：\(r_t + \gamma V(s_{t+1})\) 是对 \(Q(s_t, a_t)\) 的一步估计（TD 目标），减去 \(V(s_t)\) 就得到了优势估计 \(\hat{A}_t \approx \delta_t\)。" data-en="Interpretation: \(r_t + \gamma V(s_{t+1})\) is a one-step estimate of \(Q(s_t, a_t)\) (the TD target). Subtracting \(V(s_t)\) gives the advantage estimate \(\hat{A}_t \approx \delta_t\).">解读：\(r_t + \gamma V(s_{t+1})\) 是对 \(Q(s_t, a_t)\) 的一步估计（TD 目标），减去 \(V(s_t)\) 就得到了优势估计 \(\hat{A}_t \approx \delta_t\)。</p>
+
+        <div class="two-col">
+          <div class="col-card">
+            <h4 data-zh="✅ 优点" data-en="✅ Pros">✅ 优点</h4>
+            <ul style="padding-left:1.1rem; line-height:1.8;" data-zh="<li>方差低（只依赖一步奖励）</li><li>计算简单高效</li><li>可以在线更新</li>" data-en="<li>Low variance (only depends on one-step reward)</li><li>Simple and efficient to compute</li><li>Can be updated online</li>"><li>方差低（只依赖一步奖励）</li><li>计算简单高效</li><li>可以在线更新</li></ul>
+          </div>
+          <div class="col-card">
+            <h4 data-zh="❌ 缺点" data-en="❌ Cons">❌ 缺点</h4>
+            <ul style="padding-left:1.1rem; line-height:1.8;" data-zh="<li>偏差高（依赖 Critic 的精度）</li><li>如果 V 不准，估计会很差</li><li>信号传播慢（短视）</li>" data-en="<li>High bias (depends on Critic accuracy)</li><li>Poor estimates if V is inaccurate</li><li>Slow signal propagation (myopic)</li>"><li>偏差高（依赖 Critic 的精度）</li><li>如果 V 不准，估计会很差</li><li>信号传播慢（短视）</li></ul>
+          </div>
+        </div>
+
+        <div class="analogy-box">
+          <span class="emoji">🔭</span>
+          <strong data-zh="比喻：" data-en="Analogy:">比喻：</strong>
+          <span data-zh="TD 残差就像只看今天的天气来预测这个月的气候——快，但容易出错（偏差大）。" data-en="TD residual is like using only today's weather to forecast this month's climate — fast, but prone to error (high bias).">TD 残差就像只看今天的天气来预测这个月的气候——快，但容易出错（偏差大）。</span>
+        </div>
+      </section>
+
+      <!-- SECTION 4: Monte Carlo -->
+      <section id="sec-mc">
+        <h2 class="phase-heading" data-zh="4. 蒙特卡洛回报：N 步优势" data-en="4. Monte Carlo Returns: N-Step Advantage">4. 蒙特卡洛回报：N 步优势</h2>
+        <p class="phase-desc" data-zh="走多步再用 Critic 截断，得到 N 步回报：" data-en="Take multiple steps before bootstrapping with the Critic — this gives the N-step return:">走多步再用 Critic 截断，得到 N 步回报：</p>
+        <div class="math-block">
+          \[ G_t^{(n)} = r_t + \gamma r_{t+1} + \cdots + \gamma^{n-1} r_{t+n-1} + \gamma^n V(s_{t+n}) \]
+        </div>
+        <p class="phase-desc" data-zh="对应的 N 步优势估计：" data-en="The corresponding N-step advantage estimate:">对应的 N 步优势估计：</p>
+        <div class="math-block">
+          \[ \hat{A}_t^{(n)} = G_t^{(n)} - V(s_t) \]
+        </div>
+        <p class="phase-desc" data-zh="当 \(n \to \infty\) 时，就退化为纯蒙特卡洛（不再用 Critic 截断），此时偏差最小，但方差最大。" data-en="When \(n \to \infty\), it degenerates to pure Monte Carlo (no Critic bootstrapping), minimizing bias but maximizing variance.">当 \(n \to \infty\) 时，就退化为纯蒙特卡洛（不再用 Critic 截断），此时偏差最小，但方差最大。</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th data-zh="方法" data-en="Method">方法</th>
+              <th data-zh="步数 n" data-en="Steps n">步数 n</th>
+              <th data-zh="偏差" data-en="Bias">偏差</th>
+              <th data-zh="方差" data-en="Variance">方差</th>
+              <th data-zh="依赖 Critic?" data-en="Uses Critic?">依赖 Critic?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>TD(0)</td><td>n=1</td>
+              <td data-zh="高" data-en="High">高</td>
+              <td data-zh="低" data-en="Low">低</td>
+              <td data-zh="是（强）" data-en="Yes (heavy)">是（强）</td>
+            </tr>
+            <tr>
+              <td>N-step</td><td>n=2~10</td>
+              <td data-zh="中" data-en="Medium">中</td>
+              <td data-zh="中" data-en="Medium">中</td>
+              <td data-zh="是（中）" data-en="Yes (moderate)">是（中）</td>
+            </tr>
+            <tr>
+              <td data-zh="蒙特卡洛" data-en="Monte Carlo">蒙特卡洛</td><td>n=∞</td>
+              <td data-zh="低" data-en="Low">低</td>
+              <td data-zh="高" data-en="High">高</td>
+              <td data-zh="否" data-en="No">否</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="phase-desc" data-zh="这个表格揭示了一个两难困境：步数越多，偏差越小，但方差越大。GAE 用一个优雅的方式解决这个问题。" data-en="This table reveals a dilemma: more steps means less bias but more variance. GAE solves this dilemma in an elegant way.">这个表格揭示了一个两难困境：步数越多，偏差越小，但方差越大。GAE 用一个优雅的方式解决这个问题。</p>
+      </section>
+
+      <!-- SECTION 5: GAE -->
+      <section id="sec-gae">
+        <h2 class="phase-heading" data-zh="5. GAE：广义优势估计" data-en="5. GAE: Generalized Advantage Estimation">5. GAE：广义优势估计</h2>
+        <p class="phase-desc" data-zh="GAE（Schulman et al., 2016）的核心思想：不选一个固定的步数 n，而是对所有 n 步估计做指数加权平均！" data-en="The core idea of GAE (Schulman et al., 2016): instead of choosing a fixed number of steps n, take an exponentially weighted average over all n-step estimates!">GAE（Schulman et al., 2016）的核心思想：不选一个固定的步数 n，而是对所有 n 步估计做指数加权平均！</p>
+
+        <div class="math-block">
+          \[ \hat{A}_t^{\text{GAE}(\gamma,\lambda)} = \sum_{l=0}^{T-t-1} (\gamma\lambda)^l \,\delta_{t+l} \]
+        </div>
+        <p class="phase-desc" data-zh="其中 \(\delta_{t+l} = r_{t+l} + \gamma V(s_{t+l+1}) - V(s_{t+l})\) 是第 \(t+l\) 步的 TD 残差，\(\lambda \in [0,1]\) 是 GAE 的超参数（类似 TD(λ) 中的 λ）。" data-en="Where \(\delta_{t+l} = r_{t+l} + \gamma V(s_{t+l+1}) - V(s_{t+l})\) is the TD residual at step \(t+l\), and \(\lambda \in [0,1]\) is the GAE hyperparameter (analogous to λ in TD(λ)).">其中 \(\delta_{t+l} = r_{t+l} + \gamma V(s_{t+l+1}) - V(s_{t+l})\) 是第 \(t+l\) 步的 TD 残差，\(\lambda \in [0,1]\) 是 GAE 的超参数（类似 TD(λ) 中的 λ）。</p>
+
+        <h3 class="phase-heading" style="font-size:1.2rem; border-top: 1px dashed var(--border);" data-zh="λ 的两个极端情形" data-en="Two Extreme Cases of λ">λ 的两个极端情形</h3>
+
+        <div class="two-col">
+          <div class="col-card">
+            <h4>λ = 0</h4>
+            <div class="math-block" style="margin:0.75rem 0;">
+              \[ \hat{A}_t = \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t) \]
+            </div>
+            <p data-zh="退化为 TD(0) 单步估计。只有 \(l=0\) 项有贡献（权重 \((\gamma \cdot 0)^l = 0\) for \(l\geq 1\)）。低方差，但依赖 Critic 精度（高偏差）。" data-en="Degenerates to TD(0) one-step estimate. Only the \(l=0\) term contributes. Low variance, but depends heavily on Critic accuracy (high bias).">退化为 TD(0) 单步估计。只有 \(l=0\) 项有贡献。低方差，但依赖 Critic 精度（高偏差）。</p>
+          </div>
+          <div class="col-card">
+            <h4>λ = 1</h4>
+            <div class="math-block" style="margin:0.75rem 0;">
+              \[ \hat{A}_t = \sum_{l=0}^{T-t-1} \gamma^l \delta_{t+l} = G_t - V(s_t) \]
+            </div>
+            <p data-zh="退化为蒙特卡洛估计（用真实轨迹减去基线）。所有 TD 残差等权相加（权重为 \(\gamma^l\)）。低偏差，但方差高。" data-en="Degenerates to Monte Carlo estimation (true trajectory minus baseline). All TD residuals are summed with equal weights \(\gamma^l\). Low bias, but high variance.">退化为蒙特卡洛估计（用真实轨迹减去基线）。低偏差，但方差高。</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong data-zh="🔑 关键洞察：GAE = TD 残差的指数移动平均" data-en="🔑 Key Insight: GAE = Exponential Moving Average of TD Residuals">🔑 关键洞察：GAE = TD 残差的指数移动平均</strong><br/>
+          <span data-zh="未来第 \(l\) 步的 TD 残差 \(\delta_{t+l}\) 的权重为 \((\gamma\lambda)^l\)，随 \(l\) 增大指数衰减。\(\lambda\) 越小，衰减越快（越短视）；\(\lambda\) 越大，衰减越慢（越长视）。实践中常用 \(\lambda \in [0.9, 0.99]\)（如 PPO 中 λ=0.95）。" data-en="The weight of the TD residual \(\delta_{t+l}\) at future step \(l\) is \((\gamma\lambda)^l\), decaying exponentially as \(l\) increases. Smaller \(\lambda\) means faster decay (more myopic); larger \(\lambda\) means slower decay (more far-sighted). In practice, \(\lambda \in [0.9, 0.99]\) is common (e.g., PPO uses λ=0.95).">未来第 \(l\) 步的 TD 残差 \(\delta_{t+l}\) 的权重为 \((\gamma\lambda)^l\)，随 \(l\) 增大指数衰减。实践中常用 \(\lambda \in [0.9, 0.99]\)（如 PPO 中 λ=0.95）。</span>
+        </div>
+
+        <h3 class="phase-heading" style="font-size:1.2rem; border-top: 1px dashed var(--border);" data-zh="逆向递推计算（重要！）" data-en="Backward Recursive Computation (Important!)">逆向递推计算（重要！）</h3>
+        <p class="phase-desc" data-zh="实际实现时，GAE 从轨迹末尾往回递推，复杂度 O(T)：" data-en="In practice, GAE is computed by iterating backward from the end of the trajectory, with O(T) complexity:">实际实现时，GAE 从轨迹末尾往回递推，复杂度 O(T)：</p>
+        <div class="math-block">
+          \[ \hat{A}_T = 0, \qquad \hat{A}_t = \delta_t + \gamma\lambda \cdot \hat{A}_{t+1} \]
+        </div>
+        <p class="phase-desc" data-zh="这个递推公式是 GAE 代码实现的核心，非常优雅且高效。" data-en="This recurrence is the core of any GAE implementation — elegant and efficient.">这个递推公式是 GAE 代码实现的核心，非常优雅且高效。</p>
+      </section>
+
+      <!-- SECTION 6: Visualization -->
+      <section id="sec-viz">
+        <h2 class="phase-heading" data-zh="6. 交互可视化：GAE 权重如何分布" data-en="6. Interactive Visualization: How GAE Weights Are Distributed">6. 交互可视化：GAE 权重如何分布</h2>
+        <p class="phase-desc" data-zh="下方可视化展示了一条长度为 6 的轨迹。拖动 λ 滑块，观察权重 \((\gamma\lambda)^l\) 如何随距离 l 衰减，以及 GAE 是如何从轨迹末尾逆向累积 TD 残差的。" data-en="The visualization below shows a trajectory of length 6. Drag the λ slider to see how the weight \((\gamma\lambda)^l\) decays with distance l, and how GAE accumulates TD residuals backward through the trajectory.">下方可视化展示了一条长度为 6 的轨迹。拖动 λ 滑块，观察权重 \((\gamma\lambda)^l\) 如何随距离 l 衰减，以及 GAE 是如何从轨迹末尾逆向累积 TD 残差的。</p>
+
+        <div class="stage-wrapper">
+          <canvas id="gaeCanvas"></canvas>
+          <div class="viz-info" id="vizInfo">λ = 0.95</div>
+          <div class="controls">
+            <div class="control-group">
+              <label class="control-label">
+                <span>λ (GAE lambda)</span>
+                <span id="lambdaVal">0.95</span>
+              </label>
+              <input type="range" id="lambdaSlider" min="0" max="1" step="0.01" value="0.95" />
+            </div>
+            <div class="control-group">
+              <label class="control-label">
+                <span>γ (discount)</span>
+                <span id="gammaVal">0.99</span>
+              </label>
+              <input type="range" id="gammaSlider" min="0.8" max="1" step="0.01" value="0.99" />
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="btn-play" id="btnPlay" data-zh="▶ 播放动画" data-en="▶ Animate">▶ 播放动画</button>
+              <button class="btn-play" id="btnReset" style="background:#6b7280;" data-zh="↺ 重置" data-en="↺ Reset">↺ 重置</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 7: PPO context -->
+      <section id="sec-ppo">
+        <h2 class="phase-heading" data-zh="7. GAE 在 PPO 训练循环中的位置" data-en="7. GAE in the PPO Training Loop">7. GAE 在 PPO 训练循环中的位置</h2>
+        <p class="phase-desc" data-zh="GAE 是 PPO（Proximal Policy Optimization）的重要组成部分。完整的 PPO 训练循环如下：" data-en="GAE is a key component of PPO (Proximal Policy Optimization). The full PPO training loop looks like:">GAE 是 PPO（Proximal Policy Optimization）的重要组成部分。完整的 PPO 训练循环如下：</p>
+
+        <div class="pipeline">
+          <div class="pipeline-step" data-zh="采样轨迹<br/>(rollout)" data-en="Collect Rollout<br/>(sample)">采样轨迹<br/>(rollout)</div>
+          <span class="pipeline-arrow">→</span>
+          <div class="pipeline-step highlight" data-zh="计算 δ_t<br/>计算 GAE" data-en="Compute δ_t<br/>Compute GAE">计算 δ_t<br/>计算 GAE</div>
+          <span class="pipeline-arrow">→</span>
+          <div class="pipeline-step" data-zh="PPO Clip<br/>更新 Actor" data-en="PPO Clip<br/>Update Actor">PPO Clip<br/>更新 Actor</div>
+          <span class="pipeline-arrow">→</span>
+          <div class="pipeline-step" data-zh="MSE Loss<br/>更新 Critic" data-en="MSE Loss<br/>Update Critic">MSE Loss<br/>更新 Critic</div>
+          <span class="pipeline-arrow">→</span>
+          <div class="pipeline-step" data-zh="重复" data-en="Repeat">重复</div>
+        </div>
+
+        <p class="phase-desc" data-zh="下面是 GAE 的完整 Python 实现（与 PyTorch 兼容）：" data-en="Below is a complete Python implementation of GAE (compatible with PyTorch):">下面是 GAE 的完整 Python 实现（与 PyTorch 兼容）：</p>
+
+<pre><code><span class="kw">import</span> torch
+
+<span class="kw">def</span> <span class="fn">compute_gae</span>(
+    rewards,       <span class="cm"># shape [T]   — 每步奖励 r_t</span>
+    values,        <span class="cm"># shape [T+1] — Critic 输出 V(s_0)...V(s_T)</span>
+    dones,         <span class="cm"># shape [T]   — episode 是否结束 (bool)</span>
+    gamma<span class="op">=</span><span class="nm">0.99</span>,    <span class="cm"># 折扣因子</span>
+    lam<span class="op">=</span><span class="nm">0.95</span>,      <span class="cm"># GAE lambda</span>
+):
+    T <span class="op">=</span> <span class="fn">len</span>(rewards)
+    advantages <span class="op">=</span> torch.<span class="fn">zeros</span>(T)
+    last_gae <span class="op">=</span> <span class="nm">0.0</span>
+
+    <span class="kw">for</span> t <span class="kw">in</span> <span class="fn">reversed</span>(<span class="fn">range</span>(T)):
+        <span class="cm"># 如果 episode 结束，next_value = 0</span>
+        next_value <span class="op">=</span> values[t <span class="op">+</span> <span class="nm">1</span>] <span class="op">*</span> (<span class="nm">1.0</span> <span class="op">-</span> <span class="fn">float</span>(dones[t]))
+
+        <span class="cm"># TD 残差 δ_t</span>
+        delta <span class="op">=</span> rewards[t] <span class="op">+</span> gamma <span class="op">*</span> next_value <span class="op">-</span> values[t]
+
+        <span class="cm"># GAE 逆向递推: Â_t = δ_t + γλ * Â_{t+1}</span>
+        last_gae <span class="op">=</span> delta <span class="op">+</span> gamma <span class="op">*</span> lam <span class="op">*</span> last_gae <span class="op">*</span> (<span class="nm">1.0</span> <span class="op">-</span> <span class="fn">float</span>(dones[t]))
+        advantages[t] <span class="op">=</span> last_gae
+
+    <span class="cm"># 回报 = 优势 + Critic 基线 (用于更新 Critic)</span>
+    returns <span class="op">=</span> advantages <span class="op">+</span> values[:<span class="op">-</span><span class="nm">1</span>]
+    <span class="kw">return</span> advantages, returns
+
+
+<span class="cm"># ---- PPO 训练循环核心 (伪代码) ----</span>
+<span class="kw">for</span> iteration <span class="kw">in</span> <span class="fn">range</span>(num_iterations):
+    <span class="cm"># 1. 采样轨迹</span>
+    obs, acts, rews, dones, vals = <span class="fn">rollout</span>(actor, critic, env)
+
+    <span class="cm"># 2. 计算 GAE 优势</span>
+    advantages, returns = <span class="fn">compute_gae</span>(rews, vals, dones, gamma, lam)
+
+    <span class="cm"># 3. 归一化优势 (重要！减少训练不稳定)</span>
+    advantages <span class="op">=</span> (advantages <span class="op">-</span> advantages.<span class="fn">mean</span>()) <span class="op">/</span> (advantages.<span class="fn">std</span>() <span class="op">+</span> <span class="nm">1e-8</span>)
+
+    <span class="cm"># 4. PPO Clip 更新 Actor</span>
+    ratio <span class="op">=</span> (new_log_prob <span class="op">-</span> old_log_prob).<span class="fn">exp</span>()
+    clip_loss <span class="op">=</span> <span class="op">-</span>torch.<span class="fn">min</span>(
+        ratio <span class="op">*</span> advantages,
+        torch.<span class="fn">clamp</span>(ratio, <span class="nm">1</span><span class="op">-</span>eps, <span class="nm">1</span><span class="op">+</span>eps) <span class="op">*</span> advantages
+    ).<span class="fn">mean</span>()
+
+    <span class="cm"># 5. MSE 更新 Critic</span>
+    value_loss <span class="op">=</span> ((critic(obs) <span class="op">-</span> returns) <span class="op">**</span> <span class="nm">2</span>).<span class="fn">mean</span>()
+</code></pre>
+
+        <div class="callout">
+          <strong data-zh="💡 实践小贴士：" data-en="💡 Practical Tips:">💡 实践小贴士：</strong>
+          <ul style="padding-left:1.2rem; line-height:1.9; margin-top:0.4rem;" data-zh="<li>优势归一化（减均值除标准差）非常重要，能显著稳定训练。</li><li>PPO 论文推荐 γ=0.99, λ=0.95，是个很好的起点。</li><li>λ 接近 1 时对 Critic 精度要求更低（更少依赖 Critic），但需要更长的轨迹。</li><li>episode 结束时（done=True）必须截断 GAE 累积，否则跨 episode 的信号会污染估计。</li>" data-en="<li>Advantage normalization (subtract mean, divide by std) is critical for stable training.</li><li>The PPO paper recommends γ=0.99, λ=0.95 as a solid starting point.</li><li>Larger λ requires less Critic accuracy but needs longer rollouts.</li><li>Must truncate GAE at episode boundaries (done=True), or cross-episode signals will corrupt estimates.</li>"><li>优势归一化（减均值除标准差）非常重要，能显著稳定训练。</li><li>PPO 论文推荐 γ=0.99, λ=0.95，是个很好的起点。</li><li>λ 接近 1 时对 Critic 精度要求更低（更少依赖 Critic），但需要更长的轨迹。</li><li>episode 结束时（done=True）必须截断 GAE 累积，否则跨 episode 的信号会污染估计。</li></ul>
+        </div>
+      </section>
+
+      <footer style="margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); font-family:var(--font-sans); font-size:0.85rem; color:var(--text-secondary); text-align:center;">
+        <p data-zh="参考：John Schulman et al., <em>High-Dimensional Continuous Control Using Generalized Advantage Estimation</em>, ICLR 2016." data-en="Reference: John Schulman et al., <em>High-Dimensional Continuous Control Using Generalized Advantage Estimation</em>, ICLR 2016.">参考：John Schulman et al., <em>High-Dimensional Continuous Control Using Generalized Advantage Estimation</em>, ICLR 2016.</p>
+      </footer>
+    </article>
+
+    <script>
+      // ---- Progress bar ----
+      const bar = document.getElementById('progressBar');
+      function updateProgress() {
+        const h = document.documentElement;
+        const pct = (h.scrollTop || document.body.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+        bar.style.width = pct + '%';
+      }
+      document.addEventListener('scroll', updateProgress, {passive: true});
+
+      // ---- Lang toggle ----
+      const langBtn = document.getElementById('langBtn');
+      let currentLang = 'zh';
+      function applyLang(lang) {
+        document.querySelectorAll('[data-en]').forEach(el => {
+          el.innerHTML = lang === 'en' ? el.dataset.en : el.dataset.zh;
+        });
+        langBtn.textContent = lang === 'zh' ? 'EN' : '中文';
+        currentLang = lang;
+      }
+      langBtn.addEventListener('click', () => applyLang(currentLang === 'zh' ? 'en' : 'zh'));
+
+      // ---- KaTeX ----
+      document.addEventListener('DOMContentLoaded', () => {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ]
+        });
+      });
+
+      // ---- GAE Canvas Visualization ----
+      (function() {
+        const canvas = document.getElementById('gaeCanvas');
+        const ctx = canvas.getContext('2d');
+        const lambdaSlider = document.getElementById('lambdaSlider');
+        const gammaSlider = document.getElementById('gammaSlider');
+        const lambdaVal = document.getElementById('lambdaVal');
+        const gammaVal = document.getElementById('gammaVal');
+        const vizInfo = document.getElementById('vizInfo');
+        const btnPlay = document.getElementById('btnPlay');
+        const btnReset = document.getElementById('btnReset');
+
+        // Fixed random trajectory data
+        const T = 6;
+        const rewards  = [0.3, -0.1, 0.8, 0.2, 0.5, 0.4];
+        const values   = [2.1, 2.4, 1.9, 2.6, 2.3, 2.0, 1.8]; // V(s0)...V(s6)
+        const gamma_fixed = 0.99;
+
+        let lam = 0.95;
+        let gam = 0.99;
+        let animStep = -1; // which state we're currently highlighting (-1 = none)
+        let animTimer = null;
+        let isPlaying = false;
+
+        function resize() {
+          const wrapper = canvas.parentElement;
+          canvas.width  = wrapper.clientWidth;
+          canvas.height = wrapper.clientHeight - 80;
+        }
+
+        function computeDeltas(g) {
+          const d = [];
+          for (let t = 0; t < T; t++) {
+            d.push(rewards[t] + g * values[t+1] - values[t]);
+          }
+          return d;
+        }
+
+        function computeGAE(g, l) {
+          const deltas = computeDeltas(g);
+          const adv = new Array(T).fill(0);
+          let last = 0;
+          for (let t = T-1; t >= 0; t--) {
+            last = deltas[t] + g * l * last;
+            adv[t] = last;
+          }
+          return {deltas, adv};
+        }
+
+        function draw() {
+          const W = canvas.width, H = canvas.height;
+          ctx.clearRect(0, 0, W, H);
+
+          const {deltas, adv} = computeGAE(gam, lam);
+
+          // Layout
+          const padL = 40, padR = 30, padT = 70, padB = 50;
+          const stateCount = T + 1;
+          const totalW = W - padL - padR;
+          const stepX = totalW / T;
+
+          // State x positions (s0 to s6)
+          const sx = [];
+          for (let i = 0; i <= T; i++) sx.push(padL + i * stepX);
+
+          const midY = padT + (H - padT - padB) * 0.4;
+          const barBaseY = midY + 60;
+          const rY = midY - 55;
+
+          // Draw timeline line
+          ctx.strokeStyle = '#d1d5db';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(sx[0], midY);
+          ctx.lineTo(sx[T], midY);
+          ctx.stroke();
+
+          // Draw GAE weight bars (below timeline, at t=0 perspective)
+          const maxBarH = 55;
+          const maxAdv = Math.max(...adv.map(Math.abs), 0.01);
+          for (let t = 0; t < T; t++) {
+            const weight = Math.pow(gam * lam, t);
+            const barH = weight * maxBarH;
+            const bx = sx[t] + (stepX - 22) / 2;
+            const by = barBaseY - barH;
+
+            // Color: blue for positive weight, fade to grey as weight decreases
+            const alpha = 0.2 + 0.8 * weight;
+            ctx.fillStyle = `rgba(37, 99, 235, ${alpha})`;
+            ctx.fillRect(bx, by, 22, barH);
+
+            // Weight label
+            ctx.fillStyle = '#374151';
+            ctx.font = 'bold 10px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('(' + (gam*lam).toFixed(2) + ')^' + t, sx[t] + stepX/2, barBaseY + 18);
+            ctx.fillText(weight.toFixed(3), sx[t] + stepX/2, barBaseY + 30);
+          }
+
+          // Draw V(s) value indicators above timeline
+          for (let i = 0; i <= T; i++) {
+            const vH = values[i] * 12;
+            ctx.fillStyle = 'rgba(107, 114, 128, 0.25)';
+            ctx.fillRect(sx[i] - 8, rY - vH, 16, vH);
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '9px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('V=' + values[i].toFixed(1), sx[i], rY - vH - 5);
+          }
+
+          // Draw TD residuals and rewards between states
+          for (let t = 0; t < T; t++) {
+            const mx = (sx[t] + sx[t+1]) / 2;
+            // Reward label
+            ctx.fillStyle = rewards[t] >= 0 ? '#059669' : '#dc2626';
+            ctx.font = 'bold 11px Helvetica Neue, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('r=' + rewards[t].toFixed(1), mx, midY - 12);
+
+            // Delta label
+            const dc = deltas[t] >= 0 ? '#2563eb' : '#dc2626';
+            ctx.fillStyle = dc;
+            ctx.font = '10px JetBrains Mono, monospace';
+            ctx.fillText('δ=' + deltas[t].toFixed(2), mx, midY + 22);
+          }
+
+          // Draw states as circles
+          for (let i = 0; i <= T; i++) {
+            const isActive = (animStep >= 0 && i <= animStep);
+            const isHighlight = (i === animStep);
+
+            ctx.beginPath();
+            ctx.arc(sx[i], midY, 18, 0, Math.PI * 2);
+            ctx.fillStyle = isHighlight ? '#2563eb' : (isActive ? '#bfdbfe' : '#f3f4f6');
+            ctx.fill();
+            ctx.strokeStyle = isHighlight ? '#1d4ed8' : (isActive ? '#2563eb' : '#9ca3af');
+            ctx.lineWidth = isHighlight ? 3 : 1.5;
+            ctx.stroke();
+
+            ctx.fillStyle = isHighlight ? '#fff' : (isActive ? '#1e40af' : '#374151');
+            ctx.font = 'bold 12px Helvetica Neue, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('s' + i, sx[i], midY);
+            ctx.textBaseline = 'alphabetic';
+          }
+
+          // GAE advantage value at t=0
+          ctx.fillStyle = '#1a1a2e';
+          ctx.font = 'bold 13px JetBrains Mono, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText('Â₀ = ' + adv[0].toFixed(4), padL, padT - 30);
+
+          // Axis label
+          ctx.fillStyle = '#9ca3af';
+          ctx.font = '11px Helvetica Neue, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('weight (γλ)^l', padL + totalW/2, barBaseY + 44);
+
+          // Title
+          ctx.fillStyle = '#1a1a2e';
+          ctx.font = 'bold 14px Playfair Display, serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('GAE 权重随距离 l 指数衰减', W/2, 22);
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '11px Helvetica Neue, sans-serif';
+          ctx.fillText('λ=' + lam.toFixed(2) + '  γ=' + gam.toFixed(2) + '  γλ=' + (gam*lam).toFixed(3), W/2, 40);
+        }
+
+        lambdaSlider.addEventListener('input', () => {
+          lam = parseFloat(lambdaSlider.value);
+          lambdaVal.textContent = lam.toFixed(2);
+          vizInfo.textContent = 'λ = ' + lam.toFixed(2);
+          draw();
+        });
+        gammaSlider.addEventListener('input', () => {
+          gam = parseFloat(gammaSlider.value);
+          gammaVal.textContent = gam.toFixed(2);
+          draw();
+        });
+
+        btnPlay.addEventListener('click', () => {
+          if (isPlaying) {
+            clearInterval(animTimer);
+            isPlaying = false;
+            animStep = -1;
+            btnPlay.dataset.zh = '▶ 播放动画';
+            btnPlay.dataset.en = '▶ Animate';
+            btnPlay.textContent = currentLang === 'zh' ? '▶ 播放动画' : '▶ Animate';
+            draw();
+            return;
+          }
+          isPlaying = true;
+          animStep = T;
+          btnPlay.dataset.zh = '⏹ 停止';
+          btnPlay.dataset.en = '⏹ Stop';
+          btnPlay.textContent = currentLang === 'zh' ? '⏹ 停止' : '⏹ Stop';
+          draw();
+          animTimer = setInterval(() => {
+            animStep--;
+            draw();
+            if (animStep < 0) {
+              clearInterval(animTimer);
+              isPlaying = false;
+              btnPlay.dataset.zh = '▶ 播放动画';
+              btnPlay.dataset.en = '▶ Animate';
+              btnPlay.textContent = currentLang === 'zh' ? '▶ 播放动画' : '▶ Animate';
+            }
+          }, 600);
+        });
+
+        btnReset.addEventListener('click', () => {
+          if (animTimer) clearInterval(animTimer);
+          isPlaying = false;
+          animStep = -1;
+          btnPlay.dataset.zh = '▶ 播放动画';
+          btnPlay.dataset.en = '▶ Animate';
+          btnPlay.textContent = currentLang === 'zh' ? '▶ 播放动画' : '▶ Animate';
+          draw();
+        });
+
+        window.addEventListener('resize', () => { resize(); draw(); });
+        resize();
+        draw();
+
+        // expose currentLang for button text sync
+        Object.defineProperty(window, 'currentLang', {
+          get() { return currentLang; }
+        });
+      })();
+    </script>
+  </body>
+</html>
