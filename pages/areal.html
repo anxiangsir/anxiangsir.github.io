@@ -863,7 +863,6 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec5bVsPpo: "<strong>GRPO 与 PPO 的机制差异</strong>：PPO 的关键难点是把绝对奖励通过 value/GAE 转成稳定 advantage；GRPO 则直接在同题候选之间做相对排序，再送入 clip objective。前者更通用，后者在“可验证、可比较”的任务上信号更干净。对 AReaL 这类异步系统，GRPO 还能减少 value 网络维护成本，使训练路径更短。",
           sec5bWhyMath: "<strong>为什么 AReaL 在数学任务偏好 GRPO？</strong> 数学题奖励通常由最终答案或规则校验给出，天然适合组内相对比较。GRPO 利用同题多解的对照，把“谁更接近正确推理”直接编码到优势中，往往比依赖 value 拟合更稳。再叠加 AReaL 的高吞吐异步采样，GRPO 能以较低工程复杂度获得更好的样本效率与最终准确率。",
 
-          
           sec5cHead: "5C. TRPO 公式详解",
           sec5cDesc1: "TRPO（Trust Region Policy Optimization，Schulman et al., 2015）是 PPO 的理论前身，也是\"信任域\"思想在策略优化中的奠基工作。理解 TRPO 的原理，能帮助你更深刻地认识 PPO 为什么要用 clip、Decoupled PPO 为什么要统一 trust center，以及 AReaL 的设计根基。",
           sec5cVarSurrogate: "\\(L(\\theta)\\) — <strong>代理目标函数（surrogate objective）</strong>：它与标准策略梯度有相同的一阶近似，但不像普通梯度上升那样任由步长发散。TRPO 的精髓是：优化 \\(L(\\theta)\\) 的同时，硬性限制新策略与旧策略之间的 KL 散度不超过 \\(\\delta\\)。这样每一步更新都被约束在一个\"信任域\"内，保证单调策略改进。",
@@ -901,7 +900,7 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec5cDesc6: "PPO 的核心洞察是：用简单的比值裁剪 \\(\\text{clip}(u_t, 1{-}\\epsilon, 1{+}\\epsilon)\\) 可以近似 TRPO 的信任域效果，同时省去二阶优化的全部代价。实验表明，PPO 在绝大多数场景下与 TRPO 效果相当或更好，而实现简洁性与计算效率远超 TRPO。这也是为什么 AReaL 选择 PPO/Decoupled PPO 而非 TRPO 作为默认算法。",
           sec5cDesc7: "<strong>历史脉络</strong>：TRPO (2015) → PPO (2017) → Decoupled PPO (AReaL, 2025)。TRPO 奠定了\"信任域内优化策略\"的理论基础；PPO 把硬约束简化为裁剪，使大规模训练成为可能；Decoupled PPO 进一步处理了异步训练中多版本策略混合的问题。三者一脉相承，理解前者才能真正吃透后者。",
 
-sec6Head: "6. 关键对比",
+          sec6Head: "6. 关键对比",
           sec6Desc1: "从系统层到优化目标，AReaL 的改动不是单点技巧，而是“异步执行 + 版本治理 + Decoupled PPO”三者协同。下表给出与同步系统的核心差异。",
           sec6ColFeature: "特性",
           sec6ColSync: "同步系统",
@@ -1115,7 +1114,6 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec5bVsPpo: "<strong>Mechanistic difference from PPO</strong>: PPO's challenge is converting absolute rewards into stable advantages through value estimation; GRPO directly ranks sibling candidates for the same prompt and normalizes that ranking signal. PPO is more general-purpose, while GRPO is often cleaner on tasks with strong verifiers. In AReaL, this also shortens the training path by removing value-network maintenance.",
           sec5bWhyMath: "<strong>Why GRPO is preferred for math in AReaL</strong>: math rewards are typically verifier-driven and naturally comparable within a prompt. GRPO exploits this by turning same-question multi-sample contrast into direct optimization signal, often more stable than fitting a global value baseline. Combined with AReaL's high-throughput async rollout, it yields strong sample efficiency with lower system complexity.",
 
-          
           sec5cHead: "5C. TRPO Formula Deep Dive",
           sec5cDesc1: "TRPO (Trust Region Policy Optimization, Schulman et al., 2015) is PPO's theoretical predecessor and the foundational work on trust-region methods for policy optimization. Understanding TRPO deepens your insight into why PPO uses clipping, why Decoupled PPO unifies the trust center, and the design roots of AReaL.",
           sec5cVarSurrogate: "\\(L(\\theta)\\) — <strong>surrogate objective</strong>: it shares the same first-order approximation as the standard policy gradient, but does not allow unbounded step sizes. TRPO's core idea: maximize \\(L(\\theta)\\) while enforcing a hard KL-divergence constraint \\(\\le \\delta\\) between the new and old policy. This confines each update inside a \"trust region,\" guaranteeing monotonic policy improvement.",
@@ -1153,7 +1151,7 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec5cDesc6: "PPO's key insight: simple ratio clipping \\(\\text{clip}(u_t, 1{-}\\epsilon, 1{+}\\epsilon)\\) can approximate TRPO's trust-region effect while eliminating all second-order optimization costs. Experiments show PPO matches or outperforms TRPO in most settings, with far simpler implementation and better computational efficiency. This is why AReaL uses PPO/Decoupled PPO rather than TRPO as its default algorithm.",
           sec5cDesc7: "<strong>Historical lineage</strong>: TRPO (2015) → PPO (2017) → Decoupled PPO (AReaL, 2025). TRPO established the theoretical foundation of \"optimize policy within a trust region\"; PPO simplified the hard constraint to clipping, enabling large-scale training; Decoupled PPO further addresses multi-version policy mixing in asynchronous training. The three form a continuous intellectual thread — understanding the predecessor is key to mastering the successor.",
 
-sec6Head: "6. Key Comparisons",
+          sec6Head: "6. Key Comparisons",
           sec6Desc1: "AReaL is not a single trick; it couples system-level asynchrony, version/staleness governance, and a matching PPO objective. The table summarizes the operational differences.",
           sec6ColFeature: "Feature",
           sec6ColSync: "Sync Systems",
