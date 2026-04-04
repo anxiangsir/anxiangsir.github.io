@@ -12,8 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-      onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
     <style>
       :root {
         --bg:#fff; --bg-alt:#f8f9fa; --text:#1a1a2e; --text-secondary:#555;
@@ -396,14 +395,22 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
     }
     langBtn.addEventListener('click', function() { lang = lang === 'zh' ? 'en' : 'zh'; updateI18n(); });
 
-    // ---- Progress bar ----
+    // ---- Progress bar (RAF-throttled) ----
     var progressBar = document.getElementById('progress-bar');
+    var rafPending = false;
     document.addEventListener('scroll', function() {
-      var h = document.documentElement;
-      var pct = (h.scrollTop || document.body.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
-      progressBar.style.width = pct + '%';
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(function() {
+        var h = document.documentElement;
+        var pct = (h.scrollTop || document.body.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+        progressBar.style.width = pct + '%';
+        rafPending = false;
+      });
     }, {passive: true});
 
+    // ---- TOC (RAF-throttled) ----
+    var tocRafPending = false;
     // ---- TOC ----
     function renderTOC() {
       var toc = document.getElementById('toc');
@@ -417,20 +424,42 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
       });
     }
     document.addEventListener('scroll', function() {
-      var links = document.querySelectorAll('.toc a');
-      var headings = document.querySelectorAll('.phase-heading[id]');
-      var current = '';
-      headings.forEach(function(h) { if (h.getBoundingClientRect().top < 150) current = h.id; });
-      links.forEach(function(a) { a.classList.toggle('active', a.getAttribute('href') === '#' + current); });
+      if (tocRafPending) return;
+      tocRafPending = true;
+      requestAnimationFrame(function() {
+        var links = document.querySelectorAll('.toc a');
+        var headings = document.querySelectorAll('.phase-heading[id]');
+        var current = '';
+        headings.forEach(function(h) { if (h.getBoundingClientRect().top < 150) current = h.id; });
+        links.forEach(function(a) { a.classList.toggle('active', a.getAttribute('href') === '#' + current); });
+        tocRafPending = false;
+      });
     }, {passive: true});
 
     document.addEventListener('DOMContentLoaded', function() {
       renderTOC();
+      // KaTeX auto-render
       if (window.renderMathInElement) {
         renderMathInElement(document.body, {
           delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
           throwOnError:false
         });
+      }
+      // roundRect polyfill for Safari < 16
+      if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
+          var radius = Array.isArray(r) ? r[0] : (r||0);
+          this.moveTo(x+radius,y);
+          this.lineTo(x+w-radius,y);
+          this.quadraticCurveTo(x+w,y,x+w,y+radius);
+          this.lineTo(x+w,y+h-radius);
+          this.quadraticCurveTo(x+w,y+h,x+w-radius,y+h);
+          this.lineTo(x+radius,y+h);
+          this.quadraticCurveTo(x,y+h,x,y+h-radius);
+          this.lineTo(x,y+radius);
+          this.quadraticCurveTo(x,y,x+radius,y);
+          this.closePath();
+        };
       }
     });
 
@@ -1035,6 +1064,9 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
         {model:'70B', bf16:530,  fp8:880,  speedup:1.66}
       ];
 
+      // Shared layout constants (used in both draw() and mousemove handler)
+      var PAD_LEFT=70, PAD_RIGHT=30, PAD_TOP=50, PAD_BOT=55;
+
       var prog=1.0, animId=null, hovered=-1;
 
       function resize() {
@@ -1050,7 +1082,7 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
         var W=canvas.width/(window.devicePixelRatio||1);
         var H=canvas.height/(window.devicePixelRatio||1);
         ctx.clearRect(0,0,W,H);
-        var pad={top:50,right:30,bottom:55,left:70};
+        var pad={top:PAD_TOP,right:PAD_RIGHT,bottom:PAD_BOT,left:PAD_LEFT};
         var cw=W-pad.left-pad.right, ch=H-pad.top-pad.bottom;
         var maxV=7000, gw=cw/data.length, bw=gw*0.28;
 
@@ -1107,9 +1139,9 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
 
       canvas.addEventListener('mousemove', function(e) {
         var rect=canvas.getBoundingClientRect(), mx=e.clientX-rect.left;
-        var pL=70, cw2=rect.width-70-30, gw2=cw2/data.length;
+        var cw2=rect.width-PAD_LEFT-PAD_RIGHT, gw2=cw2/data.length;
         hovered=-1;
-        for (var i=0;i<data.length;i++) { if (mx>=pL+i*gw2 && mx<pL+(i+1)*gw2) hovered=i; }
+        for (var i=0;i<data.length;i++) { if (mx>=PAD_LEFT+i*gw2 && mx<PAD_LEFT+(i+1)*gw2) hovered=i; }
         if (hovered>=0) {
           var d=data[hovered];
           info.textContent=d.model+': BF16='+d.bf16+' | FP8='+d.fp8+' | '+d.speedup+'×';
