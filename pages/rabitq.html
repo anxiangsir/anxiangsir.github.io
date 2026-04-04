@@ -32,6 +32,13 @@
     <script
       defer
       src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+      onload="renderMathInElement(document.body, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false
+      })"
     ></script>
 
     <style>
@@ -493,6 +500,18 @@
         }
         .key-stats div:last-child {
           border-bottom: none;
+        }
+        .math-block {
+          padding: 1rem 0.75rem;
+        }
+        .katex-display {
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 0.5rem;
+        }
+        .katex {
+          font-size: 1.05em;
         }
       }
     </style>
