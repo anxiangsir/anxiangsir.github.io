@@ -264,6 +264,19 @@
       @keyframes thresholdPulse { 0%,100% { box-shadow: 0 0 8px rgba(239,68,68,0.35); } 50% { box-shadow: 0 0 14px rgba(239,68,68,0.9); } }
       @keyframes particlePop { from { opacity: 1; transform: translate(0,0) scale(1); } to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); } }
 
+      /* Section 5C: Trust Region Visualization */
+      .tr-canvas-wrap { width: 100%; display: flex; justify-content: center; padding: 20px; background: var(--bg); }
+      .tr-canvas-wrap canvas { border: 1px solid var(--border); border-radius: 8px; max-width: 100%; height: auto; }
+      .tr-legend { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; padding: 12px 20px; font-family: var(--font-sans); font-size: 0.85rem; color: var(--text-secondary); }
+      .tr-legend-item { display: flex; align-items: center; gap: 6px; }
+      .tr-legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+      .tr-compare-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-family: var(--font-sans); text-align: left; border: 1px solid var(--border); }
+      .tr-compare-table th { padding: 10px; background: var(--bg-alt); border-bottom: 2px solid var(--border); border-right: 1px solid var(--border); font-weight: bold; }
+      .tr-compare-table th:last-child { border-right: none; }
+      .tr-compare-table td { padding: 10px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+      .tr-compare-table td:last-child { border-right: none; }
+      .tr-compare-table tr:last-child td { border-bottom: none; }
+
       @media (prefers-reduced-motion: reduce) {
         .tl-seg, .arch-node, .data-packet, .token, .update-banner, .s-item, .s-bar, .s-x, .dec-seg, .bolt, .formula-state, .speedup-fill, .tir-step, .tir-arrow, .back-to-top, .progress-bar { animation: none; transition: none; }
       }
@@ -560,6 +573,73 @@ $$\tilde r_i = \text{reward\_scaling}\cdot r_i + \text{reward\_bias}$$</div>
       <p class="phase-desc" id="sec5b-vs-ppo"></p>
       <p class="phase-desc" id="sec5b-why-math"></p>
 
+      <h3 class="phase-heading" id="sec5c-heading"></h3>
+      <p class="phase-desc" id="sec5c-desc1"></p>
+      <div class="math-block">$$\max_\theta \; L(\theta) = \mathbb{E}_t\!\left[\frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)} \hat{A}_t\right] \quad \text{s.t.} \quad \overline{D}_{\text{KL}}(\pi_{\theta_{\text{old}}} \| \pi_\theta) \le \delta$$</div>
+      <p class="phase-desc" id="sec5c-var-surrogate"></p>
+      <p class="phase-desc" id="sec5c-var-kl"></p>
+      <p class="phase-desc" id="sec5c-var-delta"></p>
+      <p class="phase-desc" id="sec5c-desc2"></p>
+      <div class="math-block">$$\theta_{k+1} = \theta_k + \sqrt{\frac{2\delta}{\mathbf{g}^\top \mathbf{F}^{-1} \mathbf{g}}} \; \mathbf{F}^{-1} \mathbf{g}$$
+$$\text{where } \mathbf{g} = \nabla_\theta L(\theta)\big|_{\theta_k},\quad \mathbf{F} = \nabla^2_\theta \overline{D}_{\text{KL}}(\pi_{\theta_k} \| \pi_\theta)\big|_{\theta_k}$$</div>
+      <p class="phase-desc" id="sec5c-var-fisher"></p>
+      <p class="phase-desc" id="sec5c-var-cg"></p>
+      <p class="phase-desc" id="sec5c-desc3"></p>
+      <p class="phase-desc" id="sec5c-desc4"></p>
+
+      <div class="stage-wrapper" id="stage-trust-region">
+        <div class="tr-canvas-wrap">
+          <canvas id="tr-canvas" width="520" height="400"></canvas>
+        </div>
+        <div class="tr-legend" id="tr-legend">
+          <span class="tr-legend-item"><span class="tr-legend-dot" style="background:#ef4444;"></span> <span id="tr-leg-old"></span></span>
+          <span class="tr-legend-item"><span class="tr-legend-dot" style="background:rgba(37,99,235,0.25); border: 2px dashed #2563eb; box-sizing: border-box;"></span> <span id="tr-leg-trust"></span></span>
+          <span class="tr-legend-item"><span class="tr-legend-dot" style="background:#10b981;"></span> <span id="tr-leg-new"></span></span>
+          <span class="tr-legend-item"><span class="tr-legend-dot" style="background:rgba(139,92,246,0.35);"></span> <span id="tr-leg-contour"></span></span>
+        </div>
+        <div class="stage-footer" id="sec5c-canvas-footer"></div>
+      </div>
+
+      <p class="phase-desc" id="sec5c-desc5"></p>
+      <table class="tr-compare-table">
+        <thead>
+          <tr>
+            <th id="sec5c-cmp-feature"></th>
+            <th id="sec5c-cmp-trpo" style="color: #8b5cf6;"></th>
+            <th id="sec5c-cmp-ppo" style="color: var(--accent);"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: bold;" id="sec5c-cmp-r1f"></td>
+            <td id="sec5c-cmp-r1t"></td>
+            <td id="sec5c-cmp-r1p"></td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;" id="sec5c-cmp-r2f"></td>
+            <td id="sec5c-cmp-r2t"></td>
+            <td id="sec5c-cmp-r2p"></td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;" id="sec5c-cmp-r3f"></td>
+            <td id="sec5c-cmp-r3t"></td>
+            <td id="sec5c-cmp-r3p"></td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;" id="sec5c-cmp-r4f"></td>
+            <td id="sec5c-cmp-r4t"></td>
+            <td id="sec5c-cmp-r4p"></td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;" id="sec5c-cmp-r5f"></td>
+            <td id="sec5c-cmp-r5t"></td>
+            <td id="sec5c-cmp-r5p"></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="phase-desc" id="sec5c-desc6"></p>
+      <p class="phase-desc" id="sec5c-desc7"></p>
+
       <h3 class="phase-heading" id="sec6-heading"></h3>
       <p class="phase-desc" id="sec6-desc1"></p>
       <table class="ablation-table" style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-family: var(--font-sans); text-align: left; border: 1px solid var(--border);">
@@ -783,6 +863,43 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec5bVsPpo: "<strong>GRPO 与 PPO 的机制差异</strong>：PPO 的关键难点是把绝对奖励通过 value/GAE 转成稳定 advantage；GRPO 则直接在同题候选之间做相对排序，再送入 clip objective。前者更通用，后者在“可验证、可比较”的任务上信号更干净。对 AReaL 这类异步系统，GRPO 还能减少 value 网络维护成本，使训练路径更短。",
           sec5bWhyMath: "<strong>为什么 AReaL 在数学任务偏好 GRPO？</strong> 数学题奖励通常由最终答案或规则校验给出，天然适合组内相对比较。GRPO 利用同题多解的对照，把“谁更接近正确推理”直接编码到优势中，往往比依赖 value 拟合更稳。再叠加 AReaL 的高吞吐异步采样，GRPO 能以较低工程复杂度获得更好的样本效率与最终准确率。",
 
+          sec5cHead: "5C. TRPO 公式详解",
+          sec5cDesc1: "TRPO（Trust Region Policy Optimization，Schulman et al., 2015）是 PPO 的理论前身，也是\"信任域\"思想在策略优化中的奠基工作。理解 TRPO 的原理，能帮助你更深刻地认识 PPO 为什么要用 clip、Decoupled PPO 为什么要统一 trust center，以及 AReaL 的设计根基。",
+          sec5cVarSurrogate: "\\(L(\\theta)\\) — <strong>代理目标函数（surrogate objective）</strong>：它与标准策略梯度有相同的一阶近似，但不像普通梯度上升那样任由步长发散。TRPO 的精髓是：优化 \\(L(\\theta)\\) 的同时，硬性限制新策略与旧策略之间的 KL 散度不超过 \\(\\delta\\)。这样每一步更新都被约束在一个\"信任域\"内，保证单调策略改进。",
+          sec5cVarKl: "\\(\\overline{D}_{\\text{KL}}(\\pi_{\\theta_{\\text{old}}} \\| \\pi_\\theta)\\) — <strong>平均 KL 散度</strong>：衡量新旧策略分布的偏离程度。它在所有状态上取期望，刻画策略的全局变化幅度。KL 散度是非对称的：\\(D_{\\text{KL}}(p\\|q)\\) 对 \\(q\\) 远离 \\(p\\) 的地方施加更重的惩罚，这使得约束自然地阻止策略跳向低概率区域。",
+          sec5cVarDelta: "\\(\\delta\\) — <strong>信任域半径</strong>：它是一个超参数（通常取 0.01），控制每次更新能走多远。\\(\\delta\\) 越小，更新越保守；越大，允许的策略变化越大。与 PPO 的 \\(\\epsilon\\) 不同，\\(\\delta\\) 直接约束分布层面的散度，而不是比值层面的裁剪。",
+          sec5cDesc2: "<strong>TRPO 的更新过程分三步：</strong>① 计算策略梯度 \\(\\mathbf{g}\\)；② 用共轭梯度法近似求解 \\(\\mathbf{F}^{-1}\\mathbf{g}\\)（避免显式计算和存储 Fisher 矩阵）；③ 沿自然梯度方向做带回溯的线搜索，确保满足 KL 约束且目标确实改进。",
+          sec5cVarFisher: "\\(\\mathbf{F}\\) — <strong>Fisher 信息矩阵</strong>：它是 KL 散度的二阶近似（Hessian），描述参数空间中策略分布的局部曲率。直观理解：在 \\(\\theta\\) 的某些方向上，微小变化会剧烈改变输出分布（高曲率），而另一些方向则几乎无影响（低曲率）。Fisher 矩阵让优化器根据曲率调节步长——高曲率方向走慢点，低曲率方向走快点。",
+          sec5cVarCg: "<strong>共轭梯度法（CG）</strong>：直接计算 \\(\\mathbf{F}^{-1}\\) 在大模型中不可行（参数可达数十亿），但只需要矩阵-向量乘积 \\(\\mathbf{F}v\\)，这可以通过自动微分高效实现。CG 通常迭代 10–20 步即可获得足够精确的近似。整个过程避免了显式构造和存储 Fisher 矩阵。",
+          sec5cDesc3: "<strong>TRPO 的直觉</strong>：想象参数空间是一片地形，等高线代表策略性能。普通梯度上升是沿 \\(\\mathbf{g}\\) 方向走固定步长，但在弯曲地形中可能\"走出悬崖\"。TRPO 改为在 KL 散度定义的椭球体（信任域）内找最优方向，这个椭球体的形状由 Fisher 矩阵决定。相当于用\"分布距离\"而非\"参数距离\"来约束更新，更符合策略优化的几何本质。",
+          sec5cDesc4: "下面的交互式可视化展示了 TRPO 信任域的核心概念：红色点是旧策略 \\(\\theta_{\\text{old}}\\)，蓝色虚线圈是 KL 约束定义的信任域边界，紫色等高线是目标函数的等值面，绿色点是 TRPO 找到的最优更新位置。",
+          sec5cCanvasFooter: "TRPO 信任域可视化：在 KL 约束内沿自然梯度方向最大化代理目标",
+          sec5cLegOld: "旧策略 θ_old",
+          sec5cLegTrust: "信任域 (KL ≤ δ)",
+          sec5cLegNew: "TRPO 更新后 θ_new",
+          sec5cLegContour: "目标函数等高线",
+          sec5cDesc5: "<strong>TRPO → PPO：从硬约束到软替代</strong>",
+          sec5cCmpFeature: "特性",
+          sec5cCmpTrpo: "TRPO",
+          sec5cCmpPpo: "PPO",
+          sec5cCmpR1F: "约束方式",
+          sec5cCmpR1T: "硬 KL 约束 \\(D_{\\text{KL}} \\le \\delta\\)",
+          sec5cCmpR1P: "比值裁剪 \\([1{-}\\epsilon, 1{+}\\epsilon]\\)",
+          sec5cCmpR2F: "求解方式",
+          sec5cCmpR2T: "共轭梯度 + 线搜索",
+          sec5cCmpR2P: "标准 SGD / Adam",
+          sec5cCmpR3F: "实现复杂度",
+          sec5cCmpR3T: "高（需二阶信息）",
+          sec5cCmpR3P: "低（一阶梯度即可）",
+          sec5cCmpR4F: "每步代价",
+          sec5cCmpR4T: "CG 迭代 + 线搜索 ≈ 10-20× 前向",
+          sec5cCmpR4P: "1× 前向 + 1× 反向",
+          sec5cCmpR5F: "大规模 LLM 适用性",
+          sec5cCmpR5T: "受限（Fisher 近似误差 + 内存）",
+          sec5cCmpR5P: "广泛适用（AReaL 默认）",
+          sec5cDesc6: "PPO 的核心洞察是：用简单的比值裁剪 \\(\\text{clip}(u_t, 1{-}\\epsilon, 1{+}\\epsilon)\\) 可以近似 TRPO 的信任域效果，同时省去二阶优化的全部代价。实验表明，PPO 在绝大多数场景下与 TRPO 效果相当或更好，而实现简洁性与计算效率远超 TRPO。这也是为什么 AReaL 选择 PPO/Decoupled PPO 而非 TRPO 作为默认算法。",
+          sec5cDesc7: "<strong>历史脉络</strong>：TRPO (2015) → PPO (2017) → Decoupled PPO (AReaL, 2025)。TRPO 奠定了\"信任域内优化策略\"的理论基础；PPO 把硬约束简化为裁剪，使大规模训练成为可能；Decoupled PPO 进一步处理了异步训练中多版本策略混合的问题。三者一脉相承，理解前者才能真正吃透后者。",
+
           sec6Head: "6. 关键对比",
           sec6Desc1: "从系统层到优化目标，AReaL 的改动不是单点技巧，而是“异步执行 + 版本治理 + Decoupled PPO”三者协同。下表给出与同步系统的核心差异。",
           sec6ColFeature: "特性",
@@ -996,6 +1113,43 @@ loss = max(-advantages * ratio, -advantages * clipped)`,
           sec5bNoValue: "<strong>Why no value network is needed</strong>: group mean \\(\\mu_G\\) acts as an implicit baseline and \\(\\sigma_G\\) performs in-group normalization, replacing much of value head's variance-reduction role. This removes value-function fitting error and extra forward/backward cost, and avoids policy-value desynchronization noise. The tradeoff is multi-sample rollout per prompt, which async systems can parallelize efficiently.",
           sec5bVsPpo: "<strong>Mechanistic difference from PPO</strong>: PPO's challenge is converting absolute rewards into stable advantages through value estimation; GRPO directly ranks sibling candidates for the same prompt and normalizes that ranking signal. PPO is more general-purpose, while GRPO is often cleaner on tasks with strong verifiers. In AReaL, this also shortens the training path by removing value-network maintenance.",
           sec5bWhyMath: "<strong>Why GRPO is preferred for math in AReaL</strong>: math rewards are typically verifier-driven and naturally comparable within a prompt. GRPO exploits this by turning same-question multi-sample contrast into direct optimization signal, often more stable than fitting a global value baseline. Combined with AReaL's high-throughput async rollout, it yields strong sample efficiency with lower system complexity.",
+
+          sec5cHead: "5C. TRPO Formula Deep Dive",
+          sec5cDesc1: "TRPO (Trust Region Policy Optimization, Schulman et al., 2015) is PPO's theoretical predecessor and the foundational work on trust-region methods for policy optimization. Understanding TRPO deepens your insight into why PPO uses clipping, why Decoupled PPO unifies the trust center, and the design roots of AReaL.",
+          sec5cVarSurrogate: "\\(L(\\theta)\\) — <strong>surrogate objective</strong>: it shares the same first-order approximation as the standard policy gradient, but does not allow unbounded step sizes. TRPO's core idea: maximize \\(L(\\theta)\\) while enforcing a hard KL-divergence constraint \\(\\le \\delta\\) between the new and old policy. This confines each update inside a \"trust region,\" guaranteeing monotonic policy improvement.",
+          sec5cVarKl: "\\(\\overline{D}_{\\text{KL}}(\\pi_{\\theta_{\\text{old}}} \\| \\pi_\\theta)\\) — <strong>average KL divergence</strong>: measures how far the new policy has drifted from the old one. It is averaged over all states, capturing the global magnitude of the policy change. KL divergence is asymmetric: \\(D_{\\text{KL}}(p\\|q)\\) penalizes \\(q\\) more heavily when it moves away from \\(p\\) in low-probability regions, naturally preventing the policy from jumping to unlikely areas.",
+          sec5cVarDelta: "\\(\\delta\\) — <strong>trust-region radius</strong>: a hyperparameter (typically 0.01) controlling how far each update can go. Smaller \\(\\delta\\) means more conservative updates; larger \\(\\delta\\) permits bigger policy shifts. Unlike PPO's \\(\\epsilon\\), \\(\\delta\\) directly constrains distributional divergence rather than ratio-level clipping.",
+          sec5cDesc2: "<strong>TRPO update in three steps:</strong> ① Compute policy gradient \\(\\mathbf{g}\\); ② Approximate \\(\\mathbf{F}^{-1}\\mathbf{g}\\) via conjugate gradient (avoiding explicit Fisher matrix construction and storage); ③ Line-search along the natural gradient direction with KL backtracking to ensure the constraint is satisfied and the objective actually improves.",
+          sec5cVarFisher: "\\(\\mathbf{F}\\) — <strong>Fisher Information Matrix</strong>: the second-order approximation (Hessian) of KL divergence, describing local curvature of the policy distribution in parameter space. Intuitively: in some directions of \\(\\theta\\), small changes drastically alter the output distribution (high curvature), while other directions have negligible effect (low curvature). The Fisher matrix lets the optimizer adapt step sizes to curvature — slower in high-curvature directions, faster in low-curvature ones.",
+          sec5cVarCg: "<strong>Conjugate Gradient (CG)</strong>: directly computing \\(\\mathbf{F}^{-1}\\) is infeasible for large models (billions of parameters), but only the matrix-vector product \\(\\mathbf{F}v\\) is needed, which can be efficiently computed via automatic differentiation. CG typically converges in 10–20 iterations. The entire process avoids explicitly constructing or storing the Fisher matrix.",
+          sec5cDesc3: "<strong>TRPO intuition</strong>: imagine parameter space as terrain, with contour lines representing policy performance. Vanilla gradient ascent walks a fixed step along \\(\\mathbf{g}\\), but in curved terrain this can \"walk off a cliff.\" TRPO instead finds the best direction within the KL-divergence-defined ellipsoid (trust region), whose shape is determined by the Fisher matrix. This constrains updates by \"distribution distance\" rather than \"parameter distance,\" better respecting the geometry of policy optimization.",
+          sec5cDesc4: "The interactive visualization below illustrates TRPO's trust region concept: the red dot is the old policy \\(\\theta_{\\text{old}}\\), the blue dashed circle is the KL constraint boundary, purple contour lines show the objective landscape, and the green dot is TRPO's optimal update location.",
+          sec5cCanvasFooter: "TRPO Trust Region: maximize surrogate objective within KL constraint along natural gradient",
+          sec5cLegOld: "Old policy θ_old",
+          sec5cLegTrust: "Trust region (KL ≤ δ)",
+          sec5cLegNew: "TRPO updated θ_new",
+          sec5cLegContour: "Objective contours",
+          sec5cDesc5: "<strong>TRPO → PPO: from hard constraint to soft surrogate</strong>",
+          sec5cCmpFeature: "Feature",
+          sec5cCmpTrpo: "TRPO",
+          sec5cCmpPpo: "PPO",
+          sec5cCmpR1F: "Constraint",
+          sec5cCmpR1T: "Hard KL \\(D_{\\text{KL}} \\le \\delta\\)",
+          sec5cCmpR1P: "Ratio clip \\([1{-}\\epsilon, 1{+}\\epsilon]\\)",
+          sec5cCmpR2F: "Solver",
+          sec5cCmpR2T: "CG + line search",
+          sec5cCmpR2P: "Standard SGD / Adam",
+          sec5cCmpR3F: "Impl. complexity",
+          sec5cCmpR3T: "High (2nd-order info needed)",
+          sec5cCmpR3P: "Low (1st-order gradients only)",
+          sec5cCmpR4F: "Per-step cost",
+          sec5cCmpR4T: "CG iters + line search ≈ 10-20× forward",
+          sec5cCmpR4P: "1× forward + 1× backward",
+          sec5cCmpR5F: "LLM scalability",
+          sec5cCmpR5T: "Limited (Fisher approx error + memory)",
+          sec5cCmpR5P: "Widely applicable (AReaL default)",
+          sec5cDesc6: "PPO's key insight: simple ratio clipping \\(\\text{clip}(u_t, 1{-}\\epsilon, 1{+}\\epsilon)\\) can approximate TRPO's trust-region effect while eliminating all second-order optimization costs. Experiments show PPO matches or outperforms TRPO in most settings, with far simpler implementation and better computational efficiency. This is why AReaL uses PPO/Decoupled PPO rather than TRPO as its default algorithm.",
+          sec5cDesc7: "<strong>Historical lineage</strong>: TRPO (2015) → PPO (2017) → Decoupled PPO (AReaL, 2025). TRPO established the theoretical foundation of \"optimize policy within a trust region\"; PPO simplified the hard constraint to clipping, enabling large-scale training; Decoupled PPO further addresses multi-version policy mixing in asynchronous training. The three form a continuous intellectual thread — understanding the predecessor is key to mastering the successor.",
 
           sec6Head: "6. Key Comparisons",
           sec6Desc1: "AReaL is not a single trick; it couples system-level asynchrony, version/staleness governance, and a matching PPO objective. The table summarizes the operational differences.",
@@ -1222,6 +1376,43 @@ gen_backend: "sglang" # generation engine`,
         document.getElementById('sec5b-no-value').innerHTML = L.sec5bNoValue;
         document.getElementById('sec5b-vs-ppo').innerHTML = L.sec5bVsPpo;
         document.getElementById('sec5b-why-math').innerHTML = L.sec5bWhyMath;
+
+        document.getElementById('sec5c-heading').innerHTML = L.sec5cHead;
+        document.getElementById('sec5c-desc1').innerHTML = L.sec5cDesc1;
+        document.getElementById('sec5c-var-surrogate').innerHTML = L.sec5cVarSurrogate;
+        document.getElementById('sec5c-var-kl').innerHTML = L.sec5cVarKl;
+        document.getElementById('sec5c-var-delta').innerHTML = L.sec5cVarDelta;
+        document.getElementById('sec5c-desc2').innerHTML = L.sec5cDesc2;
+        document.getElementById('sec5c-var-fisher').innerHTML = L.sec5cVarFisher;
+        document.getElementById('sec5c-var-cg').innerHTML = L.sec5cVarCg;
+        document.getElementById('sec5c-desc3').innerHTML = L.sec5cDesc3;
+        document.getElementById('sec5c-desc4').innerHTML = L.sec5cDesc4;
+        document.getElementById('sec5c-canvas-footer').innerHTML = L.sec5cCanvasFooter;
+        document.getElementById('tr-leg-old').textContent = L.sec5cLegOld;
+        document.getElementById('tr-leg-trust').textContent = L.sec5cLegTrust;
+        document.getElementById('tr-leg-new').textContent = L.sec5cLegNew;
+        document.getElementById('tr-leg-contour').textContent = L.sec5cLegContour;
+        document.getElementById('sec5c-desc5').innerHTML = L.sec5cDesc5;
+        document.getElementById('sec5c-cmp-feature').innerHTML = L.sec5cCmpFeature;
+        document.getElementById('sec5c-cmp-trpo').innerHTML = L.sec5cCmpTrpo;
+        document.getElementById('sec5c-cmp-ppo').innerHTML = L.sec5cCmpPpo;
+        document.getElementById('sec5c-cmp-r1f').innerHTML = L.sec5cCmpR1F;
+        document.getElementById('sec5c-cmp-r1t').innerHTML = L.sec5cCmpR1T;
+        document.getElementById('sec5c-cmp-r1p').innerHTML = L.sec5cCmpR1P;
+        document.getElementById('sec5c-cmp-r2f').innerHTML = L.sec5cCmpR2F;
+        document.getElementById('sec5c-cmp-r2t').innerHTML = L.sec5cCmpR2T;
+        document.getElementById('sec5c-cmp-r2p').innerHTML = L.sec5cCmpR2P;
+        document.getElementById('sec5c-cmp-r3f').innerHTML = L.sec5cCmpR3F;
+        document.getElementById('sec5c-cmp-r3t').innerHTML = L.sec5cCmpR3T;
+        document.getElementById('sec5c-cmp-r3p').innerHTML = L.sec5cCmpR3P;
+        document.getElementById('sec5c-cmp-r4f').innerHTML = L.sec5cCmpR4F;
+        document.getElementById('sec5c-cmp-r4t').innerHTML = L.sec5cCmpR4T;
+        document.getElementById('sec5c-cmp-r4p').innerHTML = L.sec5cCmpR4P;
+        document.getElementById('sec5c-cmp-r5f').innerHTML = L.sec5cCmpR5F;
+        document.getElementById('sec5c-cmp-r5t').innerHTML = L.sec5cCmpR5T;
+        document.getElementById('sec5c-cmp-r5p').innerHTML = L.sec5cCmpR5P;
+        document.getElementById('sec5c-desc6').innerHTML = L.sec5cDesc6;
+        document.getElementById('sec5c-desc7').innerHTML = L.sec5cDesc7;
 
         document.getElementById('sec6-heading').innerHTML = L.sec6Head;
         document.getElementById('sec6-desc1').innerHTML = L.sec6Desc1;
@@ -1967,6 +2158,200 @@ gen_backend: "sglang" # generation engine`,
         requestAnimationFrame(tick);
       }
 
+      function initTrustRegionViz() {
+        const canvas = document.getElementById('tr-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.scale(dpr, dpr);
+
+        animVisible['stage-trust-region'] = true;
+
+        const cx = W * 0.42, cy = H * 0.48;
+        const trRadius = 90;
+        const gradDir = { x: 0.7, y: -0.65 };
+        const gradLen = Math.sqrt(gradDir.x * gradDir.x + gradDir.y * gradDir.y);
+        const gn = { x: gradDir.x / gradLen, y: gradDir.y / gradLen };
+        const newX = cx + gn.x * trRadius * 0.82;
+        const newY = cy + gn.y * trRadius * 0.82;
+        const naiveX = cx + gn.x * trRadius * 1.65;
+        const naiveY = cy + gn.y * trRadius * 1.65;
+
+        let phase = 0;
+        const start = performance.now();
+
+        function objective(x, y) {
+          const dx = (x - W * 0.75) / 120;
+          const dy = (y - H * 0.2) / 100;
+          return -(dx * dx + dy * dy);
+        }
+
+        function drawContours() {
+          const levels = 8;
+          for (let lev = 0; lev < levels; lev++) {
+            const t = (lev + 1) / levels;
+            ctx.beginPath();
+            const rBase = 30 + lev * 40;
+            const ocx = W * 0.75, ocy = H * 0.2;
+            const rx = rBase * 1.0;
+            const ry = rBase * 0.83;
+            ctx.ellipse(ocx, ocy, rx, ry, -0.3, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(139, 92, 246, ${0.15 + t * 0.15})`;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([]);
+            ctx.stroke();
+          }
+        }
+
+        function drawArrow(fromX, fromY, toX, toY, color, lineW) {
+          const dx = toX - fromX, dy = toY - fromY;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          const ux = dx / len, uy = dy / len;
+          const headLen = 10;
+          ctx.beginPath();
+          ctx.moveTo(fromX, fromY);
+          ctx.lineTo(toX - ux * headLen * 0.5, toY - uy * headLen * 0.5);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = lineW;
+          ctx.setLineDash([]);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(toX, toY);
+          ctx.lineTo(toX - ux * headLen - uy * headLen * 0.4, toY - uy * headLen + ux * headLen * 0.4);
+          ctx.lineTo(toX - ux * headLen + uy * headLen * 0.4, toY - uy * headLen - ux * headLen * 0.4);
+          ctx.closePath();
+          ctx.fillStyle = color;
+          ctx.fill();
+        }
+
+        function draw(ts) {
+          requestAnimationFrame(draw);
+          if (!animVisible['stage-trust-region']) return;
+
+          const elapsed = (ts - start) / 1000;
+          phase = (elapsed % 6) / 6;
+
+          ctx.clearRect(0, 0, W, H);
+
+          ctx.fillStyle = '#fafbfc';
+          ctx.fillRect(0, 0, W, H);
+
+          drawContours();
+
+          const pulse = 1 + Math.sin(elapsed * 2.5) * 0.04;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, trRadius * pulse * 1.05, trRadius * pulse * 0.85, -0.15, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(37, 99, 235, 0.06)';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, trRadius * pulse * 1.05, trRadius * pulse * 0.85, -0.15, 0, Math.PI * 2);
+          ctx.strokeStyle = '#2563eb';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.font = '11px "Helvetica Neue", sans-serif';
+          ctx.fillStyle = '#2563eb';
+          ctx.textAlign = 'left';
+          ctx.fillText('KL ≤ δ', cx + trRadius * 0.75, cy - trRadius * 0.55);
+
+          if (phase > 0.15) {
+            const ap = Math.min(1, (phase - 0.15) / 0.2);
+            ctx.globalAlpha = ap * 0.5;
+            drawArrow(cx, cy, cx + gn.x * trRadius * 1.7, cy + gn.y * trRadius * 1.7, '#9ca3af', 1.5);
+            ctx.globalAlpha = 1;
+
+            const naiveP = Math.min(1, (phase - 0.15) / 0.3);
+            const nxCur = cx + (naiveX - cx) * naiveP;
+            const nyCur = cy + (naiveY - cy) * naiveP;
+            ctx.beginPath();
+            ctx.arc(nxCur, nyCur, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            if (naiveP > 0.8) {
+              ctx.font = '10px "Helvetica Neue", sans-serif';
+              ctx.fillStyle = '#ef4444';
+              ctx.textAlign = 'center';
+              const naiveLabel = currentLang === 'zh' ? '✗ 无约束梯度（越界）' : '✗ Unconstrained (violates KL)';
+              ctx.fillText(naiveLabel, naiveX, naiveY - 10);
+            }
+          }
+
+          if (phase > 0.4) {
+            const tp = Math.min(1, (phase - 0.4) / 0.25);
+            const txCur = cx + (newX - cx) * tp;
+            const tyCur = cy + (newY - cy) * tp;
+            ctx.globalAlpha = tp;
+            drawArrow(cx, cy, txCur, tyCur, '#10b981', 2.5);
+            ctx.globalAlpha = 1;
+
+            ctx.beginPath();
+            ctx.arc(txCur, tyCur, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#10b981';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (tp > 0.8) {
+              ctx.font = '10px "Helvetica Neue", sans-serif';
+              ctx.fillStyle = '#10b981';
+              ctx.textAlign = 'center';
+              const newLabel = currentLang === 'zh' ? '✓ TRPO 更新（域内最优）' : '✓ TRPO update (optimal in region)';
+              ctx.fillText(newLabel, newX + 5, newY - 12);
+            }
+          }
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+          ctx.fillStyle = '#ef4444';
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.font = 'bold 12px "Helvetica Neue", sans-serif';
+          ctx.fillStyle = '#ef4444';
+          ctx.textAlign = 'center';
+          ctx.fillText('θ_old', cx, cy + 22);
+
+          ctx.font = '11px "Helvetica Neue", sans-serif';
+          ctx.fillStyle = '#9ca3af';
+          ctx.textAlign = 'left';
+          const gradLabel = currentLang === 'zh' ? '∇L (策略梯度方向)' : '∇L (policy gradient)';
+          ctx.fillText(gradLabel, cx + gn.x * trRadius * 1.75 + 5, cy + gn.y * trRadius * 1.75);
+
+          if (phase > 0.7) {
+            ctx.font = '11px "Helvetica Neue", sans-serif';
+            ctx.fillStyle = '#6b7280';
+            ctx.textAlign = 'center';
+            const caption = currentLang === 'zh'
+              ? 'TRPO 在信任域边界内找到使目标最大化的更新点'
+              : 'TRPO finds the objective-maximizing update within the trust region';
+            ctx.fillText(caption, W / 2, H - 15);
+          }
+
+          ctx.font = 'bold 11px "Helvetica Neue", sans-serif';
+          ctx.fillStyle = 'rgba(139, 92, 246, 0.5)';
+          ctx.textAlign = 'right';
+          const objLabel = currentLang === 'zh' ? '↗ 目标函数增大方向' : '↗ Objective increases';
+          ctx.fillText(objLabel, W - 15, 25);
+        }
+        requestAnimationFrame(draw);
+      }
+
       function initToc() {
         const tocList = document.getElementById('toc-list');
         const headings = document.querySelectorAll('.phase-heading');
@@ -2064,7 +2449,7 @@ gen_backend: "sglang" # generation engine`,
       }
 
       updateI18n();
-      ['stage-timeline', 'stage-arch', 'stage-token', 'stage-staleness', 'stage-decoupled', 'stage-algo-family', 'stage-tir', 'stage-speedup'].forEach((id) => {
+      ['stage-timeline', 'stage-arch', 'stage-token', 'stage-staleness', 'stage-decoupled', 'stage-algo-family', 'stage-tir', 'stage-speedup', 'stage-trust-region'].forEach((id) => {
         const el = document.getElementById(id);
         if (el) animObserver.observe(el);
       });
@@ -2076,6 +2461,7 @@ gen_backend: "sglang" # generation engine`,
       initAlgoFamily();
       initSpeedupBars();
       initTirFlow();
+      initTrustRegionViz();
       initToc();
       initScrollFeatures();
       initDetails();
