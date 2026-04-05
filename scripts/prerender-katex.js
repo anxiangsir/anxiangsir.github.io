@@ -32,6 +32,13 @@ const FILES = [
       inline: [{ left: '$', right: '$' }],
     },
   },
+  {
+    path: 'pages/verl_grpo.html',
+    delimiters: {
+      display: [{ left: '$$', right: '$$' }],
+      inline: [{ left: '$', right: '$' }],
+    },
+  },
 ];
 
 function ensureDir(dirPath) {
@@ -98,7 +105,7 @@ function replaceDelimited(text, left, right, displayMode) {
 }
 
 function replaceInlineDollar(text) {
-  return text.replace(/(^|[^$\\])\$(?!\$)([^$\n]+?)\$(?!\$)/g, (match, prefix, latex) => {
+  return text.replace(/(^|[^$\\])\$(?![${])([^$\n]+?)\$(?!\$)/g, (match, prefix, latex) => {
     const trimmed = normalizeLatex(latex.trim());
     if (!trimmed) return match;
     if (!/[\\{}^_=]|[A-Za-z]+/.test(trimmed)) return match;
@@ -159,6 +166,23 @@ function transformJsStrings(js, config) {
   });
 }
 
+function transformJsSingleQuoteStrings(js, config) {
+  return js.replace(/'((?:[^'\\]|\\.)*)'/g, (full) => {
+    let decoded;
+    try {
+      decoded = Function(`"use strict"; return (${full});`)();
+    } catch {
+      return full;
+    }
+
+    const transformed = replaceFormulas(decoded, config);
+    if (transformed === decoded) return full;
+
+    const inner = JSON.stringify(transformed).slice(1, -1).replace(/'/g, "\\'");
+    return `'${inner}'`;
+  });
+}
+
 function transformHtmlFile(relPath, delimiterConfig) {
   const filePath = path.join(DIST, relPath);
   let html = fs.readFileSync(filePath, 'utf8');
@@ -180,7 +204,9 @@ function transformHtmlFile(relPath, delimiterConfig) {
     if (/\bsrc\s*=/.test(openTag)) return part;
 
     const body = part.slice(openTag.length, part.length - closeTagMatch[0].length);
-    const transformed = removeRenderMathCalls(transformJsStrings(body, delimiterConfig));
+    const transformed = removeRenderMathCalls(
+      transformJsSingleQuoteStrings(transformJsStrings(body, delimiterConfig), delimiterConfig),
+    );
     return `${openTag}${transformed}${closeTagMatch[0]}`;
   });
 

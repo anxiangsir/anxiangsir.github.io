@@ -37,12 +37,13 @@ npm run build
 - `pages/areal.html`
 - `pages/yarn.html`
 - `pages/diffusion_models.html`
+- `pages/verl_grpo.html`
 
 ## Build Behavior
 
 - copy repo contents into `dist/`
 - pre-render LaTeX in static HTML
-- pre-render LaTeX embedded in JavaScript i18n strings
+- pre-render LaTeX embedded in JavaScript strings (both double-quoted and single-quoted)
 - remove `katex.min.js`, `auto-render.min.js`, and `renderMathInElement(...)`
 - rewrite KaTeX stylesheet links to `/assets/vendor/katex/katex.min.css`
 
@@ -57,6 +58,7 @@ Then check:
 - `/pages/areal.html`
 - `/pages/yarn.html`
 - `/pages/diffusion_models.html`
+- `/pages/verl_grpo.html`
 - `/assets/vendor/katex/katex.min.css`
 
 All should return HTTP 200 locally.

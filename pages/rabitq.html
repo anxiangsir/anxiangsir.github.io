@@ -666,59 +666,39 @@
         equal information — maximizing the utility of every bit.
       </div>
 
-      <!-- ========== Viz 1: Random Rotation ========== -->
-      <h2 class="phase-heading" id="sec-viz-rotation"
-        data-en="§3 Interactive: 2D Random Rotation"
-        data-zh="§3 交互演示：二维随机旋转">
-        §3 Interactive: 2D Random Rotation
+      <!-- ========== §3 Interactive: 3D Random Rotation ========== -->
+      <h2 class="phase-heading" id="sec-viz-rotation3d"
+        data-en="§3 Interactive: 3D Random Rotation"
+        data-zh="§3 交互演示：三维随机旋转">
+        §3 Interactive: 3D Random Rotation
       </h2>
       <p class="phase-desc"
-        data-en="The canvas below shows how random rotation transforms vectors in 2D. Original vectors (red) are rotated by angle θ to produce rotated vectors (green). Notice how after rotation, the vectors are more 'spread out' — their projections onto the X and Y axes become more balanced. Click 'Animate' to see the rotation in action."
-        data-zh="下方画布展示了随机旋转在二维中如何变换向量。原始向量（红色）被旋转角度 θ 后产生旋转向量（绿色）。注意旋转后向量更加"分散"——它们在 X 和 Y 轴上的投影变得更均衡。点击"动画"可以看到旋转过程。">
-        The canvas below shows how random rotation transforms vectors in 2D.
-        Original vectors (red) are rotated by angle θ to produce rotated vectors
-        (green). Notice how after rotation, the vectors are more "spread out" —
-        their projections onto the X and Y axes become more balanced. Click
-        "Animate" to see the rotation in action.
+        data-en="In 3D, the effect is even more striking. Below, we generate vectors that initially have most of their energy concentrated on the X-axis (red). After applying a random 3D rotation (green), the energy spreads across all three axes. The bar chart shows the per-axis energy (sum of squared projections) — watch how rotation equalizes it."
+        data-zh="在三维中，效果更加显著。下方生成的向量最初大部分能量集中在 X 轴上（红色）。施加随机三维旋转（绿色）后，能量分散到所有三个轴上。柱状图显示每个轴的能量（投影平方和）——观察旋转如何使其均等化。">
+        In 3D, the effect is even more striking. Below, we generate vectors that initially have most of their energy concentrated on the X-axis (red). After applying a random 3D rotation (green), the energy spreads across all three axes. The bar chart shows the per-axis energy (sum of squared projections) — watch how rotation equalizes it.
       </p>
 
-      <div class="stage-wrapper" id="stage-rotation">
-        <canvas id="canvas-rotation"></canvas>
+      <div class="stage-wrapper" id="stage-rotation3d" style="height: 520px">
+        <canvas id="canvas-rotation3d"></canvas>
         <div class="viz-legend">
           <div class="viz-legend-item">
-            <div
-              class="viz-legend-color"
-              style="background: var(--color-original)"
-            ></div>
-            <span data-en="Original" data-zh="原始向量">Original</span>
+            <div class="viz-legend-color" style="background: var(--color-original)"></div>
+            <span data-en="Original (X-heavy)" data-zh="原始（X轴集中）">Original (X-heavy)</span>
           </div>
           <div class="viz-legend-item">
-            <div
-              class="viz-legend-color"
-              style="background: var(--color-rotated)"
-            ></div>
-            <span data-en="Rotated" data-zh="旋转后">Rotated</span>
+            <div class="viz-legend-color" style="background: var(--color-rotated)"></div>
+            <span data-en="After Rotation" data-zh="旋转后">After Rotation</span>
           </div>
         </div>
-        <div class="viz-info" id="rotation-info">θ = 0°</div>
+        <div class="viz-info" id="rotation3d-info" data-en="Click Rotate to apply random 3D rotation" data-zh="点击旋转施加随机三维旋转">Click Rotate to apply random 3D rotation</div>
         <div class="controls">
-          <div class="control-group">
-            <div class="control-label">
-              <span data-en="Rotation θ" data-zh="旋转角 θ">Rotation θ</span>
-              <span id="label-theta">0°</span>
-            </div>
-            <input
-              type="range"
-              id="slider-theta"
-              min="0"
-              max="360"
-              value="0"
-              step="1"
-            />
-          </div>
-          <button class="btn-play" id="btn-rotate" type="button"
-            data-en="▶ Animate" data-zh="▶ 动画">
-            ▶ Animate
+          <button class="btn-play" id="btn-rotate3d" type="button"
+            data-en="🎲 Random Rotate" data-zh="🎲 随机旋转">
+            🎲 Random Rotate
+          </button>
+          <button class="btn-play" id="btn-reset3d" type="button"
+            data-en="↺ Reset" data-zh="↺ 重置">
+            ↺ Reset
           </button>
         </div>
       </div>
@@ -745,21 +725,22 @@
 
       <!-- ========== Viz 2: Quantization ========== -->
       <h2 class="phase-heading" id="sec-viz-quantize"
-        data-en="§5 Interactive: Quantization in 2D"
-        data-zh="§5 交互演示：二维量化过程">
-        §5 Interactive: Quantization in 2D
+        data-en="§5 Interactive: Quantization in 3D"
+        data-zh="§5 交互演示：三维量化过程">
+        §5 Interactive: Quantization in 3D
       </h2>
       <p class="phase-desc"
-        data-en="This visualization shows the full pipeline: original vectors → random rotation → binary quantization. The blue dots are the quantized positions (vertices of the unit square in 2D). Drag the slider to rotate, and observe how different rotation angles lead to different quantization results."
-        data-zh="这个可视化展示了完整流程：原始向量 → 随机旋转 → 二值量化。蓝色点是量化后的位置（二维中正方形的顶点）。拖动滑块旋转，观察不同旋转角度如何导致不同的量化结果。">
-        This visualization shows the full pipeline: original vectors → random
-        rotation → binary quantization. The blue dots are the quantized
-        positions (vertices of the unit square in 2D). Drag the slider to
-        rotate, and observe how different rotation angles lead to different
-        quantization results.
+        data-en="This visualization demonstrates why random rotation is essential before binary quantization. Initially, the vectors (red) are clustered near the X-axis — direct quantization (blue dashed) snaps them all to the same hypercube vertex, destroying distance information. Click 'Random Rotate' to see how rotation spreads vectors before quantization, preserving their relative distances."
+        data-zh="这个可视化展示了为什么随机旋转对二值量化至关重要。初始状态下，向量（红色）聚集在X轴附近——直接量化（蓝色虚线）将它们全部映射到同一个超立方体顶点，破坏了距离信息。点击“随机旋转”查看旋转如何在量化前分散向量，从而保持它们的相对距离。">
+        This visualization demonstrates why random rotation is essential before
+        binary quantization. Initially, the vectors (red) are clustered near
+        the X-axis — direct quantization (blue dashed) snaps them all to the
+        same hypercube vertex, destroying distance information. Click "Random Rotate"
+        to see how rotation spreads vectors before quantization, preserving their
+        relative distances.
       </p>
 
-      <div class="stage-wrapper" id="stage-quantize">
+      <div class="stage-wrapper" id="stage-quantize" style="height: 520px">
         <canvas id="canvas-quantize"></canvas>
         <div class="viz-legend">
           <div class="viz-legend-item">
@@ -786,20 +767,10 @@
         </div>
         <div class="viz-info" id="quantize-info">Error: 0.000</div>
         <div class="controls">
-          <div class="control-group">
-            <div class="control-label">
-              <span data-en="Rotation θ" data-zh="旋转角 θ">Rotation θ</span>
-              <span id="label-theta2">0°</span>
-            </div>
-            <input
-              type="range"
-              id="slider-theta2"
-              min="0"
-              max="360"
-              value="45"
-              step="1"
-            />
-          </div>
+          <button class="btn-play" id="btn-rotate2" type="button"
+            data-en="🎲 Random Rotate" data-zh="🎲 随机旋转">
+            🎲 Random Rotate
+          </button>
           <button class="btn-play" id="btn-randomize" type="button"
             data-en="🔀 New Vectors" data-zh="🔀 新向量">
             🔀 New Vectors
@@ -814,30 +785,68 @@
         §6 Distance Estimation
       </h2>
       <p class="phase-desc"
-        data-en="RaBitQ provides an unbiased estimator for the inner product between any data vector and a query vector. The query is also rotated by the same matrix P, and the distance is estimated using the quantized binary codes combined with stored scalar corrections (norms and dot products)."
-        data-zh="RaBitQ 为任意数据向量与查询向量之间的内积提供了无偏估计器。查询向量也用同一矩阵 P 旋转，距离则通过量化的二进制编码结合存储的标量校正值（范数和点积）来估计。">
-        RaBitQ provides an unbiased estimator for the inner product between any
-        data vector and a query vector. The query is also rotated by the same
-        matrix P, and the distance is estimated using the quantized binary codes
-        combined with stored scalar corrections (norms and dot products).
+        data-en="After normalization (§1) and binary quantization (§4), we no longer store the true unit vector o — only its binary proxy ō and a few scalars. The goal now: estimate the true distance to a query q using only these compressed representations."
+        data-zh="经过归一化（§1）和二值量化（§4）之后，我们不再存储真实的单位向量 o——只有它的二进制近似 ō 和几个标量值。现在的目标：仅用这些压缩表示来估计到查询向量 q 的真实距离。">
+        After normalization (§1) and binary quantization (§4), we no longer store the true unit vector o — only its binary proxy ō and a few scalars. The goal now: estimate the true distance to a query q using only these compressed representations.
       </p>
 
       <div class="math-block">
-        $$\widehat{\langle x, q \rangle} \;=\; \|x-c\| \cdot \|q-c\| \cdot
-        \left[ \frac{2}{\sqrt{D}} \sum_{i} \bar{o}_i \cdot (P\hat{q})_i
-        \;+\; \langle \hat{v}, \bar{o} \rangle \;-\;
-        \frac{1}{\sqrt{D}} \sum_i (P\hat{q})_i \right]$$
+        $$\|x_r - q_r\|^2 = \|x_r - c\|^2 + \|q_r - c\|^2 - 2\|x_r - c\|\cdot\|q_r - c\|\cdot\langle o, q \rangle$$
       </div>
 
       <div class="insight-box"
-        data-en="<strong>💡 Bitwise acceleration:</strong> The summation Σ o̅ᵢ · (Pq̂)ᵢ can be decomposed into additions and subtractions controlled by the binary code bits. Using SIMD <code>POPCNT</code> instructions, this computes at hardware speed — turning expensive float multiplications into fast bit-counting operations."
-        data-zh="<strong>💡 位运算加速：</strong> 求和 Σ o̅ᵢ · (Pq̂)ᵢ 可以分解为由二进制码位控制的加减运算。利用 SIMD <code>POPCNT</code> 指令，这在硬件速度下计算——将昂贵的浮点乘法转为快速的比特计数操作。">
-        <strong>💡 Bitwise acceleration:</strong> The summation Σ o̅ᵢ · (Pq̂)ᵢ
-        can be decomposed into additions and subtractions controlled by the
-        binary code bits. Using SIMD <code>POPCNT</code> instructions, this
-        computes at hardware speed — turning expensive float multiplications
-        into fast bit-counting operations.
+        data-en="<strong>💡 Key reduction:</strong> ‖x_r − c‖ is pre-computed per data vector; ‖q_r − c‖ is computed once per query. So the entire distance problem reduces to estimating a single number: the inner product ⟨o, q⟩ between two unit vectors."
+        data-zh="<strong>💡 关键简化：</strong>‖x_r − c‖ 在建索引时对每个数据向量预计算好；‖q_r − c‖ 在查询时只算一次。因此，整个距离问题简化为估计一个数值：两个单位向量的内积 ⟨o, q⟩。">
+        <strong>💡 Key reduction:</strong> ‖x_r − c‖ is pre-computed per data vector; ‖q_r − c‖ is computed once per query. So the entire distance problem reduces to estimating a single number: the inner product ⟨o, q⟩ between two unit vectors.
       </div>
+
+      <p class="phase-desc" style="margin-top:0.5em"
+        data-en="At query time, we can efficiently compute ⟨ō, q⟩ (the inner product between the quantized proxy and the query). But how does this relate to the true ⟨o, q⟩? The paper derives an elegant geometric relationship:"
+        data-zh="查询时，我们可以高效计算 ⟨ō, q⟩（量化近似与查询的内积）。但它和真实的 ⟨o, q⟩ 之间有什么关系？论文推导出了一个优美的几何关系：">
+        At query time, we can efficiently compute ⟨ō, q⟩ (the inner product between the quantized proxy and the query). But how does this relate to the true ⟨o, q⟩? The paper derives an elegant geometric relationship:
+      </p>
+
+      <div class="math-block">
+        $$\langle \bar{o}, q \rangle = \underbrace{\langle \bar{o}, o \rangle}_{\text{pre-computed}} \cdot\; \langle o, q \rangle \;+\; \underbrace{\langle \bar{o}, e_1 \rangle}_{\text{noise}} \cdot \sqrt{1 - \langle o, q \rangle^2}$$
+      </div>
+
+      <div class="insight-box"
+        data-en="<strong>💡 Signal vs. noise:</strong> In the 2D plane spanned by o and q, the quantized vector ō decomposes into a component along o (the 'signal' — proportional to the target ⟨o, q⟩) and a perpendicular component (the 'noise'). Due to the random rotation, the noise term ⟨ō, e₁⟩ has zero expected value and concentrates tightly around 0 (see §8). Meanwhile ⟨ō, o⟩ concentrates around ≈0.8 and is pre-computed at index time."
+        data-zh="<strong>💡 信号 vs. 噪声：</strong>在 o 和 q 张成的二维平面上，量化向量 ō 分解为沿 o 方向的分量（'信号'——与目标 ⟨o, q⟩ 成正比）和垂直分量（'噪声'）。由于随机旋转，噪声项 ⟨ō, e₁⟩ 的期望为零，且紧密集中在 0 附近（见 §8）。而 ⟨ō, o⟩ 集中在约 0.8 附近，在建索引时预计算好。">
+        <strong>💡 Signal vs. noise:</strong> In the 2D plane spanned by o and q, the quantized vector ō decomposes into a component along o (the 'signal' — proportional to the target ⟨o, q⟩) and a perpendicular component (the 'noise'). Due to the random rotation, the noise term ⟨ō, e₁⟩ has zero expected value and concentrates tightly around 0 (see §8). Meanwhile ⟨ō, o⟩ concentrates around ≈0.8 and is pre-computed at index time.
+      </div>
+
+      <p class="phase-desc" style="margin-top:0.5em"
+        data-en="This leads directly to the paper's key result: dividing by ⟨ō, o⟩ corrects the scale and cancels the bias, giving an unbiased estimator:"
+        data-zh="这直接导出论文的核心结果：除以 ⟨ō, o⟩ 修正了尺度并消除了偏差，得到一个无偏估计量：">
+        This leads directly to the paper's key result: dividing by ⟨ō, o⟩ corrects the scale and cancels the bias, giving an unbiased estimator:
+      </p>
+
+      <div class="math-block">
+        $$\widehat{\langle o, q \rangle} \;=\; \frac{\langle \bar{o},\, q \rangle}{\langle \bar{o},\, o \rangle}, \qquad \mathbb{E}\!\left[\,\widehat{\langle o, q \rangle}\,\right] = \langle o, q \rangle$$
+      </div>
+
+      <p class="phase-desc" style="margin-top:0.5em"
+        data-en="For fast computation, we exploit the invariance of inner products under orthogonal transformations. Instead of computing ⟨ō, q⟩ directly, we inversely rotate the query: q' = P⁻¹q. Then ⟨ō, q⟩ = ⟨x̄, q'⟩, where x̄ ∈ {±1/√D}ᴰ is the binary code. Since each x̄ᵢ is ±1/√D, this dot product becomes a simple sum of additions and subtractions — no multiplications needed."
+        data-zh="为了高效计算，我们利用内积在正交变换下的不变性。不直接计算 ⟨ō, q⟩，而是反向旋转查询向量：q' = P⁻¹q。于是 ⟨ō, q⟩ = ⟨x̄, q'⟩，其中 x̄ ∈ {±1/√D}ᴰ 是二进制编码。由于每个 x̄ᵢ 都是 ±1/√D，这个点积变成了简单的加减运算——无需乘法。">
+        For fast computation, we exploit the invariance of inner products under orthogonal transformations. Instead of computing ⟨ō, q⟩ directly, we inversely rotate the query: q' = P⁻¹q. Then ⟨ō, q⟩ = ⟨x̄, q'⟩, where x̄ ∈ {±1/√D}ᴰ is the binary code. Since each x̄ᵢ is ±1/√D, this dot product becomes a simple sum of additions and subtractions — no multiplications needed.
+      </p>
+
+      <div class="math-block">
+        $$\langle \bar{o}, q \rangle = \langle P\bar{x},\, q \rangle = \langle \bar{x},\, P^{-1}q \rangle = \langle \bar{x},\, q' \rangle$$
+      </div>
+
+      <div class="insight-box"
+        data-en="<strong>💡 Hardware acceleration:</strong> Since x̄ is a binary vector (each entry is 0 or 1 mapped to ±1/√D), the dot product ⟨x̄, q'⟩ can be decomposed into bitwise AND + <code>POPCNT</code> operations. Modern CPUs process these in a single cycle per 64 bits, making RaBitQ's distance estimation 10-100× faster than a full floating-point dot product."
+        data-zh="<strong>💡 硬件加速：</strong>由于 x̄ 是二进制向量（每个元素是 0 或 1，映射到 ±1/√D），点积 ⟨x̄, q'⟩ 可以分解为按位 AND + <code>POPCNT</code> 操作。现代 CPU 每 64 位只需一个周期处理这些运算，使 RaBitQ 的距离估计比完整浮点点积快 10-100 倍。">
+        <strong>💡 Hardware acceleration:</strong> Since x̄ is a binary vector (each entry is 0 or 1 mapped to ±1/√D), the dot product ⟨x̄, q'⟩ can be decomposed into bitwise AND + <code>POPCNT</code> operations. Modern CPUs process these in a single cycle per 64 bits, making RaBitQ's distance estimation 10-100× faster than a full floating-point dot product.
+      </div>
+
+      <p class="phase-desc" style="margin-top:0.5em"
+        data-en="The error of this estimator shrinks as O(1/√D) with high probability — see §10 for the formal bound. The reason ⟨ō, o⟩ stays predictable is explained by the concentration of measure phenomenon in §8."
+        data-zh="该估计量的误差以 O(1/√D) 的速率高概率缩小——形式化界见 §10。⟨ō, o⟩ 之所以保持可预测，是由 §8 中解释的测度集中现象所保证的。">
+        The error of this estimator shrinks as O(1/√D) with high probability — see §10 for the formal bound. The reason ⟨ō, o⟩ stays predictable is explained by the concentration of measure phenomenon in §8.
+      </p>
 
       <!-- ========== Viz 3: Distance Estimation ========== -->
       <h2 class="phase-heading" id="sec-viz-distance"
@@ -891,7 +900,7 @@
       </h2>
       <p class="phase-desc"
         data-en="In high-dimensional spaces, a remarkable phenomenon occurs: after random rotation, each coordinate of a unit vector concentrates around ±1/√D with high probability. This is the 'concentration of measure' phenomenon. It means binary quantization (snapping to ±1/√D) introduces only tiny errors per coordinate, and these errors average out across many dimensions."
-        data-zh="在高维空间中，一个显著的现象发生了：随机旋转后，单位向量的每个坐标以高概率集中在 ±1/√D 附近。这就是"测度集中"现象。它意味着二值量化（吸附到 ±1/√D）在每个坐标上只引入微小误差，而这些误差在多个维度上会互相抵消。">
+        data-zh="在高维空间中，一个显著的现象发生了：随机旋转后，单位向量的每个坐标以高概率集中在 ±1/√D 附近。这就是&ldquo;测度集中&rdquo;现象。它意味着二值量化（吸附到 ±1/√D）在每个坐标上只引入微小误差，而这些误差在多个维度上会互相抵消。">
         In high-dimensional spaces, a remarkable phenomenon occurs: after random
         rotation, each coordinate of a unit vector concentrates around ±1/√D
         with high probability. This is the "concentration of measure"
@@ -1124,26 +1133,53 @@
         return s;
       }
 
-      // ============ VIZ 1: ROTATION ============
-      ;(function () {
-        const canvas = document.getElementById("canvas-rotation");
-        const ctx = canvas.getContext("2d");
-        const slider = document.getElementById("slider-theta");
-        const label = document.getElementById("label-theta");
-        const info = document.getElementById("rotation-info");
-        const btn = document.getElementById("btn-rotate");
-
-        // Generate some random 2D unit vectors
-        const N = 8;
-        const origVecs = [];
-        for (let i = 0; i < N; i++) {
-          const angle = (Math.PI * 2 * i) / N + (Math.random() - 0.5) * 0.5;
-          const r = 0.5 + Math.random() * 0.4;
-          origVecs.push([Math.cos(angle) * r, Math.sin(angle) * r]);
+      function matTransposeVecMul(M, v) {
+        const n = v.length;
+        const r = new Float64Array(n);
+        for (let i = 0; i < n; i++) {
+          let s = 0;
+          for (let j = 0; j < n; j++) s += M[j][i] * v[j];
+          r[i] = s;
         }
+        return r;
+      }
 
-        let animating = false;
-        let animId = null;
+      // ============ VIZ 1.5: 3D ROTATION ============
+      ;(function () {
+        const canvas = document.getElementById("canvas-rotation3d");
+        const ctx = canvas.getContext("2d");
+        const btnRotate = document.getElementById("btn-rotate3d");
+        const btnReset = document.getElementById("btn-reset3d");
+        const info = document.getElementById("rotation3d-info");
+
+        let isAnimating = false;
+        let animProgress = 0;
+        let autoOrbitAngle = 0;
+        let lastTime = 0;
+
+        const styleOriginal = getComputedStyle(document.body).getPropertyValue("--color-original").trim() || "#e74c3c";
+        const styleRotated = getComputedStyle(document.body).getPropertyValue("--color-rotated").trim() || "#2ecc71";
+
+        let origVecs = [];
+        let currVecs = [];
+        let targetVecs = [];
+        let isRotated = false;
+
+        function generateVectors() {
+          origVecs = [];
+          for (let i = 0; i < 10; i++) {
+            const x = 0.7 + Math.random() * 0.3;
+            const y = (Math.random() - 0.5) * 0.3;
+            const z = (Math.random() - 0.5) * 0.3;
+            const norm = Math.sqrt(x * x + y * y + z * z);
+            origVecs.push([x / norm, y / norm, z / norm]);
+          }
+          currVecs = origVecs.map(v => [...v]);
+          targetVecs = origVecs.map(v => [...v]);
+          isRotated = false;
+          animProgress = 0;
+        }
+        generateVectors();
 
         function resize() {
           const rect = canvas.parentElement.getBoundingClientRect();
@@ -1155,135 +1191,286 @@
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         }
 
-        function draw() {
-          const w = canvas.width / (window.devicePixelRatio || 1);
-          const h = canvas.height / (window.devicePixelRatio || 1);
-          const cx = w / 2;
-          const cy = h / 2;
-          const scale = Math.min(w, h) * 0.38;
-          const theta = (parseFloat(slider.value) * Math.PI) / 180;
+        function project(x, y, z, cw, ch) {
+          const cx = cw / 2;
+          const cy = ch * 0.3;
+          const scale = 150;
+          const fov = 400;
+          const dist = 4;
 
-          ctx.clearRect(0, 0, w, h);
+          const sa = Math.sin(autoOrbitAngle);
+          const ca = Math.cos(autoOrbitAngle);
 
-          // Grid
-          ctx.strokeStyle = "#e0e0e0";
-          ctx.lineWidth = 0.5;
+          const xRot = x * ca - z * sa;
+          const yRot = y;
+          const zRot = x * sa + z * ca;
+
+          const pitch = 0.3;
+          const sp = Math.sin(pitch);
+          const cp = Math.cos(pitch);
+
+          const xRot2 = xRot;
+          const yRot2 = yRot * cp - zRot * sp;
+          const zRot2 = yRot * sp + zRot * cp;
+
+          const zCam = zRot2 + dist;
+          const projScale = fov / (fov + zCam);
+
+          return {
+            x: cx + xRot2 * scale * projScale,
+            y: cy - yRot2 * scale * projScale,
+            z: zRot2
+          };
+        }
+
+        function drawEnergyChart(cw, ch) {
+          const chartY = ch * 0.65;
+          const chartH = ch * 0.3;
+
           ctx.beginPath();
-          ctx.moveTo(0, cy);
-          ctx.lineTo(w, cy);
-          ctx.moveTo(cx, 0);
-          ctx.lineTo(cx, h);
+          ctx.moveTo(40, chartY);
+          ctx.lineTo(cw - 40, chartY);
+          ctx.strokeStyle = "rgba(100,100,100,0.3)";
+          ctx.lineWidth = 1;
           ctx.stroke();
 
-          // Unit circle
-          ctx.strokeStyle = "#d0d0d0";
-          ctx.lineWidth = 1;
-          ctx.setLineDash([4, 4]);
+          let eOrig = [0, 0, 0];
+          let eCurr = [0, 0, 0];
+
+          origVecs.forEach(v => {
+            eOrig[0] += v[0]*v[0];
+            eOrig[1] += v[1]*v[1];
+            eOrig[2] += v[2]*v[2];
+          });
+
+          currVecs.forEach(v => {
+            eCurr[0] += v[0]*v[0];
+            eCurr[1] += v[1]*v[1];
+            eCurr[2] += v[2]*v[2];
+          });
+
+          const totalE = eOrig[0] + eOrig[1] + eOrig[2];
+          const uniformE = totalE / 3;
+          const maxE = Math.max(...eOrig, ...eCurr, uniformE) * 1.2;
+
+          const groups = [
+            { label: "X Axis", idx: 0 },
+            { label: "Y Axis", idx: 1 },
+            { label: "Z Axis", idx: 2 }
+          ];
+
+          const groupW = (cw - 120) / 3;
+          const barW = 20;
+
+          groups.forEach((g, i) => {
+            const cx = 60 + i * groupW + groupW/2;
+
+            ctx.fillStyle = "rgba(100,100,100,0.8)";
+            ctx.font = "12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(g.label, cx, chartY + chartH + 15);
+
+            const h1 = (eOrig[g.idx] / maxE) * chartH;
+            ctx.fillStyle = styleOriginal;
+            ctx.globalAlpha = 0.5;
+            ctx.fillRect(cx - barW - 2, chartY + chartH - h1, barW, h1);
+
+            const h2 = (eCurr[g.idx] / maxE) * chartH;
+            ctx.fillStyle = isRotated || isAnimating ? styleRotated : styleOriginal;
+            ctx.globalAlpha = 0.9;
+            ctx.fillRect(cx + 2, chartY + chartH - h2, barW, h2);
+
+            ctx.globalAlpha = 1.0;
+          });
+
+          const uniY = chartY + chartH - (uniformE / maxE) * chartH;
           ctx.beginPath();
-          ctx.arc(cx, cy, scale, 0, Math.PI * 2);
+          ctx.setLineDash([5, 5]);
+          ctx.moveTo(40, uniY);
+          ctx.lineTo(cw - 40, uniY);
+          ctx.strokeStyle = "rgba(100,100,100,0.6)";
           ctx.stroke();
           ctx.setLineDash([]);
 
-          const cosT = Math.cos(theta);
-          const sinT = Math.sin(theta);
+          ctx.fillStyle = "rgba(100,100,100,0.6)";
+          ctx.textAlign = "right";
+          ctx.fillText("uniform", cw - 45, uniY - 5);
+        }
 
-          // Draw vectors
-          origVecs.forEach((v) => {
-            const ox = v[0],
-              oy = v[1];
-            const rx = ox * cosT - oy * sinT;
-            const ry = ox * sinT + oy * cosT;
+        function draw3DScene(cw, ch) {
+          const axes = [
+            { v: [1.5, 0, 0], c: "#e74c3c", l: "X" },
+            { v: [0, 1.5, 0], c: "#2ecc71", l: "Y" },
+            { v: [0, 0, 1.5], c: "#3498db", l: "Z" },
+            { v: [-1.5, 0, 0], c: "rgba(231,76,60,0.3)", l: "" },
+            { v: [0, -1.5, 0], c: "rgba(46,204,113,0.3)", l: "" },
+            { v: [0, 0, -1.5], c: "rgba(52,152,219,0.3)", l: "" }
+          ];
 
-            // Original (red)
-            ctx.strokeStyle = "rgba(231, 76, 60, 0.5)";
-            ctx.lineWidth = 2;
+          const origin = project(0, 0, 0, cw, ch);
+
+          axes.forEach(axis => {
+            const p = project(axis.v[0], axis.v[1], axis.v[2], cw, ch);
             ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + ox * scale, cy - oy * scale);
+            ctx.moveTo(origin.x, origin.y);
+            ctx.lineTo(p.x, p.y);
+            ctx.strokeStyle = axis.c;
+            ctx.lineWidth = 1.5;
             ctx.stroke();
-            ctx.fillStyle = "rgba(231, 76, 60, 0.8)";
-            ctx.beginPath();
-            ctx.arc(cx + ox * scale, cy - oy * scale, 5, 0, Math.PI * 2);
-            ctx.fill();
 
-            // Rotated (green)
-            ctx.strokeStyle = "rgba(46, 204, 113, 0.8)";
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + rx * scale, cy - ry * scale);
-            ctx.stroke();
-            ctx.fillStyle = "rgba(46, 204, 113, 0.9)";
-            ctx.beginPath();
-            ctx.arc(cx + rx * scale, cy - ry * scale, 6, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Rotation arc
-            if (Math.abs(theta) > 0.01) {
-              const origAngle = Math.atan2(oy, ox);
-              ctx.strokeStyle = "rgba(46, 204, 113, 0.25)";
-              ctx.lineWidth = 1;
-              ctx.beginPath();
-              const r2 = Math.sqrt(ox * ox + oy * oy) * scale;
-              ctx.arc(cx, cy, r2, -origAngle, -(origAngle + theta), theta > 0);
-              ctx.stroke();
+            if (axis.l) {
+              ctx.fillStyle = axis.c;
+              ctx.font = "14px monospace";
+              ctx.fillText(axis.l, p.x + 5, p.y + 5);
             }
           });
 
-          label.textContent = slider.value + "°";
-          info.textContent = "θ = " + slider.value + "°";
+          ctx.strokeStyle = "rgba(100,100,100,0.15)";
+          ctx.lineWidth = 1;
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            for (let angle = 0; angle <= Math.PI * 2; angle += 0.1) {
+              let x = 0, y = 0, z = 0;
+              if (i === 0) { x = Math.cos(angle); y = Math.sin(angle); }
+              else if (i === 1) { x = Math.cos(angle); z = Math.sin(angle); }
+              else { y = Math.cos(angle); z = Math.sin(angle); }
+              const p = project(x, y, z, cw, ch);
+              if (angle === 0) ctx.moveTo(p.x, p.y);
+              else ctx.lineTo(p.x, p.y);
+            }
+            ctx.stroke();
+          }
+
+          const depthVecs = currVecs.map((v, i) => {
+            const p = project(v[0], v[1], v[2], cw, ch);
+            return { idx: i, p: p, v: v };
+          }).sort((a, b) => b.p.z - a.p.z);
+
+          depthVecs.forEach(item => {
+            ctx.beginPath();
+            ctx.moveTo(origin.x, origin.y);
+            ctx.lineTo(item.p.x, item.p.y);
+            ctx.strokeStyle = isRotated || isAnimating ? styleRotated : styleOriginal;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(item.p.x, item.p.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = isRotated || isAnimating ? styleRotated : styleOriginal;
+            ctx.fill();
+          });
         }
 
-        slider.addEventListener("input", draw);
+        function draw() {
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          const h = canvas.height / (window.devicePixelRatio || 1);
+          ctx.clearRect(0, 0, w, h);
 
-        btn.addEventListener("click", () => {
-          if (animating) {
-            animating = false;
-            btn.innerHTML = lang === "zh" ? "▶ 动画" : "▶ Animate";
-            if (animId) cancelAnimationFrame(animId);
-            return;
+          draw3DScene(w, h);
+          drawEnergyChart(w, h);
+        }
+
+        function loop(time) {
+          const dt = (time - lastTime) / 1000;
+          lastTime = time;
+
+          autoOrbitAngle += 0.2 * dt;
+
+          if (isAnimating) {
+            animProgress += dt * 1.5;
+            if (animProgress >= 1) {
+              animProgress = 1;
+              isAnimating = false;
+              isRotated = true;
+            }
+
+            const easeProgress = 1 - Math.pow(1 - animProgress, 3);
+
+            for (let i = 0; i < origVecs.length; i++) {
+              currVecs[i] = [
+                origVecs[i][0] + (targetVecs[i][0] - origVecs[i][0]) * easeProgress,
+                origVecs[i][1] + (targetVecs[i][1] - origVecs[i][1]) * easeProgress,
+                origVecs[i][2] + (targetVecs[i][2] - origVecs[i][2]) * easeProgress
+              ];
+              const norm = Math.sqrt(currVecs[i][0]*currVecs[i][0] + currVecs[i][1]*currVecs[i][1] + currVecs[i][2]*currVecs[i][2]);
+              currVecs[i] = [currVecs[i][0]/norm, currVecs[i][1]/norm, currVecs[i][2]/norm];
+            }
           }
-          animating = true;
-          btn.innerHTML = lang === "zh" ? "⏸ 暂停" : "⏸ Pause";
-          function anim() {
-            if (!animating) return;
-            let v = parseFloat(slider.value) + 0.5;
-            if (v > 360) v = 0;
-            slider.value = v;
-            draw();
-            animId = requestAnimationFrame(anim);
+
+          draw();
+          requestAnimationFrame(loop);
+        }
+
+        btnRotate.addEventListener("click", () => {
+          if (isAnimating) return;
+          const R = window.randomOrthogonal(3);
+          for (let i = 0; i < origVecs.length; i++) {
+            targetVecs[i] = window.matVecMul(R, origVecs[i]);
           }
-          anim();
+          isAnimating = true;
+          animProgress = 0;
+          isRotated = true;
+          origVecs = currVecs.map(v => [...v]);
+
+          info.innerHTML = lang === "zh" 
+            ? "已应用随机旋转：能量均匀分布" 
+            : "Applied random rotation: energy evenly spread";
+        });
+
+        btnReset.addEventListener("click", () => {
+          generateVectors();
+          info.innerHTML = lang === "zh" 
+            ? "重置为原始向量" 
+            : "Reset to original vectors";
         });
 
         window.addEventListener("resize", () => {
           resize();
           draw();
         });
+
         resize();
-        draw();
+        lastTime = performance.now();
+        requestAnimationFrame(loop);
       })();
 
       // ============ VIZ 2: QUANTIZATION ============
       ;(function () {
         const canvas = document.getElementById("canvas-quantize");
         const ctx = canvas.getContext("2d");
-        const slider = document.getElementById("slider-theta2");
-        const label = document.getElementById("label-theta2");
+        const btnRotate = document.getElementById("btn-rotate2");
+        const btnNew = document.getElementById("btn-randomize");
         const info = document.getElementById("quantize-info");
-        const btn = document.getElementById("btn-randomize");
 
-        let vectors = generateVecs();
+        const styleOriginal = getComputedStyle(document.body).getPropertyValue("--color-original").trim() || "#e74c3c";
+        const styleRotated = getComputedStyle(document.body).getPropertyValue("--color-rotated").trim() || "#2ecc71";
+        const styleQuantized = getComputedStyle(document.body).getPropertyValue("--color-quantized").trim() || "#3498db";
 
-        function generateVecs() {
-          const vecs = [];
-          for (let i = 0; i < 12; i++) {
-            const a = Math.random() * Math.PI * 2;
-            const r = 0.3 + Math.random() * 0.6;
-            vecs.push([Math.cos(a) * r, Math.sin(a) * r]);
+        let origVecs = [];
+        let currVecs = [];
+        let targetVecs = [];
+        let isRotated = false;
+        let isAnimating = false;
+        let animProgress = 0;
+        let autoOrbitAngle = 0;
+        let lastTime = performance.now();
+
+        function generateVectors() {
+          origVecs = [];
+          for (let i = 0; i < 15; i++) {
+            const x = 0.85 + Math.random() * 0.15;
+            const y = (Math.random() - 0.5) * 0.2;
+            const z = (Math.random() - 0.5) * 0.2;
+            const norm = Math.sqrt(x * x + y * y + z * z);
+            origVecs.push([x / norm, y / norm, z / norm]);
           }
-          return vecs;
+          currVecs = origVecs.map(v => [...v]);
+          targetVecs = origVecs.map(v => [...v]);
+          isRotated = false;
+          isAnimating = false;
+          animProgress = 0;
         }
+        generateVectors();
 
         function resize() {
           const rect = canvas.parentElement.getBoundingClientRect();
@@ -1295,135 +1482,264 @@
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         }
 
+        function project(x, y, z, cw, ch) {
+          const cx = cw / 2;
+          const cy = ch * 0.5;
+          const scale = 130;
+          const fov = 400;
+          const dist = 4;
+
+          const sa = Math.sin(autoOrbitAngle);
+          const ca = Math.cos(autoOrbitAngle);
+
+          const xRot = x * ca - z * sa;
+          const yRot = y;
+          const zRot = x * sa + z * ca;
+
+          const pitch = 0.3;
+          const sp = Math.sin(pitch);
+          const cp = Math.cos(pitch);
+
+          const xRot2 = xRot;
+          const yRot2 = yRot * cp - zRot * sp;
+          const zRot2 = yRot * sp + zRot * cp;
+
+          const zCam = zRot2 + dist;
+          const projScale = fov / (fov + zCam);
+
+          return {
+            x: cx + xRot2 * scale * projScale,
+            y: cy - yRot2 * scale * projScale,
+            z: zRot2
+          };
+        }
+
+        function calcMetrics(vecs) {
+          const inv3 = 1 / Math.sqrt(3);
+          let trueDists = [];
+          let quantDists = [];
+          const vertices = new Set();
+          
+          const qVecs = vecs.map(v => [
+            v[0] >= 0 ? inv3 : -inv3,
+            v[1] >= 0 ? inv3 : -inv3,
+            v[2] >= 0 ? inv3 : -inv3
+          ]);
+
+          qVecs.forEach(q => vertices.add(q.join(",")));
+
+          for (let i = 0; i < vecs.length; i++) {
+            for (let j = i + 1; j < vecs.length; j++) {
+              const dTrue = Math.sqrt((vecs[i][0]-vecs[j][0])**2 + (vecs[i][1]-vecs[j][1])**2 + (vecs[i][2]-vecs[j][2])**2);
+              const dQuant = Math.sqrt((qVecs[i][0]-qVecs[j][0])**2 + (qVecs[i][1]-qVecs[j][1])**2 + (qVecs[i][2]-qVecs[j][2])**2);
+              trueDists.push(dTrue);
+              quantDists.push(dQuant);
+            }
+          }
+
+          const meanTrue = trueDists.reduce((a, b) => a + b, 0) / trueDists.length;
+          const meanQuant = quantDists.reduce((a, b) => a + b, 0) / quantDists.length;
+          let num = 0, den1 = 0, den2 = 0;
+          for (let i = 0; i < trueDists.length; i++) {
+            const t = trueDists[i] - meanTrue;
+            const q = quantDists[i] - meanQuant;
+            num += t * q;
+            den1 += t * t;
+            den2 += q * q;
+          }
+          const pearson = (den1 === 0 || den2 === 0) ? 0 : num / Math.sqrt(den1 * den2);
+          return {
+            vertices: vertices.size,
+            preservation: Math.max(0, pearson * 100)
+          };
+        }
+
         function draw() {
           const w = canvas.width / (window.devicePixelRatio || 1);
           const h = canvas.height / (window.devicePixelRatio || 1);
-          const cx = w / 2;
-          const cy = h / 2;
-          const scale = Math.min(w, h) * 0.35;
-          const theta = (parseFloat(slider.value) * Math.PI) / 180;
-          const cosT = Math.cos(theta);
-          const sinT = Math.sin(theta);
-          const inv2 = 1 / Math.sqrt(2);
-
           ctx.clearRect(0, 0, w, h);
 
-          // Grid
-          ctx.strokeStyle = "#e0e0e0";
-          ctx.lineWidth = 0.5;
-          ctx.beginPath();
-          ctx.moveTo(0, cy);
-          ctx.lineTo(w, cy);
-          ctx.moveTo(cx, 0);
-          ctx.lineTo(cx, h);
-          ctx.stroke();
+          const origin = project(0, 0, 0, w, h);
+          const inv3 = 1 / Math.sqrt(3);
 
-          // Hypercube vertices in 2D: (±1/√2, ±1/√2)
-          const corners = [
-            [inv2, inv2],
-            [inv2, -inv2],
-            [-inv2, inv2],
-            [-inv2, -inv2],
+          // Draw axes
+          const axes = [
+            { v: [1.5, 0, 0], c: "#e74c3c", l: "X" },
+            { v: [0, 1.5, 0], c: "#2ecc71", l: "Y" },
+            { v: [0, 0, 1.5], c: "#3498db", l: "Z" },
+            { v: [-1.5, 0, 0], c: "rgba(231,76,60,0.3)", l: "" },
+            { v: [0, -1.5, 0], c: "rgba(46,204,113,0.3)", l: "" },
+            { v: [0, 0, -1.5], c: "rgba(52,152,219,0.3)", l: "" }
           ];
-          ctx.fillStyle = "rgba(52, 152, 219, 0.15)";
-          corners.forEach(([px, py]) => {
+
+          axes.forEach(axis => {
+            const p = project(axis.v[0], axis.v[1], axis.v[2], w, h);
             ctx.beginPath();
-            ctx.arc(cx + px * scale, cy - py * scale, 10, 0, Math.PI * 2);
+            ctx.moveTo(origin.x, origin.y);
+            ctx.lineTo(p.x, p.y);
+            ctx.strokeStyle = axis.c;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            if (axis.l) {
+              ctx.fillStyle = axis.c;
+              ctx.font = "14px monospace";
+              ctx.fillText(axis.l, p.x + 5, p.y + 5);
+            }
+          });
+
+          // Hypercube vertices
+          const corners = [];
+          for (let i = -1; i <= 1; i+=2) {
+            for (let j = -1; j <= 1; j+=2) {
+              for (let k = -1; k <= 1; k+=2) {
+                corners.push([i*inv3, j*inv3, k*inv3]);
+              }
+            }
+          }
+          
+          corners.forEach(c => {
+            const p = project(c[0], c[1], c[2], w, h);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(52, 152, 219, 0.4)";
             ctx.fill();
           });
 
-          // Draw hypercube box
-          ctx.strokeStyle = "rgba(52, 152, 219, 0.3)";
+          // Draw edges of hypercube
+          ctx.strokeStyle = "rgba(52, 152, 219, 0.2)";
           ctx.lineWidth = 1;
-          ctx.setLineDash([3, 3]);
-          ctx.strokeRect(
-            cx - inv2 * scale,
-            cy - inv2 * scale,
-            2 * inv2 * scale,
-            2 * inv2 * scale
-          );
-          ctx.setLineDash([]);
+          for (let i=0; i<corners.length; i++) {
+            for (let j=i+1; j<corners.length; j++) {
+              let diffs = 0;
+              if (corners[i][0] !== corners[j][0]) diffs++;
+              if (corners[i][1] !== corners[j][1]) diffs++;
+              if (corners[i][2] !== corners[j][2]) diffs++;
+              if (diffs === 1) {
+                const p1 = project(corners[i][0], corners[i][1], corners[i][2], w, h);
+                const p2 = project(corners[j][0], corners[j][1], corners[j][2], w, h);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+              }
+            }
+          }
 
-          let totalError = 0;
+          const vertexCounts = {};
+          const depthVecs = currVecs.map((v, i) => {
+            const p = project(v[0], v[1], v[2], w, h);
+            const qx = v[0] >= 0 ? inv3 : -inv3;
+            const qy = v[1] >= 0 ? inv3 : -inv3;
+            const qz = v[2] >= 0 ? inv3 : -inv3;
+            const pq = project(qx, qy, qz, w, h);
+            const qKey = `${qx.toFixed(3)},${qy.toFixed(3)},${qz.toFixed(3)}`;
+            vertexCounts[qKey] = (vertexCounts[qKey] || 0) + 1;
+            return { idx: i, p: p, v: v, pq: pq, qKey };
+          }).sort((a, b) => b.p.z - a.p.z);
 
-          vectors.forEach((v) => {
-            const ox = v[0],
-              oy = v[1];
-            // Normalize
-            const norm = Math.sqrt(ox * ox + oy * oy);
-            const nx = ox / norm,
-              ny = oy / norm;
-            // Rotate
-            const rx = nx * cosT - ny * sinT;
-            const ry = nx * sinT + ny * cosT;
-            // Quantize: snap to nearest hypercube vertex
-            const qx = rx >= 0 ? inv2 : -inv2;
-            const qy = ry >= 0 ? inv2 : -inv2;
+          const drawnVertices = new Set();
 
-            // Error
-            const err = Math.sqrt(
-              (rx - qx) * (rx - qx) + (ry - qy) * (ry - qy)
-            );
-            totalError += err;
-
-            // Original (red, thin)
-            ctx.strokeStyle = "rgba(231, 76, 60, 0.35)";
+          depthVecs.forEach(item => {
+            // dashed line to snapped position
+            ctx.beginPath();
+            ctx.moveTo(item.p.x, item.p.y);
+            ctx.lineTo(item.pq.x, item.pq.y);
+            ctx.strokeStyle = "rgba(52, 152, 219, 0.6)";
             ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + nx * scale, cy - ny * scale);
-            ctx.stroke();
-            ctx.fillStyle = "rgba(231, 76, 60, 0.6)";
-            ctx.beginPath();
-            ctx.arc(cx + nx * scale, cy - ny * scale, 4, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Rotated (green)
-            ctx.strokeStyle = "rgba(46, 204, 113, 0.6)";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + rx * scale, cy - ry * scale);
-            ctx.stroke();
-            ctx.fillStyle = "rgba(46, 204, 113, 0.8)";
-            ctx.beginPath();
-            ctx.arc(cx + rx * scale, cy - ry * scale, 5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Quantized (blue)
-            ctx.fillStyle = "rgba(52, 152, 219, 0.9)";
-            ctx.beginPath();
-            ctx.arc(cx + qx * scale, cy - qy * scale, 7, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Line from rotated to quantized
-            ctx.strokeStyle = "rgba(52, 152, 219, 0.4)";
-            ctx.lineWidth = 1;
-            ctx.setLineDash([2, 2]);
-            ctx.beginPath();
-            ctx.moveTo(cx + rx * scale, cy - ry * scale);
-            ctx.lineTo(cx + qx * scale, cy - qy * scale);
+            ctx.setLineDash([3, 3]);
             ctx.stroke();
             ctx.setLineDash([]);
+
+            // vector line
+            ctx.beginPath();
+            ctx.moveTo(origin.x, origin.y);
+            ctx.lineTo(item.p.x, item.p.y);
+            ctx.strokeStyle = isRotated || isAnimating ? styleRotated : styleOriginal;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // vector point
+            ctx.beginPath();
+            ctx.arc(item.p.x, item.p.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = isRotated || isAnimating ? styleRotated : styleOriginal;
+            ctx.fill();
+
+            // quantized point (draw once per vertex, sized by count)
+            if (!drawnVertices.has(item.qKey)) {
+              drawnVertices.add(item.qKey);
+              const count = vertexCounts[item.qKey];
+              ctx.beginPath();
+              ctx.arc(item.pq.x, item.pq.y, 4 + count * 1.5, 0, Math.PI * 2);
+              ctx.fillStyle = styleQuantized;
+              ctx.fill();
+              ctx.strokeStyle = "white";
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
           });
 
-          const avgErr = totalError / vectors.length;
-          label.textContent = slider.value + "°";
-          info.textContent =
-            (lang === "zh" ? "平均误差: " : "Avg Error: ") + avgErr.toFixed(3);
+          // Update info text
+          const metrics = calcMetrics(currVecs);
+          const total = currVecs.length;
+          const stateTextEN = (isRotated && !isAnimating) ? "Rotated & Quantized: " : (isAnimating ? "Animating: " : "Direct Quantized: ");
+          const stateTextZH = (isRotated && !isAnimating) ? "旋转后量化: " : (isAnimating ? "动画中: " : "直接量化: ");
+          
+          if (lang === "zh") {
+            info.innerHTML = `<strong>${stateTextZH}</strong> ${total} 个向量 → 仅 ${metrics.vertices} 个顶点 | 距离保持度: ${metrics.preservation.toFixed(1)}%`;
+          } else {
+            info.innerHTML = `<strong>${stateTextEN}</strong> ${total} vectors → ${metrics.vertices} vertices | Distance Preservation: ${metrics.preservation.toFixed(1)}%`;
+          }
         }
 
-        slider.addEventListener("input", draw);
-        btn.addEventListener("click", () => {
-          vectors = generateVecs();
+        function loop(time) {
+          const dt = (time - lastTime) / 1000;
+          lastTime = time;
+          autoOrbitAngle += 0.2 * dt;
+
+          if (isAnimating) {
+            animProgress += dt * 1.5;
+            if (animProgress >= 1) {
+              animProgress = 1;
+              isAnimating = false;
+              isRotated = true;
+            }
+            const easeProgress = 1 - Math.pow(1 - animProgress, 3);
+            for (let i = 0; i < origVecs.length; i++) {
+              currVecs[i] = [
+                origVecs[i][0] + (targetVecs[i][0] - origVecs[i][0]) * easeProgress,
+                origVecs[i][1] + (targetVecs[i][1] - origVecs[i][1]) * easeProgress,
+                origVecs[i][2] + (targetVecs[i][2] - origVecs[i][2]) * easeProgress
+              ];
+              const norm = Math.sqrt(currVecs[i][0]**2 + currVecs[i][1]**2 + currVecs[i][2]**2);
+              currVecs[i] = [currVecs[i][0]/norm, currVecs[i][1]/norm, currVecs[i][2]/norm];
+            }
+          }
+
           draw();
+          requestAnimationFrame(loop);
+        }
+
+        btnRotate.addEventListener("click", () => {
+          if (isAnimating || isRotated) return;
+          const R = window.randomOrthogonal(3);
+          for (let i = 0; i < origVecs.length; i++) {
+            targetVecs[i] = window.matVecMul(R, origVecs[i]);
+          }
+          isAnimating = true;
+          animProgress = 0;
+          origVecs = currVecs.map(v => [...v]);
         });
+
+        btnNew.addEventListener("click", () => {
+          generateVectors();
+        });
+
         window.addEventListener("resize", () => {
           resize();
-          draw();
         });
+
         resize();
-        draw();
+        requestAnimationFrame(loop);
       })();
 
       // ============ VIZ 3: ERROR vs DIMENSION ============
@@ -1464,17 +1780,21 @@
               // True inner product
               const trueDot = dot(x, q);
 
-              // Rotate
-              const zx = matVecMul(P, x);
-              const zq = matVecMul(P, q);
+              // Inversely transform (paper's method: P⁻¹ = Pᵀ)
+              const oPrime = matTransposeVecMul(P, x);  // P⁻¹ · o
+              const qPrime = matTransposeVecMul(P, q);  // P⁻¹ · q
 
-              // Quantize x
+              // Quantize: x̄ᵢ = sign(oPrime_i) / √D
               const invSqrtD = 1 / Math.sqrt(D);
-              let estDot = 0;
+              let oBarDotQ = 0;  // ⟨ō, q⟩ = ⟨x̄, q'⟩
+              let oBarDotO = 0;  // ⟨ō, o⟩ = ⟨x̄, o'⟩ (pre-computed in practice)
               for (let i = 0; i < D; i++) {
-                const sign = zx[i] >= 0 ? 1 : -1;
-                estDot += sign * invSqrtD * zq[i];
+                const xBar_i = oPrime[i] >= 0 ? invSqrtD : -invSqrtD;
+                oBarDotQ += xBar_i * qPrime[i];
+                oBarDotO += xBar_i * oPrime[i];
               }
+              // Unbiased estimator: ⟨ō, q⟩ / ⟨ō, o⟩
+              const estDot = oBarDotO > 1e-10 ? oBarDotQ / oBarDotO : oBarDotQ;
 
               // Relative error
               const absTrue = Math.abs(trueDot);

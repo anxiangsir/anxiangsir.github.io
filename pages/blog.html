@@ -392,6 +392,22 @@
         <li class="blog-entry featured" data-category="training">
           <span class="blog-date">Apr 4, 2026</span>
           <div>
+            <a class="blog-link" href="/pages/verl_grpo.html">VERL &amp; GRPO：RL 训练常见问题备忘录</a>
+            <span class="blog-type">Interactive Viz</span>
+            <span class="blog-tag">RLHF</span>
+            <span class="blog-tag">GRPO</span>
+            <span class="blog-tag">VERL</span>
+            <span class="blog-reading-time">~12 min</span>
+            <p class="blog-summary">
+              A bilingual RL note page for fast lookup — covering what GRPO is, why group-relative
+              normalization works, how rollout/old/reference logprobs differ, how KL penalties are
+              computed, why credit assignment is hard, and how VERL-style rollout/training data flows.
+            </p>
+          </div>
+        </li>
+        <li class="blog-entry featured" data-category="training">
+          <span class="blog-date">Apr 4, 2026</span>
+          <div>
             <a class="blog-link" href="/pages/gae.html">GAE: Generalized Advantage Estimation — Critic, TD残差与偏差-方差权衡</a>
             <span class="blog-type">Interactive Viz</span>
             <span class="blog-tag">Reinforcement Learning</span>
@@ -512,7 +528,9 @@
     <script>
       document.querySelectorAll('.blog-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          document.querySelectorAll('.blog-filter-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.blog-filter-btn').forEach(b => {
+            b.classList.remove('active');
+          });
           btn.classList.add('active');
           const filter = btn.dataset.filter;
           document.querySelectorAll('.blog-entry').forEach(entry => {
