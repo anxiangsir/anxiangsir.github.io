@@ -732,6 +732,150 @@ $$\text{where } \mathbf{g} = \nabla_\theta L(\theta)\big|_{\theta_k},\quad \math
       </ul>
       <p class="phase-desc" id="sec9-desc2"></p>
 
+      <h3 class="phase-heading" id="sec10-heading"></h3>
+      <p class="phase-desc" id="sec10-intro"></p>
+
+      <!-- Q1: ratio computation -->
+      <details class="deep-dive" id="sec10-qa1">
+        <summary><span id="sec10-qa1-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa1-p1"></p>
+          <div class="math-block">$$\text{ratio} = \frac{\pi_\theta(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)} = \exp\!\bigl(\log\pi_\theta(a_t|s_t) - \log\pi_{\text{old}}(a_t|s_t)\bigr)$$</div>
+          <pre class="code-block"><code id="sec10-qa1-code"></code></pre>
+          <p class="phase-desc" id="sec10-qa1-p2"></p>
+          <p class="phase-desc" id="sec10-qa1-p3"></p>
+        </div>
+      </details>
+
+      <!-- Q2: three types of logprobs -->
+      <details class="deep-dive" id="sec10-qa2">
+        <summary><span id="sec10-qa2-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa2-p1"></p>
+          <table style="width:100%;border-collapse:collapse;font-family:var(--font-sans);font-size:0.88rem;margin:1.5rem 0;">
+            <thead>
+              <tr style="background:var(--bg-alt);border-bottom:2px solid var(--border);">
+                <th style="padding:10px 8px;border-right:1px solid var(--border);text-align:left;" id="sec10-qa2-th1"></th>
+                <th style="padding:10px 8px;border-right:1px solid var(--border);text-align:center;color:#ef4444;">Ref Model</th>
+                <th style="padding:10px 8px;border-right:1px solid var(--border);text-align:center;color:#f59e0b;">Old Model</th>
+                <th style="padding:10px 8px;text-align:center;color:#10b981;">Current Model</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:8px;border-right:1px solid var(--border);font-weight:600;" id="sec10-qa2-r1c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);text-align:center;">&#x2705;</td>
+                <td style="padding:8px;border-right:1px solid var(--border);text-align:center;">&#x2705;</td>
+                <td style="padding:8px;text-align:center;">&#x274c;</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);background:var(--bg-alt);">
+                <td style="padding:8px;border-right:1px solid var(--border);font-weight:600;" id="sec10-qa2-r2c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);text-align:center;" id="sec10-qa2-r2c2"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);text-align:center;" id="sec10-qa2-r2c3"></td>
+                <td style="padding:8px;text-align:center;" id="sec10-qa2-r2c4"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:8px;border-right:1px solid var(--border);font-weight:600;" id="sec10-qa2-r3c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);text-align:center;">&#x274c;</td>
+                <td style="padding:8px;border-right:1px solid var(--border);text-align:center;">&#x274c;</td>
+                <td style="padding:8px;text-align:center;">&#x2705;</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);background:var(--bg-alt);">
+                <td style="padding:8px;border-right:1px solid var(--border);font-weight:600;" id="sec10-qa2-r4c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);text-align:center;font-family:var(--font-math);font-size:0.85em;"><code>ref_logprobs</code></td>
+                <td style="padding:8px;border-right:1px solid var(--border);text-align:center;font-family:var(--font-math);font-size:0.85em;"><code>old_logprobs</code></td>
+                <td style="padding:8px;text-align:center;font-family:var(--font-math);font-size:0.85em;"><code>current_logprobs</code></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:8px;border-right:1px solid var(--border);font-weight:600;" id="sec10-qa2-r5c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa2-r5c2"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa2-r5c3"></td>
+                <td style="padding:8px;" id="sec10-qa2-r5c4"></td>
+              </tr>
+              <tr>
+                <td style="padding:8px;border-right:1px solid var(--border);font-weight:600;" id="sec10-qa2-r6c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa2-r6c2"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa2-r6c3"></td>
+                <td style="padding:8px;">&#x2014;</td>
+              </tr>
+            </tbody>
+          </table>
+          <pre class="code-block"><code id="sec10-qa2-code"></code></pre>
+        </div>
+      </details>
+
+      <!-- Q3: rollout vs training frequency -->
+      <details class="deep-dive" id="sec10-qa3">
+        <summary><span id="sec10-qa3-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa3-p1"></p>
+          <pre class="code-block"><code id="sec10-qa3-code"></code></pre>
+          <p class="phase-desc" id="sec10-qa3-p2"></p>
+          <p class="phase-desc" id="sec10-qa3-p3"></p>
+        </div>
+      </details>
+
+      <!-- Q4: autoregressive vs teacher forcing -->
+      <details class="deep-dive" id="sec10-qa4">
+        <summary><span id="sec10-qa4-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa4-p1"></p>
+          <pre class="code-block"><code id="sec10-qa4-code"></code></pre>
+          <p class="phase-desc" id="sec10-qa4-p2"></p>
+        </div>
+      </details>
+
+      <!-- Q5: full pipeline from per-token ratio to scalar loss -->
+      <details class="deep-dive" id="sec10-qa5">
+        <summary><span id="sec10-qa5-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa5-p1"></p>
+          <pre class="code-block"><code id="sec10-qa5-code"></code></pre>
+          <p class="phase-desc" id="sec10-qa5-p2"></p>
+          <table style="width:100%;border-collapse:collapse;font-family:var(--font-sans);font-size:0.88rem;margin:1.5rem 0;">
+            <thead>
+              <tr style="background:var(--bg-alt);border-bottom:2px solid var(--border);">
+                <th style="padding:10px 8px;border-right:1px solid var(--border);" id="sec10-qa5-th1"></th>
+                <th style="padding:10px 8px;border-right:1px solid var(--border);" id="sec10-qa5-th2"></th>
+                <th style="padding:10px 8px;" id="sec10-qa5-th3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:8px;border-right:1px solid var(--border);font-family:var(--font-math);"><code>ratio</code></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r1c2"></td>
+                <td style="padding:8px;" id="sec10-qa5-r1c3"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);background:var(--bg-alt);">
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r2c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r2c2"></td>
+                <td style="padding:8px;" id="sec10-qa5-r2c3"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r3c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r3c2"></td>
+                <td style="padding:8px;" id="sec10-qa5-r3c3"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);background:var(--bg-alt);">
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r4c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r4c2"></td>
+                <td style="padding:8px;" id="sec10-qa5-r4c3"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r5c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r5c2"></td>
+                <td style="padding:8px;" id="sec10-qa5-r5c3"></td>
+              </tr>
+              <tr>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r6c1"></td>
+                <td style="padding:8px;border-right:1px solid var(--border);" id="sec10-qa5-r6c2"></td>
+                <td style="padding:8px;" id="sec10-qa5-r6c3"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
     </div>
     <a href="#" class="back-to-top" id="back-to-top" aria-label="Back to top">↑</a>
 
@@ -977,6 +1121,134 @@ gen_backend: "sglang" # generation engine`,
           sec9AuthorsLabel: "Authors:",
           sec9AuthorsValue: "Tsinghua IIIS + Ant Group",
           sec9Desc2: "阅读时可带着三个检查点：① rollout 里到底存了哪些 token-level 字段；② staleness 如何限制 in-flight 数据；③ Decoupled PPO 如何同时保证稳定与无偏校正。",
+
+          sec10Head: "10. GRPO 训练机制深度 Q&A",
+          sec10Intro: "本节汇总了关于 GRPO 训练内部机制最常被问到的五个问题，涵盖 ratio 计算原理、三种 logprob 的区别、rollout 与 training 的刷新频率、自回归采样与 teacher forcing 的分工，以及从逐 token 的 ratio 到标量 loss 的完整推导流程。",
+
+          sec10Qa1Title: "Q1. PPO/GRPO 的 ratio 是怎么算的？",
+          sec10Qa1P1: "<strong>ratio = exp(current_logprobs &minus; old_logprobs)</strong>，逐 token 计算的重要性采样比。<code>current_logprobs</code> 来自<strong>当前正在训练的模型</strong>（有梯度），<code>old_logprobs</code> 来自<strong>rollout 时的旧策略模型</strong>（训练期间冻结）。",
+          sec10Qa1Code: `# ratio: per-token, shape [B, T_resp]
+ratio = torch.exp(current_logprobs - old_logprobs)
+# ratio ≈ 1.0  → new policy ≈ old (minor update)
+# ratio > 1.0  → new policy favors this token more
+# ratio < 1.0  → new policy suppresses this token`,
+          sec10Qa1P2: "直观含义：ratio ≈ 1 表示当前策略与旧策略基本一致；ratio &gt; 1 表示当前策略更倾向于生成该 token；ratio &lt; 1 表示当前策略已抑制该 token。PPO 的 clip 机制将 ratio 限制在 \\([1-\\epsilon, 1+\\epsilon]\\)，防止单步更新幅度过大。",
+          sec10Qa1P3: "⚠️ 注意区分：ratio 用的是 <code>current_logprobs - old_logprobs</code>；KL 惩罚用的是 <code>current_logprobs - ref_logprobs</code>（ref 是冻结的 SFT 参考模型）。分母不同：old 每轮 rollout 刷新，ref 永远不变。",
+
+          sec10Qa2Title: "Q2. 三种 logprob：Ref / Old / Current",
+          sec10Qa2P1: "GRPO 训练中同时存在三个版本的模型，它们对同一批 token 各自计算 logprob，但用途不同：Ref 提供偏离上限，Old 提供更新基准，Current 提供优化目标。",
+          sec10Qa2Th1: "属性",
+          sec10Qa2R1c1: "冻结？",
+          sec10Qa2R2c1: "更新频率",
+          sec10Qa2R2c2: "从不",
+          sec10Qa2R2c3: "每轮 rollout 刷新",
+          sec10Qa2R2c4: "每个 train step",
+          sec10Qa2R3c1: "有梯度？",
+          sec10Qa2R4c1: "输出名",
+          sec10Qa2R5c1: "用途",
+          sec10Qa2R5c2: "KL 惩罚的锚点",
+          sec10Qa2R5c3: "ratio 的分母",
+          sec10Qa2R5c4: "ratio 的分子 + KL 分子",
+          sec10Qa2R6c1: "防止",
+          sec10Qa2R6c2: "Reward hacking（偏离 SFT 太远）",
+          sec10Qa2R6c3: "单步更新过大（信赖域约束）",
+          sec10Qa2Code: `# Ref: 冻结的 SFT 模型，永不更新
+with torch.no_grad():
+    ref_logprobs = ref_model(input_ids)       # [B, T_resp]
+
+# Old: rollout 快照，每轮 rollout 刷新
+with torch.no_grad():
+    old_logprobs = old_model(input_ids)       # [B, T_resp]
+
+# Current: 正在被训练的模型（唯一有梯度的）
+current_logprobs = current_model(input_ids)   # [B, T_resp]
+
+ratio = torch.exp(current_logprobs - old_logprobs)     # 信赖域
+kl    = torch.exp(current_logprobs - ref_logprobs) \\
+        - (current_logprobs - ref_logprobs) - 1        # 安全锚点`,
+
+          sec10Qa3Title: "Q3. Rollout 与 Training 的刷新频率",
+          sec10Qa3P1: "外循环结构：1 次 Rollout → K 个 epoch 的 Training → 同步权重 → 下一次 Rollout。K 即 <code>ppo_epochs</code>，<strong>GRPO 通常取 1</strong>（没有 Critic，advantage 方差大，多轮复用容易过拟合），<strong>经典 PPO（InstructGPT/Anthropic）通常取 4</strong>。",
+          sec10Qa3Code: `for outer_step in range(total_steps):
+    # === Rollout: 用当前模型生成数据 ===
+    rollout_data = generate(prompts, G=8)         # old_logprobs 在此记录
+    rewards      = reward_fn(rollout_data)
+    advantages   = group_normalize(rewards, G=8)
+
+    # === Training: K 个内循环 epoch ===
+    for epoch in range(ppo_epochs):               # K=1 (GRPO) 或 K=4 (PPO)
+        for batch in mini_batches(rollout_data):
+            current_logprobs = model(batch)
+            ratio = exp(current_logprobs - old_logprobs)
+            loss  = grpo_loss(ratio, advantages, ref_logprobs)
+            loss.backward(); optimizer.step()
+
+    sync_weights(model)                           # current → 下一轮 old`,
+          sec10Qa3P2: "为什么 K 不能太大？每次 training 步骤后 current_model 都在更新，与 rollout 时的 old_model 差距越来越大，ratio 越来越偏离 1，clip 触发越来越频繁，有效梯度越来越趋近于零甚至爆炸：",
+          sec10Qa3P3: "Epoch 1: ratio ≈ 1.0 ✅ → Epoch 2: ratio ≈ 1.1 ✅ → Epoch 3: ratio ≈ 1.5 ⚠️ → Epoch 4: ratio ≈ 2.0+ 🔥（大量 token 被 clip 掉，等于浪费数据）",
+
+          sec10Qa4Title: "Q4. 自回归采样 vs Teacher Forcing",
+          sec10Qa4P1: "两个阶段，两种前向模式：<br><strong>Rollout（生成阶段）</strong>：自回归采样——模型逐 token 生成，每一步的输入是自己之前的输出。这是“玩游戏”阶段，必须用自回归以产生真实多样性。<br><strong>Logprob 计算（训练阶段）</strong>：Teacher Forcing——把完整 response 作为输入，一次前向计算所有 token 的 logprob。这是“复盘游戏”阶段，高效且并行。",
+          sec10Qa4Code: `# 阶段 1: Rollout — 自回归采样
+responses, old_logprobs = model.generate(
+    prompt, num_return_sequences=G,
+    temperature=0.8, do_sample=True)
+# old_logprobs: [G, T_resp]，在生成时顺带记录
+
+# 阶段 2: Logprob 计算 — Teacher Forcing（各一次前向）
+with torch.no_grad():
+    ref_logprobs = ref_model(input_ids)      # [B, T_resp]
+    # old_logprobs 可复用 rollout 记录，也可重算
+
+current_logprobs = current_model(input_ids)  # [B, T_resp]，有梯度`,
+          sec10Qa4P2: "对比：自回归采样速度慢（逐 token，无法并行），用于生成多样化 response；Teacher Forcing 速度快（全序列一次并行前向），用于评估已有文本的概率。<code>old_logprobs</code> 可在 rollout 时顺带记录（零额外开销）也可事后用 teacher forcing 重算；<code>ref_logprobs</code> 和 <code>current_logprobs</code> 始终通过 teacher forcing 计算。",
+
+          sec10Qa5Title: "Q5. 从 per-token ratio 到标量 loss 的完整流程",
+          sec10Qa5P1: "这是最重要的问题：ratio 是 per-token 的，advantage 是 per-response 的，最终 loss 是标量——它们如何对齐并聚合？完整五步流程：",
+          sec10Qa5Code: `# 输入形状: B = batch size，T_resp = response 长度
+
+# Step 1: per-token ratio [B, T_resp]
+ratio = torch.exp(current_logprobs - old_logprobs)
+
+# Step 2: advantage 广播 [B] → [B, T_resp]
+# （GRPO 使用组内归一化的 response 级别 advantage）
+adv_broadcast = advantage.unsqueeze(1).expand_as(ratio)
+
+# Step 3: clipped surrogate objective [B, T_resp]
+surr1 = ratio * adv_broadcast
+surr2 = torch.clamp(ratio, 1 - eps, 1 + eps) * adv_broadcast
+token_loss = -torch.min(surr1, surr2)
+
+# Step 4: KL 惩罚 [B, T_resp]
+d_t        = current_logprobs - ref_logprobs
+kl         = torch.exp(d_t) - d_t - 1
+token_loss = token_loss + beta * kl
+
+# Step 5: mask & reduce → 标量
+masked = token_loss * response_mask   # prompt + padding 置 0
+loss   = masked.sum() / response_mask.sum()
+loss.backward()`,
+          sec10Qa5P2: "各阶段粒度与原因汇总：",
+          sec10Qa5Th1: "阶段",
+          sec10Qa5Th2: "粒度",
+          sec10Qa5Th3: "原因",
+          sec10Qa5R1c2: "per-token",
+          sec10Qa5R1c3: "不同 token 的概率变化幅度不同",
+          sec10Qa5R2c1: "clipping",
+          sec10Qa5R2c2: "per-token",
+          sec10Qa5R2c3: "只对 ratio 越界的 token 截断",
+          sec10Qa5R3c1: "advantage",
+          sec10Qa5R3c2: "per-response → 广播",
+          sec10Qa5R3c3: "GRPO 只有 response 级别的奖励",
+          sec10Qa5R4c1: "KL",
+          sec10Qa5R4c2: "per-token",
+          sec10Qa5R4c3: "更细粒度的分布约束",
+          sec10Qa5R5c1: "mask",
+          sec10Qa5R5c2: "per-token",
+          sec10Qa5R5c3: "只对 response token 计算损失，排除 prompt 和 padding",
+          sec10Qa5R6c1: "最终 loss",
+          sec10Qa5R6c2: "scalar",
+          sec10Qa5R6c3: "对所有有效 token 平均后做 backward",
 
           s4AnimTraining: "训练中...",
           s4AnimActive: "活跃",
@@ -1230,6 +1502,134 @@ gen_backend: "sglang" # generation engine`,
           sec9AuthorsValue: "Tsinghua IIIS + Ant Group",
           sec9Desc2: "Three checkpoints while reading code/paper: (1) what token-level fields are stored per rollout, (2) how in-flight capacity is bounded by staleness, (3) how Decoupled PPO balances trust-region stability and off-policy correction.",
 
+          sec10Head: "10. GRPO Training Mechanics Deep Q&A",
+          sec10Intro: "This section collects five frequently-asked deep-dive questions on GRPO training internals: how the ratio is computed, the three types of logprobs, rollout vs training refresh frequency, autoregressive sampling vs teacher forcing, and the complete five-step pipeline from per-token ratio to scalar loss.",
+
+          sec10Qa1Title: "Q1. How is the PPO/GRPO ratio computed?",
+          sec10Qa1P1: "<strong>ratio = exp(current_logprobs &minus; old_logprobs)</strong>, computed per-token as an importance sampling ratio. <code>current_logprobs</code> comes from the <strong>current model being trained</strong> (has gradients). <code>old_logprobs</code> comes from the <strong>old/rollout model</strong> (snapshot from rollout time, frozen during training).",
+          sec10Qa1Code: `# ratio: per-token, shape [B, T_resp]
+ratio = torch.exp(current_logprobs - old_logprobs)
+# ratio ≈ 1.0  → new policy ≈ old (minor update)
+# ratio > 1.0  → new policy favors this token more
+# ratio < 1.0  → new policy suppresses this token`,
+          sec10Qa1P2: "Intuition: ratio &asymp; 1 means current and old policy assign similar probability; ratio &gt; 1 means the current policy now favors this token more; ratio &lt; 1 means it suppresses it. PPO’s clip mechanism restricts ratio to \\([1-\\epsilon, 1+\\epsilon]\\) to prevent overly large steps.",
+          sec10Qa1P3: "⚠️ Important distinction: the ratio uses <code>current_logprobs - old_logprobs</code>; the KL penalty uses <code>current_logprobs - ref_logprobs</code> (ref = frozen SFT reference model). Different denominators: old refreshes each rollout cycle, ref never changes.",
+
+          sec10Qa2Title: "Q2. Three Types of Logprobs: Ref / Old / Current",
+          sec10Qa2P1: "GRPO training involves three model versions that each compute logprobs over the same tokens, but serve different roles: Ref provides the drift upper bound, Old provides the update baseline, Current provides the optimization target.",
+          sec10Qa2Th1: "Property",
+          sec10Qa2R1c1: "Frozen?",
+          sec10Qa2R2c1: "Update Freq",
+          sec10Qa2R2c2: "Never",
+          sec10Qa2R2c3: "Each rollout cycle",
+          sec10Qa2R2c4: "Every train step",
+          sec10Qa2R3c1: "Has Gradients?",
+          sec10Qa2R4c1: "Output Name",
+          sec10Qa2R5c1: "Purpose",
+          sec10Qa2R5c2: "KL penalty anchor",
+          sec10Qa2R5c3: "Denominator of ratio",
+          sec10Qa2R5c4: "Numerator of ratio + KL",
+          sec10Qa2R6c1: "Prevents",
+          sec10Qa2R6c2: "Reward hacking (drifting too far from SFT)",
+          sec10Qa2R6c3: "Overly large single step (trust region)",
+          sec10Qa2Code: `# Ref: frozen SFT model, never updated
+with torch.no_grad():
+    ref_logprobs = ref_model(input_ids)       # [B, T_resp]
+
+# Old: rollout snapshot, refreshed each cycle
+with torch.no_grad():
+    old_logprobs = old_model(input_ids)       # [B, T_resp]
+
+# Current: the model being trained (only one with gradients)
+current_logprobs = current_model(input_ids)   # [B, T_resp]
+
+ratio = torch.exp(current_logprobs - old_logprobs)     # trust-region
+kl    = torch.exp(current_logprobs - ref_logprobs) \\
+        - (current_logprobs - ref_logprobs) - 1        # safety anchor`,
+
+          sec10Qa3Title: "Q3. Rollout vs Training Frequency",
+          sec10Qa3P1: "Outer loop structure: 1 Rollout → K epochs of Training → sync weights → next Rollout. K is <code>ppo_epochs</code>. Typical values: <strong>K = 1 for GRPO</strong> (no Critic, higher advantage variance makes multi-epoch reuse risky) and <strong>K = 4 for classic PPO</strong> (InstructGPT / Anthropic).",
+          sec10Qa3Code: `for outer_step in range(total_steps):
+    # === Rollout: generate with current model ===
+    rollout_data = generate(prompts, G=8)         # old_logprobs cached here
+    rewards      = reward_fn(rollout_data)
+    advantages   = group_normalize(rewards, G=8)
+
+    # === Training: K inner epochs ===
+    for epoch in range(ppo_epochs):               # K=1 (GRPO) or K=4 (PPO)
+        for batch in mini_batches(rollout_data):
+            current_logprobs = model(batch)
+            ratio = exp(current_logprobs - old_logprobs)
+            loss  = grpo_loss(ratio, advantages, ref_logprobs)
+            loss.backward(); optimizer.step()
+
+    sync_weights(model)                           # current becomes next old`,
+          sec10Qa3P2: "Why can’t K be too large? After each training step the current model drifts further from the old model. The ratio drifts from 1, clipping fires more aggressively, and effective gradients approach zero or diverge:",
+          sec10Qa3P3: "Epoch 1: ratio ≈ 1.0 ✅ → Epoch 2: ratio ≈ 1.1 ✅ → Epoch 3: ratio ≈ 1.5 ⚠️ → Epoch 4: ratio ≈ 2.0+ 🔥 (most tokens clipped, data wasted)",
+
+          sec10Qa4Title: "Q4. Autoregressive Sampling vs Teacher Forcing",
+          sec10Qa4P1: "Two phases, two forward modes:<br><strong>Rollout (generation phase)</strong>: autoregressive sampling — the model generates tokens one by one, each conditioned on its own prior outputs. This is the “play the game” phase; autoregressive is required to produce genuine diversity.<br><strong>Logprob computation (training phase)</strong>: teacher forcing — the complete response is fed as input; one forward pass computes all token logprobs in parallel. This is the “review the game” phase, fast and parallelizable.",
+          sec10Qa4Code: `# Phase 1: Rollout — autoregressive sampling
+responses, old_logprobs = model.generate(
+    prompt, num_return_sequences=G,
+    temperature=0.8, do_sample=True)
+# old_logprobs: [G, T_resp], recorded during generation
+
+# Phase 2: Logprob computation — teacher forcing (one forward pass each)
+with torch.no_grad():
+    ref_logprobs = ref_model(input_ids)      # [B, T_resp]
+    # old_logprobs can be reused from rollout or recomputed
+
+current_logprobs = current_model(input_ids)  # [B, T_resp], has gradients`,
+          sec10Qa4P2: "Comparison: autoregressive sampling is slow (token-by-token, cannot parallelize) and used to generate diverse responses; teacher forcing is fast (full-sequence single pass) and used to evaluate the probability of existing text. <code>old_logprobs</code> can be recorded during rollout (zero overhead) or recomputed via teacher forcing; <code>ref_logprobs</code> and <code>current_logprobs</code> are always computed via teacher forcing.",
+
+          sec10Qa5Title: "Q5. Full Pipeline: from Per-Token Ratio to Scalar Loss",
+          sec10Qa5P1: "The most important question: ratio is per-token, advantage is per-response, and the final loss is a scalar — how do they align and aggregate? The complete five-step pipeline:",
+          sec10Qa5Code: `# Input shapes: B = batch size, T_resp = response length
+
+# Step 1: per-token ratio [B, T_resp]
+ratio = torch.exp(current_logprobs - old_logprobs)
+
+# Step 2: broadcast advantage [B] → [B, T_resp]
+# (GRPO uses response-level advantage from group normalization)
+adv_broadcast = advantage.unsqueeze(1).expand_as(ratio)
+
+# Step 3: clipped surrogate objective [B, T_resp]
+surr1 = ratio * adv_broadcast
+surr2 = torch.clamp(ratio, 1 - eps, 1 + eps) * adv_broadcast
+token_loss = -torch.min(surr1, surr2)
+
+# Step 4: KL penalty [B, T_resp]
+d_t        = current_logprobs - ref_logprobs
+kl         = torch.exp(d_t) - d_t - 1
+token_loss = token_loss + beta * kl
+
+# Step 5: mask & reduce → scalar
+masked = token_loss * response_mask   # zero out prompt + padding tokens
+loss   = masked.sum() / response_mask.sum()
+loss.backward()`,
+          sec10Qa5P2: "Summary table — granularity at each stage and why:",
+          sec10Qa5Th1: "Stage",
+          sec10Qa5Th2: "Granularity",
+          sec10Qa5Th3: "Why this granularity",
+          sec10Qa5R1c2: "per-token",
+          sec10Qa5R1c3: "different tokens have different probability changes",
+          sec10Qa5R2c1: "clipping",
+          sec10Qa5R2c2: "per-token",
+          sec10Qa5R2c3: "only clip tokens whose ratio is out of bounds",
+          sec10Qa5R3c1: "advantage",
+          sec10Qa5R3c2: "per-response → broadcast",
+          sec10Qa5R3c3: "GRPO only has response-level reward",
+          sec10Qa5R4c1: "KL",
+          sec10Qa5R4c2: "per-token",
+          sec10Qa5R4c3: "finer-grained distribution constraint",
+          sec10Qa5R5c1: "mask",
+          sec10Qa5R5c2: "per-token",
+          sec10Qa5R5c3: "only response tokens, exclude prompt and padding",
+          sec10Qa5R6c1: "final loss",
+          sec10Qa5R6c2: "scalar",
+          sec10Qa5R6c3: "average over all valid tokens, then backward",
+
           s4AnimTraining: "Training...",
           s4AnimActive: "Active",
           s4AnimDiscarded: "Discarded",
@@ -1246,13 +1646,27 @@ gen_backend: "sglang" # generation engine`,
       let currentLang = "zh";
 
       function highlightPython(raw) {
-        return raw
-          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-          .replace(/(#[^\n]*)/g, '<span class="cm">$1</span>')
+        // Process line-by-line: split comment from code before highlighting
+        // to avoid regexes matching inside injected HTML span attributes
+        const esc = raw
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const hlCode = s => s
           .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g, '<span class="str">$1</span>')
           .replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>')
           .replace(/\b(def|return|if|elif|else|for|while|import|from|class|with|as|in|not|and|or|True|False|None)\b/g, '<span class="kw">$1</span>')
-          .replace(/\b(exp|clamp|max|min|print|len|range|sum)\b(?=\s*\()/g, '<span class="fn">$1</span>');
+          .replace(/\b(exp|clamp|max|min|print|len|range|sum|torch)\b(?=\s*[.(])/g, '<span class="fn">$1</span>');
+        return esc.split('\n').map(line => {
+          let inQ = null, ci = -1;
+          for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (inQ) { if (c === inQ && line[i-1] !== '\\') inQ = null; }
+            else if (c === '"' || c === "'") { inQ = c; }
+            else if (c === '#') { ci = i; break; }
+          }
+          const code = ci >= 0 ? line.slice(0, ci) : line;
+          const cmnt = ci >= 0 ? line.slice(ci) : '';
+          return hlCode(code) + (cmnt ? '<span class="cm">' + cmnt + '</span>' : '');
+        }).join('\n');
       }
 
       function highlightYaml(raw) {
@@ -1488,6 +1902,69 @@ gen_backend: "sglang" # generation engine`,
         document.getElementById('sec9-authors-label').innerHTML = L.sec9AuthorsLabel;
         document.getElementById('sec9-authors-value').innerHTML = L.sec9AuthorsValue;
         document.getElementById('sec9-desc2').innerHTML = L.sec9Desc2;
+        document.getElementById('sec10-heading').innerHTML = L.sec10Head;
+        document.getElementById('sec10-intro').innerHTML = L.sec10Intro;
+
+        document.getElementById('sec10-qa1-title').innerHTML = L.sec10Qa1Title;
+        document.getElementById('sec10-qa1-p1').innerHTML = L.sec10Qa1P1;
+        document.getElementById('sec10-qa1-code').innerHTML = highlightPython(L.sec10Qa1Code);
+        document.getElementById('sec10-qa1-p2').innerHTML = L.sec10Qa1P2;
+        document.getElementById('sec10-qa1-p3').innerHTML = L.sec10Qa1P3;
+
+        document.getElementById('sec10-qa2-title').innerHTML = L.sec10Qa2Title;
+        document.getElementById('sec10-qa2-p1').innerHTML = L.sec10Qa2P1;
+        document.getElementById('sec10-qa2-th1').innerHTML = L.sec10Qa2Th1;
+        document.getElementById('sec10-qa2-r1c1').innerHTML = L.sec10Qa2R1c1;
+        document.getElementById('sec10-qa2-r2c1').innerHTML = L.sec10Qa2R2c1;
+        document.getElementById('sec10-qa2-r2c2').innerHTML = L.sec10Qa2R2c2;
+        document.getElementById('sec10-qa2-r2c3').innerHTML = L.sec10Qa2R2c3;
+        document.getElementById('sec10-qa2-r2c4').innerHTML = L.sec10Qa2R2c4;
+        document.getElementById('sec10-qa2-r3c1').innerHTML = L.sec10Qa2R3c1;
+        document.getElementById('sec10-qa2-r4c1').innerHTML = L.sec10Qa2R4c1;
+        document.getElementById('sec10-qa2-r5c1').innerHTML = L.sec10Qa2R5c1;
+        document.getElementById('sec10-qa2-r5c2').innerHTML = L.sec10Qa2R5c2;
+        document.getElementById('sec10-qa2-r5c3').innerHTML = L.sec10Qa2R5c3;
+        document.getElementById('sec10-qa2-r5c4').innerHTML = L.sec10Qa2R5c4;
+        document.getElementById('sec10-qa2-r6c1').innerHTML = L.sec10Qa2R6c1;
+        document.getElementById('sec10-qa2-r6c2').innerHTML = L.sec10Qa2R6c2;
+        document.getElementById('sec10-qa2-r6c3').innerHTML = L.sec10Qa2R6c3;
+        document.getElementById('sec10-qa2-code').innerHTML = highlightPython(L.sec10Qa2Code);
+
+        document.getElementById('sec10-qa3-title').innerHTML = L.sec10Qa3Title;
+        document.getElementById('sec10-qa3-p1').innerHTML = L.sec10Qa3P1;
+        document.getElementById('sec10-qa3-code').innerHTML = highlightPython(L.sec10Qa3Code);
+        document.getElementById('sec10-qa3-p2').innerHTML = L.sec10Qa3P2;
+        document.getElementById('sec10-qa3-p3').innerHTML = L.sec10Qa3P3;
+
+        document.getElementById('sec10-qa4-title').innerHTML = L.sec10Qa4Title;
+        document.getElementById('sec10-qa4-p1').innerHTML = L.sec10Qa4P1;
+        document.getElementById('sec10-qa4-code').innerHTML = highlightPython(L.sec10Qa4Code);
+        document.getElementById('sec10-qa4-p2').innerHTML = L.sec10Qa4P2;
+
+        document.getElementById('sec10-qa5-title').innerHTML = L.sec10Qa5Title;
+        document.getElementById('sec10-qa5-p1').innerHTML = L.sec10Qa5P1;
+        document.getElementById('sec10-qa5-code').innerHTML = highlightPython(L.sec10Qa5Code);
+        document.getElementById('sec10-qa5-p2').innerHTML = L.sec10Qa5P2;
+        document.getElementById('sec10-qa5-th1').innerHTML = L.sec10Qa5Th1;
+        document.getElementById('sec10-qa5-th2').innerHTML = L.sec10Qa5Th2;
+        document.getElementById('sec10-qa5-th3').innerHTML = L.sec10Qa5Th3;
+        document.getElementById('sec10-qa5-r1c2').innerHTML = L.sec10Qa5R1c2;
+        document.getElementById('sec10-qa5-r1c3').innerHTML = L.sec10Qa5R1c3;
+        document.getElementById('sec10-qa5-r2c1').innerHTML = L.sec10Qa5R2c1;
+        document.getElementById('sec10-qa5-r2c2').innerHTML = L.sec10Qa5R2c2;
+        document.getElementById('sec10-qa5-r2c3').innerHTML = L.sec10Qa5R2c3;
+        document.getElementById('sec10-qa5-r3c1').innerHTML = L.sec10Qa5R3c1;
+        document.getElementById('sec10-qa5-r3c2').innerHTML = L.sec10Qa5R3c2;
+        document.getElementById('sec10-qa5-r3c3').innerHTML = L.sec10Qa5R3c3;
+        document.getElementById('sec10-qa5-r4c1').innerHTML = L.sec10Qa5R4c1;
+        document.getElementById('sec10-qa5-r4c2').innerHTML = L.sec10Qa5R4c2;
+        document.getElementById('sec10-qa5-r4c3').innerHTML = L.sec10Qa5R4c3;
+        document.getElementById('sec10-qa5-r5c1').innerHTML = L.sec10Qa5R5c1;
+        document.getElementById('sec10-qa5-r5c2').innerHTML = L.sec10Qa5R5c2;
+        document.getElementById('sec10-qa5-r5c3').innerHTML = L.sec10Qa5R5c3;
+        document.getElementById('sec10-qa5-r6c1').innerHTML = L.sec10Qa5R6c1;
+        document.getElementById('sec10-qa5-r6c2').innerHTML = L.sec10Qa5R6c2;
+        document.getElementById('sec10-qa5-r6c3').innerHTML = L.sec10Qa5R6c3;
         const ddText4 = document.getElementById('sec4-summary-text');
         const details4 = document.getElementById('sec4-details');
         if (ddText4 && details4) {
