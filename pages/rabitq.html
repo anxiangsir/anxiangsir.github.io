@@ -827,9 +827,9 @@
       </div>
 
       <p class="phase-desc" style="margin-top:0.5em"
-        data-en="For fast computation, we exploit the invariance of inner products under orthogonal transformations. Instead of computing ⟨ō, q⟩ directly, we inversely rotate the query: q' = P⁻¹q. Then ⟨ō, q⟩ = ⟨x̄, q'⟩, where x̄ ∈ {±1/√D}ᴰ is the binary code. Since each x̄ᵢ is ±1/√D, this dot product becomes a simple sum of additions and subtractions — no multiplications needed."
-        data-zh="为了高效计算，我们利用内积在正交变换下的不变性。不直接计算 ⟨ō, q⟩，而是反向旋转查询向量：q' = P⁻¹q。于是 ⟨ō, q⟩ = ⟨x̄, q'⟩，其中 x̄ ∈ {±1/√D}ᴰ 是二进制编码。由于每个 x̄ᵢ 都是 ±1/√D，这个点积变成了简单的加减运算——无需乘法。">
-        For fast computation, we exploit the invariance of inner products under orthogonal transformations. Instead of computing ⟨ō, q⟩ directly, we inversely rotate the query: q' = P⁻¹q. Then ⟨ō, q⟩ = ⟨x̄, q'⟩, where x̄ ∈ {±1/√D}ᴰ is the binary code. Since each x̄ᵢ is ±1/√D, this dot product becomes a simple sum of additions and subtractions — no multiplications needed.
+        data-en="For fast computation, we exploit the invariance of inner products under orthogonal transformations. Instead of computing ⟨ō, q⟩ directly, we inversely rotate the query: q' = P⁻¹q. Then ⟨ō, q⟩ = ⟨x̄, q'⟩, where x̄ ∈ {±1/√D}ᴰ is the binary code. Since each x̄ᵢ is ±1/√D, this dot product becomes a simple sum of additions and subtractions — no multiplications needed. (In the official RaBitQ-Library, the dense random matrix P is replaced by a structured Fast Hadamard Transform (FHT) — 4 rounds of sign-flip + Hadamard + rescale — reducing the rotation cost from O(D²) to O(D log D) while preserving the same statistical guarantees.)"
+        data-zh="为了高效计算，我们利用内积在正交变换下的不变性。不直接计算 ⟨ō, q⟩，而是反向旋转查询向量：q' = P⁻¹q。于是 ⟨ō, q⟩ = ⟨x̄, q'⟩，其中 x̄ ∈ {±1/√D}ᴰ 是二进制编码。由于每个 x̄ᵢ 都是 ±1/√D，这个点积变成了简单的加减运算——无需乘法。（在官方 RaBitQ-Library 中，稠密随机矩阵 P 被替换为结构化的快速 Hadamard 变换 (FHT)——4 轮符号翻转 + Hadamard + 缩放——将旋转开销从 O(D²) 降至 O(D log D)，同时保持相同的统计保证。）">
+        For fast computation, we exploit the invariance of inner products under orthogonal transformations. Instead of computing ⟨ō, q⟩ directly, we inversely rotate the query: q' = P⁻¹q. Then ⟨ō, q⟩ = ⟨x̄, q'⟩, where x̄ ∈ {±1/√D}ᴰ is the binary code. Since each x̄ᵢ is ±1/√D, this dot product becomes a simple sum of additions and subtractions — no multiplications needed. (In the official RaBitQ-Library, the dense random matrix P is replaced by a structured Fast Hadamard Transform (FHT) — 4 rounds of sign-flip + Hadamard + rescale — reducing the rotation cost from O(D²) to O(D log D) while preserving the same statistical guarantees.)
       </p>
 
       <div class="math-block">
@@ -837,9 +837,26 @@
       </div>
 
       <div class="insight-box"
-        data-en="<strong>💡 Hardware acceleration:</strong> Since x̄ is a binary vector (each entry is 0 or 1 mapped to ±1/√D), the dot product ⟨x̄, q'⟩ can be decomposed into bitwise AND + <code>POPCNT</code> operations. Modern CPUs process these in a single cycle per 64 bits, making RaBitQ's distance estimation 10-100× faster than a full floating-point dot product."
-        data-zh="<strong>💡 硬件加速：</strong>由于 x̄ 是二进制向量（每个元素是 0 或 1，映射到 ±1/√D），点积 ⟨x̄, q'⟩ 可以分解为按位 AND + <code>POPCNT</code> 操作。现代 CPU 每 64 位只需一个周期处理这些运算，使 RaBitQ 的距离估计比完整浮点点积快 10-100 倍。">
-        <strong>💡 Hardware acceleration:</strong> Since x̄ is a binary vector (each entry is 0 or 1 mapped to ±1/√D), the dot product ⟨x̄, q'⟩ can be decomposed into bitwise AND + <code>POPCNT</code> operations. Modern CPUs process these in a single cycle per 64 bits, making RaBitQ's distance estimation 10-100× faster than a full floating-point dot product.
+        data-en="<strong>💡 Hardware acceleration:</strong> Since x̄ is a binary vector (each entry is 0 or 1 mapped to ±1/√D), the dot product ⟨x̄, q'⟩ can be decomposed into bitwise AND + <code>POPCNT</code> operations. Modern CPUs process these in a single cycle per 64 bits, making RaBitQ's distance estimation 10-100× faster than a full floating-point dot product. The official library goes further: it batches 32 candidate vectors using <code>VPSHUFB</code>-based FastScan, achieving even higher throughput."
+        data-zh="<strong>💡 硬件加速：</strong>由于 x̄ 是二进制向量（每个元素是 0 或 1，映射到 ±1/√D），点积 ⟨x̄, q'⟩ 可以分解为按位 AND + <code>POPCNT</code> 操作。现代 CPU 每 64 位只需一个周期处理这些运算，使 RaBitQ 的距离估计比完整浮点点积快 10-100 倍。官方库更进一步：使用基于 <code>VPSHUFB</code> 的 FastScan 批量处理 32 个候选向量，实现更高吞吐量。">
+        <strong>💡 Hardware acceleration:</strong> Since x̄ is a binary vector (each entry is 0 or 1 mapped to ±1/√D), the dot product ⟨x̄, q'⟩ can be decomposed into bitwise AND + <code>POPCNT</code> operations. Modern CPUs process these in a single cycle per 64 bits, making RaBitQ's distance estimation 10-100× faster than a full floating-point dot product. The official library goes further: it batches 32 candidate vectors using <code>VPSHUFB</code>-based FastScan, achieving even higher throughput.
+      </div>
+
+
+      <p class="phase-desc" style="margin-top:0.5em"
+        data-en="How does this translate to production code? In the official RaBitQ-Library, the estimator is reorganized into a precomputed affine form that eliminates the query-time division entirely. At index time, three factors are stored per data vector:"
+        data-zh="这在生产代码中是如何实现的？在官方 RaBitQ-Library 中，估计量被重新组织为预计算的仿射形式，完全消除了查询时的除法运算。建索引时，为每个数据向量存储三个因子：">
+        How does this translate to production code? In the official RaBitQ-Library, the estimator is reorganized into a precomputed affine form that eliminates the query-time division entirely. At index time, three factors are stored per data vector:
+      </p>
+
+      <div class="math-block">
+        $$\text{est\_dist} = \underbrace{f_{\text{add}}}_{\|x_r - c\|^2 + \text{centroid correction}} + \underbrace{g_{\text{add}}}_{\|q_r - c\|^2\;(\text{query-side})} + \underbrace{f_{\text{rescale}}}_{\text{absorbs } 1/\langle \bar{o}, o \rangle} \cdot \left( \langle \bar{x},\, q' \rangle + k_{\text{1xsumq}} \right)$$
+      </div>
+
+      <div class="insight-box"
+        data-en="<strong>💡 From theory to code:</strong> The paper's estimator divides ⟨ō, q⟩ by ⟨ō, o⟩ at query time. The library absorbs this division into <code>f_rescale = −2‖x_r−c‖² / ⟨residual, x̄⟩</code>, precomputed at index time. At query time, the entire distance estimate becomes a single multiply-add — no division needed. The term <code>k_1xsumq</code> corrects for the {0,1} → {−½,+½} binary encoding shift. A fourth value, <code>f_error</code>, stores the estimated standard deviation of the noise term, enabling safe lower-bound pruning: <code>low_dist = est_dist − f_error · ‖q_r − c‖</code>."
+        data-zh="<strong>💡 从理论到代码：</strong>论文的估计量在查询时除以 ⟨ō, o⟩。库将此除法吸收到 <code>f_rescale = −2‖x_r−c‖² / ⟨残差, x̄⟩</code> 中，在建索引时预计算。查询时，整个距离估计变成一次乘加运算——无需除法。<code>k_1xsumq</code> 项修正了 {0,1} → {−½,+½} 二进制编码偏移。第四个值 <code>f_error</code> 存储噪声项的估计标准差，用于安全的下界剪枝：<code>low_dist = est_dist − f_error · ‖q_r − c‖</code>。">
+        <strong>💡 From theory to code:</strong> The paper's estimator divides ⟨ō, q⟩ by ⟨ō, o⟩ at query time. The library absorbs this division into <code>f_rescale = −2‖x_r−c‖² / ⟨residual, x̄⟩</code>, precomputed at index time. At query time, the entire distance estimate becomes a single multiply-add — no division needed. The term <code>k_1xsumq</code> corrects for the {0,1} → {−½,+½} binary encoding shift. A fourth value, <code>f_error</code>, stores the estimated standard deviation of the noise term, enabling safe lower-bound pruning: <code>low_dist = est_dist − f_error · ‖q_r − c‖</code>.
       </div>
 
       <p class="phase-desc" style="margin-top:0.5em"
@@ -855,13 +872,9 @@
         §7 Interactive: Distance Estimation Quality
       </h2>
       <p class="phase-desc"
-        data-en="This chart shows how the quantization error decreases as dimension D increases. Each bar represents the average error (|estimated - true| / true) over many random vector pairs. The theoretical O(1/√D) bound is shown as a dashed line. As D grows, binary quantization becomes increasingly accurate."
-        data-zh="这张图展示了量化误差如何随维度 D 增大而减小。每个柱形代表大量随机向量对的平均误差（|估计值 - 真实值| / 真实值）。理论 O(1/√D) 界显示为虚线。随着 D 增大，二值量化变得越来越准确。">
-        This chart shows how the quantization error decreases as dimension D
-        increases. Each bar represents the average error (|estimated - true| /
-        true) over many random vector pairs. The theoretical O(1/√D) bound is
-        shown as a dashed line. As D grows, binary quantization becomes
-        increasingly accurate.
+        data-en="This chart compares two ways of estimating ‖x_r − q_r‖²: the paper's formula (⟨ō, q⟩ / ⟨ō, o⟩) and the library's precomputed three-factor form (f_add + g_add + f_rescale · ip). Blue bars show the average relative distance error; the dashed red line is the theoretical O(1/√D) bound. Hover over a bar to see both estimates and their agreement. As D grows, both converge — and they always match each other exactly."
+        data-zh="这张图对比了两种估计 ‖x_r − q_r‖² 的方式：论文公式（⟨ō, q⟩ / ⟨ō, o⟩）和库的预计算三因子形式（f_add + g_add + f_rescale · ip）。蓝色柱形显示平均相对距离误差；红色虚线是理论 O(1/√D) 界。悬停柱形可查看两种估计及其吻合程度。随着 D 增大，两者都收敛——且彼此始终完全一致。">
+        This chart compares two ways of estimating ‖x_r − q_r‖²: the paper's formula (⟨ō, q⟩ / ⟨ō, o⟩) and the library's precomputed three-factor form (f_add + g_add + f_rescale · ip). Blue bars show the average relative distance error; the dashed red line is the theoretical O(1/√D) bound. Hover over a bar to see both estimates and their agreement. As D grows, both converge — and they always match each other exactly.
       </p>
 
       <div class="stage-wrapper" id="stage-error" style="height: 380px">
@@ -1753,6 +1766,9 @@
 
         const dims = [4, 8, 16, 32, 64, 128, 256, 512, 1024];
         let results = [];
+        let resultsPaper = [];
+        let resultsCode = [];
+        let resultsDelta = [];
 
         function resize() {
           const rect = canvas.parentElement.getBoundingClientRect();
@@ -1768,41 +1784,85 @@
           const numTrials = parseInt(slider.value);
           label.textContent = numTrials;
           results = [];
+          resultsPaper = [];
+          resultsCode = [];
+          resultsDelta = [];
 
           dims.forEach((D) => {
-            let totalRelErr = 0;
+            let totalRelErrPaper = 0;
+            let totalRelErrCode = 0;
+            let totalDelta = 0;
+            let validTrials = 0;
             const P = randomOrthogonal(D);
 
             for (let t = 0; t < numTrials; t++) {
+              // Generate random vectors (simulate x_r, q_r as unit vectors; c = 0 for demo)
               const x = randomUnitVector(D);
               const q = randomUnitVector(D);
 
-              // True inner product
-              const trueDot = dot(x, q);
+              // True squared distance: ‖x - q‖²
+              let trueDist = 0;
+              for (let i = 0; i < D; i++) trueDist += (x[i] - q[i]) * (x[i] - q[i]);
 
-              // Inversely transform (paper's method: P⁻¹ = Pᵀ)
+              // Norms (with c=0: ‖x_r - c‖ = ‖x‖ = 1 for unit vectors)
+              const normX = 1;  // ‖x_r - c‖
+              const normQ = 1;  // ‖q_r - c‖
+              // === Paper method: estimate ⟨o,q⟩ via ⟨ō,q⟩/⟨ō,o⟩ ===
               const oPrime = matTransposeVecMul(P, x);  // P⁻¹ · o
               const qPrime = matTransposeVecMul(P, q);  // P⁻¹ · q
-
-              // Quantize: x̄ᵢ = sign(oPrime_i) / √D
               const invSqrtD = 1 / Math.sqrt(D);
               let oBarDotQ = 0;  // ⟨ō, q⟩ = ⟨x̄, q'⟩
-              let oBarDotO = 0;  // ⟨ō, o⟩ = ⟨x̄, o'⟩ (pre-computed in practice)
+              let oBarDotO = 0;  // ⟨ō, o⟩ = ⟨x̄, o'⟩
+              const binaryCode = new Array(D);  // store sign bits
               for (let i = 0; i < D; i++) {
+                binaryCode[i] = oPrime[i] >= 0 ? 1 : 0;
                 const xBar_i = oPrime[i] >= 0 ? invSqrtD : -invSqrtD;
                 oBarDotQ += xBar_i * qPrime[i];
                 oBarDotO += xBar_i * oPrime[i];
               }
-              // Unbiased estimator: ⟨ō, q⟩ / ⟨ō, o⟩
-              const estDot = oBarDotO > 1e-10 ? oBarDotQ / oBarDotO : oBarDotQ;
+              const estDotPaper = oBarDotO > 1e-10 ? oBarDotQ / oBarDotO : oBarDotQ;
+              const estDistPaper = normX * normX + normQ * normQ - 2 * normX * normQ * estDotPaper;
+
+              // === Code method: three-factor precomputation (c=0 simplified) ===
+              // xu_cb[i] = binaryCode[i] - 0.5 (the {0,1} → {-0.5,+0.5} shift)
+              // ip_resi_xucb = ⟨residual, xu_cb⟩ = ⟨oPrime, xu_cb⟩
+              // ip_cent_xucb = ⟨centroid, xu_cb⟩ = 0 (since c=0)
+              let ipResiXucb = 0;
+              for (let i = 0; i < D; i++) {
+                const xucb_i = binaryCode[i] - 0.5;
+                ipResiXucb += oPrime[i] * xucb_i;
+              }
+              if (Math.abs(ipResiXucb) < 1e-15) ipResiXucb = 1e-15;
+
+              const l2Sqr = normX * normX;  // ‖x_r - c‖² = 1
+              const fAdd = l2Sqr + 2 * l2Sqr * 0 / ipResiXucb;  // centroid term = 0
+              const fRescale = -2 * l2Sqr / ipResiXucb;
+              const gAdd = normQ * normQ;  // ‖q_r - c‖² = 1
+
+              // k1xsumq = sum(qPrime) * (-0.5)
+              let sumQPrime = 0;
+              for (let i = 0; i < D; i++) sumQPrime += qPrime[i];
+              const k1xsumq = sumQPrime * (-0.5);
+
+              // ip_x0_qr: dot product of binary code (as {0,1}) with qPrime
+              let ipX0Qr = 0;
+              for (let i = 0; i < D; i++) ipX0Qr += binaryCode[i] * qPrime[i];
+
+              const estDistCode = fAdd + gAdd + fRescale * (ipX0Qr + k1xsumq);
 
               // Relative error
-              const absTrue = Math.abs(trueDot);
-              if (absTrue > 1e-8) {
-                totalRelErr += Math.abs(estDot - trueDot) / absTrue;
+              if (trueDist > 1e-8) {
+                totalRelErrPaper += Math.abs(estDistPaper - trueDist) / trueDist;
+                totalRelErrCode += Math.abs(estDistCode - trueDist) / trueDist;
+                totalDelta += Math.abs(estDistPaper - estDistCode);
+                validTrials++;
               }
             }
-            results.push(totalRelErr / numTrials);
+            const n = validTrials || 1;
+            resultsPaper.push(totalRelErrPaper / n);
+            resultsCode.push(totalRelErrCode / n);
+            resultsDelta.push(totalDelta / n);
+            results.push(totalRelErrPaper / n);  // bars use paper error
           });
 
           drawChart();
@@ -1894,7 +1954,7 @@
           ctx.font = "12px 'Helvetica Neue', sans-serif";
           ctx.textAlign = "center";
           ctx.fillText(
-            lang === "zh" ? "相对误差" : "Relative Error",
+            lang === "zh" ? "相对距离误差" : "Rel. Distance Error",
             0,
             0
           );
@@ -1939,7 +1999,9 @@
             const barX = pad_left + i * gap;
             if (mx >= barX && mx < barX + gap) {
               hoveredBar = i;
-              info.textContent = `D=${d}, Error=${results[i] ? results[i].toFixed(4) : "?"}`;
+              info.textContent = lang === "zh"
+                ? `D=${d}, 论文误差=${resultsPaper[i]?.toFixed(4) ?? "?"}, 代码误差=${resultsCode[i]?.toFixed(4) ?? "?"}, Δ=${resultsDelta[i]?.toExponential(2) ?? "?"}`
+                : `D=${d}, Paper=${resultsPaper[i]?.toFixed(4) ?? "?"}, Code=${resultsCode[i]?.toFixed(4) ?? "?"}, Δ=${resultsDelta[i]?.toExponential(2) ?? "?"}`;
             }
           });
           drawChart();
