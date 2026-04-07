@@ -39,6 +39,13 @@ const FILES = [
       inline: [{ left: '$', right: '$' }],
     },
   },
+  {
+    path: 'pages/video_codec.html',
+    delimiters: {
+      display: [{ left: '$$', right: '$$' }],
+      inline: [{ left: '$', right: '$' }],
+    },
+  },
 ];
 
 function ensureDir(dirPath) {

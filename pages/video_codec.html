@@ -1,0 +1,2191 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script defer src="/_vercel/insights/script.js"></script>
+    <title>Video Codec & OneVision-Encoder: From Codec Basics to Sparse Patch Selection</title>
+    <meta name="description" content="A visual guide to the core concepts of video compression and how OneVision-Encoder leverages them for Codec-Aligned Sparse Patch Selection." />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-alt: #f8f9fa;
+        --text: #1a1a2e;
+        --text-secondary: #555;
+        --accent: #2563eb;
+        --accent-green: #10b981;
+        --accent-red: #ef4444;
+        --border: #e2e8f0;
+        --font-headline: "Playfair Display", "Georgia", serif;
+        --font-serif: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-math: "JetBrains Mono", monospace;
+      }
+      
+      .site-nav { max-width: 860px; margin: 0 auto 1rem; padding: 0 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-sans); font-size: 0.85em; flex-wrap: wrap; }
+      .site-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 600; letter-spacing: 0.02em; padding: 2px 4px; }
+      .site-nav a:hover { color: var(--accent); text-decoration: underline; }
+      .site-nav .nav-sep { color: var(--border); user-select: none; }
+      
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: var(--bg); color: var(--text); font-family: var(--font-serif); line-height: 1.5; padding: 2rem 1rem; }
+      
+      .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); z-index: 999; transition: width 0.1s; }
+      
+      .fade-in-section {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        will-change: opacity, transform;
+      }
+      .fade-in-section.is-visible {
+        opacity: 1;
+        transform: none;
+      }
+      
+      .article { max-width: 860px; margin: 0 auto; background: var(--bg); padding: 0 1rem 3rem; position: relative; }
+      
+      .masthead { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2.5rem; position: relative; }
+      .masthead-title { font-family: var(--font-headline); font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin: 0 0 10px; color: var(--text); }
+      .masthead-sub { font-size: 1rem; font-family: var(--font-sans); margin-bottom: 10px; color: var(--text-secondary); }
+      
+      .lang-toggle { position: absolute; top: 10px; right: 10px; z-index: 40; font-family: var(--font-sans); padding: 6px 16px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; color: var(--text-secondary); font-weight: bold; border-radius: 20px; font-size: 0.85rem; transition: all 0.2s; }
+      .lang-toggle:hover { background: var(--bg-alt); color: var(--text); border-color: var(--text-secondary); }
+      
+      .phase-heading { font-family: var(--font-headline); font-size: 1.5rem; font-weight: 700; text-align: left; margin: 2.5rem 0 1rem; border-top: 2px solid var(--border); padding-top: 1.5rem; color: var(--text); display: flex; align-items: center; gap: 10px; }
+      .phase-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: white; font-size: 1.1rem; font-weight: bold; font-family: var(--font-sans); }
+      .phase-desc { font-family: var(--font-serif); font-size: 1.05rem; text-align: left; max-width: none; margin: 0 0 15px; color: var(--text-secondary); line-height: 1.75; }
+      .phase-desc a { color: var(--accent); text-decoration: none; font-weight: 500; }
+      .phase-desc a:hover { text-decoration: underline; }
+      
+      .math-block { display: block; text-align: center; padding: 1.5rem 1rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); overflow-x: auto; -webkit-overflow-scrolling: touch; font-size: 1.1em; font-family: var(--font-math); }
+      
+      .stage-wrapper { width: 100%; position: relative; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 2rem auto; background: var(--bg-alt); box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; flex-direction: column; }
+      .canvas-container { width: 100%; height: 350px; position: relative; display: flex; justify-content: center; align-items: center; background: white; }
+      .stage-wrapper canvas { display: block; width: 100%; max-height: 100%; outline: none; cursor: crosshair; }
+      
+      .controls { padding: 15px 20px; background: var(--bg-alt); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 15px; font-family: var(--font-sans); flex-wrap: wrap; justify-content: space-between; }
+      .btn { background: var(--accent); color: white; border: none; padding: 6px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; font-family: var(--font-sans); font-size: 0.85rem; }
+      .btn:hover { opacity: 0.9; }
+      .status-text { font-family: var(--font-math); font-size: 0.85rem; color: var(--accent); font-weight: bold; text-align: right; }
+      
+      .comp-table { width: 100%; border-collapse: collapse; margin: 2rem 0; font-family: var(--font-sans); font-size: 0.95rem; }
+      .comp-table th, .comp-table td { padding: 12px; border: 1px solid var(--border); text-align: left; }
+      .comp-table th { background: var(--bg-alt); font-weight: bold; }
+
+      [data-lang="en"] { display: none; }
+      html[lang="en"] [data-lang="zh"] { display: none; }
+      html[lang="en"] [data-lang="en"] { display: inline; }
+      html[lang="en"] div[data-lang="en"], html[lang="en"] p[data-lang="en"], html[lang="en"] h3[data-lang="en"] { display: block; }
+      
+      @media (max-width: 768px) {
+        .math-block { padding: 1rem 0.5rem; font-size: 0.9rem; }
+        body { padding: 1rem; }
+        .article { padding: 0 1rem 2rem; max-width: 100%; }
+        .lang-toggle { right: 10px; top: 10px; }
+        .phase-heading { font-size: 1.25rem; }
+        .canvas-container { height: 280px; }
+      }
+      .slider-container { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-family: var(--font-sans); color: var(--text-secondary); }
+      .slider-container input[type="range"] { accent-color: var(--accent); }
+      .source-links { margin-bottom: 2rem; font-family: var(--font-sans); font-size: 0.9rem; text-align: center; }
+      .source-links a { color: var(--accent); text-decoration: none; margin: 0 10px; font-weight: 600; }
+      .source-links a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar" id="progress-bar"></div>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/partial_fc.html">PFC</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/llava_onevision2.html">OV2</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+    </nav>
+    
+    <div class="article">
+      <button type="button" class="lang-toggle" id="lang-toggle">EN</button>
+      
+      <header class="masthead">
+        <h1 class="masthead-title">Video Codec Basics</h1>
+        <div class="masthead-sub" data-lang="zh">视频编码核心概念 & OneVision-Encoder Codec 对齐的稀疏 Patch 选择</div>
+        <div class="masthead-sub" data-lang="en">Core Codec Concepts & Codec-Aligned Sparse Patch Selection</div>
+      </header>
+
+      <!-- Section 1: Intro & I/P Frames -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">1</span> 视频压缩与 I/P 帧</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">1</span> Video Compression & I/P Frames</h3>
+      
+      <p class="phase-desc" data-lang="zh">
+        未压缩的视频体积极其庞大。一段 1080p 60fps 的视频，每秒大约需要 350MB 的存储空间。为了在互联网上流畅传输视频，我们需要消除其中的**冗余（Redundancy）**。视频通常包含很强的时间冗余：相邻的两帧之间往往极其相似，只有少部分物体在移动。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        Uncompressed video is massive. A single second of 1080p 60fps video requires about 350MB of data. To stream video over the internet, we must eliminate **redundancies**. Video contains strong temporal redundancy: adjacent frames are usually very similar, with only a few objects moving.
+      </p>
+
+      <p class="phase-desc" data-lang="zh">
+        因此，编码器将视频帧分为不同的类型：<br><br>
+        <strong>I帧 (Intra-coded frame，关键帧)</strong>：自带完整图像信息，就像一张独立的 JPEG 图片。它的压缩率最低，但它是独立解码的基础。<br>
+        <strong>P帧 (Predictive frame，预测帧)</strong>：不记录完整的画面，而是参考前面的帧，只记录与前一帧的“差异”。这能大幅度节省空间。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        Therefore, encoders categorize video frames into different types:<br><br>
+        <strong>I-frame (Intra-coded frame, Keyframe)</strong>: Contains full image information, like a standalone JPEG. It has the lowest compression ratio but is essential for independent decoding.<br>
+        <strong>P-frame (Predictive frame)</strong>: Does not store the full picture. It references previous frames and only stores the "differences". This saves massive amounts of space.
+      </p>
+
+      <!-- Section 2: Motion Vector -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">2</span> 运动向量 (Motion Vector, MV)</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">2</span> Motion Vector (MV)</h3>
+      
+      <p class="phase-desc" data-lang="zh">
+        既然 P 帧只记录差异，编码器是如何找到差异的呢？这就需要进行**运动估计 (Motion Estimation)**。编码器会将当前画面切分成小块（Macroblocks），然后在参考帧（前一帧）的局部区域内搜索，找到一个最相似的块。
+        <br><br>
+        这个匹配块相对于当前块的位置偏移量，就是**运动向量 (Motion Vector)**。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        Since P-frames only record differences, how does the encoder find them? This is done via **Motion Estimation**. The encoder splits the current frame into blocks (Macroblocks) and searches the reference frame (previous frame) to find the most similar block.
+        <br><br>
+        The spatial offset of this matching block relative to the current block is the **Motion Vector**.
+      </p>
+
+      <div class="math-block">
+        $$\vec{MV} = (mv_x, mv_y) = \arg\min_{(dx,dy)} \sum_{(i,j) \in B} |F_t(x+i, y+j) - F_{t-1}(x+i+dx, y+j+dy)|$$
+      </div>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container" style="background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 20px 20px;">
+          <canvas id="canvas-mv"></canvas>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="btn-mv-play">
+            <span data-lang="zh">自动搜索</span>
+            <span data-lang="en">Auto Search</span>
+          </button>
+          <div class="status-text" id="status-mv">MV: (0, 0)</div>
+        </div>
+      </div>
+
+      <!-- Section 3: Residual -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">3</span> 残差 (Residual)</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">3</span> Residual</h3>
+      
+      <p class="phase-desc" data-lang="zh">
+        即使找到了最相似的块，预测块 $\hat{F}_t$ 和当前块 $F_t$ 之间通常还是会有一点点不同（比如光照变化、形变等）。两者相减得到的差异像素矩阵，被称为**残差 (Residual)**。
+        <br><br>
+        在 P 帧中，编码器实际写入视频文件的是：运动向量 + 压缩后的残差。解码时，只要把预测块和残差加起来，就能重建出当前画面。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        Even after finding the best matching block, there are usually minor differences between the predicted block $\hat{F}_t$ and the current block $F_t$ (due to lighting changes, deformation, etc.). This difference matrix is the **Residual**.
+        <br><br>
+        For a P-frame, the encoder actually writes to the file: Motion Vectors + Compressed Residual. During decoding, adding the residual to the predicted block reconstructs the current frame.
+      </p>
+
+      <div class="math-block">
+        $$\text{Prediction: } \hat{F}_t(x,y) = F_{t-1}(x + mv_x, y + mv_y)$$
+        $$\text{Residual: } R(x,y) = F_t(x,y) - \hat{F}_t(x,y)$$
+        $$\text{Reconstruction: } F_t(x,y) = \hat{F}_t(x,y) + R(x,y)$$
+      </div>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container" style="background: #1e1e2e;">
+          <canvas id="canvas-residual"></canvas>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="btn-res-rand">
+            <span data-lang="zh">随机生成新块</span>
+            <span data-lang="en">Randomize Block</span>
+          </button>
+          <div class="status-text" style="color: #a6e3a1;" id="status-res">Computing Difference...</div>
+        </div>
+      </div>
+
+      <!-- Section 4: GOP -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">4</span> GOP 结构 (Group of Pictures)</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">4</span> GOP Structure (Group of Pictures)</h3>
+      
+      <p class="phase-desc" data-lang="zh">
+        视频帧被组织成 **GOP (图像组)**。一个典型的 GOP 总是以一个 I 帧开始，随后跟着多个 P 帧（有时还有双向预测的 B 帧）。
+        <br><br>
+        GOP 的长度非常关键：较短的 GOP 有利于视频流的快速加载和拖拽（Seek），因为你必须找到 I 帧才能开始解码；较长的 GOP 则能提供更高的压缩率。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        Video frames are organized into a **GOP (Group of Pictures)**. A typical GOP always starts with an I-frame, followed by multiple P-frames (and sometimes bi-directional B-frames).
+        <br><br>
+        GOP length is crucial: shorter GOPs enable faster seeking and stream loading because decoding must start from an I-frame. Longer GOPs provide much higher compression ratios.
+      </p>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container">
+          <canvas id="canvas-gop"></canvas>
+        </div>
+        <div class="controls">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin:0;">
+            <span data-lang="zh">点击帧以查看其参考依赖关系。</span>
+            <span data-lang="en">Click a frame to see its reference dependencies.</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Section 5: Full Pipeline -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">5</span> 完整编码流水线</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">5</span> Full Encode Pipeline</h3>
+      
+      <p class="phase-desc" data-lang="zh">
+        综合以上所有概念，我们可以清晰地看到一帧 P 帧是如何被编码和传输的。它首先通过运动估计找到 MV，然后计算残差，最后将这两者转化为二进制比特流。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        Combining all these concepts, we can see exactly how a P-frame is encoded and transmitted. It first finds the MV via motion estimation, computes the residual, and finally encodes both into the binary bitstream.
+      </p>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container">
+          <canvas id="canvas-pipeline"></canvas>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="btn-pipe-play">
+            <span data-lang="zh">播放流程</span>
+            <span data-lang="en">Play Pipeline</span>
+          </button>
+          <div class="status-text" id="status-pipe">Ready</div>
+        </div>
+      </div>
+
+      <!-- Application: OneVision-Encoder -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">6</span> 应用：Codec 对齐的 Patch 选择 (OneVision-Encoder)</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">6</span> Application: Codec-Aligned Patch Selection (OneVision-Encoder)</h3>
+      
+      <div class="source-links">
+        <a href="https://github.com/EvolvingLMMs-Lab/OneVision-Encoder" target="_blank">Source Code</a>
+        <a href="https://arxiv.org/abs/2602.08683" target="_blank">Paper: arXiv:2602.08683</a>
+      </div>
+
+      <p class="phase-desc" data-lang="zh">
+        上面我们学习了视频编解码的核心概念——运动向量、残差、I/P帧和 GOP 结构。那么，这些概念如何在现代 AI 视频理解中发挥作用？<a href="https://github.com/EvolvingLMMs-Lab/OneVision-Encoder">OneVision-Encoder</a> (<a href="https://arxiv.org/abs/2602.08683">arXiv:2602.08683</a>) 给出了一个优雅的答案——直接利用 Codec 的 MV 和残差信号来指导视觉 Token 的稀疏选择。<br><br>
+        传统的视频理解模型通常采用**均匀帧采样**（如采样 4-8 帧），并处理每一帧的**所有**图像块（Patches）。这导致模型将大量算力浪费在静态背景上。<br><br>
+        OneVision-Encoder 提出了“**密集帧稀疏化（Dense Frames Sparsely）**”的核心理念：大幅增加采样帧数（如 64 帧）以获取极高的时间覆盖率，但同时仅挑选出全局最具信息量的 3%-25% 的 Patch 进行计算，从而在保持总计算预算不变的情况下，实现更强的视频理解能力。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        We've now covered the core concepts of video codecs — motion vectors, residuals, I/P frames, and GOP structure. How do these concepts apply to modern AI video understanding? <a href="https://github.com/EvolvingLMMs-Lab/OneVision-Encoder">OneVision-Encoder</a> (<a href="https://arxiv.org/abs/2602.08683">arXiv:2602.08683</a>) provides an elegant answer — directly leveraging codec MV and residual signals to guide sparse visual token selection.<br><br>
+        Traditional video understanding models usually employ **uniform frame sampling** (e.g., 4-8 frames) and process **all** patches from each frame. This wastes significant compute on static backgrounds.<br><br>
+        OneVision-Encoder proposes the core principle of "**Dense Frames Sparsely**": massively increasing sampled frames (e.g., 64) for high temporal coverage, while only selecting the top 3%-25% most informative patches globally. This achieves stronger video understanding while keeping the total compute budget identical.
+      </p>
+      
+<div class="stage-wrapper">
+        <div class="canvas-container" style="background-image: radial-gradient(#e2e8f0 1px, transparent 0); background-size: 20px 20px;">
+          <canvas id="canvas-traditional"></canvas>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="btn-trad-play">
+            <span data-lang="zh">演示对比</span>
+            <span data-lang="en">Compare</span>
+          </button>
+          <div class="status-text" id="status-trad">Total Patches: Equal</div>
+        </div>
+      </div>
+
+      <!-- Section 7: MV & Residual Energy Computation -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">7</span> 运动向量与残差能量计算</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">7</span> MV & Residual Energy Computation</h3>
+      
+      <p class="phase-desc" data-lang="zh">
+        如何判断哪些 Patch 包含重要的信息？OneVision-Encoder 直接从视频编解码器（Codec）底层提取**运动向量 (Motion Vector, MV)** 和**残差 (Residual)** 作为先验知识。
+        <br><br>
+        通过 <code>cv_reader</code> 提取比特流后，我们分别计算基于 95 分位数归一化的残差能量 $E_{res}$ 和运动能量 $E_{mv}$（在减去全局相机运动后）。最后将两者加权融合得到该区域的“热度”得分。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        How do we determine which patches contain important information? OneVision-Encoder directly extracts **Motion Vectors (MV)** and **Residuals** from the underlying video codec bitstream as prior knowledge.
+        <br><br>
+        After extracting the bitstream via <code>cv_reader</code>, we calculate the residual energy $E_{res}$ and motion energy $E_{mv}$ (after subtracting global camera motion), normalized by the 95th percentile. Finally, we fuse them with a weighted sum to get the "heat" score of the region.
+      </p>
+
+      <div class="math-block">
+        $$E_{res}(x,y) = \text{clip}\left(\frac{|Y(x,y) - 128|}{\text{percentile}_{95}}, 0, 1\right)$$
+        $$E_{mv}(x,y) = \text{clip}\left(\frac{\sqrt{v_x^2 + v_y^2}}{\text{percentile}_{95}}, 0, 1\right)$$
+        $$E_{fused} = w_{mv} \cdot E_{mv} + w_{res} \cdot E_{res}$$
+      </div>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container" style="background: #1e1e2e;">
+          <canvas id="canvas-energy"></canvas>
+        </div>
+        <div class="controls">
+          <div class="slider-container">
+            <label>w_mv: <span id="val-wmv">1.0</span></label>
+            <input type="range" id="slider-wmv" min="0" max="2" step="0.1" value="1.0">
+          </div>
+          <div class="slider-container">
+            <label>w_res: <span id="val-wres">1.0</span></label>
+            <input type="range" id="slider-wres" min="0" max="2" step="0.1" value="1.0">
+          </div>
+          <div class="status-text" id="status-energy">Fusion Heatmap</div>
+        </div>
+      </div>
+
+      <!-- Section 8: Square576 Mapping & Patchification -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">8</span> Square576 映射与 Patch 化</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">8</span> Square576 Mapping & Patchification</h3>
+      
+      <p class="phase-desc" data-lang="zh">
+        为了适配视觉 Transformer (ViT)，视频帧首先被等比例缩放，使得长边达到 576 像素，随后进行**居中填充 (Center Padding)**，形成 576×576 的标准方形输入。
+        <br><br>
+        接着，画面被切分为 16×16 大小的 Patch，总共得到 36×36 = 1296 个 Patch。位于填充区域（Padding Mask）内的 Patch 得分被强制置为负无穷（排除选择），而有效区域内的 Patch 得分则为其内部像素能量的总和。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        To fit Vision Transformers (ViTs), video frames are proportionally resized so the longer side is 576 pixels, followed by **Center Padding** to form a standard 576×576 square input.
+        <br><br>
+        The frame is then divided into 16×16 patches, yielding 36×36 = 1296 patches in total. Patches falling inside the padded area (Padding Mask) have their scores forced to negative infinity (excluded from selection), while the score of a valid patch is the sum of pixel energies within it.
+      </p>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container">
+          <canvas id="canvas-patch"></canvas>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="btn-patch-play">
+            <span data-lang="zh">演练映射过程</span>
+            <span data-lang="en">Animate Mapping</span>
+          </button>
+          <div class="status-text" id="status-patch">36×36 = 1296 Patches</div>
+        </div>
+      </div>
+
+      <!-- Section 9: Global TopK Selection -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">9</span> 全局 TopK 选择</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">9</span> Global TopK Selection</h3>
+      
+      <p class="phase-desc" data-lang="zh">
+        这是该机制最精彩的一步：在总计 64 帧中，**第 0 帧（I 帧）保留全部 1296 个 Patch** 以提供全局的空间场景上下文。
+        <br><br>
+        剩下的 Patch 选择预算（例如等效于 7 帧的预算，即 7 × 1296 = 9072 个 Patch）将在剩余的 63 帧中展开**全局竞争 (Global Competition)**。这意味着，动作剧烈的帧会自动获得更多的 Patch 分配，而静止帧几乎不会被分配到任何 Patch。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        This is the most brilliant step: across the 64 frames, **Frame 0 (I-frame) retains all 1296 patches** to provide full spatial scene context.
+        <br><br>
+        The remaining patch selection budget (e.g., equivalent to 7 frames' budget, or 7 × 1296 = 9072 patches) initiates a **Global Competition** across the remaining 63 frames. This means frames with intense motion automatically receive more patches, while static frames receive almost none.
+      </p>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container" style="background: #0f172a;">
+          <canvas id="canvas-topk"></canvas>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="btn-topk-play">
+            <span data-lang="zh">执行全局筛选</span>
+            <span data-lang="en">Run Global TopK</span>
+          </button>
+          <div class="status-text" id="status-topk">Selected: 0 / 10368</div>
+        </div>
+      </div>
+
+      <!-- Section 10: Patch Packing into Mosaic Images -->
+      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">10</span> Patch 打包与 Mosaic 图</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">10</span> Patch Packing into Mosaic Images</h3>
+      
+      <p class="phase-desc" data-lang="zh">
+        被选中的稀疏 Patch 不能直接输入模型。它们会被**光栅化（Raster order）**紧密堆叠，打包成数张 576×576 的 Mosaic 马赛克图像。
+        <br><br>
+        例如，等效保留 8 帧的预算最终将被重组为 8 张完整的图像。为了保留时间与空间信息，系统会同时生成一个 <code>positions_thw.npy</code> 记录每个被选中 Patch 原本的 $(t, h, w)$ 坐标，供 ViT 的 3D 旋转位置编码 (3D RoPE) 使用。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        The selected sparse patches cannot be fed into the model directly. They are densely packed in **raster order** into several 576×576 Mosaic images.
+        <br><br>
+        For instance, an equivalent budget of 8 frames is reassembled into 8 complete images. To preserve spatiotemporal information, the system simultaneously generates a <code>positions_thw.npy</code> recording the original $(t, h, w)$ coordinates of each selected patch, driving the ViT's 3D Rotary Position Embedding (3D RoPE).
+      </p>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container">
+          <canvas id="canvas-mosaic"></canvas>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="btn-mosaic-play">
+            <span data-lang="zh">打包 Mosaic</span>
+            <span data-lang="en">Pack Mosaic</span>
+          </button>
+          <div class="status-text" id="status-mosaic">Mosaic 1 / 8</div>
+        </div>
+      </div>
+
+      <!-- Summary Table -->
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>
+              <span data-lang="zh">特性</span>
+              <span data-lang="en">Concept</span>
+            </th>
+            <th>
+              <span data-lang="zh">传统方法</span>
+              <span data-lang="en">Traditional</span>
+            </th>
+            <th>
+              <span data-lang="zh">OneVision-Encoder</span>
+              <span data-lang="en">OneVision-Encoder</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span data-lang="zh">帧采样数量</span>
+              <span data-lang="en">Frame sampling</span>
+            </td>
+            <td>4-8 frames</td>
+            <td>64 frames</td>
+          </tr>
+          <tr>
+            <td>
+              <span data-lang="zh">Patch 选择策略</span>
+              <span data-lang="en">Patch selection</span>
+            </td>
+            <td>
+              <span data-lang="zh">处理每一帧的全部 Patch</span>
+              <span data-lang="en">ALL patches per frame</span>
+            </td>
+            <td>
+              <span data-lang="zh">全局 TopK 筛选 (3%-25%)</span>
+              <span data-lang="en">Global TopK (3%-25%)</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span data-lang="zh">空间上下文保留</span>
+              <span data-lang="en">Spatial context</span>
+            </td>
+            <td>
+              <span data-lang="zh">每帧完整保留</span>
+              <span data-lang="en">Complete per frame</span>
+            </td>
+            <td>
+              <span data-lang="zh">首帧保留完整 (I-frame)</span>
+              <span data-lang="en">First frame complete (I-frame)</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span data-lang="zh">时间维度覆盖率</span>
+              <span data-lang="en">Temporal coverage</span>
+            </td>
+            <td>
+              <span data-lang="zh">较低（帧间跨度大）</span>
+              <span data-lang="en">Low (sparse frames)</span>
+            </td>
+            <td>
+              <span data-lang="zh">极高（连续密集帧）</span>
+              <span data-lang="en">High (dense frames)</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span data-lang="zh">核心理念</span>
+              <span data-lang="en">Core principle</span>
+            </td>
+            <td>Dense Frames Densely</td>
+            <td><b>Dense Frames Sparsely</b></td>
+          </tr>
+        </tbody>
+      </table>
+
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>
+              <span data-lang="zh">概念</span>
+              <span data-lang="en">Concept</span>
+            </th>
+            <th>
+              <span data-lang="zh">作用</span>
+              <span data-lang="en">Purpose</span>
+            </th>
+            <th>
+              <span data-lang="zh">特性</span>
+              <span data-lang="en">Characteristics</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>I 帧 (I-Frame)</td>
+            <td>
+              <span data-lang="zh">独立解码起点</span>
+              <span data-lang="en">Independent decoding starting point</span>
+            </td>
+            <td>
+              <span data-lang="zh">体积最大，不依赖其他帧</span>
+              <span data-lang="en">Largest size, no dependencies</span>
+            </td>
+          </tr>
+          <tr>
+            <td>P 帧 (P-Frame)</td>
+            <td>
+              <span data-lang="zh">记录画面变化</span>
+              <span data-lang="en">Records visual changes</span>
+            </td>
+            <td>
+              <span data-lang="zh">体积小，依赖前面的帧</span>
+              <span data-lang="en">Small size, depends on previous frames</span>
+            </td>
+          </tr>
+          <tr>
+            <td>运动向量 (MV)</td>
+            <td>
+              <span data-lang="zh">描述块的空间移动</span>
+              <span data-lang="en">Describes spatial block movement</span>
+            </td>
+            <td>
+              <span data-lang="zh">二维向量 (X, Y) 偏移量</span>
+              <span data-lang="en">2D vector (X, Y) offset</span>
+            </td>
+          </tr>
+          <tr>
+            <td>残差 (Residual)</td>
+            <td>
+              <span data-lang="zh">修补预测的误差</span>
+              <span data-lang="en">Fixes prediction errors</span>
+            </td>
+            <td>
+              <span data-lang="zh">像素差异矩阵，经过变换量化后极易压缩</span>
+              <span data-lang="en">Pixel diff matrix, highly compressible after transform</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+    <script>
+      // Language Toggle Logic
+      const langToggle = document.getElementById('lang-toggle');
+      let currentLang = 'zh';
+      langToggle.addEventListener('click', () => {
+        currentLang = currentLang === 'zh' ? 'en' : 'zh';
+        document.documentElement.lang = currentLang;
+        langToggle.textContent = currentLang === 'zh' ? 'EN' : 'ZH';
+      });
+
+      // Canvas Utility for High DPI
+      function setupCanvas(canvas) {
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        return { ctx, width: rect.width, height: rect.height };
+      }
+
+      function drawRoundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
+
+      function easeInOutCubic(x) {
+        return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+      }
+      // Progress Bar
+      window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        document.getElementById('progress-bar').style.width = scrolled + "%";
+      });
+
+      // Scroll Reveal
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('.phase-heading, .phase-desc, .math-block, .stage-wrapper, .comp-table').forEach(el => {
+          el.classList.add('fade-in-section');
+          observer.observe(el);
+        });
+      });
+
+      // -----------------------------------------------------------------
+      // Animation 1: Motion Estimation (MV)
+      // -----------------------------------------------------------------
+      const mvCanvas = document.getElementById('canvas-mv');
+      const btnMvPlay = document.getElementById('btn-mv-play');
+      const statusMv = document.getElementById('status-mv');
+      let mvCtx, mvW, mvH;
+      let mvState = {
+        refX: 80, refY: 80, 
+        curX: 160, curY: 120, 
+        searchX: 80, searchY: 80,
+        animating: false,
+        progress: 0,
+        trail: []
+      };
+
+      function initMv() {
+        const s = setupCanvas(mvCanvas);
+        mvCtx = s.ctx; mvW = s.width; mvH = s.height;
+        mvState.refX = mvW / 2 - 80;
+        mvState.refY = mvH / 2 - 60;
+        mvState.curX = mvW / 2 + 40;
+        mvState.curY = mvH / 2 + 20;
+        mvState.searchX = mvState.refX;
+        mvState.searchY = mvState.refY;
+        mvState.trail = [];
+        drawMv();
+      }
+
+      function drawMv() {
+        mvCtx.clearRect(0, 0, mvW, mvH);
+        
+        // Draw Frame boxes and Grid
+        const fw = mvW / 2 - 30;
+        const fh = mvH - 40;
+        
+        // Background gradients for frames
+        const refGradient = mvCtx.createLinearGradient(20, 20, 20 + fw, 20 + fh);
+        refGradient.addColorStop(0, "#f0f9ff");
+        refGradient.addColorStop(1, "#e0f2fe");
+        
+        const curGradient = mvCtx.createLinearGradient(mvW/2 + 10, 20, mvW/2 + 10 + fw, 20 + fh);
+        curGradient.addColorStop(0, "#fff7ed");
+        curGradient.addColorStop(1, "#ffedd5");
+
+        // Frame boxes
+        mvCtx.fillStyle = refGradient;
+        drawRoundRect(mvCtx, 20, 20, fw, fh, 8);
+        mvCtx.fill();
+        mvCtx.strokeStyle = "#bae6fd";
+        mvCtx.lineWidth = 2;
+        mvCtx.stroke();
+
+        mvCtx.fillStyle = curGradient;
+        drawRoundRect(mvCtx, mvW/2 + 10, 20, fw, fh, 8);
+        mvCtx.fill();
+        mvCtx.strokeStyle = "#fed7aa";
+        mvCtx.lineWidth = 2;
+        mvCtx.stroke();
+        
+        // Grid
+        mvCtx.beginPath();
+        for (let x = 20; x <= 20 + fw; x += 20) { mvCtx.moveTo(x, 20); mvCtx.lineTo(x, 20 + fh); }
+        for (let y = 20; y <= 20 + fh; y += 20) { mvCtx.moveTo(20, y); mvCtx.lineTo(20 + fw, y); }
+        for (let x = mvW/2 + 10; x <= mvW/2 + 10 + fw; x += 20) { mvCtx.moveTo(x, 20); mvCtx.lineTo(x, 20 + fh); }
+        for (let y = 20; y <= 20 + fh; y += 20) { mvCtx.moveTo(mvW/2 + 10, y); mvCtx.lineTo(mvW/2 + 10 + fw, y); }
+        mvCtx.strokeStyle = "rgba(148, 163, 184, 0.2)";
+        mvCtx.lineWidth = 1;
+        mvCtx.stroke();
+        
+        // Frame labels
+        mvCtx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        drawRoundRect(mvCtx, 30, 30, 180, 24, 4);
+        mvCtx.fill();
+        mvCtx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        drawRoundRect(mvCtx, mvW/2 + 20, 30, 160, 24, 4);
+        mvCtx.fill();
+
+        mvCtx.fillStyle = "#1d4ed8";
+        mvCtx.font = "bold 14px var(--font-sans)";
+        mvCtx.fillText("Frame t-1 (Reference)", 40, 47);
+        mvCtx.fillStyle = "#c2410c";
+        mvCtx.fillText("Frame t (Current)", mvW/2 + 30, 47);
+        
+        // Draw Reference block (ghostly)
+        mvCtx.fillStyle = "rgba(59, 130, 246, 0.2)";
+        mvCtx.strokeStyle = "rgba(37, 99, 235, 0.5)";
+        mvCtx.lineWidth = 2;
+        mvCtx.setLineDash([5, 5]);
+        drawRoundRect(mvCtx, mvState.refX, mvState.refY, 60, 60, 4);
+        mvCtx.fill();
+        mvCtx.stroke();
+        mvCtx.setLineDash([]);
+        mvCtx.fillStyle = "#1d4ed8";
+        mvCtx.font = "14px JetBrains Mono";
+        mvCtx.fillText("Ref Block", mvState.refX, mvState.refY - 10);
+
+        // Draw Search Trail
+        if (mvState.trail.length > 1) {
+            for (let i = 1; i < mvState.trail.length; i++) {
+                const pt1 = mvState.trail[i-1];
+                const pt2 = mvState.trail[i];
+                const alpha = (i / mvState.trail.length) * 0.8;
+                mvCtx.beginPath();
+                mvCtx.moveTo(pt1.x + 30, pt1.y + 30);
+                mvCtx.lineTo(pt2.x + 30, pt2.y + 30);
+                mvCtx.strokeStyle = `rgba(249, 115, 22, ${alpha})`;
+                mvCtx.lineWidth = 3;
+                mvCtx.lineCap = "round";
+                mvCtx.stroke();
+            }
+        }
+
+        // Draw Search Outline if animating
+        if (mvState.animating) {
+          mvCtx.strokeStyle = "rgba(249, 115, 22, 0.8)";
+          mvCtx.setLineDash([4, 4]);
+          drawRoundRect(mvCtx, mvState.searchX, mvState.searchY, 60, 60, 4);
+          mvCtx.stroke();
+          mvCtx.setLineDash([]);
+        }
+
+        // Draw Current block
+        const patchGrad = mvCtx.createLinearGradient(mvState.curX, mvState.curY, mvState.curX + 60, mvState.curY + 60);
+        patchGrad.addColorStop(0, "rgba(249, 115, 22, 0.3)");
+        patchGrad.addColorStop(1, "rgba(239, 68, 68, 0.4)");
+        mvCtx.fillStyle = patchGrad;
+        mvCtx.strokeStyle = "#ea580c";
+        mvCtx.lineWidth = 2;
+        drawRoundRect(mvCtx, mvState.curX, mvState.curY, 60, 60, 4);
+        mvCtx.fill();
+        mvCtx.stroke();
+        mvCtx.fillStyle = "#c2410c";
+        mvCtx.fillText("Cur Block", mvState.curX, mvState.curY - 10);
+
+        // Draw Arrow if finished or static
+        if (!mvState.animating || mvState.progress > 0.9) {
+          drawArrow(mvCtx, mvState.refX + 30, mvState.refY + 30, mvState.curX + 30, mvState.curY + 30, "#10b981", true);
+          const dx = Math.round(mvState.curX - mvState.refX);
+          const dy = Math.round(mvState.curY - mvState.refY);
+          statusMv.textContent = `MV: (${dx}, ${dy})`;
+          
+          // Draw label near the arrow
+          const midX = (mvState.refX + mvState.curX) / 2;
+          const midY = (mvState.refY + mvState.curY) / 2 - 15;
+          mvCtx.fillStyle = "rgba(255,255,255,0.9)";
+          drawRoundRect(mvCtx, midX - 5, midY - 15, 100, 22, 4);
+          mvCtx.fill();
+          mvCtx.fillStyle = "#059669";
+          mvCtx.font = "bold 14px JetBrains Mono";
+          mvCtx.fillText(`MV(${dx}, ${dy})`, midX, midY);
+        } else {
+          statusMv.textContent = `Searching...`;
+        }
+      }
+
+      function drawArrow(ctx, x1, y1, x2, y2, color, glow=false) {
+        if (glow) {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 8;
+        }
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - 12 * Math.cos(angle - Math.PI / 6), y2 - 12 * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(x2 - 12 * Math.cos(angle + Math.PI / 6), y2 - 12 * Math.sin(angle + Math.PI / 6));
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      btnMvPlay.addEventListener('click', () => {
+        if (mvState.animating) return;
+        mvState.animating = true;
+        mvState.progress = 0;
+        mvState.trail = [];
+        
+        // Randomize target position slightly
+        mvState.curX = mvW / 2 + 40 + (Math.random() * 60 - 30);
+        mvState.curY = mvH / 2 + 20 + (Math.random() * 60 - 30);
+        const startTime = performance.now();
+        const duration = 1500;
+        
+        function animate(t) {
+          const p = Math.min((t - startTime) / duration, 1);
+          mvState.progress = p;
+          
+          // Spiral search simulation
+          const spiralR = p * 100;
+          const spiralA = p * Math.PI * 10;
+          if (p < 0.9) {
+            mvState.searchX = mvState.refX + Math.cos(spiralA) * spiralR;
+            mvState.searchY = mvState.refY + Math.sin(spiralA) * spiralR;
+            mvState.trail.push({x: mvState.searchX, y: mvState.searchY});
+            if (mvState.trail.length > 50) mvState.trail.shift();
+          } else {
+            // Snap to target
+            mvState.searchX = mvState.refX;
+          }
+          
+          drawMv();
+          if (p < 1) requestAnimationFrame(animate);
+          else mvState.animating = false;
+        }
+        requestAnimationFrame(animate);
+      });
+
+      // -----------------------------------------------------------------
+      // Animation 2: Residual Computation
+      // -----------------------------------------------------------------
+      const resCanvas = document.getElementById('canvas-residual');
+      const btnResRand = document.getElementById('btn-res-rand');
+      let resCtx, resW, resH;
+      let gridCur = [], gridPred = [], gridRes = [];
+      let gridCurTarget = [], gridPredTarget = [], gridResTarget = [];
+      let resState = { playing: false, p: 0 };
+      function generateGrids() {
+        gridCur = []; gridPred = []; gridRes = [];
+        for(let i=0; i<9; i++) {
+          const base = Math.floor(Math.random() * 100) + 100;
+          const noise = Math.floor(Math.random() * 20) - 10; // -10 to 10
+          gridPred.push(base);
+          gridCur.push(base + noise);
+          gridRes.push(noise);
+        }
+      }
+
+      function initRes() {
+        const s = setupCanvas(resCanvas);
+        resCtx = s.ctx; resW = s.width; resH = s.height;
+        generateGrids();
+        drawRes();
+      }
+
+      function drawRes() {
+        resCtx.clearRect(0, 0, resW, resH);
+        const cw = 64; 
+        const padding = 50;
+        const startY = resH / 2 - (cw * 1.5) - 10;
+        
+        const totalW = (cw * 3) * 3 + padding * 2;
+        const startX = (resW - totalW) / 2;
+
+        // Colors for Dark theme background
+        resCtx.fillStyle = "#e2e8f0"; // text
+        resCtx.font = "bold 16px var(--font-sans)";
+        resCtx.textAlign = "center";
+        resCtx.textBaseline = "middle";
+
+        // Titles
+        resCtx.fillText("Current Frame", startX + cw*1.5, startY - 20);
+        resCtx.fillText("Predicted Block", startX + cw*3 + padding + cw*1.5, startY - 20);
+        resCtx.fillText("Residual", startX + (cw*3 + padding)*2 + cw*1.5, startY - 20);
+
+        // Operators
+        resCtx.font = "bold 24px JetBrains Mono";
+        
+        // Minus badge
+        const minusX = startX + cw*3 + padding/2;
+        const opY = startY + cw*1.5;
+        resCtx.beginPath();
+        resCtx.arc(minusX, opY, 18, 0, Math.PI*2);
+        resCtx.fillStyle = "rgba(59, 130, 246, 0.2)";
+        resCtx.fill();
+        resCtx.strokeStyle = "rgba(59, 130, 246, 0.5)";
+        resCtx.lineWidth = 2;
+        resCtx.stroke();
+        resCtx.fillStyle = "#60a5fa";
+        resCtx.fillText("-", minusX, opY);
+
+        // Equals badge
+        const eqX = startX + cw*6 + padding*1.5;
+        resCtx.beginPath();
+        resCtx.arc(eqX, opY, 18, 0, Math.PI*2);
+        resCtx.fillStyle = "rgba(16, 185, 129, 0.2)";
+        resCtx.fill();
+        resCtx.strokeStyle = "rgba(16, 185, 129, 0.5)";
+        resCtx.stroke();
+        resCtx.fillStyle = "#34d399";
+        resCtx.fillText("=", eqX, opY + 1);
+
+        // Draw Grids
+        drawGrid(resCtx, startX, startY, cw, gridCur, "val");
+        drawGrid(resCtx, startX + cw*3 + padding, startY, cw, gridPred, "val");
+        drawGrid(resCtx, startX + (cw*3 + padding)*2, startY, cw, gridRes, "res");
+
+        // Legend
+        resCtx.textAlign = "left";
+        resCtx.font = "14px var(--font-sans)";
+        resCtx.fillStyle = "#94a3b8";
+        const legY = startY + cw * 3 + 40;
+        resCtx.fillText("Legend: ", startX, legY);
+        
+        const gradPos = resCtx.createLinearGradient(startX + 70, legY - 10, startX + 110, legY + 10);
+        gradPos.addColorStop(0, "rgba(239, 68, 68, 0.9)");
+        gradPos.addColorStop(1, "rgba(248, 113, 113, 0.5)");
+        resCtx.fillStyle = gradPos;
+        drawRoundRect(resCtx, startX + 70, legY - 12, 24, 24, 4);
+        resCtx.fill();
+        resCtx.fillStyle = "#e2e8f0";
+        resCtx.fillText("Positive Diff (+)", startX + 105, legY);
+
+        const gradNeg = resCtx.createLinearGradient(startX + 240, legY - 10, startX + 280, legY + 10);
+        gradNeg.addColorStop(0, "rgba(59, 130, 246, 0.9)");
+        gradNeg.addColorStop(1, "rgba(96, 165, 250, 0.5)");
+        resCtx.fillStyle = gradNeg;
+        drawRoundRect(resCtx, startX + 240, legY - 12, 24, 24, 4);
+        resCtx.fill();
+        resCtx.fillStyle = "#e2e8f0";
+        resCtx.fillText("Negative Diff (-)", startX + 275, legY);
+      }
+
+      function drawGrid(ctx, x, y, cw, data, type) {
+        // Add overall shadow
+        ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetY = 5;
+        ctx.fillStyle = "#1e1e2e";
+        drawRoundRect(ctx, x, y, cw*3, cw*3, 8);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        ctx.font = "14px JetBrains Mono";
+        for(let r=0; r<3; r++) {
+          for(let c=0; c<3; c++) {
+            const val = data[r*3+c];
+            const displayVal = Math.round(val);
+            const bx = x + c*cw;
+            const by = y + r*cw;
+            
+            // Cell bg
+            if (type === "res") {
+              const intensity = Math.min(Math.abs(val) / 10, 1);
+              if (val > 0) ctx.fillStyle = `rgba(239, 68, 68, ${intensity})`;
+              else if (val < 0) ctx.fillStyle = `rgba(59, 130, 246, ${intensity})`;
+              else ctx.fillStyle = `rgba(255, 255, 255, 0.05)`;
+            } else {
+              ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
+            }
+            
+            // Rounded inner cells
+            drawRoundRect(ctx, bx+1, by+1, cw-2, cw-2, 6);
+            ctx.fill();
+            
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Text color based on bg
+            if (type !== "res" && val < 128) ctx.fillStyle = "#ffffff";
+            else if (type !== "res") ctx.fillStyle = "#0f172a";
+            else ctx.fillStyle = "#f8fafc";
+            
+            const txt = val > 0 && type === "res" ? `+${displayVal}` : displayVal;
+            ctx.fillText(txt, bx + cw/2, by + cw/2);
+          }
+        }
+      }
+
+      btnResRand.addEventListener('click', () => {
+        if (resState.playing) return;
+        const oldCur = [...gridCur];
+        const oldPred = [...gridPred];
+        const oldRes = [...gridRes];
+        
+        generateGrids();
+        gridCurTarget = [...gridCur];
+        gridPredTarget = [...gridPred];
+        gridResTarget = [...gridRes];
+        
+        gridCur = oldCur;
+        gridPred = oldPred;
+        gridRes = oldRes;
+        
+        const startTime = performance.now();
+        const duration = 500;
+        resState.playing = true;
+        
+        function step(time) {
+          const p = Math.min((time - startTime) / duration, 1);
+          for(let i=0; i<9; i++) {
+            gridCur[i] = oldCur[i] + (gridCurTarget[i] - oldCur[i]) * p;
+            gridPred[i] = oldPred[i] + (gridPredTarget[i] - oldPred[i]) * p;
+            gridRes[i] = oldRes[i] + (gridResTarget[i] - oldRes[i]) * p;
+          }
+          drawRes();
+          if (p < 1) requestAnimationFrame(step);
+          else resState.playing = false;
+        }
+        requestAnimationFrame(step);
+      });
+      // -----------------------------------------------------------------
+      // Animation 3: GOP Structure
+      // -----------------------------------------------------------------
+      const gopCanvas = document.getElementById('canvas-gop');
+      let gopCtx, gopW, gopH;
+      const frames = [
+        { type: 'I', id: 0 },
+        { type: 'P', id: 1, ref: [0] },
+        { type: 'B', id: 2, ref: [1, 3] },
+        { type: 'P', id: 3, ref: [1] },
+        { type: 'B', id: 4, ref: [3, 5] },
+        { type: 'P', id: 5, ref: [3] },
+        { type: 'I', id: 6 }
+      ];
+      let gopHovered = -1;
+
+      function initGop() {
+        const s = setupCanvas(gopCanvas);
+        gopCtx = s.ctx; gopW = s.width; gopH = s.height;
+        gopCanvas.addEventListener('mousemove', handleGopHover);
+        gopCanvas.addEventListener('mouseleave', () => { gopHovered = -1; drawGop(); });
+        drawGop();
+      }
+
+      function handleGopHover(e) {
+        const rect = gopCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const boxH = 80;
+        const boxW = 50;
+        const gap = (gopW - boxW * frames.length) / (frames.length + 1);
+        const startY = gopH / 2 - boxH/2;
+
+        let found = -1;
+        frames.forEach((f, i) => {
+          const bx = gap + i * (boxW + gap);
+          if (x >= bx && x <= bx + boxW && y >= startY && y <= startY + boxH) {
+            found = i;
+          }
+        });
+        
+        if (found !== gopHovered) {
+          gopHovered = found;
+          drawGop();
+        }
+      }
+
+      function drawGop() {
+        gopCtx.clearRect(0, 0, gopW, gopH);
+        const boxW = 56, boxH = 90;
+        const gap = (gopW - boxW * frames.length) / (frames.length + 1);
+        const startY = gopH / 2 - boxH/2 + 10;
+
+        // Draw connections first
+        gopCtx.lineWidth = 2;
+        frames.forEach((f, i) => {
+          const bx = gap + i * (boxW + gap) + boxW/2;
+          
+          if (f.ref) {
+            f.ref.forEach(rIdx => {
+              const rx = gap + rIdx * (boxW + gap) + boxW/2;
+              
+              // highlight logic
+              if (gopHovered === i) {
+                gopCtx.strokeStyle = "#2563eb";
+                gopCtx.setLineDash([]);
+                gopCtx.lineWidth = 3;
+              } else if (gopHovered === rIdx) {
+                gopCtx.strokeStyle = "#10b981";
+                gopCtx.setLineDash([]);
+                gopCtx.lineWidth = 3;
+              } else {
+                gopCtx.strokeStyle = "rgba(148, 163, 184, 0.6)";
+                gopCtx.setLineDash([4, 4]);
+                gopCtx.lineWidth = 2;
+              }
+
+              gopCtx.beginPath();
+              const ctrlY = f.type === 'P' ? startY - 50 : startY + boxH + 50;
+              gopCtx.moveTo(bx, f.type === 'P' ? startY : startY + boxH);
+              gopCtx.quadraticCurveTo((bx + rx)/2, ctrlY, rx, f.type === 'P' ? startY : startY + boxH);
+              gopCtx.stroke();
+              
+              // Draw small arrowhead
+              if (gopHovered === i || gopHovered === rIdx) {
+                const arrowSize = 8;
+                const angle = Math.atan2((f.type === 'P' ? startY : startY + boxH) - ctrlY, rx - (bx + rx)/2);
+                gopCtx.beginPath();
+                gopCtx.moveTo(rx, f.type === 'P' ? startY : startY + boxH);
+                gopCtx.lineTo(rx - arrowSize * Math.cos(angle - Math.PI/6), (f.type === 'P' ? startY : startY + boxH) - arrowSize * Math.sin(angle - Math.PI/6));
+                gopCtx.lineTo(rx - arrowSize * Math.cos(angle + Math.PI/6), (f.type === 'P' ? startY : startY + boxH) - arrowSize * Math.sin(angle + Math.PI/6));
+                gopCtx.fillStyle = gopCtx.strokeStyle;
+                gopCtx.fill();
+              }
+            });
+          }
+        });
+
+        gopCtx.setLineDash([]);
+
+        // Draw boxes
+        gopCtx.font = "bold 20px Helvetica Neue";
+        gopCtx.textAlign = "center";
+        gopCtx.textBaseline = "middle";
+
+        // Draw brackets for GOP
+        gopCtx.strokeStyle = "#94a3b8";
+        gopCtx.lineWidth = 2;
+        gopCtx.lineCap = "round";
+        gopCtx.lineJoin = "round";
+        gopCtx.beginPath();
+        const startX1 = gap;
+        const endX1 = gap + 5 * (boxW + gap) + boxW;
+        const bracketY = startY - 60;
+        
+        gopCtx.moveTo(startX1, bracketY + 10);
+        gopCtx.lineTo(startX1, bracketY);
+        gopCtx.lineTo(endX1, bracketY);
+        gopCtx.lineTo(endX1, bracketY + 10);
+        gopCtx.stroke();
+        
+        gopCtx.fillStyle = "#475569";
+        gopCtx.font = "bold 14px var(--font-sans)";
+        gopCtx.fillText("GOP 1", (startX1 + endX1)/2, bracketY - 10);
+
+        const startX2 = gap + 6 * (boxW + gap);
+        const endX2 = startX2 + boxW;
+        gopCtx.beginPath();
+        gopCtx.moveTo(startX2, bracketY + 10);
+        gopCtx.lineTo(startX2, bracketY);
+        gopCtx.lineTo(endX2, bracketY);
+        gopCtx.lineTo(endX2, bracketY + 10);
+        gopCtx.stroke();
+        gopCtx.fillText("GOP 2", (startX2 + endX2)/2, bracketY - 10);
+
+        frames.forEach((f, i) => {
+          const bx = gap + i * (boxW + gap);
+          
+          let border = "#94a3b8", text = "#1e293b";
+          let grad = gopCtx.createLinearGradient(bx, startY, bx, startY + boxH);
+          if (f.type === 'I') { 
+            border = "#ef4444"; text = "#b91c1c"; 
+            grad.addColorStop(0, "#fee2e2"); grad.addColorStop(1, "#fca5a5");
+          }
+          if (f.type === 'P') { 
+            border = "#3b82f6"; text = "#1d4ed8"; 
+            grad.addColorStop(0, "#dbeafe"); grad.addColorStop(1, "#93c5fd");
+          }
+          if (f.type === 'B') { 
+            border = "#10b981"; text = "#047857"; 
+            grad.addColorStop(0, "#d1fae5"); grad.addColorStop(1, "#6ee7b7");
+          }
+          
+          let currentBoxW = boxW;
+          let currentBoxH = boxH;
+          let currentX = bx;
+          let currentY = startY;
+
+          if (gopHovered === i) {
+            gopCtx.shadowColor = "rgba(0,0,0,0.15)";
+            gopCtx.shadowBlur = 15;
+            gopCtx.shadowOffsetY = 4;
+            currentBoxW += 6;
+            currentBoxH += 6;
+            currentX -= 3;
+            currentY -= 3;
+            gopCtx.lineWidth = 3;
+          } else {
+            gopCtx.shadowColor = "rgba(0,0,0,0.05)";
+            gopCtx.shadowBlur = 4;
+            gopCtx.shadowOffsetY = 2;
+            gopCtx.lineWidth = 2;
+          }
+          
+          gopCtx.fillStyle = grad;
+          gopCtx.strokeStyle = border;
+          drawRoundRect(gopCtx, currentX, currentY, currentBoxW, currentBoxH, 6);
+          gopCtx.fill();
+          gopCtx.stroke();
+          
+          gopCtx.fillStyle = text;
+          gopCtx.font = "bold 22px Helvetica Neue";
+          gopCtx.fillText(f.type, bx + boxW/2, startY + boxH/2);
+          
+          // Frame number
+          gopCtx.shadowBlur = 0;
+          gopCtx.shadowOffsetY = 0;
+          gopCtx.fillStyle = "#64748b";
+          gopCtx.font = "bold 12px var(--font-sans)";
+          gopCtx.fillText(`Frame ${f.id}`, bx + boxW/2, startY + boxH + 20);
+          
+          // Size indicator bar
+          let barH = f.type === 'I' ? 40 : (f.type === 'P' ? 20 : 8);
+          let maxBarH = 40;
+          
+          // Bar background
+          gopCtx.fillStyle = "#e2e8f0";
+          drawRoundRect(gopCtx, bx + boxW/2 - 8, startY + boxH + 35, 16, maxBarH, 4);
+          gopCtx.fill();
+
+          // Bar fill
+          gopCtx.fillStyle = border;
+          drawRoundRect(gopCtx, bx + boxW/2 - 8, startY + boxH + 35 + (maxBarH - barH), 16, barH, 4);
+          gopCtx.fill();
+
+          gopCtx.fillStyle = "#94a3b8";
+          gopCtx.font = "10px var(--font-sans)";
+          gopCtx.fillText("Size", bx + boxW/2, startY + boxH + 35 + maxBarH + 12);
+
+          // Tooltip
+          if (gopHovered === i) {
+            const txt = f.type === 'I' ? `I-Frame ${f.id}: Independent Keyframe` : `${f.type}-Frame ${f.id}: references Frame(s) ${f.ref.join(', ')}`;
+            gopCtx.fillStyle = "#1e293b";
+            gopCtx.font = "bold 14px var(--font-sans)";
+            const tw = gopCtx.measureText(txt).width + 24;
+            gopCtx.shadowColor = "rgba(0,0,0,0.1)";
+            gopCtx.shadowBlur = 10;
+            gopCtx.shadowOffsetY = 5;
+            gopCtx.fillStyle = "rgba(255, 255, 255, 0.95)";
+            gopCtx.strokeStyle = border;
+            gopCtx.lineWidth = 1;
+            drawRoundRect(gopCtx, gopW/2 - tw/2, 20, tw, 32, 6);
+            gopCtx.fill();
+            gopCtx.stroke();
+            gopCtx.shadowBlur = 0;
+            gopCtx.shadowOffsetY = 0;
+            gopCtx.fillStyle = text;
+            gopCtx.fillText(txt, gopW/2, 36);
+          }
+        });
+        gopCtx.shadowColor = "transparent";
+      }
+
+      // -----------------------------------------------------------------
+      // Animation 4: Full Pipeline
+      // -----------------------------------------------------------------
+      const pipeCanvas = document.getElementById('canvas-pipeline');
+      const btnPipePlay = document.getElementById('btn-pipe-play');
+      const statusPipe = document.getElementById('status-pipe');
+      let pipeCtx, pipeW, pipeH;
+      let pipeState = { playing: false, t: 0 };
+      
+      const nodes = [
+        { id: 'ft', x: 0.1, y: 0.5, label: "📹 F_t", w: 80, h: 40 },
+        { id: 'ref', x: 0.35, y: 0.8, label: "📹 F_{t-1}", w: 90, h: 40 },
+        { id: 'me', x: 0.35, y: 0.5, label: "🔍 Motion Est", w: 125, h: 40 },
+        { id: 'res', x: 0.65, y: 0.5, label: "➖ Residual", w: 110, h: 40 },
+        { id: 'bit', x: 0.9, y: 0.5, label: "📦 Bitstream", w: 120, h: 40 }
+      ];
+
+      function initPipe() {
+        const s = setupCanvas(pipeCanvas);
+        pipeCtx = s.ctx; pipeW = s.width; pipeH = s.height;
+        drawPipe();
+      }
+
+      function drawPipeLine(n1, n2, curved=false, offsetY=0) {
+        const startX = nodes[n1].x * pipeW;
+        const startY = nodes[n1].y * pipeH;
+        const endX = nodes[n2].x * pipeW;
+        const endY = nodes[n2].y * pipeH;
+
+        pipeCtx.beginPath();
+        pipeCtx.moveTo(startX, startY);
+        if (curved) {
+            const midX = (startX + endX) / 2;
+            pipeCtx.quadraticCurveTo(midX, startY + offsetY, endX, endY);
+        } else {
+            pipeCtx.lineTo(endX, endY);
+        }
+        pipeCtx.stroke();
+        
+        // Draw arrowhead
+        let angle;
+        if (curved) {
+            angle = Math.atan2(endY - (startY + offsetY), endX - (startX + endX) / 2);
+        } else {
+            angle = Math.atan2(endY - startY, endX - startX);
+        }
+        
+        // offset arrowhead so it doesn't overlap with the node box too much
+        // roughly 45px offset for width/2
+        const offsetDist = 55;
+        const arrowX = endX - offsetDist * Math.cos(angle);
+        const arrowY = endY - offsetDist * Math.sin(angle);
+
+        pipeCtx.beginPath();
+        pipeCtx.moveTo(arrowX, arrowY);
+        pipeCtx.lineTo(arrowX - 10 * Math.cos(angle - Math.PI / 6), arrowY - 10 * Math.sin(angle - Math.PI / 6));
+        pipeCtx.lineTo(arrowX - 10 * Math.cos(angle + Math.PI / 6), arrowY - 10 * Math.sin(angle + Math.PI / 6));
+        pipeCtx.fillStyle = pipeCtx.strokeStyle;
+        pipeCtx.fill();
+      }
+      function drawPipe() {
+        pipeCtx.clearRect(0, 0, pipeW, pipeH);
+        
+        // Draw connections
+        pipeCtx.strokeStyle = "#94a3b8";
+        pipeCtx.lineWidth = 2;
+        
+        drawPipeLine(0, 2); // F_t -> Motion Est
+        drawPipeLine(1, 2); // F_t-1 -> Motion Est
+        drawPipeLine(0, 3, true, -120); // F_t -> Residual (curved over)
+        drawPipeLine(2, 3); // Motion Est -> Residual
+        drawPipeLine(3, 4); // Residual -> Bitstream
+        
+        // Draw connection labels
+        pipeCtx.fillStyle = "#64748b";
+        pipeCtx.font = "italic 11px var(--font-sans)";
+        pipeCtx.fillText("Predicted", nodes[2].x * pipeW + 60, nodes[2].y * pipeH - 10);
+        pipeCtx.fillText("MV", nodes[2].x * pipeW + 60, nodes[2].y * pipeH + 20);
+        pipeCtx.fillText("Current Frame", (nodes[0].x + nodes[3].x)/2 * pipeW, nodes[0].y * pipeH - 65);
+
+        // Draw nodes
+        pipeCtx.font = "bold 14px Helvetica Neue";
+        pipeCtx.textAlign = "center";
+        pipeCtx.textBaseline = "middle";
+
+        nodes.forEach((n, i) => {
+          let grad = pipeCtx.createLinearGradient(n.x * pipeW - n.w/2, n.y * pipeH - n.h/2, n.x * pipeW + n.w/2, n.y * pipeH + n.h/2);
+          if (i === 4) {
+            grad.addColorStop(0, "#fef3c7"); grad.addColorStop(1, "#fde68a");
+            pipeCtx.strokeStyle = "#f59e0b";
+            pipeCtx.fillStyle = "#b45309";
+          } else {
+            grad.addColorStop(0, "#f8fafc"); grad.addColorStop(1, "#f1f5f9");
+            pipeCtx.strokeStyle = "#cbd5e1";
+            pipeCtx.fillStyle = "#334155";
+          }
+          
+          pipeCtx.shadowColor = "rgba(0,0,0,0.05)";
+          pipeCtx.shadowBlur = 10;
+          pipeCtx.shadowOffsetY = 4;
+          
+          pipeCtx.beginPath();
+          drawRoundRect(pipeCtx, n.x * pipeW - n.w/2, n.y * pipeH - n.h/2, n.w, n.h, 8);
+          pipeCtx.fillStyle = grad;
+          pipeCtx.fill();
+          
+          pipeCtx.shadowBlur = 0;
+          pipeCtx.shadowOffsetY = 0;
+          pipeCtx.lineWidth = 2;
+          pipeCtx.stroke();
+          
+          if (i === 4) pipeCtx.fillStyle = "#b45309";
+          else pipeCtx.fillStyle = "#1e293b";
+          pipeCtx.fillText(n.label, n.x * pipeW, n.y * pipeH);
+        });
+
+        // Draw Particle and Trail
+        if (pipeState.playing) {
+          const pos = getParticlePos(pipeState.t);
+          
+          if (!pipeState.trail) pipeState.trail = [];
+          pipeState.trail.push({x: pos.x, y: pos.y});
+          if (pipeState.trail.length > 25) pipeState.trail.shift();
+          
+          if (pipeState.trail.length > 1) {
+            pipeCtx.beginPath();
+            pipeCtx.moveTo(pipeState.trail[0].x, pipeState.trail[0].y);
+            for(let i=1; i<pipeState.trail.length; i++) {
+              pipeCtx.lineTo(pipeState.trail[i].x, pipeState.trail[i].y);
+            }
+            pipeCtx.strokeStyle = "rgba(37, 99, 235, 0.5)";
+            pipeCtx.lineWidth = 6;
+            pipeCtx.lineCap = "round";
+            pipeCtx.lineJoin = "round";
+            pipeCtx.shadowColor = "#2563eb";
+            pipeCtx.shadowBlur = 10;
+            pipeCtx.stroke();
+            pipeCtx.shadowBlur = 0;
+            pipeCtx.lineCap = "butt";
+          }
+
+          pipeCtx.fillStyle = "#3b82f6";
+          pipeCtx.beginPath();
+          pipeCtx.arc(pos.x, pos.y, 10, 0, Math.PI*2);
+          pipeCtx.fill();
+          pipeCtx.shadowColor = "#60a5fa";
+          pipeCtx.shadowBlur = 15;
+          pipeCtx.fill();
+          pipeCtx.shadowColor = "#2563eb";
+          pipeCtx.shadowBlur = 10;
+          pipeCtx.fill();
+          pipeCtx.shadowBlur = 0;
+          
+          // Intermediate labels
+          pipeCtx.fillStyle = "#10b981";
+          pipeCtx.font = "bold 14px JetBrains Mono";
+          if (pipeState.t > 0.33) {
+            pipeCtx.fillText("MV=(dx,dy)", (nodes[2].x + nodes[3].x)/2 * pipeW, nodes[2].y * pipeH - 20);
+          }
+          if (pipeState.t > 0.66) {
+            pipeCtx.fillText("R = F_t - F̂_t", (nodes[3].x + nodes[4].x)/2 * pipeW, nodes[3].y * pipeH - 20);
+          }
+          
+          if (pipeState.t < 0.33) statusPipe.textContent = "1. Motion Estimation...";
+          else if (pipeState.t < 0.66) statusPipe.textContent = "2. Computing Residual...";
+          else statusPipe.textContent = "3. Entropy Coding to Bitstream...";
+        } else {
+          statusPipe.textContent = "Ready";
+        }
+      }
+
+      function getParticlePos(t) {
+        let p1, p2, localT;
+        if (t < 0.33) {
+          p1 = nodes[0]; p2 = nodes[2]; localT = t / 0.33; // F_t to ME
+        } else if (t < 0.66) {
+          p1 = nodes[2]; p2 = nodes[3]; localT = (t - 0.33) / 0.33; // ME to Res
+        } else {
+          p1 = nodes[3]; p2 = nodes[4]; localT = (t - 0.66) / 0.34; // Res to Bit
+        }
+        
+        return {
+          x: (p1.x + (p2.x - p1.x) * localT) * pipeW,
+          y: (p1.y + (p2.y - p1.y) * localT) * pipeH
+        };
+      }
+
+      btnPipePlay.addEventListener('click', () => {
+        if (pipeState.playing) return;
+        pipeState.playing = true;
+        pipeState.t = 0;
+        pipeState.trail = [];
+        const startTime = performance.now();
+        const duration = 3000;
+        
+        function animate(time) {
+          pipeState.t = Math.min((time - startTime) / duration, 1);
+          drawPipe();
+          
+          if (pipeState.t < 1) requestAnimationFrame(animate);
+          else {
+            pipeState.playing = false;
+            drawPipe();
+          }
+        }
+        requestAnimationFrame(animate);
+      });
+
+      // -----------------------------------------------------------------
+      // Animation 1: Traditional vs Codec-Aligned
+      // -----------------------------------------------------------------
+      const tradCanvas = document.getElementById('canvas-traditional');
+      const btnTradPlay = document.getElementById('btn-trad-play');
+      let tradCtx, tradW, tradH;
+      let tradState = { playing: false, progress: 1 };
+
+      function initTrad() {
+        const s = setupCanvas(tradCanvas);
+        tradCtx = s.ctx; tradW = s.width; tradH = s.height;
+        drawTrad();
+      }
+
+      function drawTrad() {
+        tradCtx.clearRect(0, 0, tradW, tradH);
+        const w2 = tradW / 2;
+        
+        // Titles
+        tradCtx.fillStyle = "#1e293b";
+        tradCtx.font = "bold 16px var(--font-sans)";
+        tradCtx.textAlign = "center";
+        tradCtx.fillText("Traditional (8 Frames)", w2/2, 40);
+        tradCtx.fillText("Codec-Aligned (64 Frames, 12.5% Sparsity)", w2 + w2/2, 40);
+
+        // Divider - Gradient line
+        const divGrad = tradCtx.createLinearGradient(w2, 20, w2, tradH - 20);
+        divGrad.addColorStop(0, "rgba(203, 213, 225, 0)");
+        divGrad.addColorStop(0.5, "rgba(203, 213, 225, 1)");
+        divGrad.addColorStop(1, "rgba(203, 213, 225, 0)");
+        tradCtx.beginPath();
+        tradCtx.moveTo(w2, 20);
+        tradCtx.lineTo(w2, tradH - 20);
+        tradCtx.strokeStyle = divGrad;
+        tradCtx.lineWidth = 2;
+        tradCtx.stroke();
+
+        // Draw Traditional
+        const frameW = 48, frameH = 48, gap = 12;
+        const tStartX = w2/2 - (4*frameW + 3*gap)/2;
+        const tStartY = 70;
+        
+        let activeTrad = Math.floor(tradState.progress * 8);
+        if (tradState.progress === 1) activeTrad = 8;
+        
+        for (let i = 0; i < 8; i++) {
+          let x = tStartX + (i % 4) * (frameW + gap);
+          let y = tStartY + Math.floor(i / 4) * (frameH + gap);
+          
+          tradCtx.fillStyle = "#f1f5f9";
+          tradCtx.strokeStyle = "#cbd5e1";
+          tradCtx.lineWidth = 2;
+          drawRoundRect(tradCtx, x, y, frameW, frameH, 6);
+          tradCtx.fill();
+          tradCtx.stroke();
+          
+          if (i < activeTrad) {
+            const pGrad = tradCtx.createLinearGradient(x, y, x, y+frameH);
+            pGrad.addColorStop(0, "rgba(248, 113, 113, 0.9)");
+            pGrad.addColorStop(1, "rgba(220, 38, 38, 0.9)");
+            tradCtx.fillStyle = pGrad;
+            drawRoundRect(tradCtx, x+1, y+1, frameW-2, frameH-2, 5);
+            tradCtx.fill();
+          }
+        }
+
+        // Frame counts
+        tradCtx.fillStyle = "#64748b";
+        tradCtx.font = "bold 14px var(--font-sans)";
+        tradCtx.fillText(`Processed: ${activeTrad} / 8 Frames`, w2/2, tStartY + 2*frameH + gap + 30);
+
+        // Draw Codec-Aligned
+        const cFrameW = 14, cFrameH = 14, cGap = 6;
+        const cStartX = w2 + w2/2 - (8*cFrameW + 7*cGap)/2;
+        const cStartY = 70;
+        let activeCodec = Math.floor(tradState.progress * 64);
+        if (tradState.progress === 1) activeCodec = 64;
+
+        for (let i = 0; i < 64; i++) {
+          let x = cStartX + (i % 8) * (cFrameW + cGap);
+          let y = cStartY + Math.floor(i / 8) * (cFrameH + cGap);
+          
+          tradCtx.fillStyle = "#f1f5f9";
+          tradCtx.strokeStyle = "#cbd5e1";
+          tradCtx.lineWidth = 1;
+          drawRoundRect(tradCtx, x, y, cFrameW, cFrameH, 3);
+          tradCtx.fill();
+          tradCtx.stroke();
+          
+          if (i < activeCodec) {
+            let pseudoRandom = Math.sin(i * 12345) * 10000;
+            pseudoRandom = pseudoRandom - Math.floor(pseudoRandom);
+            if (i === 0 || pseudoRandom < 0.15) {
+              const cGrad = tradCtx.createLinearGradient(x, y, x, y+cFrameH);
+              cGrad.addColorStop(0, "rgba(52, 211, 153, 0.9)");
+              cGrad.addColorStop(1, "rgba(16, 185, 129, 0.9)");
+              tradCtx.fillStyle = cGrad;
+              drawRoundRect(tradCtx, x+1, y+1, cFrameW-2, cFrameH-2, 2);
+              tradCtx.fill();
+            }
+          }
+        }
+
+        tradCtx.fillStyle = "#64748b";
+        tradCtx.font = "bold 14px var(--font-sans)";
+        tradCtx.fillText(`Processed: ${activeCodec} / 64 Frames`, w2 + w2/2, cStartY + 8*cFrameH + 7*cGap + 10);
+
+        // Budget meter
+        const budgetY = 260;
+        tradCtx.fillStyle = "#475569";
+        tradCtx.font = "bold 14px var(--font-sans)";
+        tradCtx.fillText("Compute Budget", w2/2, budgetY - 15);
+        tradCtx.fillText("Compute Budget", w2 + w2/2, budgetY - 15);
+        
+        const barW = 240, barH = 16;
+        const budgetP = easeInOutCubic(tradState.progress);
+        const pText = Math.floor(budgetP * 100) + "%";
+
+        // Traditional Bar
+        tradCtx.fillStyle = "#e2e8f0";
+        drawRoundRect(tradCtx, w2/2 - barW/2, budgetY, barW, barH, barH/2);
+        tradCtx.fill();
+        if (budgetP > 0) {
+            tradCtx.fillStyle = "#ef4444";
+            let drawW = Math.max(barH, barW * budgetP);
+            drawRoundRect(tradCtx, w2/2 - barW/2, budgetY, drawW, barH, barH/2);
+            tradCtx.fill();
+        }
+        tradCtx.fillStyle = budgetP > 0.5 ? "#fff" : "#64748b";
+        tradCtx.font = "bold 12px var(--font-sans)";
+        tradCtx.fillText(pText, w2/2 - barW/2 + barW/2, budgetY + barH/2 + 1);
+
+        // Codec Bar
+        tradCtx.fillStyle = "#e2e8f0";
+        drawRoundRect(tradCtx, w2 + w2/2 - barW/2, budgetY, barW, barH, barH/2);
+        tradCtx.fill();
+        if (budgetP > 0) {
+            tradCtx.fillStyle = "#10b981";
+            let drawW = Math.max(barH, barW * budgetP);
+            drawRoundRect(tradCtx, w2 + w2/2 - barW/2, budgetY, drawW, barH, barH/2);
+            tradCtx.fill();
+        }
+        tradCtx.fillStyle = budgetP > 0.5 ? "#fff" : "#64748b";
+        tradCtx.fillText(pText, w2 + w2/2 - barW/2 + barW/2, budgetY + barH/2 + 1);
+      }
+
+      btnTradPlay.addEventListener('click', () => {
+        if (tradState.playing) return;
+        tradState.playing = true;
+        const start = performance.now();
+        const duration = 2000;
+        
+        function step(time) {
+          tradState.progress = Math.min(1, (time - start) / duration);
+          drawTrad();
+          if (tradState.progress < 1) requestAnimationFrame(step);
+          else tradState.playing = false;
+        }
+        requestAnimationFrame(step);
+      });
+
+
+      // -----------------------------------------------------------------
+      // Animation 2: Energy Computation
+      // -----------------------------------------------------------------
+      const energyCanvas = document.getElementById('canvas-energy');
+      const wmvSlider = document.getElementById('slider-wmv');
+      const wresSlider = document.getElementById('slider-wres');
+      const wmvVal = document.getElementById('val-wmv');
+      const wresVal = document.getElementById('val-wres');
+      let enCtx, enW, enH;
+      
+      const gridData = {
+        mv: [], res: []
+      };
+
+      function initEnergy() {
+        const s = setupCanvas(energyCanvas);
+        enCtx = s.ctx; enW = s.width; enH = s.height;
+        
+        for (let i = 0; i < 16*16; i++) {
+          gridData.mv.push(Math.pow(Math.random(), 2)); // skew low
+          gridData.res.push(Math.pow(Math.random(), 2));
+        }
+        
+        drawEnergy();
+      }
+
+      const viridisColors = [
+        [68, 1, 84], [72, 35, 116], [64, 67, 135], [52, 94, 141],
+        [41, 120, 142], [32, 144, 140], [34, 167, 132], [68, 190, 112],
+        [121, 209, 81], [189, 222, 38], [253, 231, 36]
+      ];
+      function getColormap(t) {
+        t = Math.max(0, Math.min(1, t));
+        const i = t * (viridisColors.length - 1);
+        const idx = Math.floor(i);
+        if (idx >= viridisColors.length - 1) return `rgb(${viridisColors[viridisColors.length-1].join(',')})`;
+        const f = i - idx;
+        const c1 = viridisColors[idx], c2 = viridisColors[idx+1];
+        return `rgb(${Math.round(c1[0] + f*(c2[0]-c1[0]))}, ${Math.round(c1[1] + f*(c2[1]-c1[1]))}, ${Math.round(c1[2] + f*(c2[2]-c1[2]))})`;
+      }
+
+      function drawHeatmap(ctx, x, y, size, data, type, wMv, wRes) {
+        const patchW = size / 16;
+        
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 4;
+        drawRoundRect(ctx, x, y, size, size, 8);
+        ctx.clip();
+        
+        for (let r = 0; r < 16; r++) {
+          for (let c = 0; c < 16; c++) {
+            const idx = r * 16 + c;
+            let val = 0;
+            
+            if (type === 'mv') {
+              val = data.mv[idx];
+            } else if (type === 'res') {
+              val = data.res[idx];
+            } else {
+              val = Math.min(1, (data.mv[idx] * wMv + data.res[idx] * wRes) / 2);
+            }
+            
+            ctx.fillStyle = getColormap(val);
+            ctx.fillRect(x + c * patchW - 0.5, y + r * patchW - 0.5, patchW + 1, patchW + 1);
+          }
+        }
+        
+        // Add subtle overlay gradient for volume
+        const gloss = ctx.createLinearGradient(x, y, x, y + size);
+        gloss.addColorStop(0, "rgba(255,255,255,0.1)");
+        gloss.addColorStop(1, "rgba(0,0,0,0.2)");
+        ctx.fillStyle = gloss;
+        ctx.fillRect(x, y, size, size);
+        
+        ctx.restore();
+        
+        ctx.strokeStyle = "#475569";
+        ctx.lineWidth = 2;
+        drawRoundRect(ctx, x, y, size, size, 8);
+        ctx.stroke();
+      }
+
+      function drawEnergy() {
+        enCtx.clearRect(0, 0, enW, enH);
+        
+        const wMv = parseFloat(wmvSlider.value);
+        const wRes = parseFloat(wresSlider.value);
+        wmvVal.textContent = wMv.toFixed(1);
+        wresVal.textContent = wRes.toFixed(1);
+
+        const size = Math.min(enW / 3.5, 180);
+        const spacing = (enW - 3 * size) / 4;
+        
+        const startY = enH / 2 - size / 2;
+        
+        enCtx.font = "bold 16px var(--font-sans)";
+        enCtx.textAlign = "center";
+        enCtx.fillStyle = "#f8fafc";
+
+        enCtx.fillText("E_mv (Motion)", spacing + size/2, startY - 20);
+        drawHeatmap(enCtx, spacing, startY, size, gridData, 'mv');
+        
+        enCtx.fillText("E_res (Residual)", spacing*2 + size + size/2, startY - 20);
+        drawHeatmap(enCtx, spacing*2 + size, startY, size, gridData, 'res');
+        
+        enCtx.fillText("E_fused (Heatmap)", spacing*3 + size*2 + size/2, startY - 20);
+        drawHeatmap(enCtx, spacing*3 + size*2, startY, size, gridData, 'fused', wMv, wRes);
+        
+        // Operators
+        enCtx.font = "bold 24px JetBrains Mono";
+        enCtx.textAlign = "center";
+        enCtx.textBaseline = "middle";
+        
+        const opY = startY + size/2;
+        
+        // Plus
+        const plusX = spacing*1.5 + size;
+        enCtx.beginPath();
+        enCtx.arc(plusX, opY, 20, 0, Math.PI*2);
+        enCtx.fillStyle = "rgba(59, 130, 246, 0.2)";
+        enCtx.fill();
+        enCtx.strokeStyle = "rgba(59, 130, 246, 0.5)";
+        enCtx.stroke();
+        enCtx.fillStyle = "#60a5fa";
+        enCtx.fillText("+", plusX, opY);
+
+        // Equals
+        const eqX = spacing*2.5 + size*2;
+        enCtx.beginPath();
+        enCtx.arc(eqX, opY, 20, 0, Math.PI*2);
+        enCtx.fillStyle = "rgba(16, 185, 129, 0.2)";
+        enCtx.fill();
+        enCtx.strokeStyle = "rgba(16, 185, 129, 0.5)";
+        enCtx.stroke();
+        enCtx.fillStyle = "#34d399";
+        enCtx.fillText("=", eqX, opY);
+
+        // Colorbar legend
+        const cbW = 300, cbH = 12;
+        const cbX = enW/2 - cbW/2;
+        const cbY = startY + size + 40;
+        
+        enCtx.save();
+        drawRoundRect(enCtx, cbX, cbY, cbW, cbH, cbH/2);
+        enCtx.clip();
+        const legGrad = enCtx.createLinearGradient(cbX, cbY, cbX + cbW, cbY);
+        for(let i=0; i<=10; i++) {
+            legGrad.addColorStop(i/10, getColormap(i/10));
+        }
+        enCtx.fillStyle = legGrad;
+        enCtx.fillRect(cbX, cbY, cbW, cbH);
+        enCtx.restore();
+        
+        enCtx.strokeStyle = "#475569";
+        enCtx.lineWidth = 1;
+        drawRoundRect(enCtx, cbX, cbY, cbW, cbH, cbH/2);
+        enCtx.stroke();
+
+        enCtx.fillStyle = "#94a3b8";
+        enCtx.font = "12px var(--font-sans)";
+        enCtx.fillText("Low Energy (0.0)", cbX - 40, cbY + cbH/2 + 1);
+        enCtx.fillText("High Energy (1.0)", cbX + cbW + 45, cbY + cbH/2 + 1);
+      }
+
+      wmvSlider.addEventListener('input', drawEnergy);
+      wresSlider.addEventListener('input', drawEnergy);
+
+
+      // -----------------------------------------------------------------
+      // Animation 3: Square Mapping
+      // -----------------------------------------------------------------
+      const patchCanvas = document.getElementById('canvas-patch');
+      const btnPatchPlay = document.getElementById('btn-patch-play');
+      let patchCtx, patchW, patchH;
+      let patchState = { playing: false, p: 1 }; // start finished for default view
+
+      function initPatch() {
+        const s = setupCanvas(patchCanvas);
+        patchCtx = s.ctx; patchW = s.width; patchH = s.height;
+        drawPatch();
+      }
+
+      function drawPatch() {
+        patchCtx.clearRect(0, 0, patchW, patchH);
+        
+        const cx = patchW / 2;
+        const cy = patchH / 2;
+        const maxS = 240; // max square size
+        
+        const origW = 160, origH = 90; // 16:9 init
+        const pEased = easeInOutCubic(patchState.p);
+        const curW = origW + (maxS - origW) * pEased;
+        const curH = origH + (maxS - origH) * pEased;
+        
+        // Draw square bounds (Target 576x576)
+        patchCtx.strokeStyle = "rgba(148, 163, 184, 0.5)";
+        patchCtx.setLineDash([5,5]);
+        drawRoundRect(patchCtx, cx - maxS/2, cy - maxS/2, maxS, maxS, 4);
+        patchCtx.stroke();
+        patchCtx.setLineDash([]);
+        
+        // Target text
+        patchCtx.fillStyle = "#475569";
+        patchCtx.font = "bold 14px var(--font-sans)";
+        patchCtx.textAlign = "center";
+        patchCtx.fillText("Square576 Mapping (576×576)", cx, cy - maxS/2 - 15);
+
+        // Frame
+        const fy = cy - curH/2;
+        patchCtx.fillStyle = "#f1f5f9";
+        drawRoundRect(patchCtx, cx - maxS/2, cy - maxS/2, maxS, maxS, 4);
+        patchCtx.fill(); // Pad background
+        
+        // Inner actual frame
+        patchCtx.fillStyle = "rgba(59, 130, 246, 0.15)";
+        drawRoundRect(patchCtx, cx - curW/2, fy, curW, curH, 4);
+        patchCtx.fill();
+        patchCtx.strokeStyle = "#3b82f6";
+        patchCtx.lineWidth = 2;
+        patchCtx.stroke();
+
+        // Annotations
+        if (patchState.p < 0.1) {
+          patchCtx.fillStyle = "#2563eb";
+          patchCtx.font = "bold 14px var(--font-sans)";
+          patchCtx.fillText("Original Frame (16:9)", cx, fy - 10);
+        }
+        
+        // Patches Grid when fully expanded
+        if (patchState.p > 0.8) {
+          const gridAlpha = (patchState.p - 0.8) / 0.2;
+          patchCtx.globalAlpha = gridAlpha;
+          
+          const patchS = maxS / 36; // 36x36 grid
+          
+          // Draw cross-hatch for padding first
+          patchCtx.save();
+          patchCtx.beginPath();
+          drawRoundRect(patchCtx, cx - maxS/2, cy - maxS/2, maxS, maxS, 4);
+          patchCtx.clip();
+          
+          patchCtx.beginPath();
+          drawRoundRect(patchCtx, cx - curW/2, fy, curW, curH, 4);
+          // invert clip logic is hard, we'll just draw hatch everywhere then overwrite center
+          
+          patchCtx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+          patchCtx.lineWidth = 1;
+          for (let i = -maxS; i < maxS*2; i += 10) {
+             patchCtx.beginPath();
+             patchCtx.moveTo(cx - maxS/2 + i, cy - maxS/2);
+             patchCtx.lineTo(cx - maxS/2 + i - maxS, cy + maxS/2);
+             patchCtx.stroke();
+          }
+          
+          // Clear and redraw center frame to remove hatch
+          patchCtx.fillStyle = "#e0f2fe";
+          drawRoundRect(patchCtx, cx - curW/2, fy, curW, curH, 4);
+          patchCtx.fill();
+          patchCtx.stroke();
+          patchCtx.restore();
+
+          for(let r=0; r<36; r++) {
+            for(let c=0; c<36; c++) {
+              const px = cx - maxS/2 + c*patchS;
+              const py = cy - maxS/2 + r*patchS;
+              
+              const midY = py + patchS/2;
+              if (midY >= fy && midY <= fy + curH) {
+                // valid area heat
+                let heat = Math.abs(Math.sin((r*36+c) * 0.7 + r)) * 0.8 + 0.1;
+                patchCtx.fillStyle = getColormap(heat);
+                patchCtx.globalAlpha = gridAlpha * 0.8;
+                patchCtx.fillRect(px, py, patchS, patchS);
+                patchCtx.globalAlpha = gridAlpha;
+              }
+              
+              patchCtx.strokeStyle = "rgba(15, 23, 42, 0.15)";
+              patchCtx.lineWidth = 0.5;
+              patchCtx.strokeRect(px, py, patchS, patchS);
+            }
+          }
+
+          // Annotations for grid
+          patchCtx.fillStyle = "#1e293b";
+          patchCtx.font = "bold 12px var(--font-sans)";
+          patchCtx.fillText("36×36 Grid (1296 Patches)", cx, cy + maxS/2 + 20);
+          patchCtx.fillText("Patch Size: 16×16", cx, cy + maxS/2 + 35);
+
+          // Legend for valid/invalid
+          patchCtx.fillStyle = "#ef4444";
+          patchCtx.fillText("Invalid (Padding)", cx - 60, fy - 10);
+          patchCtx.fillStyle = "#10b981";
+          patchCtx.fillText("Valid (Content)", cx + 60, fy - 10);
+
+          patchCtx.globalAlpha = 1.0;
+        }
+      }
+
+      btnPatchPlay.addEventListener('click', () => {
+        if (patchState.playing) return;
+        patchState.playing = true;
+        const start = performance.now();
+        const duration = 2500;
+        
+        function step(time) {
+          patchState.p = Math.min(1, (time - start) / duration);
+          drawPatch();
+          if (patchState.p < 1) requestAnimationFrame(step);
+          else patchState.playing = false;
+        }
+        requestAnimationFrame(step);
+      });
+
+
+      // -----------------------------------------------------------------
+      // Animation 4: Global TopK
+      // -----------------------------------------------------------------
+      const topkCanvas = document.getElementById('canvas-topk');
+      const btnTopkPlay = document.getElementById('btn-topk-play');
+      const statusTopk = document.getElementById('status-topk');
+      let tkCtx, tkW, tkH;
+      let tkState = { playing: false, limit: 1296 }; // default show I-frame selected
+
+      function initTopk() {
+        const s = setupCanvas(topkCanvas);
+        tkCtx = s.ctx; tkW = s.width; tkH = s.height;
+        drawTopk();
+      }
+
+      function drawTopk() {
+        tkCtx.clearRect(0, 0, tkW, tkH);
+        
+        const fSize = 24, gap = 4;
+        const cols = 16, rows = 4;
+        const startX = (tkW - (cols * fSize + (cols-1)*gap)) / 2;
+        const startY = (tkH - (rows * fSize + (rows-1)*gap)) / 2;
+        
+        tkCtx.font = "12px JetBrains Mono";
+        let count = 0;
+        
+        for (let i = 0; i < 64; i++) {
+          let c = i % cols;
+          let r = Math.floor(i / cols);
+          let x = startX + c * (fSize + gap);
+          let y = startY + r * (fSize + gap);
+          
+          tkCtx.fillStyle = "#1e293b"; // base
+          tkCtx.fillRect(x, y, fSize, fSize);
+          tkCtx.strokeStyle = "#475569";
+          tkCtx.strokeRect(x, y, fSize, fSize);
+          
+          if (i === 0) {
+            // I frame always selected (1296 patches)
+            tkCtx.fillStyle = "#10b981";
+            tkCtx.fillRect(x, y, fSize, fSize);
+            tkCtx.fillStyle = "#fff";
+            tkCtx.fillText("I", x + 8, y + 16);
+            if (tkState.limit > 0) count += 1296;
+          } else {
+            // P frames selected based on limit
+            let selectedPatches = Math.floor(Math.pow(Math.sin(i * 1.5), 2) * 500); // 0 to 500 max
+            let allowed = Math.max(0, tkState.limit - 1296 - (i-1)*200); // rough simulation of global limit
+            if (allowed > 0) {
+              let actual = Math.min(selectedPatches, allowed);
+              count += actual;
+              let fillP = actual / 500;
+              tkCtx.fillStyle = `rgba(59, 130, 246, ${fillP})`;
+              tkCtx.fillRect(x, y + fSize*(1-fillP), fSize, fSize*fillP);
+            }
+          }
+        }
+        
+        statusTopk.textContent = `Selected: ${count} / 10368`;
+      }
+
+      btnTopkPlay.addEventListener('click', () => {
+        if (tkState.playing) return;
+        tkState.playing = true;
+        const start = performance.now();
+        const duration = 4000;
+        
+        function step(time) {
+          const p = Math.min(1, (time - start) / duration);
+          tkState.limit = Math.floor(p * 10368);
+          drawTopk();
+          if (p < 1) requestAnimationFrame(step);
+          else tkState.playing = false;
+        }
+        requestAnimationFrame(step);
+      });
+
+      // -----------------------------------------------------------------
+      // Animation 5: Mosaic
+      // -----------------------------------------------------------------
+      const mosCanvas = document.getElementById('canvas-mosaic');
+      const btnMosPlay = document.getElementById('btn-mosaic-play');
+      const statusMos = document.getElementById('status-mosaic');
+      let mosCtx, mosW, mosH;
+      let mosState = { playing: false, p: 1 };
+
+      function initMosaic() {
+        const s = setupCanvas(mosCanvas);
+        mosCtx = s.ctx; mosW = s.width; mosH = s.height;
+        drawMosaic();
+      }
+
+      function drawMosaic() {
+        mosCtx.clearRect(0, 0, mosW, mosH);
+        
+        const mSize = 65, gap = 20;
+        const startX = mosW/2 - (4*mSize + 3*gap)/2;
+        const startY = mosH/2 - (2*mSize + gap)/2;
+        
+        mosCtx.textAlign = "center";
+        
+        // Eased progress for smooth sequential filling
+        const easedP = easeInOutCubic(mosState.p);
+        
+        for (let i = 0; i < 8; i++) {
+          let x = startX + (i % 4) * (mSize + gap);
+          let y = startY + Math.floor(i / 4) * (mSize + gap);
+          
+          // Background placeholder with dashed border and rounded corners
+          mosCtx.strokeStyle = "#cbd5e1"; // Slate 300
+          mosCtx.lineWidth = 1.5;
+          mosCtx.setLineDash([4, 4]);
+          mosCtx.fillStyle = "#f8fafc"; // Slate 50
+          mosCtx.beginPath();
+          drawRoundRect(mosCtx, x, y, mSize, mSize, 8);
+          mosCtx.fill();
+          mosCtx.stroke();
+          mosCtx.setLineDash([]);
+          
+          // Label
+          mosCtx.fillStyle = "#64748b"; // Slate 500
+          mosCtx.font = "500 13px var(--font-sans)";
+          mosCtx.fillText(`Mosaic ${i}`, x + mSize/2, y - 8);
+          
+          if (easedP > 0) {
+            let limit = i / 8;
+            if (easedP > limit) {
+              let fillScale = (easedP - limit) * 8;
+              fillScale = Math.min(1, fillScale);
+              
+              mosCtx.save();
+              // Clip to rounded rectangle for the fill
+              mosCtx.beginPath();
+              drawRoundRect(mosCtx, x, y, mSize, mSize, 8);
+              mosCtx.clip();
+              
+              if (i === 0) {
+                // Full I frame: Green gradient
+                const grad = mosCtx.createLinearGradient(x, y, x + mSize, y + mSize);
+                grad.addColorStop(0, "rgba(16, 185, 129, 0.95)"); // Emerald 500
+                grad.addColorStop(1, "rgba(4, 120, 87, 0.95)");   // Emerald 700
+                mosCtx.fillStyle = grad;
+                mosCtx.fillRect(x, y, mSize * fillScale, mSize);
+              } else {
+                // Packed sparse: Blue gradient
+                let fillH = mSize * fillScale;
+                const grad = mosCtx.createLinearGradient(x, y, x, y + mSize);
+                grad.addColorStop(0, "rgba(59, 130, 246, 0.95)"); // Blue 500
+                grad.addColorStop(1, "rgba(29, 78, 216, 0.95)");  // Blue 700
+                mosCtx.fillStyle = grad;
+                mosCtx.fillRect(x, y, mSize, fillH);
+                
+                // Draw internal grid lines to simulate patches
+                mosCtx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+                mosCtx.lineWidth = 1;
+                mosCtx.beginPath();
+                for(let row = 1; row < 5; row++) {
+                  if (row * (mSize/5) < fillH) {
+                    mosCtx.moveTo(x, y + row*(mSize/5));
+                    mosCtx.lineTo(x + mSize, y + row*(mSize/5));
+                  }
+                }
+                mosCtx.stroke();
+              }
+              mosCtx.restore();
+              
+              // Add a subtle shadow when fully filled
+              if (fillScale === 1) {
+                mosCtx.save();
+                mosCtx.shadowColor = "rgba(0, 0, 0, 0.15)";
+                mosCtx.shadowBlur = 8;
+                mosCtx.shadowOffsetY = 4;
+                mosCtx.strokeStyle = i === 0 ? "#34d399" : "#60a5fa";
+                mosCtx.lineWidth = 2;
+                mosCtx.beginPath();
+                drawRoundRect(mosCtx, x, y, mSize, mSize, 8);
+                mosCtx.stroke();
+                mosCtx.restore();
+              }
+            }
+          }
+        }
+        
+        // Final Output Label
+        if (mosState.p === 1) {
+           mosCtx.fillStyle = "#0f172a"; // Slate 900
+           mosCtx.font = "bold 14px JetBrains Mono, monospace";
+           mosCtx.shadowColor = "rgba(0,0,0,0.1)";
+           mosCtx.shadowBlur = 4;
+           mosCtx.shadowOffsetY = 2;
+           mosCtx.fillText("positions_thw.npy → 3D RoPE", mosW/2, mosH - 25);
+           mosCtx.shadowColor = "transparent";
+        }
+      }
+
+      btnMosPlay.addEventListener('click', () => {
+        if (mosState.playing) return;
+        mosState.playing = true;
+        const start = performance.now();
+        const duration = 2500; // Slightly longer for elegance
+        
+        function step(time) {
+          mosState.p = Math.min(1, (time - start) / duration);
+          statusMos.textContent = `Packing... ${Math.floor(mosState.p * 100)}%`;
+          drawMosaic();
+          if (mosState.p < 1) requestAnimationFrame(step);
+          else {
+            mosState.playing = false;
+            statusMos.textContent = `Packed 8 Mosaic Images`;
+          }
+        }
+        requestAnimationFrame(step);
+      });
+
+            // Handle Resizes
+      window.addEventListener('resize', () => {
+        initMv();
+        initRes();
+        initGop();
+        initPipe();
+        initTrad();
+        initEnergy();
+        initPatch();
+        initTopk();
+        initMosaic();
+      });
+
+      // Init All
+      window.onload = () => {
+        initMv();
+        initRes();
+        initGop();
+        initPipe();
+        initTrad();
+        initEnergy();
+        initPatch();
+        initTopk();
+        initMosaic();
+      };
+    </script>
+  </body>
+</html>
