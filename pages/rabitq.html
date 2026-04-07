@@ -826,6 +826,17 @@
         $$\widehat{\langle o, q \rangle} \;=\; \frac{\langle \bar{o},\, q \rangle}{\langle \bar{o},\, o \rangle}, \qquad \mathbb{E}\!\left[\,\widehat{\langle o, q \rangle}\,\right] = \langle o, q \rangle$$
       </div>
 
+      <div class="insight-box" style="padding:20px">
+        <p style="margin-top:0; margin-bottom:15px; font-size:1.1em">
+          <strong data-en="📐 D=3 Worked Example" data-zh="📐 D=3 具体示例">📐 D=3 Worked Example</strong>
+        </p>
+        <div id="walkthrough-container" style="display:flex; flex-direction:column; gap:12px; margin-bottom:15px">
+          <!-- JS will fill this -->
+        </div>
+        <button class="btn-play" id="btn-walkthrough-reroll" type="button"
+          data-en="🎲 New Vectors" data-zh="🎲 换一组向量">🎲 New Vectors</button>
+      </div>
+
       <p class="phase-desc" style="margin-top:0.5em"
         data-en="For fast computation, we exploit the invariance of inner products under orthogonal transformations. Instead of computing ⟨ō, q⟩ directly, we inversely rotate the query: q' = P⁻¹q. Then ⟨ō, q⟩ = ⟨x̄, q'⟩, where x̄ ∈ {±1/√D}ᴰ is the binary code. Since each x̄ᵢ is ±1/√D, this dot product becomes a simple sum of additions and subtractions — no multiplications needed. (In the official RaBitQ-Library, the dense random matrix P is replaced by a structured Fast Hadamard Transform (FHT) — 4 rounds of sign-flip + Hadamard + rescale — reducing the rotation cost from O(D²) to O(D log D) while preserving the same statistical guarantees.)"
         data-zh="为了高效计算，我们利用内积在正交变换下的不变性。不直接计算 ⟨ō, q⟩，而是反向旋转查询向量：q' = P⁻¹q。于是 ⟨ō, q⟩ = ⟨x̄, q'⟩，其中 x̄ ∈ {±1/√D}ᴰ 是二进制编码。由于每个 x̄ᵢ 都是 ±1/√D，这个点积变成了简单的加减运算——无需乘法。（在官方 RaBitQ-Library 中，稠密随机矩阵 P 被替换为结构化的快速 Hadamard 变换 (FHT)——4 轮符号翻转 + Hadamard + 缩放——将旋转开销从 O(D²) 降至 O(D log D)，同时保持相同的统计保证。）">
@@ -843,20 +854,51 @@
       </div>
 
 
-      <p class="phase-desc" style="margin-top:0.5em"
-        data-en="How does this translate to production code? In the official RaBitQ-Library, the estimator is reorganized into a precomputed affine form that eliminates the query-time division entirely. At index time, three factors are stored per data vector:"
-        data-zh="这在生产代码中是如何实现的？在官方 RaBitQ-Library 中，估计量被重新组织为预计算的仿射形式，完全消除了查询时的除法运算。建索引时，为每个数据向量存储三个因子：">
-        How does this translate to production code? In the official RaBitQ-Library, the estimator is reorganized into a precomputed affine form that eliminates the query-time division entirely. At index time, three factors are stored per data vector:
+      <p class="phase-desc" style="margin-top:1.5em"
+        data-en="How does production code implement this? The official RaBitQ-Library reorganizes everything into three precomputed scalars per data vector:"
+        data-zh="生产代码如何实现？官方 RaBitQ-Library 将一切重组为每个数据向量预计算的三个标量：">
+        How does production code implement this? The official RaBitQ-Library reorganizes everything into three precomputed scalars per data vector:
       </p>
 
+      <div class="insight-box" style="padding:0; overflow:hidden">
+        <div style="padding:12px 20px; border-bottom:1px solid #bfdbfe; display:flex; gap:16px; align-items:baseline">
+          <strong style="color:var(--accent); font-family:var(--font-math); min-width:90px">f_add</strong>
+          <span data-en="= ‖x_r − c‖² + centroid correction. Pre-computed at index time. Captures the data vector's contribution to the squared distance."
+                data-zh="= ‖x_r − c‖² + 质心修正。建索引时预计算。捕获数据向量对平方距离的贡献。">
+            = ‖x_r − c‖² + centroid correction. Pre-computed at index time. Captures the data vector's contribution to the squared distance.
+          </span>
+        </div>
+        <div style="padding:12px 20px; border-bottom:1px solid #bfdbfe; display:flex; gap:16px; align-items:baseline">
+          <strong style="color:var(--accent); font-family:var(--font-math); min-width:90px">f_rescale</strong>
+          <span data-en="= −2‖x_r − c‖² / ⟨ō, o⟩. Absorbs the division from the paper's estimator. At query time, just multiply — no division needed."
+                data-zh="= −2‖x_r − c‖² / ⟨ō, o⟩。吸收了论文估计量中的除法。查询时只需乘法——无需除法。">
+            = −2‖x_r − c‖² / ⟨ō, o⟩. Absorbs the division from the paper's estimator. At query time, just multiply — no division needed.
+          </span>
+        </div>
+        <div style="padding:12px 20px; border-bottom:1px solid #bfdbfe; display:flex; gap:16px; align-items:baseline">
+          <strong style="color:var(--accent); font-family:var(--font-math); min-width:90px">g_add</strong>
+          <span data-en="= ‖q_r − c‖². Query-side term, computed once per query."
+                data-zh="= ‖q_r − c‖²。查询侧项，每次查询只计算一次。">
+            = ‖q_r − c‖². Query-side term, computed once per query.
+          </span>
+        </div>
+        <div style="padding:12px 20px; display:flex; gap:16px; align-items:baseline">
+          <strong style="color:var(--accent); font-family:var(--font-math); min-width:90px">k₁xsumq</strong>
+          <span data-en="= sum(q') × (−0.5). Corrects for the {0,1} → {−½,+½} binary encoding shift."
+                data-zh="= sum(q') × (−0.5)。修正 {0,1} → {−½,+½} 二进制编码偏移。">
+            = sum(q') × (−0.5). Corrects for the {0,1} → {−½,+½} binary encoding shift.
+          </span>
+        </div>
+      </div>
+
       <div class="math-block">
-        $$\text{est\_dist} = \underbrace{f_{\text{add}}}_{\|x_r - c\|^2 + \text{centroid correction}} + \underbrace{g_{\text{add}}}_{\|q_r - c\|^2\;(\text{query-side})} + \underbrace{f_{\text{rescale}}}_{\text{absorbs } 1/\langle \bar{o}, o \rangle} \cdot \left( \langle \bar{x},\, q' \rangle + k_{\text{1xsumq}} \right)$$
+        $$\text{est\_dist} = f_{\text{add}} + g_{\text{add}} + f_{\text{rescale}} \cdot \bigl(\langle \bar{x},\, q' \rangle + k_{\text{1xsumq}}\bigr)$$
       </div>
 
       <div class="insight-box"
-        data-en="<strong>💡 From theory to code:</strong> The paper's estimator divides ⟨ō, q⟩ by ⟨ō, o⟩ at query time. The library absorbs this division into <code>f_rescale = −2‖x_r−c‖² / ⟨residual, x̄⟩</code>, precomputed at index time. At query time, the entire distance estimate becomes a single multiply-add — no division needed. The term <code>k_1xsumq</code> corrects for the {0,1} → {−½,+½} binary encoding shift. A fourth value, <code>f_error</code>, stores the estimated standard deviation of the noise term, enabling safe lower-bound pruning: <code>low_dist = est_dist − f_error · ‖q_r − c‖</code>."
-        data-zh="<strong>💡 从理论到代码：</strong>论文的估计量在查询时除以 ⟨ō, o⟩。库将此除法吸收到 <code>f_rescale = −2‖x_r−c‖² / ⟨残差, x̄⟩</code> 中，在建索引时预计算。查询时，整个距离估计变成一次乘加运算——无需除法。<code>k_1xsumq</code> 项修正了 {0,1} → {−½,+½} 二进制编码偏移。第四个值 <code>f_error</code> 存储噪声项的估计标准差，用于安全的下界剪枝：<code>low_dist = est_dist − f_error · ‖q_r − c‖</code>。">
-        <strong>💡 From theory to code:</strong> The paper's estimator divides ⟨ō, q⟩ by ⟨ō, o⟩ at query time. The library absorbs this division into <code>f_rescale = −2‖x_r−c‖² / ⟨residual, x̄⟩</code>, precomputed at index time. At query time, the entire distance estimate becomes a single multiply-add — no division needed. The term <code>k_1xsumq</code> corrects for the {0,1} → {−½,+½} binary encoding shift. A fourth value, <code>f_error</code>, stores the estimated standard deviation of the noise term, enabling safe lower-bound pruning: <code>low_dist = est_dist − f_error · ‖q_r − c‖</code>.
+        data-en="<strong>💡 Lower-bound pruning:</strong> A fourth value <code>f_error</code> stores the estimated noise standard deviation. During search, candidates with <code>est_dist − f_error · ‖q_r − c‖</code> above the current best distance are safely skipped — this is what makes RaBitQ fast in practice."
+        data-zh="<strong>💡 下界剪枝：</strong>第四个值 <code>f_error</code> 存储估计的噪声标准差。搜索时，若 <code>est_dist − f_error · ‖q_r − c‖</code> 大于当前最优距离，则安全跳过该候选——这是 RaBitQ 在实践中快速的关键。">
+        <strong>💡 Lower-bound pruning:</strong> A fourth value <code>f_error</code> stores the estimated noise standard deviation. During search, candidates with <code>est_dist − f_error · ‖q_r − c‖</code> above the current best distance are safely skipped — this is what makes RaBitQ fast in practice.
       </div>
 
       <p class="phase-desc" style="margin-top:0.5em"
@@ -876,6 +918,25 @@
         data-zh="这张图对比了两种估计 ‖x_r − q_r‖² 的方式：论文公式（⟨ō, q⟩ / ⟨ō, o⟩）和库的预计算三因子形式（f_add + g_add + f_rescale · ip）。蓝色柱形显示平均相对距离误差；红色虚线是理论 O(1/√D) 界。悬停柱形可查看两种估计及其吻合程度。随着 D 增大，两者都收敛——且彼此始终完全一致。">
         This chart compares two ways of estimating ‖x_r − q_r‖²: the paper's formula (⟨ō, q⟩ / ⟨ō, o⟩) and the library's precomputed three-factor form (f_add + g_add + f_rescale · ip). Blue bars show the average relative distance error; the dashed red line is the theoretical O(1/√D) bound. Hover over a bar to see both estimates and their agreement. As D grows, both converge — and they always match each other exactly.
       </p>
+      <p class="phase-desc"
+        data-en="Watch a single estimation unfold step by step. Click 'Next Step' to see each phase: the original vectors, rotation, quantization, inner product computation, and the final distance estimate."
+        data-zh="观看单次估计的逐步展开。点击“下一步”查看每个阶段：原始向量、旋转、量化、内积计算，以及最终距离估计。">
+        Watch a single estimation unfold step by step. Click 'Next Step' to see each phase: the original vectors, rotation, quantization, inner product computation, and the final distance estimate.
+      </p>
+
+      <div class="stage-wrapper" id="stage-single-pair" style="height:400px; margin-bottom: 2em;">
+        <canvas id="canvas-single-pair"></canvas>
+        <div class="viz-info" id="single-pair-info"
+          data-en="Click Step to advance" data-zh="点击“下一步”推进">
+          Click Step to advance
+        </div>
+        <div class="controls">
+          <button class="btn-play" id="btn-sp-step" type="button"
+            data-en="▶ Next Step" data-zh="▶ 下一步">▶ Next Step</button>
+          <button class="btn-play" id="btn-sp-reset" type="button"
+            data-en="🔄 Reset" data-zh="🔄 重置">🔄 Reset</button>
+        </div>
+      </div>
 
       <div class="stage-wrapper" id="stage-error" style="height: 380px">
         <canvas id="canvas-error"></canvas>
@@ -1048,6 +1109,7 @@
       langBtn.addEventListener("click", () => {
         lang = lang === "en" ? "zh" : "en";
         updateI18n();
+        document.dispatchEvent(new Event('languageChanged'));
       });
 
       // ---------- TOC ----------
@@ -2023,6 +2085,264 @@
         });
         resize();
         runExperiment();
+      })();
+
+      // ============ D=3 WALKTHROUGH ============
+      ;(function() {
+        const container = document.getElementById("walkthrough-container");
+        const btn = document.getElementById("btn-walkthrough-reroll");
+        
+        function formatVec(v) {
+          return `(${v[0].toFixed(2)}, ${v[1].toFixed(2)}, ${v[2].toFixed(2)})`;
+        }
+
+        function runWalkthrough() {
+          const D = 3;
+          const x = randomUnitVector(D);
+          const q = randomUnitVector(D);
+          const P = randomOrthogonal(D);
+
+          const o_prime = matTransposeVecMul(P, x); // o' = P^T x
+          const q_prime = matTransposeVecMul(P, q); // q' = P^T q
+
+          const x_bar = o_prime.map(val => Math.sign(val) === 0 ? 1/Math.sqrt(D) : Math.sign(val)/Math.sqrt(D));
+          
+          let dot_xbar_qprime = 0;
+          for(let i=0; i<D; i++) dot_xbar_qprime += x_bar[i] * q_prime[i];
+
+          let dot_xbar_oprime = 0;
+          for(let i=0; i<D; i++) dot_xbar_oprime += x_bar[i] * o_prime[i];
+
+          const est_dot = dot_xbar_qprime / dot_xbar_oprime;
+          const true_dot = dot(x, q);
+          
+          const est_dist = 2 - 2 * est_dot; // since ||x||=||q||=1, dist = 2 - 2*dot
+          const true_dist = 2 - 2 * true_dot;
+          const err = true_dist === 0 ? 0 : Math.abs(est_dist - true_dist) / true_dist * 100;
+
+          const stepsEn = [
+            { label: "Step 1: Vectors", val: `x=${formatVec(x)}, q=${formatVec(q)}` },
+            { label: "Step 2: Rotate", val: `o'=${formatVec(o_prime)}, q'=${formatVec(q_prime)}` },
+            { label: "Step 3: Quantize", val: `x̄=sign(o')=(${[...x_bar].map(v => v>0 ? '+1/√3' : '-1/√3').join(', ')})` },
+            { label: "Step 4: ⟨x̄, q'⟩", val: `sum(±q'ᵢ/√3) = ${dot_xbar_qprime.toFixed(4)}` },
+            { label: "Step 5: ⟨x̄, o'⟩", val: `sum(±o'ᵢ/√3) = ${dot_xbar_oprime.toFixed(4)}` },
+            { label: "Step 6: Estimate", val: `⟨o,q⟩_est = ${dot_xbar_qprime.toFixed(4)} / ${dot_xbar_oprime.toFixed(4)} = ${est_dot.toFixed(4)}` },
+            { label: "Step 7: True dot", val: `⟨o,q⟩_true = ${true_dot.toFixed(4)}` },
+            { label: "Step 8: Distance", val: `est_dist=${est_dist.toFixed(2)}, true_dist=${true_dist.toFixed(2)} (Err: ${err.toFixed(1)}%)` }
+          ];
+
+          const stepsZh = [
+            { label: "步骤 1: 向量", val: `x=${formatVec(x)}, q=${formatVec(q)}` },
+            { label: "步骤 2: 旋转", val: `o'=${formatVec(o_prime)}, q'=${formatVec(q_prime)}` },
+            { label: "步骤 3: 量化", val: `x̄=sign(o')=(${[...x_bar].map(v => v>0 ? '+1/√3' : '-1/√3').join(', ')})` },
+            { label: "步骤 4: ⟨x̄, q'⟩", val: `sum(±q'ᵢ/√3) = ${dot_xbar_qprime.toFixed(4)}` },
+            { label: "步骤 5: ⟨x̄, o'⟩", val: `sum(±o'ᵢ/√3) = ${dot_xbar_oprime.toFixed(4)}` },
+            { label: "步骤 6: 估计内积", val: `⟨o,q⟩_est = ${dot_xbar_qprime.toFixed(4)} / ${dot_xbar_oprime.toFixed(4)} = ${est_dot.toFixed(4)}` },
+            { label: "步骤 7: 真实内积", val: `⟨o,q⟩_true = ${true_dot.toFixed(4)}` },
+            { label: "步骤 8: 距离", val: `est=${est_dist.toFixed(2)}, true=${true_dist.toFixed(2)} (误差: ${err.toFixed(1)}%)` }
+          ];
+
+          container.innerHTML = '';
+          const isZh = (typeof lang !== 'undefined' && lang === 'zh');
+          const steps = isZh ? stepsZh : stepsEn;
+
+          steps.forEach((step, i) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = 'space-between';
+            row.style.paddingBottom = '8px';
+            if (i < steps.length - 1) {
+              row.style.borderBottom = '1px solid #bfdbfe';
+            }
+            row.innerHTML = `
+              <span style="font-family:var(--font-sans); font-weight:bold; color:var(--accent); min-width:140px" 
+                    data-en="${stepsEn[i].label}" data-zh="${stepsZh[i].label}">
+                ${step.label}
+              </span>
+              <span style="font-family:var(--font-math); text-align:right">
+                ${step.val}
+              </span>
+            `;
+            container.appendChild(row);
+          });
+        }
+        
+        btn.addEventListener('click', runWalkthrough);
+        // Re-render when lang changes if possible
+        document.addEventListener('languageChanged', runWalkthrough);
+        runWalkthrough();
+      })();
+
+      // ============ SINGLE-PAIR STEP-THROUGH VIZ ============
+      ;(function() {
+        const canvas = document.getElementById('canvas-single-pair');
+        const ctx = canvas.getContext('2d');
+        const btnStep = document.getElementById('btn-sp-step');
+        const btnReset = document.getElementById('btn-sp-reset');
+        const info = document.getElementById('single-pair-info');
+
+        let D = 3;
+        let x, q, P, o_prime, q_prime, x_bar, dot_xq, dot_xo, est_dot, true_dot, est_dist, true_dist;
+        let currentStep = 0;
+
+        function initPair() {
+          x = randomUnitVector(D);
+          q = randomUnitVector(D);
+          P = randomOrthogonal(D);
+          o_prime = matTransposeVecMul(P, x);
+          q_prime = matTransposeVecMul(P, q);
+          x_bar = o_prime.map(val => Math.sign(val) === 0 ? 1/Math.sqrt(D) : Math.sign(val)/Math.sqrt(D));
+          dot_xq = 0; dot_xo = 0;
+          for(let i=0; i<D; i++) {
+            dot_xq += x_bar[i] * q_prime[i];
+            dot_xo += x_bar[i] * o_prime[i];
+          }
+          est_dot = dot_xq / dot_xo;
+          true_dot = dot(x, q);
+          est_dist = 2 - 2 * est_dot;
+          true_dist = 2 - 2 * true_dot;
+          currentStep = 0;
+          resize();
+          updateUI();
+          draw();
+        }
+
+        function formatVec(v) {
+          return `(${v[0].toFixed(2)}, ${v[1].toFixed(2)}, ${v[2].toFixed(2)})`;
+        }
+
+        function updateUI() {
+          const isZh = (typeof lang !== 'undefined' && lang === 'zh');
+          if (currentStep >= 5) {
+            btnStep.textContent = isZh ? "🎲 新一组" : "🎲 New";
+            btnStep.setAttribute('data-en', '🎲 New');
+            btnStep.setAttribute('data-zh', '🎲 新一组');
+          } else {
+            btnStep.textContent = isZh ? "▶ 下一步" : "▶ Next Step";
+            btnStep.setAttribute('data-en', '▶ Next Step');
+            btnStep.setAttribute('data-zh', '▶ 下一步');
+          }
+
+          const msgsEn = [
+            "Step 0: Initial vectors x and q",
+            "Step 1: Rotate x and q by random matrix P⁻¹",
+            "Step 2: Quantize o' to get binary code x̄",
+            "Step 3: Compute inner product ⟨x̄, q'⟩",
+            "Step 4: Compute ⟨x̄, o'⟩ and estimate ⟨o,q⟩",
+            "Step 5: Final distance comparison"
+          ];
+          const msgsZh = [
+            "步骤 0: 初始向量 x 和 q",
+            "步骤 1: 使用随机矩阵 P⁻¹ 旋转 x 和 q",
+            "步骤 2: 量化 o' 得到二进制编码 x̄",
+            "步骤 3: 计算内积 ⟨x̄, q'⟩",
+            "步骤 4: 计算 ⟨x̄, o'⟩ 并估计 ⟨o,q⟩",
+            "步骤 5: 最终距离对比"
+          ];
+          info.textContent = isZh ? msgsZh[currentStep] : msgsEn[currentStep];
+          info.setAttribute('data-en', msgsEn[currentStep]);
+          info.setAttribute('data-zh', msgsZh[currentStep]);
+        }
+
+        function resize() {
+          if(!canvas || !canvas.parentElement) return;
+          const rect = canvas.parentElement.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = rect.width * dpr;
+          canvas.height = 400 * dpr;
+          canvas.style.width = rect.width + "px";
+          canvas.style.height = "400px";
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          draw();
+        }
+
+        function drawTextRow(y, leftText, rightText, highlight) {
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          // Label line
+          ctx.font = highlight ? "bold 13px var(--font-sans, sans-serif)" : "13px var(--font-sans, sans-serif)";
+          ctx.fillStyle = highlight ? "#2563eb" : "#9ca3af";
+          ctx.textAlign = "left";
+          ctx.fillText(leftText, 24, y);
+          // Value line (below label)
+          ctx.font = "14px var(--font-math, monospace)";
+          ctx.fillStyle = highlight ? "#1e40af" : "#374151";
+          ctx.textAlign = "left";
+          ctx.fillText(rightText, 36, y + 18);
+        }
+
+        function draw() {
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          const h = 400;
+          ctx.clearRect(0, 0, w, h);
+
+          const isZh = (typeof lang !== 'undefined' && lang === 'zh');
+          
+          let startY = 30;
+          let rowH = 52;
+
+          // Step 0: Vectors
+          if (currentStep >= 0) {
+            drawTextRow(startY, isZh ? "初始向量:" : "Original vectors:", `x = ${formatVec(x)}, q = ${formatVec(q)}`, currentStep === 0);
+          }
+          
+          // Step 1: Rotate
+          if (currentStep >= 1) {
+            drawTextRow(startY + rowH, isZh ? "反向旋转 P⁻¹:" : "Reverse Rotation P⁻¹:", `o' = ${formatVec(o_prime)}, q' = ${formatVec(q_prime)}`, currentStep === 1);
+          }
+
+          // Step 2: Quantize
+          if (currentStep >= 2) {
+            const xbStr = `(${[...x_bar].map(v => v>0 ? '+1/√3' : '-1/√3').join(', ')})`;
+            drawTextRow(startY + 2*rowH, isZh ? "量化 (取符号):" : "Quantization (sign):", `x̄ = ${xbStr}`, currentStep === 2);
+          }
+
+          // Step 3: <x_bar, q'>
+          if (currentStep >= 3) {
+            drawTextRow(startY + 3*rowH, isZh ? "近似内积:" : "Approx Inner Product:", `⟨x̄, q'⟩ = ${dot_xq.toFixed(4)}`, currentStep === 3);
+          }
+
+          // Step 4: Estimate
+          if (currentStep >= 4) {
+            drawTextRow(startY + 4*rowH, isZh ? "归一化估计内积:" : "Normalized Est. IP:", `⟨o,q⟩_est = ${dot_xq.toFixed(4)} / ${dot_xo.toFixed(4)} = ${est_dot.toFixed(4)}  (True: ${true_dot.toFixed(4)})`, currentStep === 4);
+          }
+
+          // Step 5: Distance
+          if (currentStep >= 5) {
+            const err = true_dist === 0 ? 0 : Math.abs(est_dist - true_dist) / true_dist * 100;
+            const errColor = err < 5 ? "#10b981" : "#ef4444";
+            drawTextRow(startY + 5*rowH, isZh ? "最终距离估计:" : "Final Distance Estimate:", `est: ${est_dist.toFixed(3)}, true: ${true_dist.toFixed(3)}`, currentStep === 5);
+            // Error badge
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            ctx.font = "bold 13px var(--font-math, monospace)";
+            ctx.fillStyle = errColor;
+            ctx.textAlign = "right";
+            ctx.fillText(`Error: ${err.toFixed(1)}%`, w - 24, startY + 5*rowH + 18);
+          }
+        }
+
+        btnStep.addEventListener('click', () => {
+          if (currentStep >= 5) {
+            initPair();
+          } else {
+            currentStep++;
+            updateUI();
+            draw();
+          }
+        });
+
+        btnReset.addEventListener('click', () => {
+          currentStep = 0;
+          updateUI();
+          draw();
+        });
+
+        window.addEventListener('resize', resize);
+        document.addEventListener('languageChanged', () => {
+          updateUI();
+          draw();
+        });
+        
+        initPair();
       })();
 
       // ============ VIZ 4: HISTOGRAM ============
