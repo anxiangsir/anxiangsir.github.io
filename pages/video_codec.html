@@ -36,8 +36,9 @@
       .site-nav .nav-sep { color: var(--border); user-select: none; }
       
       * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      ::selection { background: rgba(37, 99, 235, 0.2); color: var(--text); }
       body { background: var(--bg); color: var(--text); font-family: var(--font-serif); line-height: 1.5; padding: 2rem 1rem; }
-      
       .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); z-index: 999; transition: width 0.1s; }
       
       .fade-in-section {
@@ -54,7 +55,7 @@
       .article { max-width: 860px; margin: 0 auto; background: var(--bg); padding: 0 1rem 3rem; position: relative; }
       
       .masthead { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2.5rem; position: relative; }
-      .masthead-title { font-family: var(--font-headline); font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin: 0 0 10px; color: var(--text); }
+      .masthead-title { font-family: var(--font-headline); font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin: 0 0 10px; background: linear-gradient(135deg, var(--text), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
       .masthead-sub { font-size: 1rem; font-family: var(--font-sans); margin-bottom: 10px; color: var(--text-secondary); }
       
       .lang-toggle { position: absolute; top: 10px; right: 10px; z-index: 40; font-family: var(--font-sans); padding: 6px 16px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; color: var(--text-secondary); font-weight: bold; border-radius: 20px; font-size: 0.85rem; transition: all 0.2s; }
@@ -68,8 +69,9 @@
       
       .math-block { display: block; text-align: center; padding: 1.5rem 1rem; background: var(--bg-alt); border-left: 3px solid var(--accent); margin: 2rem 0; border-radius: 4px; color: var(--text); overflow-x: auto; -webkit-overflow-scrolling: touch; font-size: 1.1em; font-family: var(--font-math); }
       
-      .stage-wrapper { width: 100%; position: relative; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 2rem auto; background: var(--bg-alt); box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; flex-direction: column; }
-      .canvas-container { width: 100%; height: 350px; position: relative; display: flex; justify-content: center; align-items: center; background: white; }
+      .stage-wrapper { width: 100%; position: relative; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 2rem auto; background: var(--bg-alt); box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: box-shadow 0.3s ease; display: flex; flex-direction: column; }
+      .stage-wrapper:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+      .canvas-container { width: 100%; height: 400px; position: relative; display: flex; justify-content: center; align-items: center; background: white; }
       .stage-wrapper canvas { display: block; width: 100%; max-height: 100%; outline: none; cursor: crosshair; }
       
       .controls { padding: 15px 20px; background: var(--bg-alt); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 15px; font-family: var(--font-sans); flex-wrap: wrap; justify-content: space-between; }
@@ -78,21 +80,32 @@
       .status-text { font-family: var(--font-math); font-size: 0.85rem; color: var(--accent); font-weight: bold; text-align: right; }
       
       .comp-table { width: 100%; border-collapse: collapse; margin: 2rem 0; font-family: var(--font-sans); font-size: 0.95rem; }
-      .comp-table th, .comp-table td { padding: 12px; border: 1px solid var(--border); text-align: left; }
+      .comp-table th, .comp-table td { padding: 12px; border: 1px solid var(--border); text-align: left; transition: background 0.2s; }
       .comp-table th { background: var(--bg-alt); font-weight: bold; }
-
+      .comp-table tbody tr:hover td { background: var(--bg-alt); }
+      
+      .toc-nav { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 50; background: var(--bg); padding: 10px 8px; border-radius: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+      .toc-item { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--text-secondary); font-family: var(--font-sans); font-size: 0.8rem; font-weight: bold; transition: all 0.2s; }
+      .toc-item:hover, .toc-item.active { background: var(--accent); color: white; }
+      
+      .back-to-top { position: fixed; bottom: 30px; right: 30px; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.2rem; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+      .back-to-top.visible { opacity: 1; pointer-events: auto; }
+      .back-to-top:hover { transform: translateY(-3px); }
       [data-lang="en"] { display: none; }
       html[lang="en"] [data-lang="zh"] { display: none; }
       html[lang="en"] [data-lang="en"] { display: inline; }
       html[lang="en"] div[data-lang="en"], html[lang="en"] p[data-lang="en"], html[lang="en"] h3[data-lang="en"] { display: block; }
       
+      @media (max-width: 1024px) {
+        .toc-nav { display: none; }
+      }
       @media (max-width: 768px) {
         .math-block { padding: 1rem 0.5rem; font-size: 0.9rem; }
         body { padding: 1rem; }
         .article { padding: 0 1rem 2rem; max-width: 100%; }
         .lang-toggle { right: 10px; top: 10px; }
         .phase-heading { font-size: 1.25rem; }
-        .canvas-container { height: 280px; }
+        .canvas-container { height: 320px; }
       }
       .slider-container { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-family: var(--font-sans); color: var(--text-secondary); }
       .slider-container input[type="range"] { accent-color: var(--accent); }
@@ -113,6 +126,21 @@
       <a href="/pages/blog.html">Blog</a>
     </nav>
     
+    <nav class="toc-nav" id="toc-nav">
+      <a href="#sec-1" class="toc-item">1</a>
+      <a href="#sec-2" class="toc-item">2</a>
+      <a href="#sec-3" class="toc-item">3</a>
+      <a href="#sec-4" class="toc-item">4</a>
+      <a href="#sec-5" class="toc-item">5</a>
+      <a href="#sec-6" class="toc-item">6</a>
+      <a href="#sec-7" class="toc-item">7</a>
+      <a href="#sec-8" class="toc-item">8</a>
+      <a href="#sec-9" class="toc-item">9</a>
+      <a href="#sec-10" class="toc-item">10</a>
+    </nav>
+    
+    <a href="#" class="back-to-top" id="back-to-top">↑</a>
+    
     <div class="article">
       <button type="button" class="lang-toggle" id="lang-toggle">EN</button>
       
@@ -123,7 +151,7 @@
       </header>
 
       <!-- Section 1: Intro & I/P Frames -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">1</span> 视频压缩与 I/P 帧</h3>
+      <h3 class="phase-heading" id="sec-1" data-lang="zh"><span class="phase-num">1</span> 视频压缩与 I/P 帧</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">1</span> Video Compression & I/P Frames</h3>
       
       <p class="phase-desc" data-lang="zh">
@@ -145,7 +173,7 @@
       </p>
 
       <!-- Section 2: Motion Vector -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">2</span> 运动向量 (Motion Vector, MV)</h3>
+      <h3 class="phase-heading" id="sec-2" data-lang="zh"><span class="phase-num">2</span> 运动向量 (Motion Vector, MV)</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">2</span> Motion Vector (MV)</h3>
       
       <p class="phase-desc" data-lang="zh">
@@ -177,7 +205,7 @@
       </div>
 
       <!-- Section 3: Residual -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">3</span> 残差 (Residual)</h3>
+      <h3 class="phase-heading" id="sec-3" data-lang="zh"><span class="phase-num">3</span> 残差 (Residual)</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">3</span> Residual</h3>
       
       <p class="phase-desc" data-lang="zh">
@@ -211,7 +239,7 @@
       </div>
 
       <!-- Section 4: GOP -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">4</span> GOP 结构 (Group of Pictures)</h3>
+      <h3 class="phase-heading" id="sec-4" data-lang="zh"><span class="phase-num">4</span> GOP 结构 (Group of Pictures)</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">4</span> GOP Structure (Group of Pictures)</h3>
       
       <p class="phase-desc" data-lang="zh">
@@ -238,7 +266,7 @@
       </div>
 
       <!-- Section 5: Full Pipeline -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">5</span> 完整编码流水线</h3>
+      <h3 class="phase-heading" id="sec-5" data-lang="zh"><span class="phase-num">5</span> 完整编码流水线</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">5</span> Full Encode Pipeline</h3>
       
       <p class="phase-desc" data-lang="zh">
@@ -249,7 +277,7 @@
       </p>
 
       <div class="stage-wrapper">
-        <div class="canvas-container">
+        <div class="canvas-container" style="background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px;">
           <canvas id="canvas-pipeline"></canvas>
         </div>
         <div class="controls">
@@ -262,7 +290,7 @@
       </div>
 
       <!-- Application: OneVision-Encoder -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">6</span> 应用：Codec 对齐的 Patch 选择 (OneVision-Encoder)</h3>
+      <h3 class="phase-heading" id="sec-6" data-lang="zh"><span class="phase-num">6</span> 应用：Codec 对齐的 Patch 选择 (OneVision-Encoder)</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">6</span> Application: Codec-Aligned Patch Selection (OneVision-Encoder)</h3>
       
       <div class="source-links">
@@ -282,7 +310,7 @@
       </p>
       
 <div class="stage-wrapper">
-        <div class="canvas-container" style="background-image: radial-gradient(#e2e8f0 1px, transparent 0); background-size: 20px 20px;">
+        <div class="canvas-container" style="background-image: radial-gradient(#e2e8f0 1px, transparent 0); background-size: 20px 20px; height: 460px;">
           <canvas id="canvas-traditional"></canvas>
         </div>
         <div class="controls">
@@ -295,7 +323,7 @@
       </div>
 
       <!-- Section 7: MV & Residual Energy Computation -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">7</span> 运动向量与残差能量计算</h3>
+      <h3 class="phase-heading" id="sec-7" data-lang="zh"><span class="phase-num">7</span> 运动向量与残差能量计算</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">7</span> MV & Residual Energy Computation</h3>
       
       <p class="phase-desc" data-lang="zh">
@@ -333,7 +361,7 @@
       </div>
 
       <!-- Section 8: Square576 Mapping & Patchification -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">8</span> Square576 映射与 Patch 化</h3>
+      <h3 class="phase-heading" id="sec-8" data-lang="zh"><span class="phase-num">8</span> Square576 映射与 Patch 化</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">8</span> Square576 Mapping & Patchification</h3>
       
       <p class="phase-desc" data-lang="zh">
@@ -348,7 +376,7 @@
       </p>
 
       <div class="stage-wrapper">
-        <div class="canvas-container">
+        <div class="canvas-container" style="background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px;">
           <canvas id="canvas-patch"></canvas>
         </div>
         <div class="controls">
@@ -361,7 +389,7 @@
       </div>
 
       <!-- Section 9: Global TopK Selection -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">9</span> 全局 TopK 选择</h3>
+      <h3 class="phase-heading" id="sec-9" data-lang="zh"><span class="phase-num">9</span> 全局 TopK 选择</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">9</span> Global TopK Selection</h3>
       
       <p class="phase-desc" data-lang="zh">
@@ -389,7 +417,7 @@
       </div>
 
       <!-- Section 10: Patch Packing into Mosaic Images -->
-      <h3 class="phase-heading" data-lang="zh"><span class="phase-num">10</span> Patch 打包与 Mosaic 图</h3>
+      <h3 class="phase-heading" id="sec-10" data-lang="zh"><span class="phase-num">10</span> Patch 打包与 Mosaic 图</h3>
       <h3 class="phase-heading" data-lang="en"><span class="phase-num">10</span> Patch Packing into Mosaic Images</h3>
       
       <p class="phase-desc" data-lang="zh">
@@ -404,7 +432,7 @@
       </p>
 
       <div class="stage-wrapper">
-        <div class="canvas-container">
+        <div class="canvas-container" style="background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px;">
           <canvas id="canvas-mosaic"></canvas>
         </div>
         <div class="controls">
@@ -608,6 +636,31 @@
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         const scrolled = (winScroll / height) * 100;
         document.getElementById('progress-bar').style.width = scrolled + "%";
+
+        // Back to top button
+        const b2t = document.getElementById('back-to-top');
+        if (winScroll > 500) b2t.classList.add('visible');
+        else b2t.classList.remove('visible');
+
+        // TOC Highlight
+        const sections = document.querySelectorAll('h3.phase-heading[id^="sec-"]');
+        let currentSec = null;
+        sections.forEach(sec => {
+          if (window.scrollY >= sec.offsetTop - 150 && sec.getBoundingClientRect().height > 0) {
+            currentSec = sec.id;
+          }
+        });
+        if (currentSec) {
+          document.querySelectorAll('.toc-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('href') === '#' + currentSec) item.classList.add('active');
+          });
+        }
+      });
+      
+      document.getElementById('back-to-top').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.scrollTo({top: 0, behavior: 'smooth'});
       });
 
       // Scroll Reveal
@@ -654,6 +707,22 @@
         mvState.searchY = mvState.refY;
         mvState.trail = [];
         drawMv();
+      }
+
+      function drawBlockPattern(ctx, x, y, w, h, c1, c2) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.clip();
+        ctx.fillStyle = c1;
+        ctx.fill();
+        ctx.fillStyle = c2;
+        for (let i = 0; i < w; i += 10) {
+          for (let j = 0; j < h; j += 10) {
+            if (((i/10) + (j/10)) % 2 === 0) ctx.fillRect(x + i, y + j, 10, 10);
+          }
+        }
+        ctx.restore();
       }
 
       function drawMv() {
@@ -710,14 +779,27 @@
         mvCtx.fillText("Frame t-1 (Reference)", 40, 47);
         mvCtx.fillStyle = "#c2410c";
         mvCtx.fillText("Frame t (Current)", mvW/2 + 30, 47);
-        
-        // Draw Reference block (ghostly)
-        mvCtx.fillStyle = "rgba(59, 130, 246, 0.2)";
+        // Draw Search Window
+        mvCtx.strokeStyle = "rgba(148, 163, 184, 0.8)";
+        mvCtx.setLineDash([6, 4]);
+        mvCtx.lineWidth = 1.5;
+        const swX = mvState.refX - 40;
+        const swY = mvState.refY - 40;
+        const swW = 140; // 60 + 80
+        const swH = 140;
+        drawRoundRect(mvCtx, swX, swY, swW, swH, 4);
+        mvCtx.stroke();
+        mvCtx.setLineDash([]);
+        mvCtx.fillStyle = "rgba(148, 163, 184, 0.9)";
+        mvCtx.font = "12px var(--font-sans)";
+        mvCtx.fillText("Search Window", swX, swY - 5);
+
+        // Draw Reference block
+        drawBlockPattern(mvCtx, mvState.refX, mvState.refY, 60, 60, "rgba(59, 130, 246, 0.15)", "rgba(59, 130, 246, 0.25)");
         mvCtx.strokeStyle = "rgba(37, 99, 235, 0.5)";
         mvCtx.lineWidth = 2;
         mvCtx.setLineDash([5, 5]);
         drawRoundRect(mvCtx, mvState.refX, mvState.refY, 60, 60, 4);
-        mvCtx.fill();
         mvCtx.stroke();
         mvCtx.setLineDash([]);
         mvCtx.fillStyle = "#1d4ed8";
@@ -734,7 +816,7 @@
                 mvCtx.moveTo(pt1.x + 30, pt1.y + 30);
                 mvCtx.lineTo(pt2.x + 30, pt2.y + 30);
                 mvCtx.strokeStyle = `rgba(249, 115, 22, ${alpha})`;
-                mvCtx.lineWidth = 3;
+                mvCtx.lineWidth = 1 + (i / mvState.trail.length) * 3;
                 mvCtx.lineCap = "round";
                 mvCtx.stroke();
             }
@@ -750,21 +832,22 @@
         }
 
         // Draw Current block
-        const patchGrad = mvCtx.createLinearGradient(mvState.curX, mvState.curY, mvState.curX + 60, mvState.curY + 60);
-        patchGrad.addColorStop(0, "rgba(249, 115, 22, 0.3)");
-        patchGrad.addColorStop(1, "rgba(239, 68, 68, 0.4)");
-        mvCtx.fillStyle = patchGrad;
+        drawBlockPattern(mvCtx, mvState.curX, mvState.curY, 60, 60, "rgba(249, 115, 22, 0.25)", "rgba(239, 68, 68, 0.35)");
         mvCtx.strokeStyle = "#ea580c";
         mvCtx.lineWidth = 2;
         drawRoundRect(mvCtx, mvState.curX, mvState.curY, 60, 60, 4);
-        mvCtx.fill();
         mvCtx.stroke();
         mvCtx.fillStyle = "#c2410c";
         mvCtx.fillText("Cur Block", mvState.curX, mvState.curY - 10);
 
         // Draw Arrow if finished or static
         if (!mvState.animating || mvState.progress > 0.9) {
+          mvCtx.shadowColor = "rgba(0,0,0,0.3)";
+          mvCtx.shadowBlur = 4;
+          mvCtx.shadowOffsetY = 2;
           drawArrow(mvCtx, mvState.refX + 30, mvState.refY + 30, mvState.curX + 30, mvState.curY + 30, "#10b981", true);
+          mvCtx.shadowBlur = 0;
+          mvCtx.shadowOffsetY = 0;
           const dx = Math.round(mvState.curX - mvState.refX);
           const dy = Math.round(mvState.curY - mvState.refY);
           statusMv.textContent = `MV: (${dx}, ${dy})`;
@@ -866,6 +949,35 @@
         const s = setupCanvas(resCanvas);
         resCtx = s.ctx; resW = s.width; resH = s.height;
         generateGrids();
+        
+        resCanvas.addEventListener('mousemove', (e) => {
+          const rect = resCanvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const cw = 64;
+          const padding = 50;
+          const startY = resH / 2 - (cw * 1.5) - 10;
+          const totalW = (cw * 3) * 3 + padding * 2;
+          const startX = (resW - totalW) / 2;
+          
+          resState.hovered = null;
+          const checkGrid = (gx, type) => {
+            if (x >= gx && x < gx + cw*3 && y >= startY && y < startY + cw*3) {
+              const c = Math.floor((x - gx) / cw);
+              const r = Math.floor((y - startY) / cw);
+              resState.hovered = { type, idx: r*3+c, x, y };
+            }
+          };
+          checkGrid(startX, "cur");
+          checkGrid(startX + cw*3 + padding, "pred");
+          checkGrid(startX + (cw*3 + padding)*2, "res");
+          drawRes();
+        });
+        resCanvas.addEventListener('mouseleave', () => {
+          resState.hovered = null;
+          drawRes();
+        });
+        
         drawRes();
       }
 
@@ -945,19 +1057,50 @@
         resCtx.fill();
         resCtx.fillStyle = "#e2e8f0";
         resCtx.fillText("Negative Diff (-)", startX + 275, legY);
+
+        // Hover Tooltip
+        if (resState.hovered) {
+          const { idx } = resState.hovered;
+          const cVal = Math.round(gridCur[idx]);
+          const pVal = Math.round(gridPred[idx]);
+          const rVal = cVal - pVal;
+          const sign = rVal > 0 ? "+" : "";
+          const txt = `Current (${cVal}) - Predicted (${pVal}) = ${sign}${rVal}`;
+          
+          resCtx.font = "bold 14px JetBrains Mono";
+          const tw = resCtx.measureText(txt).width + 30;
+          const ttX = resW/2 - tw/2;
+          const ttY = startY - 60;
+          
+          resCtx.shadowColor = "rgba(0,0,0,0.5)";
+          resCtx.shadowBlur = 10;
+          resCtx.shadowOffsetY = 4;
+          resCtx.fillStyle = "rgba(30, 30, 46, 0.95)";
+          resCtx.strokeStyle = "#475569";
+          resCtx.lineWidth = 1;
+          drawRoundRect(resCtx, ttX, ttY, tw, 36, 6);
+          resCtx.fill();
+          resCtx.stroke();
+          
+          resCtx.shadowBlur = 0;
+          resCtx.shadowOffsetY = 0;
+          resCtx.fillStyle = "#f8fafc";
+          resCtx.textAlign = "center";
+          resCtx.textBaseline = "middle";
+          resCtx.fillText(txt, resW/2, ttY + 18);
+        }
       }
 
       function drawGrid(ctx, x, y, cw, data, type) {
         // Add overall shadow
-        ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetY = 5;
+        ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetY = 8;
         ctx.fillStyle = "#1e1e2e";
         drawRoundRect(ctx, x, y, cw*3, cw*3, 8);
         ctx.fill();
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
-
         ctx.font = "14px JetBrains Mono";
         for(let r=0; r<3; r++) {
           for(let c=0; c<3; c++) {
@@ -979,7 +1122,26 @@
             // Rounded inner cells
             drawRoundRect(ctx, bx+1, by+1, cw-2, cw-2, 6);
             ctx.fill();
-            
+
+            // Pulse effect during animation
+            if (resState.playing && type === "res") {
+              const pulse = Math.sin(resState.p * Math.PI);
+              ctx.fillStyle = "rgba(255, 255, 255, " + (pulse * 0.4) + ")";
+              drawRoundRect(ctx, bx+1, by+1, cw-2, cw-2, 6);
+              ctx.fill();
+            }
+
+            // Hover highlight
+            if (resState.hovered && resState.hovered.idx === r*3+c) {
+              ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+              drawRoundRect(ctx, bx+1, by+1, cw-2, cw-2, 6);
+              ctx.fill();
+              ctx.strokeStyle = "#38bdf8";
+              ctx.lineWidth = 2;
+            } else {
+              ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+              ctx.lineWidth = 1;
+            }
             ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
             ctx.lineWidth = 1;
             ctx.stroke();
@@ -1016,6 +1178,7 @@
         
         function step(time) {
           const p = Math.min((time - startTime) / duration, 1);
+          resState.p = p;
           for(let i=0; i<9; i++) {
             gridCur[i] = oldCur[i] + (gridCurTarget[i] - oldCur[i]) * p;
             gridPred[i] = oldPred[i] + (gridPredTarget[i] - oldPred[i]) * p;
@@ -1134,8 +1297,8 @@
         gopCtx.textBaseline = "middle";
 
         // Draw brackets for GOP
-        gopCtx.strokeStyle = "#94a3b8";
-        gopCtx.lineWidth = 2;
+        gopCtx.strokeStyle = "#475569";
+        gopCtx.lineWidth = 3;
         gopCtx.lineCap = "round";
         gopCtx.lineJoin = "round";
         gopCtx.beginPath();
@@ -1149,9 +1312,12 @@
         gopCtx.lineTo(endX1, bracketY + 10);
         gopCtx.stroke();
         
-        gopCtx.fillStyle = "#475569";
-        gopCtx.font = "bold 14px var(--font-sans)";
-        gopCtx.fillText("GOP 1", (startX1 + endX1)/2, bracketY - 10);
+        gopCtx.fillStyle = "#0f172a";
+        gopCtx.font = "bold 16px var(--font-sans)";
+        gopCtx.fillText("GOP 1", (startX1 + endX1)/2, bracketY - 14);
+        // colored underline
+        gopCtx.fillStyle = "#2563eb";
+        gopCtx.fillRect((startX1 + endX1)/2 - 20, bracketY - 4, 40, 3);
 
         const startX2 = gap + 6 * (boxW + gap);
         const endX2 = startX2 + boxW;
@@ -1161,8 +1327,10 @@
         gopCtx.lineTo(endX2, bracketY);
         gopCtx.lineTo(endX2, bracketY + 10);
         gopCtx.stroke();
-        gopCtx.fillText("GOP 2", (startX2 + endX2)/2, bracketY - 10);
-
+        gopCtx.fillStyle = "#0f172a";
+        gopCtx.fillText("GOP 2", (startX2 + endX2)/2, bracketY - 14);
+        gopCtx.fillStyle = "#10b981";
+        gopCtx.fillRect((startX2 + endX2)/2 - 20, bracketY - 4, 40, 3);
         frames.forEach((f, i) => {
           const bx = gap + i * (boxW + gap);
           
@@ -1225,37 +1393,62 @@
           
           // Bar background
           gopCtx.fillStyle = "#e2e8f0";
-          drawRoundRect(gopCtx, bx + boxW/2 - 8, startY + boxH + 35, 16, maxBarH, 4);
+          drawRoundRect(gopCtx, bx + boxW/2 - 12, startY + boxH + 35, 24, maxBarH, 4);
           gopCtx.fill();
 
           // Bar fill
           gopCtx.fillStyle = border;
-          drawRoundRect(gopCtx, bx + boxW/2 - 8, startY + boxH + 35 + (maxBarH - barH), 16, barH, 4);
+          drawRoundRect(gopCtx, bx + boxW/2 - 12, startY + boxH + 35 + (maxBarH - barH), 24, barH, 4);
           gopCtx.fill();
 
           gopCtx.fillStyle = "#94a3b8";
           gopCtx.font = "10px var(--font-sans)";
           gopCtx.fillText("Size", bx + boxW/2, startY + boxH + 35 + maxBarH + 12);
 
+          gopCtx.fillStyle = border;
+          gopCtx.font = "bold 10px JetBrains Mono";
+          const pct = f.type === 'I' ? "100%" : (f.type === 'P' ? "~40%" : "~10%");
+          gopCtx.fillText(pct, bx + boxW/2, startY + boxH + 35 - 8);
+
           // Tooltip
           if (gopHovered === i) {
             const txt = f.type === 'I' ? `I-Frame ${f.id}: Independent Keyframe` : `${f.type}-Frame ${f.id}: references Frame(s) ${f.ref.join(', ')}`;
-            gopCtx.fillStyle = "#1e293b";
             gopCtx.font = "bold 14px var(--font-sans)";
             const tw = gopCtx.measureText(txt).width + 24;
+            
+            const ttX = gopW/2 - tw/2;
+            const ttY = 20;
+            
             gopCtx.shadowColor = "rgba(0,0,0,0.1)";
             gopCtx.shadowBlur = 10;
             gopCtx.shadowOffsetY = 5;
             gopCtx.fillStyle = "rgba(255, 255, 255, 0.95)";
             gopCtx.strokeStyle = border;
             gopCtx.lineWidth = 1;
-            drawRoundRect(gopCtx, gopW/2 - tw/2, 20, tw, 32, 6);
+            
+            drawRoundRect(gopCtx, ttX, ttY, tw, 32, 6);
             gopCtx.fill();
             gopCtx.stroke();
+            
+            // pointer triangle pointing to frame
+            gopCtx.beginPath();
+            const ptrX = Math.max(ttX + 10, Math.min(ttX + tw - 10, currentX + currentBoxW/2));
+            gopCtx.moveTo(ptrX - 6, ttY + 32);
+            gopCtx.lineTo(ptrX + 6, ttY + 32);
+            gopCtx.lineTo(ptrX, ttY + 38);
+            gopCtx.fill();
+            gopCtx.stroke();
+            // hide the line crossing the triangle base
+            gopCtx.beginPath();
+            gopCtx.moveTo(ptrX - 5, ttY + 32);
+            gopCtx.lineTo(ptrX + 5, ttY + 32);
+            gopCtx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+            gopCtx.stroke();
+            
             gopCtx.shadowBlur = 0;
             gopCtx.shadowOffsetY = 0;
             gopCtx.fillStyle = text;
-            gopCtx.fillText(txt, gopW/2, 36);
+            gopCtx.fillText(txt, gopW/2, ttY + 16);
           }
         });
         gopCtx.shadowColor = "transparent";
@@ -1271,11 +1464,11 @@
       let pipeState = { playing: false, t: 0 };
       
       const nodes = [
-        { id: 'ft', x: 0.1, y: 0.5, label: "📹 F_t", w: 80, h: 40 },
-        { id: 'ref', x: 0.35, y: 0.8, label: "📹 F_{t-1}", w: 90, h: 40 },
-        { id: 'me', x: 0.35, y: 0.5, label: "🔍 Motion Est", w: 125, h: 40 },
-        { id: 'res', x: 0.65, y: 0.5, label: "➖ Residual", w: 110, h: 40 },
-        { id: 'bit', x: 0.9, y: 0.5, label: "📦 Bitstream", w: 120, h: 40 }
+        { id: 'ft', x: 0.1, y: 0.5, label: "Ft", w: 80, h: 40, type: 'video' },
+        { id: 'ref', x: 0.35, y: 0.8, label: "Ft-1", w: 90, h: 40, type: 'video' },
+        { id: 'me', x: 0.35, y: 0.5, label: "ME", w: 125, h: 40, type: 'process' },
+        { id: 'res', x: 0.65, y: 0.5, label: "Residual", w: 110, h: 40, type: 'process' },
+        { id: 'bit', x: 0.9, y: 0.5, label: "Bitstream", w: 120, h: 40, type: 'output' }
       ];
 
       function initPipe() {
@@ -1309,8 +1502,8 @@
         }
         
         // offset arrowhead so it doesn't overlap with the node box too much
-        // roughly 45px offset for width/2
-        const offsetDist = 55;
+        const targetNode = nodes[n2];
+        const offsetDist = targetNode.w / 2 + 5;
         const arrowX = endX - offsetDist * Math.cos(angle);
         const arrowY = endY - offsetDist * Math.sin(angle);
 
@@ -1348,7 +1541,7 @@
 
         nodes.forEach((n, i) => {
           let grad = pipeCtx.createLinearGradient(n.x * pipeW - n.w/2, n.y * pipeH - n.h/2, n.x * pipeW + n.w/2, n.y * pipeH + n.h/2);
-          if (i === 4) {
+          if (n.type === 'output') {
             grad.addColorStop(0, "#fef3c7"); grad.addColorStop(1, "#fde68a");
             pipeCtx.strokeStyle = "#f59e0b";
             pipeCtx.fillStyle = "#b45309";
@@ -1369,12 +1562,25 @@
           
           pipeCtx.shadowBlur = 0;
           pipeCtx.shadowOffsetY = 0;
-          pipeCtx.lineWidth = 2;
+          pipeCtx.lineWidth = 1;
           pipeCtx.stroke();
+
+          // Colored left border
+          pipeCtx.save();
+          pipeCtx.beginPath();
+          drawRoundRect(pipeCtx, n.x * pipeW - n.w/2, n.y * pipeH - n.h/2, n.w, n.h, 8);
+          pipeCtx.clip();
+          let leftColor = "#cbd5e1";
+          if (n.type === 'video') leftColor = "#3b82f6";
+          else if (n.type === 'process') leftColor = "#f97316";
+          else if (n.type === 'output') leftColor = "#eab308";
+          pipeCtx.fillStyle = leftColor;
+          pipeCtx.fillRect(n.x * pipeW - n.w/2, n.y * pipeH - n.h/2, 6, n.h);
+          pipeCtx.restore();
           
-          if (i === 4) pipeCtx.fillStyle = "#b45309";
+          if (n.type === 'output') pipeCtx.fillStyle = "#b45309";
           else pipeCtx.fillStyle = "#1e293b";
-          pipeCtx.fillText(n.label, n.x * pipeW, n.y * pipeH);
+          pipeCtx.fillText(n.label, n.x * pipeW + 3, n.y * pipeH);
         });
 
         // Draw Particle and Trail
@@ -1477,9 +1683,34 @@
       let tradCtx, tradW, tradH;
       let tradState = { playing: false, progress: 1 };
 
+      let tradHovered = -1;
       function initTrad() {
         const s = setupCanvas(tradCanvas);
         tradCtx = s.ctx; tradW = s.width; tradH = s.height;
+        
+        tradCanvas.addEventListener('mousemove', (e) => {
+          const rect = tradCanvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          const w2 = tradW / 2;
+          const cFrameW = 16, cFrameH = 16, cGap = 6;
+          const cStartX = w2 + w2/2 - (8*cFrameW + 7*cGap)/2;
+          const cStartY = 70;
+          
+          let found = -1;
+          for (let i = 0; i < 64; i++) {
+            let bx = cStartX + (i % 8) * (cFrameW + cGap);
+            let by = cStartY + Math.floor(i / 8) * (cFrameH + cGap);
+            if (x >= bx && x <= bx + cFrameW && y >= by && y <= by + cFrameH) {
+              found = i;
+              break;
+            }
+          }
+          if (found !== tradHovered) { tradHovered = found; drawTrad(); }
+        });
+        tradCanvas.addEventListener('mouseleave', () => { tradHovered = -1; drawTrad(); });
+        
         drawTrad();
       }
 
@@ -1521,9 +1752,14 @@
           tradCtx.fillStyle = "#f1f5f9";
           tradCtx.strokeStyle = "#cbd5e1";
           tradCtx.lineWidth = 2;
+          if (i === activeTrad && tradState.playing) {
+              tradCtx.shadowColor = "#ef4444";
+              tradCtx.shadowBlur = 10;
+          }
           drawRoundRect(tradCtx, x, y, frameW, frameH, 6);
           tradCtx.fill();
           tradCtx.stroke();
+          tradCtx.shadowBlur = 0;
           
           if (i < activeTrad) {
             const pGrad = tradCtx.createLinearGradient(x, y, x, y+frameH);
@@ -1533,17 +1769,45 @@
             drawRoundRect(tradCtx, x+1, y+1, frameW-2, frameH-2, 5);
             tradCtx.fill();
           }
+          
+          tradCtx.fillStyle = (i < activeTrad) ? "#ffffff" : "#64748b";
+          tradCtx.font = "bold 16px JetBrains Mono";
+          tradCtx.textAlign = "center";
+          tradCtx.textBaseline = "middle";
+          tradCtx.fillText(`${i+1}`, x + frameW/2, y + frameH/2);
         }
 
-        // Frame counts
+        // Frame counts & Labels
         tradCtx.fillStyle = "#64748b";
         tradCtx.font = "bold 14px var(--font-sans)";
-        tradCtx.fillText(`Processed: ${activeTrad} / 8 Frames`, w2/2, tStartY + 2*frameH + gap + 30);
+        tradCtx.fillText(`Processed: ${activeTrad} / 8 Frames`, w2/2, tStartY + 2*frameH + gap + 45);
+        
+        tradCtx.font = "12px var(--font-sans)";
+        tradCtx.fillText("Dense Frames Densely", w2/2, tStartY + 2*frameH + gap + 25);
+
+        // 8x coverage gap annotation
+        tradCtx.beginPath();
+        tradCtx.moveTo(tStartX + frameW + gap/2, tStartY + frameH + 30);
+        tradCtx.lineTo(tStartX + frameW + gap + frameW + gap/2, tStartY + frameH + 30);
+        tradCtx.moveTo(tStartX + frameW + gap/2, tStartY + frameH + 20);
+        tradCtx.lineTo(tStartX + frameW + gap/2, tStartY + frameH + 30);
+        tradCtx.moveTo(tStartX + frameW + gap + frameW + gap/2, tStartY + frameH + 20);
+        tradCtx.lineTo(tStartX + frameW + gap + frameW + gap/2, tStartY + frameH + 30);
+        tradCtx.strokeStyle = "#ef4444";
+        tradCtx.lineWidth = 2;
+        tradCtx.stroke();
 
         // Draw Codec-Aligned
-        const cFrameW = 14, cFrameH = 14, cGap = 6;
+        const cFrameW = 16, cFrameH = 16, cGap = 6;
         const cStartX = w2 + w2/2 - (8*cFrameW + 7*cGap)/2;
         const cStartY = 70;
+
+        drawArrow(tradCtx, tStartX + frameW + gap + frameW/2, tStartY + frameH + 45, cStartX - 40, tStartY + frameH + 45, "#ef4444");
+
+        tradCtx.fillStyle = "#ef4444";
+        tradCtx.font = "bold 13px var(--font-sans)";
+        tradCtx.fillText("8× coverage gap", tStartX + frameW + gap + frameW/2, tStartY + frameH + 60);
+
         let activeCodec = Math.floor(tradState.progress * 64);
         if (tradState.progress === 1) activeCodec = 64;
 
@@ -1554,10 +1818,25 @@
           tradCtx.fillStyle = "#f1f5f9";
           tradCtx.strokeStyle = "#cbd5e1";
           tradCtx.lineWidth = 1;
+          if (i === activeCodec && tradState.playing) {
+              tradCtx.shadowColor = "#10b981";
+              tradCtx.shadowBlur = 8;
+          }
+          if (tradHovered === i) {
+              tradCtx.shadowColor = "rgba(0,0,0,0.5)";
+              tradCtx.shadowBlur = 10;
+              tradCtx.shadowOffsetY = 4;
+              tradCtx.lineWidth = 2;
+          }
           drawRoundRect(tradCtx, x, y, cFrameW, cFrameH, 3);
           tradCtx.fill();
           tradCtx.stroke();
+          tradCtx.shadowBlur = 0;
+          tradCtx.shadowOffsetY = 0;
           
+          let isIFrame = false;
+          let isPFrame = false;
+
           if (i < activeCodec) {
             let pseudoRandom = Math.sin(i * 12345) * 10000;
             pseudoRandom = pseudoRandom - Math.floor(pseudoRandom);
@@ -1568,16 +1847,57 @@
               tradCtx.fillStyle = cGrad;
               drawRoundRect(tradCtx, x+1, y+1, cFrameW-2, cFrameH-2, 2);
               tradCtx.fill();
+              if (i === 0) isIFrame = true;
+              else isPFrame = true;
             }
           }
+
+          tradCtx.fillStyle = (i < activeCodec && (isIFrame || isPFrame)) ? "#ffffff" : "#94a3b8";
+          tradCtx.font = "8px JetBrains Mono";
+          tradCtx.textAlign = "center";
+          tradCtx.textBaseline = "middle";
+          if (isIFrame) {
+              tradCtx.fillStyle = "#064e3b";
+              tradCtx.fillText("I", x + cFrameW/2, y + cFrameH/2);
+          } else if (isPFrame) {
+              tradCtx.fillStyle = "#ffffff";
+              tradCtx.fillText("P", x + cFrameW/2, y + cFrameH/2);
+          } else {
+              tradCtx.fillText(`${i}`, x + cFrameW/2, y + cFrameH/2);
+          }
+        }
+
+        if (tradHovered !== -1) {
+          const txt = `Frame ${tradHovered}`;
+          tradCtx.fillStyle = "#1e293b";
+          tradCtx.font = "bold 14px var(--font-sans)";
+          const tw = tradCtx.measureText(txt).width + 16;
+          const bx = cStartX + (tradHovered % 8) * (cFrameW + cGap);
+          const by = cStartY + Math.floor(tradHovered / 8) * (cFrameH + cGap);
+          tradCtx.shadowColor = "rgba(0,0,0,0.2)";
+          tradCtx.shadowBlur = 8;
+          tradCtx.fillStyle = "rgba(255, 255, 255, 0.95)";
+          tradCtx.strokeStyle = "#cbd5e1";
+          tradCtx.lineWidth = 1;
+          drawRoundRect(tradCtx, bx + cFrameW/2 - tw/2, by - 28, tw, 22, 4);
+          tradCtx.fill();
+          tradCtx.stroke();
+          tradCtx.shadowBlur = 0;
+          tradCtx.fillStyle = "#1e293b";
+          tradCtx.fillText(txt, bx + cFrameW/2, by - 17);
         }
 
         tradCtx.fillStyle = "#64748b";
         tradCtx.font = "bold 14px var(--font-sans)";
-        tradCtx.fillText(`Processed: ${activeCodec} / 64 Frames`, w2 + w2/2, cStartY + 8*cFrameH + 7*cGap + 10);
+        tradCtx.fillText(`Processed: ${activeCodec} / 64 Frames`, w2 + w2/2, cStartY + 8*cFrameH + 7*cGap + 60);
+
+        tradCtx.font = "12px var(--font-sans)";
+        tradCtx.fillText("Dense Frames Sparsely", w2 + w2/2, cStartY + 8*cFrameH + 7*cGap + 20);
+        tradCtx.fillStyle = "#10b981";
+        tradCtx.fillText("Continuous Coverage", w2 + w2/2, cStartY + 8*cFrameH + 7*cGap + 40);
 
         // Budget meter
-        const budgetY = 260;
+        const budgetY = 360;
         tradCtx.fillStyle = "#475569";
         tradCtx.font = "bold 14px var(--font-sans)";
         tradCtx.fillText("Compute Budget", w2/2, budgetY - 15);
@@ -1613,6 +1933,12 @@
         }
         tradCtx.fillStyle = budgetP > 0.5 ? "#fff" : "#64748b";
         tradCtx.fillText(pText, w2 + w2/2 - barW/2 + barW/2, budgetY + barH/2 + 1);
+        
+        // Same Budget Connector
+        drawArrow(tradCtx, w2/2 + barW/2 + 20, budgetY + barH/2, w2 + w2/2 - barW/2 - 20, budgetY + barH/2, "#94a3b8");
+        tradCtx.fillStyle = "#64748b";
+        tradCtx.font = "bold 12px var(--font-sans)";
+        tradCtx.fillText("Same Budget → Different Strategy", w2, budgetY - 10);
       }
 
       btnTradPlay.addEventListener('click', () => {
@@ -1855,11 +2181,11 @@
         patchCtx.stroke();
 
         // Annotations
-        if (patchState.p < 0.1) {
-          patchCtx.fillStyle = "#2563eb";
-          patchCtx.font = "bold 14px var(--font-sans)";
-          patchCtx.fillText("Original Frame (16:9)", cx, fy - 10);
-        }
+        let ratio = (curW / curH).toFixed(2);
+        let textRatio = (patchState.p < 0.1) ? "16:9" : ((patchState.p > 0.9) ? "1:1" : `${ratio}:1`);
+        patchCtx.fillStyle = "#2563eb";
+        patchCtx.font = "bold 14px JetBrains Mono";
+        patchCtx.fillText(`Aspect Ratio: ${textRatio}`, cx, fy - 10);
         
         // Patches Grid when fully expanded
         if (patchState.p > 0.8) {
@@ -1876,15 +2202,14 @@
           
           patchCtx.beginPath();
           drawRoundRect(patchCtx, cx - curW/2, fy, curW, curH, 4);
-          // invert clip logic is hard, we'll just draw hatch everywhere then overwrite center
-          
-          patchCtx.strokeStyle = "rgba(148, 163, 184, 0.4)";
-          patchCtx.lineWidth = 1;
-          for (let i = -maxS; i < maxS*2; i += 10) {
-             patchCtx.beginPath();
-             patchCtx.moveTo(cx - maxS/2 + i, cy - maxS/2);
-             patchCtx.lineTo(cx - maxS/2 + i - maxS, cy + maxS/2);
-             patchCtx.stroke();
+          // Draw dot grid for padding instead of crude hatch
+          patchCtx.fillStyle = "rgba(148, 163, 184, 0.6)";
+          for (let i = 4; i < maxS; i += 8) {
+            for (let j = 4; j < maxS; j += 8) {
+              patchCtx.beginPath();
+              patchCtx.arc(cx - maxS/2 + i, cy - maxS/2 + j, 1, 0, Math.PI*2);
+              patchCtx.fill();
+            }
           }
           
           // Clear and redraw center frame to remove hatch
@@ -1923,9 +2248,15 @@
 
           // Legend for valid/invalid
           patchCtx.fillStyle = "#ef4444";
-          patchCtx.fillText("Invalid (Padding)", cx - 60, fy - 10);
+          patchCtx.fillText("■ Invalid (Padding)", cx - 60, cy + maxS/2 + 55);
           patchCtx.fillStyle = "#10b981";
-          patchCtx.fillText("Valid (Content)", cx + 60, fy - 10);
+          patchCtx.fillText("■ Valid (Content)", cx + 60, cy + maxS/2 + 55);
+
+          // Shimmer effect when just appearing
+          if (patchState.playing && patchState.p > 0.8 && patchState.p < 0.95) {
+            patchCtx.fillStyle = "rgba(255, 255, 255, " + (1 - (patchState.p - 0.8)*5) * 0.5 + ")";
+            patchCtx.fillRect(cx - maxS/2, cy - maxS/2, maxS, maxS);
+          }
 
           patchCtx.globalAlpha = 1.0;
         }
@@ -1965,13 +2296,27 @@
       function drawTopk() {
         tkCtx.clearRect(0, 0, tkW, tkH);
         
-        const fSize = 24, gap = 4;
+        const fSize = 30, gap = 6;
         const cols = 16, rows = 4;
-        const startX = (tkW - (cols * fSize + (cols-1)*gap)) / 2;
-        const startY = (tkH - (rows * fSize + (rows-1)*gap)) / 2;
+        const startX = (tkW - (cols * fSize + (cols-1)*gap)) / 2 + 15;
+        const startY = (tkH - (rows * fSize + (rows-1)*gap)) / 2 - 10;
+        // Title
+        tkCtx.fillStyle = "#1e293b";
+        tkCtx.font = "bold 16px var(--font-sans)";
+        tkCtx.textAlign = "center";
+        tkCtx.fillText("64 Frames — Global TopK Competition", tkW/2, 30);
         
-        tkCtx.font = "12px JetBrains Mono";
+        // Row Labels
+        tkCtx.fillStyle = "#64748b";
+        tkCtx.font = "10px var(--font-sans)";
+        tkCtx.textAlign = "right";
+        tkCtx.textBaseline = "middle";
+        for (let r=0; r<rows; r++) {
+            tkCtx.fillText(`GOP ${r+1}`, startX - 10, startY + r*(fSize+gap) + fSize/2);
+        }
+        
         let count = 0;
+        tkCtx.textAlign = "center";
         
         for (let i = 0; i < 64; i++) {
           let c = i % cols;
@@ -1979,36 +2324,114 @@
           let x = startX + c * (fSize + gap);
           let y = startY + r * (fSize + gap);
           
-          tkCtx.fillStyle = "#1e293b"; // base
-          tkCtx.fillRect(x, y, fSize, fSize);
+          tkCtx.fillStyle = "#1e293b";
           tkCtx.strokeStyle = "#475569";
-          tkCtx.strokeRect(x, y, fSize, fSize);
+          tkCtx.lineWidth = 1;
+          drawRoundRect(tkCtx, x, y, fSize, fSize, 4);
+          tkCtx.fill();
+          tkCtx.stroke();
+          
+          let actual = 0;
+          let fillP = 0;
           
           if (i === 0) {
-            // I frame always selected (1296 patches)
-            tkCtx.fillStyle = "#10b981";
-            tkCtx.fillRect(x, y, fSize, fSize);
-            tkCtx.fillStyle = "#fff";
-            tkCtx.fillText("I", x + 8, y + 16);
+            actual = 1296;
             if (tkState.limit > 0) count += 1296;
+            fillP = 1.0;
+            
+            tkCtx.shadowColor = "#10b981";
+            tkCtx.shadowBlur = 10;
+            const grad = tkCtx.createLinearGradient(x, y, x, y+fSize);
+            grad.addColorStop(0, "#34d399");
+            grad.addColorStop(1, "#059669");
+            tkCtx.fillStyle = grad;
+            drawRoundRect(tkCtx, x, y, fSize, fSize, 4);
+            tkCtx.fill();
+            tkCtx.shadowBlur = 0;
+            
+            tkCtx.fillStyle = "#fff";
+            tkCtx.font = "bold 12px JetBrains Mono";
+            tkCtx.fillText("I", x + fSize/2, y + fSize/2 + 1);
           } else {
-            // P frames selected based on limit
-            let selectedPatches = Math.floor(Math.pow(Math.sin(i * 1.5), 2) * 500); // 0 to 500 max
-            let allowed = Math.max(0, tkState.limit - 1296 - (i-1)*200); // rough simulation of global limit
+            let selectedPatches = Math.floor(Math.pow(Math.sin(i * 1.5), 2) * 500); 
+            let allowed = Math.max(0, tkState.limit - 1296 - (i-1)*200); 
             if (allowed > 0) {
-              let actual = Math.min(selectedPatches, allowed);
+              actual = Math.min(selectedPatches, allowed);
               count += actual;
-              let fillP = actual / 500;
-              tkCtx.fillStyle = `rgba(59, 130, 246, ${fillP})`;
-              tkCtx.fillRect(x, y + fSize*(1-fillP), fSize, fSize*fillP);
+              fillP = actual / 500;
+              
+              if (fillP > 0) {
+                  if (tkState.playing && allowed - actual < 100 && allowed - actual > 0) {
+                      tkCtx.shadowColor = "#38bdf8";
+                      tkCtx.shadowBlur = 8;
+                  }
+                  
+                  tkCtx.fillStyle = getColormap(fillP * 0.8 + 0.2); 
+                  tkCtx.save();
+                  tkCtx.beginPath();
+                  drawRoundRect(tkCtx, x, y, fSize, fSize, 4);
+                  tkCtx.clip();
+                  tkCtx.fillRect(x, y + fSize*(1-fillP), fSize, fSize*fillP);
+                  tkCtx.restore();
+                  tkCtx.shadowBlur = 0;
+              }
             }
+            
+            tkCtx.fillStyle = (fillP > 0.5) ? "#fff" : (fillP > 0 ? "#e2e8f0" : "#64748b");
+            tkCtx.font = "10px JetBrains Mono";
+            tkCtx.fillText(`${i}`, x + fSize/2, y + fSize/2 + 1);
           }
         }
+
+        // Legend for color mapping
+        const cbW = 200, cbH = 10;
+        const cbX = tkW/2 - cbW/2;
+        const cbY = tkH - 30;
+        
+        tkCtx.save();
+        drawRoundRect(tkCtx, cbX, cbY, cbW, cbH, cbH/2);
+        tkCtx.clip();
+        const legGrad = tkCtx.createLinearGradient(cbX, cbY, cbX + cbW, cbY);
+        for(let i=0; i<=10; i++) {
+            legGrad.addColorStop(i/10, getColormap(i/10 * 0.8 + 0.2));
+        }
+        tkCtx.fillStyle = legGrad;
+        tkCtx.fillRect(cbX, cbY, cbW, cbH);
+        tkCtx.restore();
+        
+        tkCtx.strokeStyle = "#475569";
+        tkCtx.lineWidth = 1;
+        drawRoundRect(tkCtx, cbX, cbY, cbW, cbH, cbH/2);
+        tkCtx.stroke();
+
+        tkCtx.fillStyle = "#94a3b8";
+        tkCtx.font = "12px var(--font-sans)";
+        tkCtx.textAlign = "right";
+        tkCtx.textBaseline = "middle";
+        tkCtx.fillText("0 Patches", cbX - 10, cbY + cbH/2 + 1);
+        tkCtx.textAlign = "left";
+        tkCtx.fillText("Max Patches", cbX + cbW + 10, cbY + cbH/2 + 1);
+        
+        const badgeW = 140;
+        const badgeH = 28;
+        const badgeX = tkW - badgeW - 20;
+        const badgeY = 20;
+        
+        tkCtx.shadowColor = "rgba(0,0,0,0.1)";
+        tkCtx.shadowBlur = 8;
+        tkCtx.fillStyle = "#1e293b";
+        drawRoundRect(tkCtx, badgeX, badgeY, badgeW, badgeH, 14);
+        tkCtx.fill();
+        tkCtx.shadowBlur = 0;
+        
+        tkCtx.fillStyle = "#38bdf8";
+        tkCtx.font = "bold 12px JetBrains Mono";
+        tkCtx.fillText(`Selected: ${count}`, badgeX + badgeW/2, badgeY + badgeH/2 + 1);
         
         statusTopk.textContent = `Selected: ${count} / 10368`;
       }
 
-      btnTopkPlay.addEventListener('click', () => {
+       btnTopkPlay.addEventListener('click', () => {
         if (tkState.playing) return;
         tkState.playing = true;
         const start = performance.now();
@@ -2042,12 +2465,22 @@
       function drawMosaic() {
         mosCtx.clearRect(0, 0, mosW, mosH);
         
-        const mSize = 65, gap = 20;
+        const mSize = 75, gap = 15;
         const startX = mosW/2 - (4*mSize + 3*gap)/2;
         const startY = mosH/2 - (2*mSize + gap)/2;
         
+        // Subtle gradient background behind the entire mosaic area
+        const bgW = 4*mSize + 3*gap + 40;
+        const bgH = 2*mSize + gap + 50;
+        const bgGrad = mosCtx.createLinearGradient(mosW/2, startY - 30, mosW/2, startY + bgH);
+        bgGrad.addColorStop(0, "rgba(241, 245, 249, 0.8)");
+        bgGrad.addColorStop(1, "rgba(226, 232, 240, 0.3)");
+        mosCtx.fillStyle = bgGrad;
+        drawRoundRect(mosCtx, mosW/2 - bgW/2, startY - 30, bgW, bgH, 12);
+        mosCtx.fill();
+
         mosCtx.textAlign = "center";
-        
+        mosCtx.textBaseline = "middle";
         // Eased progress for smooth sequential filling
         const easedP = easeInOutCubic(mosState.p);
         
@@ -2090,6 +2523,14 @@
                 grad.addColorStop(1, "rgba(4, 120, 87, 0.95)");   // Emerald 700
                 mosCtx.fillStyle = grad;
                 mosCtx.fillRect(x, y, mSize * fillScale, mSize);
+                
+                if (fillScale > 0.5) {
+                    mosCtx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                    mosCtx.font = "bold 12px var(--font-sans)";
+                    mosCtx.fillText("I-Frame", x + mSize/2, y + mSize/2 - 6);
+                    mosCtx.font = "10px JetBrains Mono";
+                    mosCtx.fillText("t=0..7", x + mSize/2, y + mSize/2 + 8);
+                }
               } else {
                 // Packed sparse: Blue gradient
                 let fillH = mSize * fillScale;
@@ -2100,7 +2541,7 @@
                 mosCtx.fillRect(x, y, mSize, fillH);
                 
                 // Draw internal grid lines to simulate patches
-                mosCtx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+                mosCtx.strokeStyle = "rgba(255, 255, 255, 0.25)";
                 mosCtx.lineWidth = 1;
                 mosCtx.beginPath();
                 for(let row = 1; row < 5; row++) {
@@ -2109,7 +2550,17 @@
                     mosCtx.lineTo(x + mSize, y + row*(mSize/5));
                   }
                 }
+                for(let col = 1; col < 5; col++) {
+                  mosCtx.moveTo(x + col*(mSize/5), y);
+                  mosCtx.lineTo(x + col*(mSize/5), y + fillH);
+                }
                 mosCtx.stroke();
+                
+                if (fillH > 10) {
+                    mosCtx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                    mosCtx.font = "10px JetBrains Mono";
+                    mosCtx.fillText(`t=${i*8}..${i*8+7}`, x + mSize/2, y + mSize/2);
+                }
               }
               mosCtx.restore();
               
@@ -2125,6 +2576,21 @@
                 drawRoundRect(mosCtx, x, y, mSize, mSize, 8);
                 mosCtx.stroke();
                 mosCtx.restore();
+                
+                // Corner Badge for GOP
+                const gopColors = ["#ef4444", "#f97316", "#f59e0b", "#84cc16", "#10b981", "#06b6d4", "#3b82f6", "#8b5cf6"];
+                mosCtx.fillStyle = gopColors[i];
+                mosCtx.beginPath();
+                mosCtx.moveTo(x + mSize - 26, y);
+                mosCtx.lineTo(x + mSize - 8, y);
+                mosCtx.quadraticCurveTo(x + mSize, y, x + mSize, y + 8);
+                mosCtx.lineTo(x + mSize, y + 26);
+                mosCtx.closePath();
+                mosCtx.fill();
+                
+                mosCtx.fillStyle = "#fff";
+                mosCtx.font = "bold 9px var(--font-sans)";
+                mosCtx.fillText(`G${i+1}`, x + mSize - 9, y + 9);
               }
             }
           }
@@ -2132,13 +2598,22 @@
         
         // Final Output Label
         if (mosState.p === 1) {
-           mosCtx.fillStyle = "#0f172a"; // Slate 900
-           mosCtx.font = "bold 14px JetBrains Mono, monospace";
-           mosCtx.shadowColor = "rgba(0,0,0,0.1)";
-           mosCtx.shadowBlur = 4;
-           mosCtx.shadowOffsetY = 2;
-           mosCtx.fillText("positions_thw.npy → 3D RoPE", mosW/2, mosH - 25);
-           mosCtx.shadowColor = "transparent";
+           const badgeTxt = "positions_thw.npy → 3D RoPE";
+           mosCtx.font = "bold 12px JetBrains Mono, monospace";
+           const bw = mosCtx.measureText(badgeTxt).width + 30;
+           const bh = 26;
+           
+           mosCtx.fillStyle = "#1e293b";
+           mosCtx.shadowColor = "rgba(0,0,0,0.15)";
+           mosCtx.shadowBlur = 8;
+           mosCtx.shadowOffsetY = 4;
+           drawRoundRect(mosCtx, mosW/2 - bw/2, mosH - 35, bw, bh, 13);
+           mosCtx.fill();
+           mosCtx.shadowBlur = 0;
+           mosCtx.shadowOffsetY = 0;
+           
+           mosCtx.fillStyle = "#38bdf8";
+           mosCtx.fillText(badgeTxt, mosW/2, mosH - 35 + bh/2 + 1);
         }
       }
 
