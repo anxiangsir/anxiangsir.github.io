@@ -876,6 +876,51 @@ $$\text{where } \mathbf{g} = \nabla_\theta L(\theta)\big|_{\theta_k},\quad \math
         </div>
       </details>
 
+      <details class="deep-dive" id="sec10-qa6">
+        <summary><span id="sec10-qa6-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa6-p1"></p>
+          <pre class="code-block"><code id="sec10-qa6-code"></code></pre>
+          <p class="phase-desc" id="sec10-qa6-p2"></p>
+        </div>
+      </details>
+
+      <details class="deep-dive" id="sec10-qa7">
+        <summary><span id="sec10-qa7-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa7-p1"></p>
+          <pre class="code-block"><code id="sec10-qa7-code"></code></pre>
+          <p class="phase-desc" id="sec10-qa7-p2"></p>
+        </div>
+      </details>
+
+      <details class="deep-dive" id="sec10-qa8">
+        <summary><span id="sec10-qa8-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa8-p1"></p>
+          <pre class="code-block"><code id="sec10-qa8-code"></code></pre>
+          <p class="phase-desc" id="sec10-qa8-p2"></p>
+        </div>
+      </details>
+
+      <details class="deep-dive" id="sec10-qa9">
+        <summary><span id="sec10-qa9-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa9-p1"></p>
+          <pre class="code-block"><code id="sec10-qa9-code"></code></pre>
+          <p class="phase-desc" id="sec10-qa9-p2"></p>
+        </div>
+      </details>
+
+      <details class="deep-dive" id="sec10-qa10">
+        <summary><span id="sec10-qa10-title"></span></summary>
+        <div class="dd-content">
+          <p class="phase-desc" id="sec10-qa10-p1"></p>
+          <pre class="code-block"><code id="sec10-qa10-code"></code></pre>
+          <p class="phase-desc" id="sec10-qa10-p2"></p>
+        </div>
+      </details>
+
     </div>
     <a href="#" class="back-to-top" id="back-to-top" aria-label="Back to top">↑</a>
 
@@ -1123,7 +1168,7 @@ gen_backend: "sglang" # generation engine`,
           sec9Desc2: "阅读时可带着三个检查点：① rollout 里到底存了哪些 token-level 字段；② staleness 如何限制 in-flight 数据；③ Decoupled PPO 如何同时保证稳定与无偏校正。",
 
           sec10Head: "10. GRPO 训练机制深度 Q&A",
-          sec10Intro: "本节汇总了关于 GRPO 训练内部机制最常被问到的五个问题，涵盖 ratio 计算原理、三种 logprob 的区别、rollout 与 training 的刷新频率、自回归采样与 teacher forcing 的分工，以及从逐 token 的 ratio 到标量 loss 的完整推导流程。",
+          sec10Intro: "本节汇总了关于 GRPO 训练内部机制最常被问到的十个问题，涵盖 ratio 计算原理、三种 logprob 的区别、rollout 与 training 的刷新频率、自回归采样与 teacher forcing 的分工、从逐 token 的 ratio 到标量 loss 的完整推导、advantage 归一化中的组级/批级/微批级陷阱、response 长度偏差与长度归一化、reward shaping 中的 scaling/bias、熵坍缩的检测与缓解，以及 microbatch / train-batch / rollout-batch 的交互。",
 
           sec10Qa1Title: "Q1. PPO/GRPO 的 ratio 是怎么算的？",
           sec10Qa1P1: "<strong>ratio = exp(current_logprobs &minus; old_logprobs)</strong>，逐 token 计算的重要性采样比。<code>current_logprobs</code> 来自<strong>当前正在训练的模型</strong>（有梯度），<code>old_logprobs</code> 来自<strong>rollout 时的旧策略模型</strong>（训练期间冻结）。",
@@ -1249,6 +1294,81 @@ loss.backward()`,
           sec10Qa5R6c1: "最终 loss",
           sec10Qa5R6c2: "scalar",
           sec10Qa5R6c3: "对所有有效 token 平均后做 backward",
+
+          sec10Qa6Title: "Q6. Advantage 归一化：组级 vs 批级 vs 微批级有哪些陷阱？",
+          sec10Qa6P1: "标准 GRPO 会对<strong>同一个 prompt 采样出的 G 个 response</strong>单独计算奖励均值与标准差，再把每个 response 的 advantage 归一化。这样做的优点是：比较发生在同一题目、同一上下文内，能够保留“这一组里谁更好”的相对排序；但如果 <code>G</code> 太小，均值和标准差本身就会非常噪声，导致 advantage 在相邻 step 间剧烈抖动。",
+          sec10Qa6Code: `# Group-level advantage normalization (standard GRPO)
+rewards = reward_model(responses)  # [G]
+mean_r = rewards.mean()
+std_r = rewards.std() + 1e-8
+advantage = (rewards - mean_r) / std_r  # [G], normalized per group
+
+# Pitfall: G too small (e.g., G=2)
+# → std_r is noisy, advantage oscillates wildly
+# Recommendation: G >= 8 for stable training`,
+          sec10Qa6P2: "对比来看：<strong>组级归一化</strong>最符合 GRPO 设计，因为它不混淆不同 prompt 的难度；<strong>批级归一化</strong>更平滑，但会把简单题和难题的奖励统计混在一起；<strong>微批级归一化</strong>通常最危险，因为统计量会依赖显存切分与梯度累积边界，同一逻辑 batch 可能得到不一致 advantage。实践上建议优先用组级归一化，并把组大小设到 <code>G ≥ 8</code>（常见 8–16）；若显存不足，优先增大 rollout 批次或累计更多组，而不是退化到微批级归一化。",
+
+          sec10Qa7Title: "Q7. GRPO 中的长度偏差与 response 长度归一化",
+          sec10Qa7P1: "GRPO 的 token loss 最终要在 response token 上做求和或平均，所以<strong>更长的 response 天然会累计更多损失项</strong>。如果两个样本的单 token 损失分布相近，长回答仅仅因为 token 更多，就会对梯度产生更大影响；这就是常说的长度偏差。常见做法有两类：按样本长度先归一化，再对 batch 求均值；或者直接对全局所有有效 token 做一次统一归一化。",
+          sec10Qa7Code: `# Strategy 1: per-sample length normalization
+per_sample_loss = (token_loss * mask).sum(dim=1) / mask.sum(dim=1)  # [B]
+loss = per_sample_loss.mean()
+
+# Strategy 2: global normalization (more common)
+loss = (token_loss * mask).sum() / mask.sum()  # scalar
+
+# Strategy 2 implicitly up-weights longer responses
+# because they contribute more tokens to the denominator`,
+          sec10Qa7P2: "两种策略各有代价：<strong>按样本长度归一化</strong>让每个 response 权重相近，更公平，但也会把很短、很噪声的回答权重抬高；<strong>全局 token 归一化</strong>实现最简单，也是工程上更常见的方案，但它会让长回答在优化中更“重”。实务上可以同时监控平均 response 长度、长度分桶 loss 和 reward 分布：如果模型开始为了获得更多更新而系统性拉长回答，就要考虑长度归一化、长度惩罚，或更严格的 max_length 控制。",
+
+          sec10Qa8Title: "Q8. Reward Shaping：reward_scaling 与 reward_bias 如何影响训练动态？",
+          sec10Qa8P1: "Reward shaping 的核心是把原始奖励做线性变换：<code>shaped_reward = reward * scaling + bias</code>。这是因为不同任务的 raw reward 尺度可能差异极大：有的是二值 <code>{0,1}</code>，有的是连续区间 <code>-1</code> 到 <code>1</code>，还有的会叠加规则奖励与模型奖励。<code>reward_scaling</code> 决定信号幅度，<code>reward_bias</code> 决定基线位置；再配合 clipping，可以避免极端奖励把策略一步推得过猛。",
+          sec10Qa8Code: `# Reward shaping pipeline
+raw_reward = reward_fn(response)          # varies by task
+shaped = raw_reward * reward_scaling + reward_bias
+
+# Optional: reward clipping for stability
+shaped = torch.clamp(shaped, -clip_val, clip_val)
+
+# Effect on advantage:
+# scaling controls gradient magnitude
+# bias shifts the mean → affects which responses get positive advantage
+# Example: binary reward {0, 1} with bias=-0.5
+#   → advantage centered around 0, both positive and negative signals`,
+          sec10Qa8P2: "训练动态上，缩放过大通常会让 advantage 或 surrogate loss 变得过于尖锐，表现为 ratio 抖动、KL 飙升；缩放过小则会让策略更新发软、收敛很慢。偏置项的作用像“移动决策边界”：它能把只有正奖励的任务改造成同时含正/负信号的优化问题。需要注意的是，若后续做的是严格组内 z-score 归一化，纯线性变换会部分被抵消；但一旦系统里还包含 reward clipping、混合奖励头、批级归一化或阈值判定，<code>reward_scaling</code> 与 <code>reward_bias</code> 仍会显著改变训练稳定性与探索强度。",
+
+          sec10Qa9Title: "Q9. GRPO 熵坍缩：如何检测、监控与缓解？",
+          sec10Qa9P1: "所谓<strong>熵坍缩（entropy collapse）</strong>，是指策略逐渐变成近乎确定性的分布：少数 token 概率接近 1，其余概率接近 0，导致探索能力消失。GRPO 中它常见于 <code>KL</code> 系数太低、advantage 尺度过大、reward 过于尖锐，或组大小 <code>G</code> 太小导致“赢家 token”被过度放大。最直接的检测方法是在训练时持续记录 response token 上的平均熵，而不是只看 reward。",
+          sec10Qa9Code: `# Monitoring entropy during training
+logits = model(input_ids)
+probs = F.softmax(logits, dim=-1)
+entropy = -(probs * probs.log()).sum(dim=-1)  # [B, T]
+mean_entropy = entropy[response_mask.bool()].mean()
+
+# Warning signs:
+# mean_entropy < 0.5  → early warning
+# mean_entropy < 0.1  → severe collapse, training likely stuck
+
+# Mitigation: add entropy bonus to loss
+loss = policy_loss + beta * kl_penalty - alpha * mean_entropy
+# alpha typically 0.01–0.1`,
+          sec10Qa9P2: "实务上建议把 <code>mean_entropy</code>、<code>KL</code>、response 长度、unique response 比例一起画到同一张监控图上：如果 reward 还在上升，但熵快速跌到 <code>0.5</code> 以下，就是早期预警；跌到 <code>0.1</code> 左右通常说明策略已基本锁死。缓解手段包括：增大 KL 正则、加入 entropy bonus、适度提高采样 temperature、增大组大小 <code>G</code> 以降低 advantage 噪声，以及检查 reward 是否过度偏好模板化答案。目标不是让熵始终很高，而是防止它在模型尚未学会任务前过早归零。",
+
+          sec10Qa10Title: "Q10. GRPO 中的梯度累积与有效 batch size：microbatch / train-batch / rollout-batch 如何交互？",
+          sec10Qa10P1: "GRPO 里至少有三层 batch 概念：<strong>rollout_batch</strong> 是一次 rollout 阶段同时采样多少个 prompt；<strong>train_batch</strong> 是一次参数更新实际消耗多少个训练样本；<strong>microbatch</strong> 是单次前向/反向能塞进显存的最小块。它们通过梯度累积连接：当 <code>train_batch &gt; microbatch</code> 时，需要多次 forward/backward 再统一 <code>optimizer.step()</code>。若你的代码把 <code>train_batch</code> 定义为 prompt 数，则一次更新对应的 response 数约为 <code>train_batch × G</code>；若直接定义为 response 数，则这个乘法已经被吸收进 train_batch 本身。",
+          sec10Qa10Code: `# Batch hierarchy in GRPO training
+rollout_batch = 128    # prompts per rollout phase
+G = 8                  # responses per prompt → 1024 total responses
+train_batch = 64       # responses per gradient step
+microbatch = 8         # responses per forward pass (GPU memory limit)
+grad_accum = train_batch // microbatch  # = 8 accumulation steps
+
+# If train_batch is defined in prompts instead,
+# effective_batch = train_batch * G responses per optimizer update
+
+# Memory estimate per microbatch:
+# ~2 * model_params * microbatch * seq_len (activations + gradients)`,
+          sec10Qa10P2: "调参时的核心权衡是：更大的 <code>train_batch</code> / 更大的有效 response 数通常带来更平滑的梯度与更稳定的 KL，但单步更慢、显存更紧；更小的 batch 迭代更快，却更容易受 reward 噪声与组内采样方差影响。常见实践是先固定 <code>microbatch</code> 以贴合显存上限，再用梯度累积把 <code>train_batch</code> 拉到稳定区间，并让 <code>rollout_batch</code> 足够大以覆盖多样 prompt。换句话说：先解决“装得下”，再解决“够不够稳”。",
 
           s4AnimTraining: "训练中...",
           s4AnimActive: "活跃",
@@ -1503,7 +1623,7 @@ gen_backend: "sglang" # generation engine`,
           sec9Desc2: "Three checkpoints while reading code/paper: (1) what token-level fields are stored per rollout, (2) how in-flight capacity is bounded by staleness, (3) how Decoupled PPO balances trust-region stability and off-policy correction.",
 
           sec10Head: "10. GRPO Training Mechanics Deep Q&A",
-          sec10Intro: "This section collects five frequently-asked deep-dive questions on GRPO training internals: how the ratio is computed, the three types of logprobs, rollout vs training refresh frequency, autoregressive sampling vs teacher forcing, and the complete five-step pipeline from per-token ratio to scalar loss.",
+          sec10Intro: "This section collects ten frequently-asked deep-dive questions on GRPO training internals: how the ratio is computed, the three types of logprobs, rollout vs training refresh frequency, autoregressive sampling vs teacher forcing, the full pipeline from per-token ratio to scalar loss, group-vs-batch-vs-microbatch advantage normalization pitfalls, response length bias and length normalization, reward shaping with scaling/bias, entropy collapse detection and mitigation, and the interaction among microbatch, train-batch, and rollout-batch.",
 
           sec10Qa1Title: "Q1. How is the PPO/GRPO ratio computed?",
           sec10Qa1P1: "<strong>ratio = exp(current_logprobs &minus; old_logprobs)</strong>, computed per-token as an importance sampling ratio. <code>current_logprobs</code> comes from the <strong>current model being trained</strong> (has gradients). <code>old_logprobs</code> comes from the <strong>old/rollout model</strong> (snapshot from rollout time, frozen during training).",
@@ -1629,6 +1749,81 @@ loss.backward()`,
           sec10Qa5R6c1: "final loss",
           sec10Qa5R6c2: "scalar",
           sec10Qa5R6c3: "average over all valid tokens, then backward",
+
+          sec10Qa6Title: "Q6. Advantage Normalization: Group-Level vs Batch-Level vs Microbatch-Level Pitfalls",
+          sec10Qa6P1: "Standard GRPO samples <strong>G responses for the same prompt</strong>, computes the reward mean/std within that group, then normalizes each response’s advantage inside the group. The benefit is that comparisons stay within the same question and context, preserving the relative ranking of responses for that prompt. The pitfall is that when <code>G</code> is too small, the estimated mean/std is itself noisy, so the normalized advantage swings sharply from step to step.",
+          sec10Qa6Code: `# Group-level advantage normalization (standard GRPO)
+rewards = reward_model(responses)  # [G]
+mean_r = rewards.mean()
+std_r = rewards.std() + 1e-8
+advantage = (rewards - mean_r) / std_r  # [G], normalized per group
+
+# Pitfall: G too small (e.g., G=2)
+# → std_r is noisy, advantage oscillates wildly
+# Recommendation: G >= 8 for stable training`,
+          sec10Qa6P2: "Tradeoff summary: <strong>group-level normalization</strong> is the clean GRPO default because it does not mix prompts of different difficulty; <strong>batch-level normalization</strong> is smoother but blends easy and hard prompts into one statistic; <strong>microbatch-level normalization</strong> is usually the worst choice because the statistics depend on GPU partitioning and gradient accumulation boundaries, so the same logical batch can get inconsistent advantages. In practice, prefer group-level normalization and aim for <code>G ≥ 8</code> (often 8–16). If memory is tight, it is better to accumulate more groups or enlarge rollout coverage than to fall back to microbatch-level stats.",
+
+          sec10Qa7Title: "Q7. Length Bias in GRPO and Response-Length Normalization",
+          sec10Qa7P1: "Because GRPO ultimately sums or averages token losses over the response, <strong>longer responses naturally accumulate more loss terms</strong>. If two samples have similar per-token loss distributions, the longer one still pushes the gradient harder simply because it contains more tokens. This is length bias. Two common normalization strategies are: normalize each sample by its own response length before averaging across the batch, or normalize once over all valid tokens globally.",
+          sec10Qa7Code: `# Strategy 1: per-sample length normalization
+per_sample_loss = (token_loss * mask).sum(dim=1) / mask.sum(dim=1)  # [B]
+loss = per_sample_loss.mean()
+
+# Strategy 2: global normalization (more common)
+loss = (token_loss * mask).sum() / mask.sum()  # scalar
+
+# Strategy 2 implicitly up-weights longer responses
+# because they contribute more tokens to the denominator`,
+          sec10Qa7P2: "The tradeoff is subtle: <strong>per-sample normalization</strong> makes each response count more equally, but it also up-weights very short and potentially noisy responses; <strong>global token normalization</strong> is simpler and more common in production code, but it biases optimization toward longer answers. In practice, monitor average response length, length-bucketed loss, and reward-by-length. If the model starts stretching outputs mainly to harvest more update mass, you likely need stronger length normalization, explicit length penalties, or tighter max-length controls.",
+
+          sec10Qa8Title: "Q8. Reward Shaping: How reward_scaling and reward_bias Change Training Dynamics",
+          sec10Qa8P1: "Reward shaping applies a simple affine transform: <code>shaped_reward = reward * scaling + bias</code>. This matters because raw rewards can live on very different scales: binary <code>{0,1}</code>, continuous <code>-1</code> to <code>1</code>, or mixtures of rule-based and learned rewards. <code>reward_scaling</code> sets the signal amplitude; <code>reward_bias</code> shifts the baseline; and optional clipping prevents rare extreme rewards from causing violent policy updates.",
+          sec10Qa8Code: `# Reward shaping pipeline
+raw_reward = reward_fn(response)          # varies by task
+shaped = raw_reward * reward_scaling + reward_bias
+
+# Optional: reward clipping for stability
+shaped = torch.clamp(shaped, -clip_val, clip_val)
+
+# Effect on advantage:
+# scaling controls gradient magnitude
+# bias shifts the mean → affects which responses get positive advantage
+# Example: binary reward {0, 1} with bias=-0.5
+#   → advantage centered around 0, both positive and negative signals`,
+          sec10Qa8P2: "In training dynamics, scaling that is too large often makes advantage/surrogate terms too sharp, showing up as ratio spikes and KL explosions; scaling that is too small makes updates weak and slow. Bias acts like a moving decision boundary: it can turn a task with only positive rewards into one that supplies both positive and negative learning signals. One caveat: if you later apply strict within-group z-score normalization, a pure affine transform is partly canceled. But once the pipeline also includes reward clipping, mixed reward heads, batch-level stats, or thresholds, <code>reward_scaling</code> and <code>reward_bias</code> still materially affect stability and exploration.",
+
+          sec10Qa9Title: "Q9. Entropy Collapse in GRPO: Detection, Monitoring, and Mitigation",
+          sec10Qa9P1: "<strong>Entropy collapse</strong> means the policy becomes nearly deterministic: a few tokens get probability close to 1 while the rest go to 0, so exploration disappears. In GRPO this often happens when the <code>KL</code> coefficient is too low, the advantage scale is too large, rewards are too sharp, or group size <code>G</code> is too small and over-amplifies ‘winning’ tokens. The most direct detection method is to log average entropy over response tokens during training rather than looking at reward alone.",
+          sec10Qa9Code: `# Monitoring entropy during training
+logits = model(input_ids)
+probs = F.softmax(logits, dim=-1)
+entropy = -(probs * probs.log()).sum(dim=-1)  # [B, T]
+mean_entropy = entropy[response_mask.bool()].mean()
+
+# Warning signs:
+# mean_entropy < 0.5  → early warning
+# mean_entropy < 0.1  → severe collapse, training likely stuck
+
+# Mitigation: add entropy bonus to loss
+loss = policy_loss + beta * kl_penalty - alpha * mean_entropy
+# alpha typically 0.01–0.1`,
+          sec10Qa9P2: "A practical monitoring dashboard should plot <code>mean_entropy</code>, <code>KL</code>, response length, and unique-response ratio together. If reward is still rising while entropy crashes below <code>0.5</code>, treat it as an early warning; around <code>0.1</code>, the policy is often effectively locked. Common mitigations are: stronger KL regularization, an entropy bonus, slightly higher sampling temperature, larger group size <code>G</code> to reduce advantage noise, and a check that the reward function is not over-favoring one rigid template. The goal is not to keep entropy permanently high, but to stop it from going to zero before the model has truly learned the task.",
+
+          sec10Qa10Title: "Q10. Gradient Accumulation and Effective Batch Size in GRPO: microbatch / train-batch / rollout-batch Interaction",
+          sec10Qa10P1: "GRPO involves at least three batch concepts: <strong>rollout_batch</strong> = how many prompts are sampled together during rollout; <strong>train_batch</strong> = how many training samples feed one optimizer update; <strong>microbatch</strong> = how many samples fit in one forward/backward pass. They are connected by gradient accumulation: when <code>train_batch &gt; microbatch</code>, multiple forward/backward passes are accumulated before one <code>optimizer.step()</code>. If your codebase defines <code>train_batch</code> in prompts, then the effective number of responses per update is roughly <code>train_batch × G</code>; if it defines train_batch directly in responses, that multiplication has already been absorbed into train_batch itself.",
+          sec10Qa10Code: `# Batch hierarchy in GRPO training
+rollout_batch = 128    # prompts per rollout phase
+G = 8                  # responses per prompt → 1024 total responses
+train_batch = 64       # responses per gradient step
+microbatch = 8         # responses per forward pass (GPU memory limit)
+grad_accum = train_batch // microbatch  # = 8 accumulation steps
+
+# If train_batch is defined in prompts instead,
+# effective_batch = train_batch * G responses per optimizer update
+
+# Memory estimate per microbatch:
+# ~2 * model_params * microbatch * seq_len (activations + gradients)`,
+          sec10Qa10P2: "The main tuning tradeoff is simple: larger <code>train_batch</code> / larger effective response count usually gives smoother gradients and stabler KL, but each update is slower and memory pressure is higher; smaller batches iterate faster, but are more exposed to reward noise and group-level variance. A common workflow is to first pin <code>microbatch</code> to the GPU memory limit, then use gradient accumulation to raise <code>train_batch</code> into a stable regime, and finally make sure <code>rollout_batch</code> is large enough to cover diverse prompts. In short: first make it fit, then make it stable.",
 
           s4AnimTraining: "Training...",
           s4AnimActive: "Active",
@@ -1965,6 +2160,31 @@ loss.backward()`,
         document.getElementById('sec10-qa5-r6c1').innerHTML = L.sec10Qa5R6c1;
         document.getElementById('sec10-qa5-r6c2').innerHTML = L.sec10Qa5R6c2;
         document.getElementById('sec10-qa5-r6c3').innerHTML = L.sec10Qa5R6c3;
+
+        document.getElementById('sec10-qa6-title').innerHTML = L.sec10Qa6Title;
+        document.getElementById('sec10-qa6-p1').innerHTML = L.sec10Qa6P1;
+        document.getElementById('sec10-qa6-code').innerHTML = highlightPython(L.sec10Qa6Code);
+        document.getElementById('sec10-qa6-p2').innerHTML = L.sec10Qa6P2;
+
+        document.getElementById('sec10-qa7-title').innerHTML = L.sec10Qa7Title;
+        document.getElementById('sec10-qa7-p1').innerHTML = L.sec10Qa7P1;
+        document.getElementById('sec10-qa7-code').innerHTML = highlightPython(L.sec10Qa7Code);
+        document.getElementById('sec10-qa7-p2').innerHTML = L.sec10Qa7P2;
+
+        document.getElementById('sec10-qa8-title').innerHTML = L.sec10Qa8Title;
+        document.getElementById('sec10-qa8-p1').innerHTML = L.sec10Qa8P1;
+        document.getElementById('sec10-qa8-code').innerHTML = highlightPython(L.sec10Qa8Code);
+        document.getElementById('sec10-qa8-p2').innerHTML = L.sec10Qa8P2;
+
+        document.getElementById('sec10-qa9-title').innerHTML = L.sec10Qa9Title;
+        document.getElementById('sec10-qa9-p1').innerHTML = L.sec10Qa9P1;
+        document.getElementById('sec10-qa9-code').innerHTML = highlightPython(L.sec10Qa9Code);
+        document.getElementById('sec10-qa9-p2').innerHTML = L.sec10Qa9P2;
+
+        document.getElementById('sec10-qa10-title').innerHTML = L.sec10Qa10Title;
+        document.getElementById('sec10-qa10-p1').innerHTML = L.sec10Qa10P1;
+        document.getElementById('sec10-qa10-code').innerHTML = highlightPython(L.sec10Qa10Code);
+        document.getElementById('sec10-qa10-p2').innerHTML = L.sec10Qa10P2;
         const ddText4 = document.getElementById('sec4-summary-text');
         const details4 = document.getElementById('sec4-details');
         if (ddText4 && details4) {

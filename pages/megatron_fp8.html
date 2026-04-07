@@ -154,7 +154,7 @@
 
       <div class="insight-box"
         data-en="&lt;strong&gt;💡 Key idea:&lt;/strong&gt; FP8 training is &lt;em&gt;not&lt;/em&gt; 'convert everything to 8 bits'. Only the most bandwidth-hungry GEMM inputs (weights and activations) are stored in FP8. LayerNorm, Softmax, residual connections, and the optimizer remain in BF16/FP32. This surgical replacement maximizes throughput while preserving numerical stability."
-        data-zh="&lt;strong&gt;💡 核心思想：&lt;/strong&gt; FP8 训练&lt;em&gt;不是&lt;/em&gt;"把所有东西都换成 8 位"。只有最耗带宽的 GEMM 输入（权重和激活）才以 FP8 存储。LayerNorm、Softmax、残差连接和优化器仍保持 BF16/FP32。这种精准替换在最大化吞吐量的同时保证数值稳定性。"><strong>💡 核心思想：</strong> FP8 训练<em>不是</em>"把所有东西都换成 8 位"。只有最耗带宽的 GEMM 输入（权重和激活）才以 FP8 存储。LayerNorm、Softmax、残差连接和优化器仍保持 BF16/FP32。这种精准替换在最大化吞吐量的同时保证数值稳定性。</div>
+        data-zh="&lt;strong&gt;💡 核心思想：&lt;/strong&gt; FP8 训练&lt;em&gt;不是&lt;/em&gt;&ldquo;把所有东西都换成 8 位&rdquo;。只有最耗带宽的 GEMM 输入（权重和激活）才以 FP8 存储。LayerNorm、Softmax、残差连接和优化器仍保持 BF16/FP32。这种精准替换在最大化吞吐量的同时保证数值稳定性。"><strong>💡 核心思想：</strong> FP8 训练<em>不是</em>&ldquo;把所有东西都换成 8 位&rdquo;。只有最耗带宽的 GEMM 输入（权重和激活）才以 FP8 存储。LayerNorm、Softmax、残差连接和优化器仍保持 BF16/FP32。这种精准替换在最大化吞吐量的同时保证数值稳定性。</div>
 
 
       <!-- VIZ A: Memory Bandwidth Race -->
@@ -454,9 +454,384 @@ fp8_recipe = <span class="fn">DelayedScaling</span>(
         data-en="&lt;strong&gt;📊 Model quality:&lt;/strong&gt; On Pile/MMLU/HellaSwag, FP8 matches BF16 loss curves and task metrics to within 0.1%. Gradient clipping threshold can be slightly relaxed (1.0→1.5) to account for quantization noise in gradients."
         data-zh="&lt;strong&gt;📊 模型质量：&lt;/strong&gt; 在 Pile/MMLU/HellaSwag 上，FP8 训练的 loss 曲线和任务指标与 BF16 差异在 0.1% 以内。梯度裁剪阈值可略微放宽（1.0→1.5）以适应梯度中的量化噪声。"><strong>📊 模型质量：</strong> 在 Pile/MMLU/HellaSwag 上，FP8 训练的 loss 曲线和任务指标与 BF16 差异在 0.1% 以内。梯度裁剪阈值可略微放宽（1.0→1.5）以适应梯度中的量化噪声。</div>
 
+      <h2 class="phase-heading" id="sec-te-linear"
+        data-en="§9 Transformer Engine te.Linear Internals"
+        data-zh="§9 Transformer Engine te.Linear 内部机制">§9 Transformer Engine te.Linear 内部机制</h2>
+      <p class="phase-desc"
+        data-en="Inside Megatron-Core, FP8 is not enabled by sprinkling a cast around a plain <code>nn.Linear</code>. The model is built from a <code>ModuleSpec</code> tree, and the spec swaps standard linear layers for Transformer Engine wrappers such as <code>TEColumnParallelLinear</code>, <code>TERowParallelLinear</code>, and <code>TELayerNormColumnParallelLinear</code>. These wrappers keep Megatron's tensor-parallel partitioning logic, parameter initialization, and communication contracts, while delegating the actual FP8 GEMM to <code>te.Linear</code>."
+        data-zh="在 Megatron-Core 内部，启用 FP8 并不是简单地给普通 <code>nn.Linear</code> 外面套一层 cast。模型是通过 <code>ModuleSpec</code> 规格树构建的，规格会把标准线性层替换成 Transformer Engine 包装器，例如 <code>TEColumnParallelLinear</code>、<code>TERowParallelLinear</code> 和 <code>TELayerNormColumnParallelLinear</code>。这些包装器一方面保留 Megatron 的张量并行切分、参数初始化与通信契约，另一方面把真正的 FP8 GEMM 委托给 <code>te.Linear</code>。">在 Megatron-Core 内部，启用 FP8 并不是简单地给普通 <code>nn.Linear</code> 外面套一层 cast。模型是通过 <code>ModuleSpec</code> 规格树构建的，规格会把标准线性层替换成 Transformer Engine 包装器，例如 <code>TEColumnParallelLinear</code>、<code>TERowParallelLinear</code> 和 <code>TELayerNormColumnParallelLinear</code>。这些包装器一方面保留 Megatron 的张量并行切分、参数初始化与通信契约，另一方面把真正的 FP8 GEMM 委托给 <code>te.Linear</code>。</p>
+
+      <div class="two-col">
+        <div class="col-card">
+          <h4 data-en="🧩 Spec-level replacement" data-zh="🧩 规格层替换">🧩 规格层替换</h4>
+          <p style="line-height:1.75;margin-top:.4rem;"
+            data-en="Megatron chooses TE modules at model-construction time, not at runtime pattern matching. That matters because QKV projection, MLP up-projection, and output projection each need different tensor-parallel sharding semantics."
+            data-zh="Megatron 在模型构建阶段就选定 TE 模块，而不是在运行时对 <code>nn.Linear</code> 做模式匹配替换。这一点很关键，因为 QKV 投影、MLP 上投影和输出投影分别需要不同的张量并行切分语义。">Megatron 在模型构建阶段就选定 TE 模块，而不是在运行时对 <code>nn.Linear</code> 做模式匹配替换。这一点很关键，因为 QKV 投影、MLP 上投影和输出投影分别需要不同的张量并行切分语义。</p>
+        </div>
+        <div class="col-card">
+          <h4 data-en="⚙️ Wrapper responsibilities" data-zh="⚙️ 包装器职责">⚙️ 包装器职责</h4>
+          <ul style="padding-left:1.1rem;line-height:1.85;margin-top:.4rem;"
+            data-en="<li><strong>Column-parallel:</strong> shard output features across TP ranks</li><li><strong>Row-parallel:</strong> shard input features and reduce partial sums</li><li><strong>LayerNorm+Linear:</strong> fuse normalization metadata with FP8-aware projection</li><li><strong>TE backend:</strong> manage FP8 metadata, scales, and GEMM dispatch</li>"
+            data-zh="<li><strong>列并行：</strong>在 TP rank 之间切分输出特征</li><li><strong>行并行：</strong>切分输入特征并归约部分和</li><li><strong>LayerNorm+Linear：</strong>把归一化元数据与 FP8 感知投影融合</li><li><strong>TE 后端：</strong>管理 FP8 元数据、缩放因子与 GEMM 调度</li>"><li><strong>列并行：</strong>在 TP rank 之间切分输出特征</li><li><strong>行并行：</strong>切分输入特征并归约部分和</li><li><strong>LayerNorm+Linear：</strong>把归一化元数据与 FP8 感知投影融合</li><li><strong>TE 后端：</strong>管理 FP8 元数据、缩放因子与 GEMM 调度</li></ul>
+        </div>
+      </div>
+
+<pre><code><span class="cm"># Megatron's transformer spec with TE modules</span>
+<span class="kw">from</span> megatron.core.extensions.transformer_engine <span class="kw">import</span> (
+    TEColumnParallelLinear,
+    TERowParallelLinear,
+    TELayerNormColumnParallelLinear,
+    TEDotProductAttention,
+    TENorm,
+)
+
+<span class="cm"># MLP spec: replaces nn.Linear with TE FP8-aware layers</span>
+mlp_spec <span class="op">=</span> <span class="fn">MLPSubmodules</span>(
+    linear_fc1<span class="op">=</span>TEColumnParallelLinear,  <span class="cm"># TP column-parallel + FP8</span>
+    linear_fc2<span class="op">=</span>TERowParallelLinear,     <span class="cm"># TP row-parallel + FP8</span>
+)
+
+<span class="cm"># Attention spec</span>
+attn_spec <span class="op">=</span> <span class="fn">SelfAttentionSubmodules</span>(
+    linear_qkv<span class="op">=</span>TEColumnParallelLinear,
+    core_attention<span class="op">=</span>TEDotProductAttention,
+    linear_proj<span class="op">=</span>TERowParallelLinear,
+)
+</code></pre>
+
+      <p class="phase-desc"
+        data-en="A subtle but important optimization appears during gradient accumulation. Multiple microbatches reuse the exact same weights before the optimizer updates them, so quantizing the weight tensor to FP8 on every microbatch would waste bandwidth and kernels. Transformer Engine therefore caches the FP8-converted weight after the first microbatch. Megatron passes <code>is_first_microbatch</code> into the TE wrappers: <code>True</code> means recompute and refresh the FP8 cache, <code>False</code> means reuse the cached FP8 weight, and <code>None</code> disables the cache path and always requantizes."
+        data-zh="梯度累积阶段有一个很关键但常被忽略的优化。多个 microbatch 在优化器更新之前会复用完全相同的权重，如果每个 microbatch 都重新把权重量化成 FP8，就会白白浪费带宽和 kernel。于是 Transformer Engine 会在第一个 microbatch 后缓存 FP8 化的权重。Megatron 将 <code>is_first_microbatch</code> 传给 TE 包装器：<code>True</code> 表示重新量化并刷新 FP8 缓存，<code>False</code> 表示复用缓存的 FP8 权重，<code>None</code> 表示关闭缓存路径、每次都重新量化。">梯度累积阶段有一个很关键但常被忽略的优化。多个 microbatch 在优化器更新之前会复用完全相同的权重，如果每个 microbatch 都重新把权重量化成 FP8，就会白白浪费带宽和 kernel。于是 Transformer Engine 会在第一个 microbatch 后缓存 FP8 化的权重。Megatron 将 <code>is_first_microbatch</code> 传给 TE 包装器：<code>True</code> 表示重新量化并刷新 FP8 缓存，<code>False</code> 表示复用缓存的 FP8 权重，<code>None</code> 表示关闭缓存路径、每次都重新量化。</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th data-en="Forward step" data-zh="前向步骤">前向步骤</th>
+            <th data-en="What TE does internally" data-zh="TE 内部动作">TE 内部动作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-en="1. Read recipe state" data-zh="1. 读取 recipe 状态">1. 读取 recipe 状态</td>
+            <td data-en="Load the current scale, inverse scale, and amax-history metadata for activations and weights." data-zh="读取当前激活与权重对应的 scale、inverse scale 以及 amax 历史元数据。">读取当前激活与权重对应的 scale、inverse scale 以及 amax 历史元数据。</td>
+          </tr>
+          <tr>
+            <td data-en="2. Quantize weight or hit cache" data-zh="2. 量化权重或命中缓存">2. 量化权重或命中缓存</td>
+            <td data-en="If this is the first microbatch, cast the BF16 master weight to FP8 and stash it; otherwise reuse the cached FP8 copy." data-zh="如果是第一个 microbatch，就把 BF16 master weight 转成 FP8 并缓存；否则直接复用缓存的 FP8 副本。">如果是第一个 microbatch，就把 BF16 master weight 转成 FP8 并缓存；否则直接复用缓存的 FP8 副本。</td>
+          </tr>
+          <tr>
+            <td data-en="3. Quantize input activation" data-zh="3. 量化输入激活">3. 量化输入激活</td>
+            <td data-en="Cast the incoming activation tensor to FP8 using the activation scale for this call." data-zh="使用当前调用对应的激活缩放因子，把输入激活张量转换为 FP8。">使用当前调用对应的激活缩放因子，把输入激活张量转换为 FP8。</td>
+          </tr>
+          <tr>
+            <td data-en="4. Launch cuBLAS FP8 GEMM" data-zh="4. 启动 cuBLAS FP8 GEMM">4. 启动 cuBLAS FP8 GEMM</td>
+            <td data-en="Run the matrix multiply on FP8 Tensor Cores, while the accumulator remains in higher precision." data-zh="在 FP8 Tensor Core 上执行矩阵乘法，同时保持累加器为更高精度。">在 FP8 Tensor Core 上执行矩阵乘法，同时保持累加器为更高精度。</td>
+          </tr>
+          <tr>
+            <td data-en="5. Return BF16/FP32 output" data-zh="5. 返回 BF16/FP32 输出">5. 返回 BF16/FP32 输出</td>
+            <td data-en="The GEMM result is exposed back to the Megatron graph in BF16 or FP32-friendly form for downstream ops." data-zh="GEMM 结果会以 BF16/FP32 友好的形式返回给 Megatron 计算图，供后续算子继续使用。">GEMM 结果会以 BF16/FP32 友好的形式返回给 Megatron 计算图，供后续算子继续使用。</td>
+          </tr>
+          <tr>
+            <td data-en="6. Record current amax" data-zh="6. 记录当前 amax">6. 记录当前 amax</td>
+            <td data-en="The kernel path writes back this step's observed amax so the recipe can update future scaling decisions." data-zh="kernel 路径会回写本步观测到的 amax，供 recipe 更新后续步骤的缩放决策。">kernel 路径会回写本步观测到的 amax，供 recipe 更新后续步骤的缩放决策。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pipeline">
+        <div class="pipeline-step" data-en="Read scale&lt;small&gt;recipe state / history&lt;/small&gt;" data-zh="读取 scale&lt;small&gt;recipe 状态 / 历史&lt;/small&gt;">读取 scale<small>recipe 状态 / 历史</small></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" data-en="Weight FP8 cast&lt;small&gt;or cache hit&lt;/small&gt;" data-zh="权重 FP8 转换&lt;small&gt;或命中缓存&lt;/small&gt;">权重 FP8 转换<small>或命中缓存</small></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" data-en="Activation FP8 cast&lt;small&gt;per-call scale&lt;/small&gt;" data-zh="激活 FP8 转换&lt;small&gt;按调用缩放&lt;/small&gt;">激活 FP8 转换<small>按调用缩放</small></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" data-en="cuBLAS FP8 GEMM&lt;small&gt;FP32 accumulate&lt;/small&gt;" data-zh="cuBLAS FP8 GEMM&lt;small&gt;FP32 累加&lt;/small&gt;">cuBLAS FP8 GEMM<small>FP32 累加</small></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" data-en="Write amax&lt;small&gt;for next step&lt;/small&gt;" data-zh="写回 amax&lt;small&gt;供下步使用&lt;/small&gt;">写回 amax<small>供下步使用</small></div>
+      </div>
+
+<pre><code><span class="cm"># FP8 weight caching across microbatches</span>
+<span class="kw">for</span> micro_idx <span class="kw">in</span> <span class="fn">range</span>(num_microbatches):
+    is_first <span class="op">=</span> (micro_idx <span class="op">==</span> <span class="nm">0</span>)
+    <span class="kw">with</span> te.<span class="fn">fp8_autocast</span>(enabled<span class="op">=</span><span class="nm">True</span>, fp8_recipe<span class="op">=</span>recipe):
+        output <span class="op">=</span> <span class="fn">model</span>(input, is_first_microbatch<span class="op">=</span>is_first)
+        <span class="cm"># micro_idx=0: quantize weight → FP8, cache it</span>
+        <span class="cm"># micro_idx&gt;0: reuse cached FP8 weight (skip quantization)</span>
+    loss <span class="op">=</span> <span class="fn">criterion</span>(output, target)
+    loss.<span class="fn">backward</span>()
+<span class="cm"># optimizer.step() after all microbatches</span>
+</code></pre>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;💡 Why weight caching matters:&lt;/strong&gt; In large GPT runs, one optimizer step may contain dozens of microbatches. Recasting the same multi-gigabyte weight shards to FP8 every time can consume enough memory bandwidth to erase part of the FP8 speedup. Reusing the cached FP8 weight makes the first microbatch pay the conversion cost, and the remaining microbatches mostly pay only for the GEMM itself."
+        data-zh="&lt;strong&gt;💡 为什么权重缓存很重要：&lt;/strong&gt; 在大规模 GPT 训练中，一个 optimizer step 往往包含几十个 microbatch。如果每次都把同一份 GB 级权重分片重新量化成 FP8，会吃掉大量显存带宽，抵消一部分 FP8 提速收益。复用缓存后的 FP8 权重意味着只有第一个 microbatch 付出转换代价，后续 microbatch 基本只承担 GEMM 本身的成本。"><strong>💡 为什么权重缓存很重要：</strong> 在大规模 GPT 训练中，一个 optimizer step 往往包含几十个 microbatch。如果每次都把同一份 GB 级权重分片重新量化成 FP8，会吃掉大量显存带宽，抵消一部分 FP8 提速收益。复用缓存后的 FP8 权重意味着只有第一个 microbatch 付出转换代价，后续 microbatch 基本只承担 GEMM 本身的成本。</div>
+
+      <h2 class="phase-heading" id="sec-scaling-evolution"
+        data-en="§10 Scaling Strategy Evolution"
+        data-zh="§10 缩放策略演进：Delayed → Current → Block (MXFP8)">§10 缩放策略演进：Delayed → Current → Block (MXFP8)</h2>
+      <p class="phase-desc"
+        data-en="Transformer Engine has evolved from one coarse-grained FP8 scaling recipe to a family of increasingly accurate strategies. <code>DelayedScaling</code> is the original H100-era workhorse: it reuses amax statistics from previous steps and pays almost no extra runtime overhead. <code>Float8CurrentScaling</code> instead scans the current tensor before GEMM, eliminating the one-step lag at the cost of an additional reduction. On Blackwell, <code>MXFP8BlockScaling</code> pushes granularity further: every contiguous block of 32 elements gets its own shared E8M0 scale, which is the Microscaling (MX) format defined by the OCP specification."
+        data-zh="Transformer Engine 的 FP8 缩放策略已经从单一方案演进为一组精度逐步提高的方法。<code>DelayedScaling</code> 是 H100 时代最常用的基础方案：它复用前几步的 amax 统计，几乎没有额外运行时开销。<code>Float8CurrentScaling</code> 则会在 GEMM 前扫描当前张量，消除一步滞后，但要额外做一次归约。到了 Blackwell，<code>MXFP8BlockScaling</code> 把粒度继续细化：每连续 32 个元素共享一个 E8M0 缩放因子，这正是 OCP 规范中的 Microscaling（MX）格式。">Transformer Engine 的 FP8 缩放策略已经从单一方案演进为一组精度逐步提高的方法。<code>DelayedScaling</code> 是 H100 时代最常用的基础方案：它复用前几步的 amax 统计，几乎没有额外运行时开销。<code>Float8CurrentScaling</code> 则会在 GEMM 前扫描当前张量，消除一步滞后，但要额外做一次归约。到了 Blackwell，<code>MXFP8BlockScaling</code> 把粒度继续细化：每连续 32 个元素共享一个 E8M0 缩放因子，这正是 OCP 规范中的 Microscaling（MX）格式。</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th data-en="Feature" data-zh="特性">特性</th>
+            <th data-en="DelayedScaling" data-zh="DelayedScaling">DelayedScaling</th>
+            <th data-en="Float8CurrentScaling" data-zh="Float8CurrentScaling">Float8CurrentScaling</th>
+            <th data-en="MXFP8BlockScaling" data-zh="MXFP8BlockScaling">MXFP8BlockScaling</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-en="Scale computation" data-zh="缩放因子计算">缩放因子计算</td>
+            <td data-en="From history buffer" data-zh="来自历史缓冲区">来自历史缓冲区</td>
+            <td data-en="On-the-fly scan" data-zh="当前步即时扫描">当前步即时扫描</td>
+            <td data-en="Per-32-element block" data-zh="每 32 元素一个 block">每 32 元素一个 block</td>
+          </tr>
+          <tr>
+            <td data-en="Accuracy" data-zh="精度">精度</td>
+            <td data-en="Good (1-step lag)" data-zh="较好（有 1 步滞后）">较好（有 1 步滞后）</td>
+            <td data-en="Better (exact current tensor)" data-zh="更好（基于当前张量精确计算）">更好（基于当前张量精确计算）</td>
+            <td data-en="Best (fine-grained)" data-zh="最好（细粒度）">最好（细粒度）</td>
+          </tr>
+          <tr>
+            <td data-en="Overhead" data-zh="开销">开销</td>
+            <td data-en="Near-zero" data-zh="近乎为零">近乎为零</td>
+            <td data-en="One tensor scan" data-zh="一次完整张量扫描">一次完整张量扫描</td>
+            <td data-en="Block-wise ops" data-zh="块级运算">块级运算</td>
+          </tr>
+          <tr>
+            <td data-en="Hardware" data-zh="硬件要求">硬件要求</td>
+            <td data-en="H100+" data-zh="H100+">H100+</td>
+            <td data-en="H100+" data-zh="H100+">H100+</td>
+            <td data-en="Blackwell+" data-zh="Blackwell+">Blackwell+</td>
+          </tr>
+          <tr>
+            <td data-en="History buffer" data-zh="历史缓冲区">历史缓冲区</td>
+            <td data-en="Yes (W entries)" data-zh="是（W 个条目）">是（W 个条目）</td>
+            <td data-en="No" data-zh="否">否</td>
+            <td data-en="No" data-zh="否">否</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="two-col">
+        <div class="col-card">
+          <h4 data-en="⏱️ Delayed vs Current" data-zh="⏱️ Delayed 与 Current">⏱️ Delayed 与 Current</h4>
+          <p style="line-height:1.75;margin-top:.4rem;"
+            data-en="<code>DelayedScaling</code> exposes knobs such as <code>fp8_format</code>, <code>amax_history_len</code>, <code>amax_compute_algo</code>, <code>margin</code>, and <code>fp8_mha</code>. <code>Float8CurrentScaling</code> keeps the same format and margin controls, also supports <code>fp8_mha</code>, but drops the history buffer because the scale comes from the current tensor itself."
+            data-zh="<code>DelayedScaling</code> 提供 <code>fp8_format</code>、<code>amax_history_len</code>、<code>amax_compute_algo</code>、<code>margin</code> 和 <code>fp8_mha</code> 等参数。<code>Float8CurrentScaling</code> 保留 format 与 margin 等控制项，也支持 <code>fp8_mha</code>，但不再需要历史缓冲区，因为缩放值直接来自当前张量。"><code>DelayedScaling</code> 提供 <code>fp8_format</code>、<code>amax_history_len</code>、<code>amax_compute_algo</code>、<code>margin</code> 和 <code>fp8_mha</code> 等参数。<code>Float8CurrentScaling</code> 保留 format 与 margin 等控制项，也支持 <code>fp8_mha</code>，但不再需要历史缓冲区，因为缩放值直接来自当前张量。</p>
+        </div>
+        <div class="col-card">
+          <h4 data-en="🧱 Why MXFP8 matters" data-zh="🧱 MXFP8 的意义">🧱 MXFP8 的意义</h4>
+          <p style="line-height:1.75;margin-top:.4rem;"
+            data-en="Per-tensor scaling can still be too coarse when a tensor mixes calm regions with local outliers. MXFP8 assigns one scale to each 32-value block, so a single spike no longer forces the entire tensor to use a conservative scale. This is why Blackwell can preserve more FP8 precision on long-sequence attention and giant MLP activations."
+            data-zh="当一个张量同时包含平稳区域和局部异常值时，per-tensor scaling 仍然可能过粗。MXFP8 为每 32 个值分配一个缩放因子，因此某个局部尖峰不再迫使整个张量采用保守缩放。这也是 Blackwell 在长序列注意力和超大 MLP 激活上能保留更多 FP8 精度的原因。">当一个张量同时包含平稳区域和局部异常值时，per-tensor scaling 仍然可能过粗。MXFP8 为每 32 个值分配一个缩放因子，因此某个局部尖峰不再迫使整个张量采用保守缩放。这也是 Blackwell 在长序列注意力和超大 MLP 激活上能保留更多 FP8 精度的原因。</p>
+        </div>
+      </div>
+
+<pre><code><span class="kw">from</span> transformer_engine.common.recipe <span class="kw">import</span> (
+    DelayedScaling, Float8CurrentScaling, MXFP8BlockScaling, Format
+)
+
+<span class="cm"># Strategy 1: Delayed (original, lowest overhead)</span>
+delayed <span class="op">=</span> <span class="fn">DelayedScaling</span>(
+    fp8_format<span class="op">=</span>Format.HYBRID,
+    amax_history_len<span class="op">=</span><span class="nm">16</span>,
+    amax_compute_algo<span class="op">=</span><span class="st">"max"</span>,
+    margin<span class="op">=</span><span class="nm">0</span>,
+)
+
+<span class="cm"># Strategy 2: Current (more accurate, slightly more overhead)</span>
+current <span class="op">=</span> <span class="fn">Float8CurrentScaling</span>(
+    fp8_format<span class="op">=</span>Format.HYBRID,
+    margin<span class="op">=</span><span class="nm">0</span>,
+)
+
+<span class="cm"># Strategy 3: MXFP8 Block (finest granularity, Blackwell only)</span>
+mxfp8 <span class="op">=</span> <span class="fn">MXFP8BlockScaling</span>(
+    fp8_format<span class="op">=</span>Format.HYBRID,
+)
+</code></pre>
+
+      <p class="phase-desc"
+        data-en="One parameter that often looks mysterious is <code>margin</code>. Conceptually it reserves headroom by shrinking the usable FP8 range: instead of scaling to the absolute FP8 maximum, TE behaves like <code>scale = amax / (fp8_max / 2^margin)</code>. A larger margin makes overflow less likely, but also wastes some mantissa resolution because values occupy a smaller fraction of the representable range."
+        data-zh="一个看起来容易让人困惑的参数是 <code>margin</code>。它的本质是预留安全余量，主动缩小可用的 FP8 动态范围：TE 不再把张量缩放到绝对的 FP8 上限，而是近似按 <code>scale = amax / (fp8_max / 2^margin)</code> 来计算。更大的 margin 会降低溢出概率，但也会牺牲一部分尾数分辨率，因为数值只占据可表示范围的一小部分。">一个看起来容易让人困惑的参数是 <code>margin</code>。它的本质是预留安全余量，主动缩小可用的 FP8 动态范围：TE 不再把张量缩放到绝对的 FP8 上限，而是近似按 <code>scale = amax / (fp8_max / 2^margin)</code> 来计算。更大的 margin 会降低溢出概率，但也会牺牲一部分尾数分辨率，因为数值只占据可表示范围的一小部分。</p>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;💡 Margin is a safety knob, not a free lunch:&lt;/strong&gt; Raising <code>margin</code> from 0 to 2 effectively gives the tensor 4× more overflow headroom, but it also makes the quantizer less aggressive. In practice, leave it at 0 for stable runs; bump it only when you observe repeated FP8 overflow or persistent loss spikes on specific layers."
+        data-zh="&lt;strong&gt;💡 margin 是安全旋钮，不是免费午餐：&lt;/strong&gt; 把 <code>margin</code> 从 0 调到 2，等价于为张量额外预留 4× 的防溢出空间，但量化器也会因此变得更保守。实践中，稳定训练通常先保持 0；只有当你观察到持续 FP8 溢出或某些层反复出现 loss spike 时，再把它调高。"><strong>💡 margin 是安全旋钮，不是免费午餐：</strong> 把 <code>margin</code> 从 0 调到 2，等价于为张量额外预留 4× 的防溢出空间，但量化器也会因此变得更保守。实践中，稳定训练通常先保持 0；只有当你观察到持续 FP8 溢出或某些层反复出现 loss spike 时，再把它调高。</div>
+
+      <h2 class="phase-heading" id="sec-distributed"
+        data-en="§11 FP8 and Distributed Training"
+        data-zh="§11 FP8 与分布式训练：TP/PP/CP 集成">§11 FP8 与分布式训练：TP/PP/CP 集成</h2>
+      <p class="phase-desc"
+        data-en="FP8 only becomes truly useful once it survives Megatron's distributed stack. Under tensor parallelism, each rank holds only a shard of the logical tensor, so the local <code>amax</code> is not sufficient to derive a globally consistent scale. Megatron therefore performs <code>all-reduce(max)</code> over the TP group for the amax metadata before casting, ensuring every rank uses the same scale and therefore produces numerically compatible FP8 shards."
+        data-zh="只有在 Megatron 的分布式栈中跑通之后，FP8 才真正有价值。在张量并行下，每个 rank 只持有逻辑张量的一部分，因此本地 <code>amax</code> 不足以推导全局一致的缩放因子。Megatron 会先在 TP 组内对 amax 元数据执行 <code>all-reduce(max)</code>，再进行 FP8 转换，从而保证所有 rank 使用相同的 scale，得到数值兼容的 FP8 分片。">只有在 Megatron 的分布式栈中跑通之后，FP8 才真正有价值。在张量并行下，每个 rank 只持有逻辑张量的一部分，因此本地 <code>amax</code> 不足以推导全局一致的缩放因子。Megatron 会先在 TP 组内对 amax 元数据执行 <code>all-reduce(max)</code>，再进行 FP8 转换，从而保证所有 rank 使用相同的 scale，得到数值兼容的 FP8 分片。</p>
+
+      <div class="pipeline">
+        <div class="pipeline-step" data-en="GPU 0: TP shard&lt;small&gt;local tensor slice&lt;/small&gt;" data-zh="GPU 0：TP 分片&lt;small&gt;本地张量切片&lt;/small&gt;">GPU 0：TP 分片<small>本地张量切片</small></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" data-en="all-reduce(amax, max)&lt;small&gt;within TP group&lt;/small&gt;" data-zh="all-reduce(amax, max)&lt;small&gt;在 TP 组内&lt;/small&gt;">all-reduce(amax, max)<small>在 TP 组内</small></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" data-en="Shared scale&lt;small&gt;identical cast rule&lt;/small&gt;" data-zh="共享 scale&lt;small&gt;一致的转换规则&lt;/small&gt;">共享 scale<small>一致的转换规则</small></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" data-en="FP8 GEMM&lt;small&gt;local Tensor Core matmul&lt;/small&gt;" data-zh="FP8 GEMM&lt;small&gt;本地 Tensor Core 矩阵乘&lt;/small&gt;">FP8 GEMM<small>本地 Tensor Core 矩阵乘</small></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" data-en="all-reduce(output, sum, BF16)&lt;small&gt;row-parallel combine&lt;/small&gt;" data-zh="all-reduce(output, sum, BF16)&lt;small&gt;行并行结果合并&lt;/small&gt;">all-reduce(output, sum, BF16)<small>行并行结果合并</small></div>
+      </div>
+
+      <div class="two-col">
+        <div class="col-card">
+          <h4 data-en="📡 TP communication in FP8" data-zh="📡 TP 中的 FP8 通信">📡 TP 中的 FP8 通信</h4>
+          <p style="line-height:1.75;margin-top:.4rem;"
+            data-en="Megatron still defaults to BF16 for collective communication such as all-reduce and all-gather, because that is the safest universal path. But Transformer Engine can all-gather forward activations in FP8 for tensor-parallel linear layers, cutting communication volume roughly in half. The optimization is encapsulated inside <code>TEColumnParallelLinear</code> and <code>TERowParallelLinear</code>, so the model code usually does not need a separate branch."
+            data-zh="Megatron 对 all-reduce、all-gather 这类 collective 通信默认仍采用 BF16，因为这是最稳妥、最通用的路径。但 Transformer Engine 可以在张量并行线性层中用 FP8 对前向激活做 all-gather，把通信量大致减半。这一优化被封装在 <code>TEColumnParallelLinear</code> 和 <code>TERowParallelLinear</code> 内部，模型代码通常不需要额外分支。">Megatron 对 all-reduce、all-gather 这类 collective 通信默认仍采用 BF16，因为这是最稳妥、最通用的路径。但 Transformer Engine 可以在张量并行线性层中用 FP8 对前向激活做 all-gather，把通信量大致减半。这一优化被封装在 <code>TEColumnParallelLinear</code> 和 <code>TERowParallelLinear</code> 内部，模型代码通常不需要额外分支。</p>
+        </div>
+        <div class="col-card">
+          <h4 data-en="🧱 PP and CP boundaries" data-zh="🧱 PP 与 CP 边界">🧱 PP 与 CP 边界</h4>
+          <p style="line-height:1.75;margin-top:.4rem;"
+            data-en="Across pipeline stages, activations are typically upcast back to BF16 before transfer, because each stage may maintain different FP8 scaling metadata and recipe state. Context parallelism is also compatible with FP8, but attention kernels may fall back to BF16 when FP8 attention support is disabled or when a given backend does not expose an FP8 path for that exact sequence partition."
+            data-zh="跨 pipeline stage 发送激活时，通常会先把 FP8 张量上转换回 BF16，因为不同 stage 可能维护不同的 FP8 缩放元数据和 recipe 状态。Context parallelism 也能与 FP8 共存，但如果未开启 FP8 attention，或当前后端没有为该序列切分提供 FP8 路径，注意力 kernel 会回退到 BF16。">跨 pipeline stage 发送激活时，通常会先把 FP8 张量上转换回 BF16，因为不同 stage 可能维护不同的 FP8 缩放元数据和 recipe 状态。Context parallelism 也能与 FP8 共存，但如果未开启 FP8 attention，或当前后端没有为该序列切分提供 FP8 路径，注意力 kernel 会回退到 BF16。</p>
+        </div>
+      </div>
+
+<pre><code><span class="cm"># Pseudo-flow for TP-aware FP8 casting</span>
+local_amax <span class="op">=</span> <span class="fn">tensor_amax</span>(input_shard)
+dist.<span class="fn">all_reduce</span>(local_amax, op<span class="op">=</span>dist.ReduceOp.MAX, group<span class="op">=</span>tp_group)
+shared_scale <span class="op">=</span> <span class="fn">compute_scale</span>(local_amax)
+fp8_input <span class="op">=</span> <span class="fn">cast_to_fp8</span>(input_shard, shared_scale)
+fp8_out <span class="op">=</span> <span class="fn">fp8_gemm</span>(fp8_input, fp8_weight)
+
+<span class="cm"># Optional TP forward communication in FP8</span>
+gathered <span class="op">=</span> <span class="fn">tp_all_gather_fp8</span>(fp8_out)
+
+<span class="cm"># PP boundary: convert back before send</span>
+pp_tensor <span class="op">=</span> <span class="fn">to_bf16</span>(gathered)
+<span class="fn">send_to_next_pipeline_stage</span>(pp_tensor)
+</code></pre>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;💡 Communication savings compound fast:&lt;/strong&gt; Halving activation payload size on TP all-gather is valuable not just for bandwidth, but also for overlap. When the collectives shrink, Megatron can hide more of them behind computation, so the end-to-end gain is often larger than the raw 2× payload reduction would suggest."
+        data-zh="&lt;strong&gt;💡 通信节省会快速放大：&lt;/strong&gt; 在 TP all-gather 中把激活载荷减半，不仅节省带宽，也提升通信与计算的重叠空间。当 collective 变短后，Megatron 更容易把它们隐藏在计算之后，因此端到端收益往往比简单的 2× 载荷缩减更明显。"><strong>💡 通信节省会快速放大：</strong> 在 TP all-gather 中把激活载荷减半，不仅节省带宽，也提升通信与计算的重叠空间。当 collective 变短后，Megatron 更容易把它们隐藏在计算之后，因此端到端收益往往比简单的 2× 载荷缩减更明显。</div>
+
+      <h2 class="phase-heading" id="sec-practical"
+        data-en="§12 FP8 Training Practical Guide"
+        data-zh="§12 FP8 训练实践指南">§12 FP8 训练实践指南</h2>
+      <p class="phase-desc"
+        data-en="At launch time, Megatron-LM exposes most FP8 behavior through a small set of CLI flags that map directly onto Transformer Engine's recipe and kernel choices. For production runs, the goal is not merely to flip FP8 on, but to choose a recipe that matches model scale, hardware generation, and stability budget."
+        data-zh="在启动训练时，Megatron-LM 通过少量 CLI 参数把绝大多数 FP8 行为映射到 Transformer Engine 的 recipe 与 kernel 选择上。对于生产级训练来说，关键不是“把 FP8 打开”这么简单，而是根据模型规模、硬件代际和稳定性预算选择合适的 recipe。">在启动训练时，Megatron-LM 通过少量 CLI 参数把绝大多数 FP8 行为映射到 Transformer Engine 的 recipe 与 kernel 选择上。对于生产级训练来说，关键不是“把 FP8 打开”这么简单，而是根据模型规模、硬件代际和稳定性预算选择合适的 recipe。</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th data-en="Flag" data-zh="参数">参数</th>
+            <th data-en="Choices / value" data-zh="取值">取值</th>
+            <th data-en="Default" data-zh="默认值">默认值</th>
+            <th data-en="Meaning" data-zh="含义">含义</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--fp8-format</code></td>
+            <td data-en="{hybrid, e4m3}" data-zh="{hybrid, e4m3}">{hybrid, e4m3}</td>
+            <td data-en="hybrid" data-zh="hybrid">hybrid</td>
+            <td data-en="Choose the FP8 numeric format. <code>hybrid</code> means E4M3 for forward tensors and E5M2 for backward-sensitive paths; <code>e4m3</code> forces E4M3 everywhere possible." data-zh="选择 FP8 数值格式。<code>hybrid</code> 表示前向张量用 E4M3、对反向更敏感的路径用 E5M2；<code>e4m3</code> 则尽可能统一使用 E4M3。">选择 FP8 数值格式。<code>hybrid</code> 表示前向张量用 E4M3、对反向更敏感的路径用 E5M2；<code>e4m3</code> 则尽可能统一使用 E4M3。</td>
+          </tr>
+          <tr>
+            <td><code>--fp8-amax-history-len</code></td>
+            <td data-en="positive integer" data-zh="正整数">正整数</td>
+            <td data-en="1024" data-zh="1024">1024</td>
+            <td data-en="History window length used by delayed scaling to smooth scale updates." data-zh="延迟缩放使用的 amax 历史窗口长度，用于平滑缩放更新。">延迟缩放使用的 amax 历史窗口长度，用于平滑缩放更新。</td>
+          </tr>
+          <tr>
+            <td><code>--fp8-amax-compute-algo</code></td>
+            <td data-en="{max, most_recent}" data-zh="{max, most_recent}">{max, most_recent}</td>
+            <td data-en="max" data-zh="max">max</td>
+            <td data-en="How delayed scaling derives the active amax from history: take the window maximum or only the newest sample." data-zh="延迟缩放如何从历史中生成当前 amax：取窗口最大值，或只使用最近一次样本。">延迟缩放如何从历史中生成当前 amax：取窗口最大值，或只使用最近一次样本。</td>
+          </tr>
+          <tr>
+            <td><code>--fp8-margin</code></td>
+            <td data-en="integer" data-zh="整数">整数</td>
+            <td data-en="0" data-zh="0">0</td>
+            <td data-en="Reserve overflow headroom by shifting the effective scale by <code>2^margin</code>." data-zh="通过 <code>2^margin</code> 调整有效缩放因子，为溢出预留安全余量。">通过 <code>2^margin</code> 调整有效缩放因子，为溢出预留安全余量。</td>
+          </tr>
+          <tr>
+            <td><code>--fp8-interval</code></td>
+            <td data-en="positive integer" data-zh="正整数">正整数</td>
+            <td data-en="1" data-zh="1">1</td>
+            <td data-en="How many steps to wait between FP8 recipe metadata updates." data-zh="两次 FP8 recipe 元数据更新之间间隔多少训练步。">两次 FP8 recipe 元数据更新之间间隔多少训练步。</td>
+          </tr>
+          <tr>
+            <td><code>--fp8-wgrad</code></td>
+            <td data-en="flag" data-zh="布尔开关">布尔开关</td>
+            <td data-en="disabled" data-zh="默认关闭">默认关闭</td>
+            <td data-en="Enable FP8 on weight-gradient GEMMs when the backend and recipe support it." data-zh="当后端与 recipe 支持时，使权重梯度 GEMM 也走 FP8 路径。">当后端与 recipe 支持时，使权重梯度 GEMM 也走 FP8 路径。</td>
+          </tr>
+          <tr>
+            <td><code>--fp8-recipe</code></td>
+            <td data-en="{delayed, tensorwise, blockwise}" data-zh="{delayed, tensorwise, blockwise}">{delayed, tensorwise, blockwise}</td>
+            <td data-en="delayed" data-zh="delayed">delayed</td>
+            <td data-en="Select the scaling recipe family: historical delayed scaling, per-tensor current scaling, or block-wise MX-style scaling." data-zh="选择缩放 recipe 家族：历史延迟缩放、按张量即时缩放，或块级 MX 风格缩放。">选择缩放 recipe 家族：历史延迟缩放、按张量即时缩放，或块级 MX 风格缩放。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="two-col">
+        <div class="col-card">
+          <h4 data-en="≤7B models" data-zh="≤7B 模型">≤7B 模型</h4>
+          <p style="line-height:1.75;margin-top:.4rem;"
+            data-en="For small models, BF16 is often already memory-comfortable and numerically forgiving. FP8 still works, but the throughput win can be modest because optimizer, data loading, and communication overhead dominate a larger fraction of step time."
+            data-zh="对小模型而言，BF16 往往已经足够省显存且数值宽松。FP8 当然也能工作，但吞吐收益通常有限，因为优化器、数据加载和通信等开销在单步时间中的占比更高。">对小模型而言，BF16 往往已经足够省显存且数值宽松。FP8 当然也能工作，但吞吐收益通常有限，因为优化器、数据加载和通信等开销在单步时间中的占比更高。</p>
+        </div>
+        <div class="col-card">
+          <h4 data-en="13B–70B models" data-zh="13B–70B 模型">13B–70B 模型</h4>
+          <p style="line-height:1.75;margin-top:.4rem;"
+            data-en="This is the FP8 sweet spot on H100. Start with <code>--fp8-format hybrid</code>, <code>--fp8-recipe delayed</code>, <code>--fp8-amax-compute-algo max</code>, and leave <code>margin=0</code>. You usually get meaningful memory relief and better Tensor Core throughput without destabilizing training."
+            data-zh="这是 H100 上 FP8 的甜点区。建议从 <code>--fp8-format hybrid</code>、<code>--fp8-recipe delayed</code>、<code>--fp8-amax-compute-algo max</code> 开始，并保持 <code>margin=0</code>。通常既能显著减轻显存压力，也能提升 Tensor Core 吞吐，同时不会明显破坏训练稳定性。">这是 H100 上 FP8 的甜点区。建议从 <code>--fp8-format hybrid</code>、<code>--fp8-recipe delayed</code>、<code>--fp8-amax-compute-algo max</code> 开始，并保持 <code>margin=0</code>。通常既能显著减轻显存压力，也能提升 Tensor Core 吞吐，同时不会明显破坏训练稳定性。</p>
+        </div>
+        <div class="col-card">
+          <h4 data-en="70B+ models" data-zh="70B+ 模型">70B+ 模型</h4>
+          <p style="line-height:1.75;margin-top:.4rem;"
+            data-en="At very large scale, FP8 often becomes a capacity enabler rather than a mere speed optimization. On Blackwell, block-wise MXFP8 is especially attractive because huge hidden states and long sequences benefit from finer-grained scaling. Memory headroom saved by FP8 can be reinvested into sequence length, batch size, or parallelism flexibility."
+            data-zh="在超大模型规模下，FP8 往往不只是加速选项，更是容量解锁器。对 Blackwell 而言，块级 MXFP8 尤其有吸引力，因为巨大的 hidden state 和超长序列更需要细粒度缩放。FP8 节省下来的显存余量可以重新投入到更长序列、更大 batch 或更灵活的并行策略上。">在超大模型规模下，FP8 往往不只是加速选项，更是容量解锁器。对 Blackwell 而言，块级 MXFP8 尤其有吸引力，因为巨大的 hidden state 和超长序列更需要细粒度缩放。FP8 节省下来的显存余量可以重新投入到更长序列、更大 batch 或更灵活的并行策略上。</p>
+        </div>
+      </div>
+
+      <p class="phase-desc"
+        data-en="A conservative bring-up sequence is usually the fastest route to a stable FP8 run. Warm up in BF16 for roughly 100–500 steps, then enable FP8 once optimizer statistics and activation scales settle. Use gradient clipping around 1.0–1.5, monitor for sudden loss spikes, and if instability persists, either lengthen <code>amax_history_len</code> or move from delayed scaling to <code>Float8CurrentScaling</code>. Keep <code>is_first_microbatch</code> wired correctly when using gradient accumulation; otherwise you silently pay repeated weight requantization overhead every step."
+        data-zh="较为保守的 bring-up 路线通常也是最容易得到稳定 FP8 训练的方案。先用 BF16 预热约 100–500 步，等优化器统计量和激活尺度稳定后再切到 FP8。梯度裁剪建议设在 1.0–1.5 左右，并持续观察是否出现突发的 loss spike；如果不稳定持续存在，可以增大 <code>amax_history_len</code>，或者从 delayed scaling 切换到 <code>Float8CurrentScaling</code>。使用梯度累积时一定要正确传递 <code>is_first_microbatch</code>，否则每步都会悄悄重复量化权重，白白损失性能。">较为保守的 bring-up 路线通常也是最容易得到稳定 FP8 训练的方案。先用 BF16 预热约 100–500 步，等优化器统计量和激活尺度稳定后再切到 FP8。梯度裁剪建议设在 1.0–1.5 左右，并持续观察是否出现突发的 loss spike；如果不稳定持续存在，可以增大 <code>amax_history_len</code>，或者从 delayed scaling 切换到 <code>Float8CurrentScaling</code>。使用梯度累积时一定要正确传递 <code>is_first_microbatch</code>，否则每步都会悄悄重复量化权重，白白损失性能。</p>
+
+<pre><code><span class="cm"># Launch FP8 training</span>
+python <span class="op">-</span>m torch.distributed.launch <span class="op">\</span>
+    <span class="op">--</span>nproc_per_node<span class="op">=</span><span class="nm">8</span> <span class="op">\</span>
+    pretrain_gpt.py <span class="op">\</span>
+    <span class="op">--</span>tensor<span class="op">-</span>model<span class="op">-</span>parallel<span class="op">-</span>size <span class="nm">4</span> <span class="op">\</span>
+    <span class="op">--</span>pipeline<span class="op">-</span>model<span class="op">-</span>parallel<span class="op">-</span>size <span class="nm">2</span> <span class="op">\</span>
+    <span class="op">--</span>fp8<span class="op">-</span>format hybrid <span class="op">\</span>
+    <span class="op">--</span>fp8<span class="op">-</span>amax<span class="op">-</span>history<span class="op">-</span>len <span class="nm">1024</span> <span class="op">\</span>
+    <span class="op">--</span>fp8<span class="op">-</span>amax<span class="op">-</span>compute<span class="op">-</span>algo max <span class="op">\</span>
+    <span class="op">--</span>fp8<span class="op">-</span>margin <span class="nm">0</span> <span class="op">\</span>
+    <span class="op">--</span>fp8<span class="op">-</span>wgrad <span class="op">\</span>
+    <span class="op">--</span>num<span class="op">-</span>layers <span class="nm">80</span> <span class="op">\</span>
+    <span class="op">--</span>hidden<span class="op">-</span>size <span class="nm">8192</span> <span class="op">\</span>
+    <span class="op">--</span>num<span class="op">-</span>attention<span class="op">-</span>heads <span class="nm">64</span> <span class="op">\</span>
+    <span class="op">--</span>seq<span class="op">-</span>length <span class="nm">4096</span> <span class="op">\</span>
+    <span class="op">--</span>micro<span class="op">-</span>batch<span class="op">-</span>size <span class="nm">2</span> <span class="op">\</span>
+    <span class="op">--</span>global<span class="op">-</span>batch<span class="op">-</span>size <span class="nm">512</span> <span class="op">\</span>
+    <span class="op">--</span>lr <span class="nm">1.5e-4</span> <span class="op">\</span>
+    <span class="op">--</span>clip<span class="op">-</span>grad <span class="nm">1.5</span> <span class="op">\</span>
+    <span class="op">--</span>bf16
+</code></pre>
+
+      <div class="insight-box"
+        data-en="&lt;strong&gt;⚠️ Common FP8 pitfalls:&lt;/strong&gt; The usual failure modes are not mysterious numerical disasters; they are operational mismatches: forgetting BF16 warm-up, setting <code>margin</code> too aggressively, using a tiny history window on spiky gradients, disabling the microbatch weight cache, or assuming every attention backend is running FP8 when some kernels have already fallen back to BF16. Diagnose these first before blaming the format itself."
+        data-zh="&lt;strong&gt;⚠️ 常见 FP8 坑点：&lt;/strong&gt; 大多数问题并不是神秘的数值灾难，而是工程配置不匹配：忘记先做 BF16 预热、把 <code>margin</code> 设得过于激进、在尖峰梯度场景下使用过短的历史窗口、没有启用 microbatch 权重缓存，或者误以为所有 attention 后端都在跑 FP8——实际上有些 kernel 早已回退到 BF16。排查 FP8 问题时，先检查这些配置，再去怀疑数据格式本身。"><strong>⚠️ 常见 FP8 坑点：</strong> 大多数问题并不是神秘的数值灾难，而是工程配置不匹配：忘记先做 BF16 预热、把 <code>margin</code> 设得过于激进、在尖峰梯度场景下使用过短的历史窗口、没有启用 microbatch 权重缓存，或者误以为所有 attention 后端都在跑 FP8——实际上有些 kernel 早已回退到 BF16。排查 FP8 问题时，先检查这些配置，再去怀疑数据格式本身。</div>
+
       <footer style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-family:var(--font-sans);font-size:.85rem;color:var(--text-secondary);text-align:center;">
-        <p data-en="References: Shoeybi et al., Megatron-LM (2019); NVIDIA, Transformer Engine FP8 Training; Micikevicius et al., FP8 Formats for Deep Learning, arXiv 2022."
-          data-zh="参考：Shoeybi et al., Megatron-LM (2019); NVIDIA, Transformer Engine FP8 Training; Micikevicius et al., FP8 Formats for Deep Learning, arXiv 2022.">参考：Shoeybi et al., Megatron-LM (2019); NVIDIA, Transformer Engine FP8 Training; Micikevicius et al., FP8 Formats for Deep Learning, arXiv 2022.</p>
+        <p data-en="References: Shoeybi et al., Megatron-LM (2019); NVIDIA Megatron-Core docs on Transformer Engine module specs and tensor parallel layers; NVIDIA, Transformer Engine FP8 Training and recipe API docs; Micikevicius et al., FP8 Formats for Deep Learning, arXiv 2022; Open Compute Project, MX Microscaling Formats Specification; NVIDIA Blackwell Architecture technical materials."
+          data-zh="参考：Shoeybi et al., Megatron-LM (2019)；NVIDIA Megatron-Core 关于 Transformer Engine 模块规格与张量并行线性层的文档；NVIDIA Transformer Engine FP8 Training 与 recipe API 文档；Micikevicius et al., FP8 Formats for Deep Learning, arXiv 2022；Open Compute Project 的 MX Microscaling Formats 规范；NVIDIA Blackwell 架构技术资料。">参考：Shoeybi et al., Megatron-LM (2019)；NVIDIA Megatron-Core 关于 Transformer Engine 模块规格与张量并行线性层的文档；NVIDIA Transformer Engine FP8 Training 与 recipe API 文档；Micikevicius et al., FP8 Formats for Deep Learning, arXiv 2022；Open Compute Project 的 MX Microscaling Formats 规范；NVIDIA Blackwell 架构技术资料。</p>
       </footer>
     </article>
 
