@@ -1,0 +1,1991 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script defer src="/_vercel/insights/script.js"></script>
+    <title>FunASR 调研：从原理、模型家族到部署实践 | FunASR Survey</title>
+    <meta
+      name="description"
+      content="系统梳理 FunASR 的定位、核心原理、模型家族、安装方式、离线/流式推理与部署实践。 | A comprehensive survey of FunASR: positioning, core principles, model family, installation, and deployment practices."
+    />
+    <meta property="og:title" content="FunASR Survey: Principles, Model Family, and Deployment" />
+    <meta property="og:description" content="A comprehensive interactive survey of FunASR: positioning, core principles, model family, installation, and deployment practices." />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://anxiangsir.github.io/pages/funasr.html" />
+    <meta property="og:image" content="https://anxiangsir.github.io/assets/img/profile_pic.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <style>
+      :root {
+        --bg: #fbfbfc;
+        --bg-soft: #f3f4f6;
+        --surface: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #d1d5db;
+        --border-soft: #e5e7eb;
+        --accent: #2563eb;
+        --accent-soft: #dbeafe;
+        --accent-strong: #1d4ed8;
+        --success-bg: #ecfdf5;
+        --success-border: #10b981;
+        --warn-bg: #fff7ed;
+        --warn-border: #f97316;
+        --code-bg: #111827;
+        --code-text: #e5e7eb;
+        --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        --font-body:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        --font-mono:
+          "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono",
+          Menlo, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.75;
+        padding: 1.25rem 1rem 4rem;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      a:hover {
+        color: var(--accent-strong);
+      }
+
+      code,
+      pre {
+        font-family: var(--font-mono);
+      }
+
+      .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 200;
+        width: 0%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), #60a5fa);
+        transition: width 0.12s ease;
+      }
+
+      .site-nav {
+        max-width: 900px;
+        margin: 0 auto 1rem;
+        padding: 0 0.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+      }
+
+      .site-nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .site-nav a:hover {
+        text-decoration: underline;
+        color: var(--accent);
+      }
+
+      .nav-sep {
+        color: var(--border);
+        user-select: none;
+      }
+
+      .toc {
+        position: fixed;
+        left: max(16px, calc(50% - 560px));
+        top: 120px;
+        width: 150px;
+        padding: 14px 12px;
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow);
+      }
+
+      .toc-title {
+        font-size: 0.82rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.7rem;
+        font-weight: 700;
+      }
+
+      .toc a {
+        display: block;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.92rem;
+        padding: 0.28rem 0;
+      }
+
+      .toc a.active,
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      .article {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--border-soft);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+        padding: 2.2rem 2rem 3rem;
+        position: relative;
+      }
+
+      .hero {
+        border-bottom: 1px solid var(--border-soft);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        font-size: 0.78rem;
+        color: var(--accent-strong);
+        background: var(--accent-soft);
+        border: 1px solid #93c5fd;
+        border-radius: 999px;
+        padding: 0.2rem 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        margin-bottom: 0.85rem;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4.5vw, 3.2rem);
+        line-height: 1.12;
+        margin-bottom: 0.9rem;
+      }
+
+      .subtitle {
+        font-size: 1.08rem;
+        color: var(--muted);
+        max-width: 760px;
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 1rem;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .meta-chip,
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--border);
+        background: var(--bg-soft);
+        border-radius: 999px;
+        padding: 0.18rem 0.7rem;
+      }
+
+      .source-links {
+        margin-top: 1.2rem;
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+
+      .source-links a {
+        margin-right: 0.8rem;
+        font-weight: 600;
+      }
+
+      .mini-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 1.3rem;
+      }
+
+      .mini-stat {
+        border: 1px solid var(--border-soft);
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        border-radius: 14px;
+        padding: 0.9rem 0.95rem;
+      }
+
+      .mini-stat strong {
+        display: block;
+        font-size: 1.15rem;
+        color: var(--accent-strong);
+        margin-bottom: 0.15rem;
+      }
+
+      .mini-stat span {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .summary-box,
+      .note-box,
+      .warn-box {
+        border-radius: 16px;
+        padding: 1rem 1.15rem;
+        margin: 1.25rem 0 1.6rem;
+      }
+
+      .summary-box {
+        background: linear-gradient(135deg, #eff6ff, #f8fbff);
+        border: 1px solid #bfdbfe;
+      }
+
+      .note-box {
+        background: var(--success-bg);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+      }
+
+      .warn-box {
+        background: var(--warn-bg);
+        border: 1px solid rgba(249, 115, 22, 0.35);
+      }
+
+      .summary-box strong,
+      .note-box strong,
+      .warn-box strong {
+        display: block;
+        margin-bottom: 0.4rem;
+      }
+
+      h2 {
+        margin-top: 2.4rem;
+        margin-bottom: 0.95rem;
+        font-size: 1.6rem;
+        line-height: 1.25;
+      }
+
+      h3 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.7rem;
+        font-size: 1.15rem;
+      }
+
+      p,
+      ul,
+      ol,
+      table,
+      pre {
+        margin-bottom: 1rem;
+      }
+
+      ul,
+      ol {
+        padding-left: 1.25rem;
+      }
+
+      li + li {
+        margin-top: 0.4rem;
+      }
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin: 1rem 0 1.4rem;
+      }
+
+      .card {
+        border: 1px solid var(--border-soft);
+        background: linear-gradient(180deg, #ffffff, #fafafa);
+        border-radius: 16px;
+        padding: 1rem;
+      }
+
+      .card h3 {
+        margin-top: 0;
+      }
+
+      .card p:last-child,
+      .card ul:last-child {
+        margin-bottom: 0;
+      }
+
+      .pipeline {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 10px;
+        margin: 1rem 0 1.5rem;
+      }
+
+      .pipeline-step {
+        border: 1px solid var(--border-soft);
+        background: var(--bg-soft);
+        border-radius: 14px;
+        padding: 0.8rem 0.75rem;
+      }
+
+      .pipeline-step strong {
+        display: block;
+        color: var(--accent-strong);
+        margin-bottom: 0.35rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border-soft);
+        padding: 0.8rem 0.75rem;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--bg-soft);
+      }
+
+      pre {
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 1rem 1.1rem;
+        border-radius: 16px;
+        overflow-x: auto;
+        font-size: 0.88rem;
+        line-height: 1.65;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .quote-box {
+        margin: 1.1rem 0 1.5rem;
+        border-left: 4px solid var(--accent);
+        background: #f8fbff;
+        padding: 1rem 1rem 1rem 1.1rem;
+        border-radius: 0 14px 14px 0;
+      }
+
+      .quote-box p:last-child {
+        margin-bottom: 0;
+      }
+
+      .checklist {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin: 1rem 0 1.4rem;
+      }
+
+      .check-item {
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+        background: #fff;
+        padding: 0.95rem 1rem;
+      }
+
+      .check-item strong {
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+
+      .source-list li {
+        margin-top: 0.55rem;
+      }
+
+      .footnotes {
+        margin-top: 2.4rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--border-soft);
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+
+      .back-to-top {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.18s ease;
+        z-index: 100;
+      }
+
+      .back-to-top.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      
+      /* ---------------- NEW INTERACTIVE COMPONENTS CSS ---------------- */
+      
+      /* Visual Pipeline Animation */
+      .anim-container {
+        position: relative;
+        width: 100%;
+        height: 180px;
+        background: #0f172a;
+        border-radius: 16px;
+        margin: 1.5rem 0;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        box-shadow: inset 0 4px 20px rgba(0,0,0,0.5);
+      }
+      .anim-btn-container {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 10;
+      }
+      .anim-btn {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .anim-btn:hover { background: var(--accent-strong); }
+      .anim-track {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        padding: 0 40px;
+      }
+      .anim-audio-bar {
+        height: 40px;
+        width: 100%;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+        background-size: 200% 100%;
+        border-radius: 20px;
+        position: relative;
+        transition: all 0.5s ease;
+      }
+      .anim-state-label {
+        position: absolute;
+        bottom: 20px;
+        left: 40px;
+        color: #94a3b8;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+      }
+
+      /* Model Comparison Panel */
+      .comp-panel {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-soft);
+        border-radius: 16px;
+        margin: 2rem 0;
+        overflow: hidden;
+      }
+      .comp-header {
+        display: flex;
+        background: var(--bg-soft);
+        border-bottom: 1px solid var(--border-soft);
+      }
+      .comp-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        background: none;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+      }
+      .comp-btn.active {
+        color: var(--accent-strong);
+        border-bottom: 3px solid var(--accent);
+        background: #fff;
+      }
+      .comp-body {
+        padding: 1.5rem;
+        background: #fff;
+      }
+      .comp-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .comp-label {
+        width: 120px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .comp-bar-bg {
+        flex: 1;
+        height: 12px;
+        background: var(--bg-soft);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .comp-bar-fill {
+        height: 100%;
+        background: var(--accent);
+        width: 0%;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Streaming Demo */
+      .stream-container {
+        border: 1px solid var(--border-soft);
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+      }
+      .stream-controls {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 1rem;
+      }
+      .stream-visual {
+        position: relative;
+        height: 80px;
+        background: var(--bg-soft);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+      }
+      .stream-block {
+        height: 40px;
+        width: 30px;
+        background: #cbd5e1;
+        margin-right: 4px;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
+      .stream-window {
+        position: absolute;
+        top: 15px;
+        height: 50px;
+        border: 2px solid var(--accent);
+        border-radius: 6px;
+        background: rgba(37, 99, 235, 0.1);
+        transition: left 0.3s linear, width 0.3s linear;
+        pointer-events: none;
+      }
+      .stream-window-labels {
+        position: absolute;
+        top: -18px;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.65rem;
+        color: var(--accent-strong);
+        font-family: var(--font-mono);
+        font-weight: bold;
+      }
+      .stream-output {
+        min-height: 40px;
+        padding: 10px;
+        background: var(--code-bg);
+        color: #a7f3d0;
+        font-family: var(--font-mono);
+        border-radius: 8px;
+        font-size: 0.9rem;
+      }
+
+      /* Language Toggle & Translation Display Styles */
+      .lang-toggle {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        z-index: 40;
+        font-family: var(--font-body);
+        padding: 6px 16px;
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(10px);
+        cursor: pointer;
+        color: var(--muted);
+        font-weight: bold;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+      }
+      .lang-toggle:hover {
+        background: var(--bg-soft);
+        color: var(--text);
+        border-color: var(--muted);
+      }
+
+      [data-lang="en"] { display: none; }
+      html[lang="en"] body [data-lang="zh"] { display: none; }
+      html[lang="en"] [data-lang="en"] { display: block; }
+      html[lang="en"] span[data-lang="en"], 
+      html[lang="en"] a[data-lang="en"], 
+      html[lang="en"] strong[data-lang="en"], 
+      html[lang="en"] code[data-lang="en"] { display: inline; }
+      html[lang="en"] div.pipeline-step[data-lang="en"] { display: block; }
+      html[lang="en"] th[data-lang="en"], html[lang="en"] td[data-lang="en"] { display: table-cell; }
+      html[lang="en"] body .inline-block[data-lang="en"] { display: inline-block; }
+
+      
+      /* --- NEW ADVANCED INTERACTIVE COMPONENTS --- */
+
+      /* Architecture Grid */
+      .arch-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin: 1.5rem 0 2.5rem;
+      }
+      .arch-card {
+        border: 1px solid var(--border-soft);
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        border-radius: 16px;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      }
+      .arch-card h4 {
+        margin-top: 0;
+        color: var(--accent-strong);
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+      }
+      .arch-node {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 0.6rem;
+        border-radius: 8px;
+        margin: 6px 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      }
+      .arch-arrow {
+        color: var(--muted);
+        font-size: 1.2rem;
+        margin: 2px 0;
+      }
+
+      /* Enhanced Stream Demo */
+      .stream-adv-window {
+        position: absolute;
+        height: 50px;
+        top: 15px;
+        display: flex;
+        pointer-events: none;
+        transition: all 0.4s ease-in-out;
+      }
+      .stream-part {
+        height: 100%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .stream-cache {
+        background: rgba(245, 158, 11, 0.15);
+        border: 2px dashed #f59e0b;
+        border-right: none;
+        border-radius: 6px 0 0 6px;
+      }
+      .stream-current {
+        background: rgba(37, 99, 235, 0.15);
+        border: 2px solid var(--accent);
+      }
+      .stream-lookahead {
+        background: rgba(16, 185, 129, 0.15);
+        border: 2px dashed #10b981;
+        border-left: none;
+        border-radius: 0 6px 6px 0;
+      }
+      .stream-label {
+        position: absolute;
+        top: -22px;
+        font-size: 0.65rem;
+        font-weight: bold;
+        white-space: nowrap;
+      }
+      .lbl-cache { color: #d97706; }
+      .lbl-curr { color: var(--accent-strong); }
+      .lbl-look { color: #059669; }
+      
+      .stream-controls button { margin-right: 8px; }
+      .stream-block {
+        height: 40px;
+        width: 16px;
+        background: #e2e8f0;
+        margin-right: 4px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        transition: background 0.3s;
+      }
+
+      /* Decision Tree */
+      .dt-container {
+        border: 1px solid var(--border-soft);
+        background: #fff;
+        border-radius: 16px;
+        padding: 2rem;
+        margin: 2rem 0;
+        text-align: center;
+        min-height: 260px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+      }
+      .dt-step {
+        display: none;
+        animation: fadeIn 0.4s ease;
+        width: 100%;
+        max-width: 600px;
+      }
+      .dt-step.active {
+        display: block;
+      }
+      .dt-step h3 {
+        margin-top: 0;
+        font-size: 1.3rem;
+        color: var(--text);
+        margin-bottom: 1.5rem;
+      }
+      .dt-options {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .dt-btn {
+        padding: 12px 24px;
+        border-radius: 12px;
+        border: 2px solid var(--accent-soft);
+        background: #fff;
+        color: var(--accent-strong);
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        flex: 1;
+        min-width: 140px;
+      }
+      .dt-btn:hover {
+        background: var(--accent-soft);
+        transform: translateY(-2px);
+      }
+      .dt-result {
+        background: var(--success-bg);
+        border: 2px solid var(--success-border);
+        padding: 1.5rem;
+        border-radius: 16px;
+        text-align: left;
+      }
+      .dt-result h4 {
+        color: #047857;
+        margin-top: 0;
+        font-size: 1.2rem;
+      }
+      .dt-reset {
+        margin-top: 1.5rem;
+        background: var(--muted);
+        color: #fff;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .dt-reset:hover { background: #4b5563; }
+      
+      @media (max-width: 820px) {
+        .arch-grid { grid-template-columns: 1fr; }
+      }
+
+      /* Interactive Model Selector */
+      .model-selector {
+        margin: 2rem 0;
+        border: 1px solid var(--border-soft);
+        border-radius: 16px;
+        background: #fff;
+        overflow: hidden;
+      }
+      .model-tabs {
+        display: flex;
+        background: var(--bg-soft);
+        border-bottom: 1px solid var(--border-soft);
+        overflow-x: auto;
+      }
+      .model-tab {
+        flex: 1;
+        text-align: center;
+        padding: 1rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--muted);
+        transition: all 0.2s;
+        min-width: 120px;
+        border-bottom: 3px solid transparent;
+      }
+      .model-tab:hover {
+        color: var(--accent);
+      }
+      .model-tab.active {
+        color: var(--accent-strong);
+        border-bottom: 3px solid var(--accent);
+        background: #fff;
+      }
+      .model-content {
+        display: none;
+        padding: 1.5rem;
+        animation: fadeIn 0.3s ease;
+      }
+      .model-content.active {
+        display: block;
+      }
+      .model-content h4 {
+        margin-top: 0;
+        font-size: 1.25rem;
+        color: var(--text);
+      }
+      .model-features {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .feature-tag {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.6rem;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        border-radius: 999px;
+        font-weight: 600;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media (max-width: 1280px) {
+        .toc { display: none; }
+      }
+
+      @media (max-width: 820px) {
+        body { padding: 0.8rem 0.6rem 3rem; }
+        .article { padding: 1.4rem 1rem 2rem; border-radius: 18px; }
+        .card-grid, .two-col, .pipeline, .mini-stats, .checklist { grid-template-columns: 1fr; }
+        .lang-toggle { top: 16px; right: 16px; }
+        .dark-toggle { top: 16px; right: 70px; }
+        
+        /* Mobile additions for better responsiveness */
+        .anim-container { height: 140px; }
+        .anim-track { padding: 0 20px; }
+        .comp-header { flex-wrap: wrap; }
+        .comp-btn { min-width: 80px; font-size: 0.85rem; }
+        .stream-visual { height: 60px; }
+        .stream-block { width: 12px; height: 30px; }
+        .dt-btn { min-width: 100px; padding: 10px 16px; font-size: 0.85rem; }
+        .model-tabs { flex-wrap: wrap; }
+        .model-tab { min-width: 80px; font-size: 0.85rem; }
+        .arch-node { font-size: 0.8rem; padding: 0.4rem; }
+      }
+
+      /* Dark Mode */
+      html.dark {
+        --bg: #0f172a;
+        --bg-soft: #1e293b;
+        --surface: #1e293b;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --border: #334155;
+        --border-soft: #1e293b;
+        --accent: #60a5fa;
+        --accent-soft: rgba(96,165,250,0.15);
+        --accent-strong: #93bbfc;
+        --success-bg: rgba(16,185,129,0.1);
+        --warn-bg: rgba(249,115,22,0.1);
+        --code-bg: #020617;
+        --shadow: 0 10px 30px rgba(0,0,0,0.3);
+      }
+      body { transition: background 0.3s, color 0.3s; }
+      html.dark .card, 
+      html.dark .comp-panel .comp-body, 
+      html.dark .stream-container, 
+      html.dark .dt-container, 
+      html.dark .model-selector .model-content, 
+      html.dark .arch-card, 
+      html.dark .mini-stat {
+        background: var(--surface);
+      }
+      html.dark .toc { background: rgba(30,41,59,0.9); }
+      .dark-toggle {
+        position: absolute;
+        top: 24px;
+        right: 80px;
+        z-index: 40;
+        font-family: var(--font-body);
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(10px);
+        cursor: pointer;
+        color: var(--muted);
+        font-weight: bold;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+      }
+      .dark-toggle:hover { background: var(--bg-soft); border-color: var(--muted); color: var(--text); }
+      html.dark .dark-toggle, html.dark .lang-toggle {
+        background: rgba(30,41,59,0.9); border-color: var(--border-soft); color: var(--text);
+      }
+      html.dark .dark-toggle:hover, html.dark .lang-toggle:hover { background: var(--bg-soft); }
+      
+      /* Fade-in animations */
+      .fade-section {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      .fade-section.visible {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* Print Styles */
+      @media print {
+        .progress-bar, .back-to-top, .lang-toggle, .dark-toggle, .toc, .site-nav,
+        .anim-container, .stream-container, .dt-container, .anim-btn-container { display: none !important; }
+        .article { box-shadow: none; border: none; max-width: 100%; padding: 0; }
+        body { padding: 0; background: #fff; color: #000; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar" id="progress-bar"></div>
+
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/video_subtitle_benchmark.html">Latest</a>
+    </nav>
+
+    <aside class="toc" aria-label="目录">
+      <div class="toc-title">Contents</div>
+      <a href="#sec-1"><span data-lang="zh">1. FunASR 是什么</span><span data-lang="en">1. What is FunASR</span></a>
+      <a href="#sec-2"><span data-lang="zh">2. 核心原理</span><span data-lang="en">2. Core Principles</span></a>
+      <a href="#sec-3"><span data-lang="zh">3. 模型家族</span><span data-lang="en">3. Model Family</span></a>
+      <a href="#sec-4"><span data-lang="zh">4. 安装与上手</span><span data-lang="en">4. Installation</span></a>
+      <a href="#sec-5"><span data-lang="zh">5. 流式与部署</span><span data-lang="en">5. Streaming & Deployment</span></a>
+      <a href="#sec-6"><span data-lang="zh">6. 模型选择</span><span data-lang="en">6. Model Selection</span></a>
+      <a href="#sec-7"><span data-lang="zh">7. 优势与局限</span><span data-lang="en">7. Pros & Cons</span></a>
+      <a href="#sec-8"><span data-lang="zh">8. 总结</span><span data-lang="en">8. Conclusion</span></a>
+    </aside>
+
+    <a href="#top" class="back-to-top" id="back-to-top" aria-label="Back to top">↑</a>
+
+    <main class="article" id="top">
+      <button type="button" class="lang-toggle" id="lang-toggle">EN</button>
+      <button type="button" class="dark-toggle" id="dark-toggle">🌙</button>
+      <header class="hero">
+        <span class="eyebrow">Speech / ASR / Tooling</span>
+        <h1 data-lang="zh">FunASR 调研：从原理、模型家族到部署实践</h1>
+        <h1 data-lang="en">FunASR Survey: Principles, Model Family, and Deployment</h1>
+        <p class="subtitle" data-lang="zh">
+          如果只看一句话：<strong>FunASR 不是单一 ASR 模型，而是一套把 VAD、ASR、标点恢复、时间戳、说话人能力和运行时部署串起来的语音工具箱。</strong>
+          它试图把学术模型和工业落地之间的那一段“最后一公里”补齐。
+        </p>
+        <p class="subtitle" data-lang="en">
+          In one sentence: <strong>FunASR is not a single ASR model, but a speech toolkit that connects VAD, ASR, Punctuation Restoration, Timestamps, Speaker Diarization, and Runtime Deployment.</strong>
+          It bridges the "last mile" between academic models and industrial deployment.
+        </p>
+
+        <div class="meta-row">
+          <span class="meta-chip">Apr 8, 2026</span>
+          <span class="tag">FunASR</span>
+          <span class="tag">ASR</span>
+          <span class="tag">Paraformer</span>
+          <span class="tag">SenseVoice</span>
+          <span class="meta-chip">~14 min</span>
+        </div>
+
+        <div class="source-links">
+          <span data-lang="zh">资料来源：</span><span data-lang="en">Sources: </span>
+          <a href="https://github.com/modelscope/FunASR" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="https://github.com/modelscope/FunASR/blob/main/README_zh.md" target="_blank" rel="noopener noreferrer">README</a>
+          <a href="https://github.com/modelscope/FunASR/blob/main/runtime/readme_cn.md" target="_blank" rel="noopener noreferrer">Runtime</a>
+          <a href="https://github.com/modelscope/FunASR/tree/main/examples/industrial_data_pretraining" target="_blank" rel="noopener noreferrer">Examples</a>
+        </div>
+
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <strong>31</strong>
+            <span data-lang="zh">Fun-ASR-Nano 语言覆盖数</span>
+            <span data-lang="en">Languages supported by Fun-ASR-Nano</span>
+          </div>
+          <div class="mini-stat">
+            <strong>220M</strong>
+            <span data-lang="zh">Paraformer 主力模型量级</span>
+            <span data-lang="en">Paraformer Main Model Size</span>
+          </div>
+          <div class="mini-stat">
+            <strong>0.4M</strong>
+            <span data-lang="zh">fsmn-vad 量级，前置模块</span>
+            <span data-lang="en">fsmn-vad Size (Frontend Module)</span>
+          </div>
+          <div class="mini-stat">
+            <strong>RTF 0.0076</strong>
+            <span data-lang="zh">官方 GPU 长音频单线程指标</span>
+            <span data-lang="en">GPU Single-thread RTF for Long Audio</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="summary-box">
+        <strong data-lang="zh">先讲结论</strong>
+        <strong data-lang="en">TL;DR</strong>
+        <ul data-lang="zh">
+          <li>FunASR 的核心价值不是“某一个模型多强”，而是<strong>统一接口 + 可组合流水线 + 可部署 runtime</strong>。</li>
+          <li>如果你做中文离线转写，最常见组合是：<code>VAD + Paraformer + 标点 + 时间戳</code>。</li>
+          <li>如果你做多语言/多任务语音理解，<strong>SenseVoice</strong> 更值得优先看。</li>
+          <li>如果你要实时上屏或服务化，FunASR 的<strong>流式模型、2-pass runtime、ONNX 导出</strong>才是它和普通 demo 仓库拉开差距的地方。</li>
+        </ul>
+        <ul data-lang="en">
+          <li>FunASR's core value isn't just "one strong model", but its <strong>Unified API + Composable Pipeline + Deployable Runtime</strong>.</li>
+          <li>For Chinese offline transcription, the go-to stack is: <code>VAD + Paraformer + Punctuation + Timestamps</code>.</li>
+          <li>For multilingual/multi-task speech understanding, prioritize <strong>SenseVoice</strong>.</li>
+          <li>For real-time streaming or production services, FunASR's <strong>streaming models, 2-pass runtime, and ONNX export</strong> set it apart from basic demo repos.</li>
+        </ul>
+      </section>
+
+      <section id="sec-1">
+        <h2 data-lang="zh">1. FunASR 是什么：它解决的不是“识别”，而是“整条链路”</h2>
+        <h2 data-lang="en">1. What is FunASR: Solving the "Pipeline", Not Just "Recognition"</h2>
+        <p data-lang="zh">
+          官方 README 对 FunASR 的定位很直接：它希望在<strong>语音识别的学术研究和工业应用之间搭桥</strong>。
+          所以你会发现它不是只给你一个 checkpoint，然后让你自己拼剩下的一切；相反，它把工程里常见的一整条链路都显式放到了工具层里。
+        </p>
+        <p data-lang="en">
+          The official README describes FunASR explicitly as a <strong>bridge between academic speech research and industrial application</strong>.
+          Instead of giving you a raw checkpoint and leaving you to build the rest, it explicitly integrates the entire common engineering pipeline into the toolkit layer.
+        </p>
+
+        <div class="quote-box">
+          <p data-lang="zh">
+            官方原话的重点其实只有两个：<strong>工业级模型</strong> 和 <strong>研究到生产的桥梁</strong>。
+            这意味着 FunASR 评价自己的方式，不只是 paper 指标，而是“这个能力能不能真正被接到业务里”。
+          </p>
+          <p data-lang="en">
+            The official description focuses on two keywords: <strong>Industrial-grade Models</strong> and <strong>Bridge from Research to Production</strong>.
+            This means FunASR evaluates itself not just by paper metrics, but by whether the capabilities can be successfully integrated into real business logic.
+          </p>
+        </div>
+
+        <div class="card-grid">
+          <div class="card">
+            <h3 data-lang="zh">它覆盖哪些能力</h3>
+            <h3 data-lang="en">What It Covers</h3>
+            <ul data-lang="zh">
+              <li>ASR（自动语音识别）</li>
+              <li>VAD（语音端点检测）</li>
+              <li>标点恢复 / ITN</li>
+              <li>时间戳预测</li>
+              <li>说话人确认 / 分离</li>
+              <li>关键词唤醒、多说话人 ASR、情感识别等</li>
+            </ul>
+            <ul data-lang="en">
+              <li>ASR (Automatic Speech Recognition)</li>
+              <li>VAD (Voice Activity Detection)</li>
+              <li>Punctuation Restoration / ITN</li>
+              <li>Timestamp Prediction</li>
+              <li>Speaker Verification / Diarization</li>
+              <li>Keyword Spotting, Multi-talker ASR, Emotion Recognition, etc.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 data-lang="zh">它和“单模型 demo”最大的差别</h3>
+            <h3 data-lang="en">Difference from "Single Model Demos"</h3>
+            <ul data-lang="zh">
+              <li>统一的 <code>AutoModel</code> 接口</li>
+              <li>离线与流式能力同时存在</li>
+              <li>支持 ModelScope / Hugging Face / OpenAI 等模型来源</li>
+              <li>提供 runtime SDK、服务部署、ONNX 导出</li>
+            </ul>
+            <ul data-lang="en">
+              <li>Unified <code>AutoModel</code> API</li>
+              <li>Both offline and streaming capabilities</li>
+              <li>Supports hubs like ModelScope / Hugging Face / OpenAI</li>
+              <li>Provides runtime SDKs, service deployment, and ONNX exports</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note-box">
+          <strong data-lang="zh">一个很重要的认知</strong>
+          <strong data-lang="en">An Important Insight</strong>
+          <span data-lang="zh">很多开源 ASR 项目更像“训练框架”或者“论文复现集合”；FunASR 更像是一个<strong>偏生产可用的语音能力拼装层</strong>。这也解释了为什么它会提供 Windows SDK 和高并发部署说明。</span>
+          <span data-lang="en">Many open-source ASR projects act as "training frameworks" or "paper reproductions"; FunASR is more like a <strong>production-ready speech capability assembly layer</strong>. This explains why it includes Windows SDKs and high-concurrency deployment guides.</span>
+        </div>
+      </section>
+
+      <section id="sec-2">
+        <h2 data-lang="zh">2. 核心原理：统一接口背后，其实是一条可组合的语音流水线</h2>
+        <h2 data-lang="en">2. Core Principles: A Composable Speech Pipeline Behind a Unified API</h2>
+        <p data-lang="zh">
+          官方示例里最常见的写法是 <code>from funasr import AutoModel</code>。这背后的设计哲学很清楚：
+          <strong>把“模型选择”和“链路编排”收敛到一个入口</strong>，让用户可以按需把 VAD、ASR、标点、说话人、时间戳拼起来。
+        </p>
+        <p data-lang="en">
+          The most common idiom in the official examples is <code>from funasr import AutoModel</code>. The design philosophy is clear:
+          <strong>Converge "model selection" and "pipeline orchestration" into a single entry point</strong>, allowing users to combine VAD, ASR, Punctuation, Diarization, and Timestamps on demand.
+        </p>
+
+        <div class="pipeline">
+          <div class="pipeline-step" data-lang="zh"><strong>输入音频</strong>单文件、列表、流式chunk</div>
+          <div class="pipeline-step" data-lang="en"><strong>Input Audio</strong>File, List, or Stream chunk</div>
+          
+          <div class="pipeline-step" data-lang="zh"><strong>VAD</strong>切分长音频，降负担</div>
+          <div class="pipeline-step" data-lang="en"><strong>VAD</strong>Segment long audio</div>
+          
+          <div class="pipeline-step" data-lang="zh"><strong>ASR</strong>离线或流式解码</div>
+          <div class="pipeline-step" data-lang="en"><strong>ASR</strong>Offline or streaming decode</div>
+          
+          <div class="pipeline-step" data-lang="zh"><strong>后处理</strong>标点、ITN、热词</div>
+          <div class="pipeline-step" data-lang="en"><strong>Post-process</strong>Punctuation, ITN, Hotwords</div>
+          
+          <div class="pipeline-step" data-lang="zh"><strong>补充能力</strong>时间戳、说话人等</div>
+          <div class="pipeline-step" data-lang="en"><strong>Add-ons</strong>Timestamps, Speakers</div>
+          
+          <div class="pipeline-step" data-lang="zh"><strong>服务输出</strong>脚本、ONNX、SDK</div>
+          <div class="pipeline-step" data-lang="en"><strong>Output</strong>Script, ONNX, SDK</div>
+        </div>
+
+        
+        <div class="anim-container">
+          <div class="anim-btn-container">
+            <button type="button" class="anim-btn" id="btn-play-pipeline">
+              <span data-lang="zh">运行流水线动画</span><span data-lang="en">Run Pipeline Animation</span>
+            </button>
+          </div>
+          <div class="anim-track" id="anim-track">
+            <div class="anim-audio-bar" id="anim-audio-bar"></div>
+          </div>
+          <div class="anim-state-label" id="anim-state-label">State: Idle (Raw Audio)</div>
+        </div>
+
+        <h3 data-lang="zh">2.1 长音频为什么先过 VAD</h3>
+        <h3 data-lang="en">2.1 Why Long Audio Goes Through VAD First</h3>
+        <p data-lang="zh">启用 <code>vad_model</code> 后，VAD 会先把长音频切成更短的片段，再送给 ASR。这有两个直接收益：规避显存爆炸/高延迟，以及让离线模型能处理无尽的长播客。</p>
+        <p data-lang="en">When <code>vad_model</code> is enabled, VAD cuts long audio into shorter segments before feeding them to the ASR. This yields two benefits: avoiding OOM/high latency, and allowing offline models to process infinitely long podcasts.</p>
+
+        <h3 data-lang="zh">2.2 流式识别的关键：Chunk 与 Cache</h3>
+        <h3 data-lang="en">2.2 The Key to Streaming: Chunk and Cache</h3>
+        <p data-lang="zh">
+          在 streaming 示例里，FunASR 使用 <code>chunk_size</code> 和 <code>cache</code> 等参数组织推理。它并不是简单切片，而是显式建模流式上下文：<code>chunk_size</code> 决定出字粒度和未来视野，而 <code>cache</code> 保留历史状态。
+        </p>
+        <p data-lang="en">
+          In streaming examples, FunASR uses parameters like <code>chunk_size</code> and <code>cache</code>. It doesn't just slice audio; it explicitly models streaming context: <code>chunk_size</code> dictates emission granularity and look-ahead, while <code>cache</code> preserves historical state.
+        </p>
+      </section>
+
+      <section id="sec-3">
+        <h2 data-lang="zh">3. 模型家族：分工明确的组件矩阵</h2>
+        <h2 data-lang="en">3. Model Family: A Matrix of Specialized Components</h2>
+        <p data-lang="zh">FunASR 把不同任务拆成了多个可搭配的模型，你可以按场景裁剪能力和成本。</p>
+        <p data-lang="en">FunASR splits tasks into multiple composable models, letting you tailor capabilities and costs to your scenario.</p>
+
+        <div class="comp-panel">
+          <div class="comp-header">
+            <button type="button" class="comp-btn active" data-model="paraformer">Paraformer</button>
+            <button type="button" class="comp-btn" data-model="sensevoice">SenseVoice</button>
+            <button type="button" class="comp-btn" data-model="nano">Fun-ASR-Nano</button>
+          </div>
+          <div class="comp-body" id="comp-body">
+            <h4 id="comp-title" style="margin-top:0; margin-bottom:1rem;">Paraformer (Non-Autoregressive)</h4>
+            <p id="comp-desc" style="font-size:0.9rem; color:var(--muted); margin-bottom:1.5rem; min-height: 40px;">
+              <span data-lang="zh">核心非自回归端到端识别模型。高精度、高效率，是中文离线/流式的主力。</span>
+              <span data-lang="en">Core Non-Autoregressive E2E recognition model. High accuracy and efficiency, the main workhorse for Chinese offline/streaming.</span>
+            </p>
+            
+            <div class="comp-row">
+              <div class="comp-label"><span data-lang="zh">识别精度</span><span data-lang="en">Accuracy</span></div>
+              <div class="comp-bar-bg"><div class="comp-bar-fill" id="bar-acc" style="width:95%"></div></div>
+            </div>
+            <div class="comp-row">
+              <div class="comp-label"><span data-lang="zh">推理速度</span><span data-lang="en">Speed</span></div>
+              <div class="comp-bar-bg"><div class="comp-bar-fill" id="bar-spd" style="width:90%"></div></div>
+            </div>
+            <div class="comp-row">
+              <div class="comp-label"><span data-lang="zh">多语种支持</span><span data-lang="en">Multilingual</span></div>
+              <div class="comp-bar-bg"><div class="comp-bar-fill" id="bar-lng" style="width:30%"></div></div>
+            </div>
+            <div class="comp-row">
+              <div class="comp-label"><span data-lang="zh">情感与事件</span><span data-lang="en">Emotion/Event</span></div>
+              <div class="comp-bar-bg"><div class="comp-bar-fill" id="bar-emo" style="width:10%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <div class="card">
+            <h3>Paraformer</h3>
+            <p data-lang="zh">核心<strong>非自回归</strong>端到端识别模型。高精度、高效率，是中文离线/流式的主力。</p>
+            <p data-lang="en">Core <strong>Non-Autoregressive</strong> E2E recognition model. High accuracy and efficiency, the main workhorse for Chinese offline/streaming.</p>
+          </div>
+          <div class="card">
+            <h3>SenseVoice</h3>
+            <p data-lang="zh">偏“语音理解基础模型”。包含多语种识别 (LID)、情绪识别 (SER)、声学事件 (AED)。</p>
+            <p data-lang="en">Leans towards "Speech Understanding Foundation Model". Includes LID, Emotion Recognition (SER), and Acoustic Events (AED).</p>
+          </div>
+          <div class="card">
+            <h3>Fun-ASR-Nano</h3>
+            <p data-lang="zh">端到端大模型，支持 31 种语言和低延迟实时转写。</p>
+            <p data-lang="en">Large E2E model supporting 31 languages and low-latency real-time transcription.</p>
+          </div>
+          <div class="card">
+            <h3 data-lang="zh">周边模块</h3>
+            <h3 data-lang="en">Peripheral Modules</h3>
+            <p data-lang="zh"><code>fsmn-vad</code>(端点), <code>ct-punc</code>(标点), <code>fa-zh</code>(时间戳), <code>cam++</code>(说话人)。</p>
+            <p data-lang="en"><code>fsmn-vad</code> (VAD), <code>ct-punc</code> (Punctuation), <code>fa-zh</code> (Timestamps), <code>cam++</code> (Diarization).</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-4">
+        <h2 data-lang="zh">4. 安装与上手</h2>
+        <h2 data-lang="en">4. Installation & Getting Started</h2>
+        <pre><code>pip3 install -U funasr modelscope huggingface_hub</code></pre>
+        
+        <h3 data-lang="zh">4.1 一行代码构建完整流水线</h3>
+        <h3 data-lang="en">4.1 Complete Pipeline in One Line</h3>
+        <pre><code>from funasr import AutoModel
+model = AutoModel(model="paraformer-zh", vad_model="fsmn-vad", punc_model="ct-punc")
+res = model.generate(input="audio.wav", batch_size_s=300, hotword="魔搭")</code></pre>
+
+        <h3 data-lang="zh">4.2 SenseVoice 语音理解示例</h3>
+        <h3 data-lang="en">4.2 SenseVoice Speech Understanding Example</h3>
+        <pre><code>model = AutoModel(model="iic/SenseVoiceSmall", vad_model="fsmn-vad")
+res = model.generate(input="audio.mp3", language="auto", use_itn=True)</code></pre>
+      </section>
+
+      <section id="sec-5">
+        <h2 data-lang="zh">5. 流式与部署 (Runtime & ONNX)</h2>
+        <h2 data-lang="en">5. Streaming & Deployment (Runtime & ONNX)</h2>
+        
+        <div class="arch-grid">
+          <div class="arch-card">
+            <h4><span data-lang="zh">离线处理架构 (Offline)</span><span data-lang="en">Offline Architecture</span></h4>
+            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1rem;">
+              <span data-lang="zh">适合长视频、会议纪要。极高的吞吐量与时间戳对齐精度。</span>
+              <span data-lang="en">Ideal for long videos, meetings. High throughput & timestamp precision.</span>
+            </p>
+            <div class="arch-node"><span data-lang="zh">完整音频文件</span><span data-lang="en">Full Audio File</span></div>
+            <div class="arch-arrow">&darr;</div>
+            <div class="arch-node"><span data-lang="zh">VAD 端点检测切分</span><span data-lang="en">VAD Segmentation</span></div>
+            <div class="arch-arrow">&darr;</div>
+            <div class="arch-node"><span data-lang="zh">Paraformer 批量推理</span><span data-lang="en">Paraformer Batch Inference</span></div>
+            <div class="arch-arrow">&darr;</div>
+            <div class="arch-node"><span data-lang="zh">标点 & 时间戳对齐</span><span data-lang="en">Punctuation & Timestamps</span></div>
+          </div>
+
+          <div class="arch-card">
+            <h4><span data-lang="zh">流式处理架构 (Streaming)</span><span data-lang="en">Streaming Architecture</span></h4>
+            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1rem;">
+              <span data-lang="zh">适合直播字幕、语音助手。低延迟，边说边出字。</span>
+              <span data-lang="en">Ideal for live subs, voice assistants. Low latency, real-time output.</span>
+            </p>
+            <div class="arch-node"><span data-lang="zh">音频流 (Audio Stream)</span><span data-lang="en">Audio Stream</span></div>
+            <div class="arch-arrow">&darr;</div>
+            <div class="arch-node"><span data-lang="zh">分块 (Chunking)</span><span data-lang="en">Chunking</span></div>
+            <div class="arch-arrow">&darr;</div>
+            <div class="arch-node"><span data-lang="zh">流式模型 + 缓存记忆</span><span data-lang="en">Streaming Model + Cache</span></div>
+            <div class="arch-arrow">&darr;</div>
+            <div class="arch-node"><span data-lang="zh">增量文本输出 (Incremental)</span><span data-lang="en">Incremental Text Output</span></div>
+          </div>
+
+          <div class="arch-card">
+            <h4><span data-lang="zh">高并发 Runtime 服务</span><span data-lang="en">Concurrency Runtime Service</span></h4>
+            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1rem;">
+              <span data-lang="zh">工业级在线部署。处理成百上千的并发请求。</span>
+              <span data-lang="en">Industrial online deployment. Handles hundreds of concurrent streams.</span>
+            </p>
+            <div class="arch-node"><span data-lang="zh">客户端 (gRPC/WebSocket)</span><span data-lang="en">Client (gRPC/WS)</span></div>
+            <div class="arch-arrow">&darr;</div>
+            <div class="arch-node"><span data-lang="zh">负载均衡与线程池</span><span data-lang="en">Load Balancer & Thread Pool</span></div>
+            <div class="arch-arrow">&darr;</div>
+            <div class="arch-node"><span data-lang="zh">C++ SDK 推理内核</span><span data-lang="en">C++ SDK Inference Core</span></div>
+            <div class="arch-arrow">&darr;</div>
+            <div class="arch-node"><span data-lang="zh">2-pass 融合输出</span><span data-lang="en">2-pass Fusion Output</span></div>
+          </div>
+        </div>
+
+        <p data-lang="zh">FunASR 提供了专门的 Runtime 库用于生产部署，支持 C++ SDK、Docker、高并发调度，并支持导出为 ONNX 以实现跨平台 CPU 推理。</p>
+        <p data-lang="en">FunASR provides a dedicated Runtime repository for production deployment, supporting C++ SDKs, Docker, high-concurrency scheduling, and ONNX exports for cross-platform CPU inference.</p>
+        <div class="checklist">
+          <div class="check-item">
+            <strong data-lang="zh">为什么 runtime 重要</strong>
+            <strong data-lang="en">Why runtime matters</strong>
+            <span data-lang="zh">因为真正上线时，问题不只是“能不能识别”，而是“能不能长期稳定地识别很多路请求”。</span>
+            <span data-lang="en">Because in production, the problem is not merely “can it recognize speech,” but “can it keep recognizing many concurrent requests reliably over time.”</span>
+          </div>
+          <div class="check-item">
+            <strong data-lang="zh">2-pass 的意义</strong>
+            <strong data-lang="en">Why 2-pass matters</strong>
+            <span data-lang="zh">在线阶段先给出低延迟结果，句末或完整段落再做精修，这通常比只追求单次输出更贴近真实产品体验。</span>
+            <span data-lang="en">The online stage emits low-latency partial results first, then refines them at sentence end or full segment completion—much closer to real product behavior.</span>
+          </div>
+        </div>
+        
+        <pre><code># 导出 ONNX / Export to ONNX
+funasr-export ++model=paraformer ++quantize=false ++device=cpu</code></pre>
+
+        <h3 data-lang="zh">5.1 流式 chunk 演示器</h3>
+        <h3 data-lang="en">5.1 Streaming Chunk Demo</h3>
+        <p data-lang="zh">
+          下面这个交互块不是在跑真实声学模型，而是在<strong>概念层面模拟</strong> FunASR 流式推理时的窗口移动。
+          你可以把蓝色块理解为已经进入历史缓存的 chunk，把高亮框理解为当前推理窗口，把输出区理解为持续累积的 partial text。
+        </p>
+        <p data-lang="en">
+          The interactive block below does not run a real acoustic model; it <strong>simulates the concept</strong> of how a FunASR streaming window advances.
+          Think of the blue blocks as chunks that have already entered history cache, the highlighted frame as the current inference window, and the output area as incrementally accumulated partial text.
+        </p>
+
+        <div class="stream-container" style="margin-top: 1rem;">
+          <div class="stream-controls">
+            <button type="button" class="dt-btn" id="btn-stream-next" style="padding: 6px 12px; min-width: 120px;">
+              <span data-lang="zh">推入下一个 Chunk</span><span data-lang="en">Push Next Chunk</span>
+            </button>
+            <button type="button" class="dt-btn" id="btn-stream-flush" style="padding: 6px 12px; min-width: 120px;">
+              <span data-lang="zh">Flush (is_final)</span><span data-lang="en">Flush (is_final)</span>
+            </button>
+            <button type="button" class="dt-reset" id="btn-stream-reset" style="margin-top: 0; padding: 6px 12px;">
+              <span data-lang="zh">重置演示</span><span data-lang="en">Reset Demo</span>
+            </button>
+          </div>
+          <div class="stream-visual" id="stream-visual" style="margin-top: 2.5rem; height: 70px; display: flex; align-items: center; position: relative;">
+            <div id="stream-blocks-container" style="display: flex;"></div>
+            <div class="stream-adv-window" id="stream-window">
+              <div class="stream-part stream-cache" id="win-cache">
+                <span class="stream-label lbl-cache"><span data-lang="zh">缓存 / Cache</span><span data-lang="en">Cache</span></span>
+              </div>
+              <div class="stream-part stream-current" id="win-curr">
+                <span class="stream-label lbl-curr"><span data-lang="zh">当前 / Curr</span><span data-lang="en">Current</span></span>
+              </div>
+              <div class="stream-part stream-lookahead" id="win-look">
+                <span class="stream-label lbl-look"><span data-lang="zh">右看 / Look</span><span data-lang="en">Lookahead</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="stream-output" id="stream-output" style="margin-top: 1rem; font-family: monospace; font-size: 1.1rem; padding: 10px; background: var(--bg-soft); border-radius: 8px;">Output: </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <h3 data-lang="zh">怎么理解 <code>chunk_size</code></h3>
+            <h3 data-lang="en">How to read <code>chunk_size</code></h3>
+            <p data-lang="zh">它控制一次前向推理处理多大时间窗，以及允许看多少未来信息。窗更大，通常更稳；窗更小，通常更快。</p>
+            <p data-lang="en">It controls how much time each forward pass consumes and how much future context is visible. Larger windows are usually more stable; smaller windows are usually faster.</p>
+          </div>
+          <div class="card">
+            <h3 data-lang="zh">怎么理解 <code>is_final</code></h3>
+            <h3 data-lang="en">How to read <code>is_final</code></h3>
+            <p data-lang="zh">它可以理解为“告诉模型流结束了，可以把尾巴上的字吐干净了”。没有 final flush，最后几个 token 可能还挂在缓存里。</p>
+            <p data-lang="en">Think of it as telling the model: “the stream has ended—flush the tail.” Without a final flush, the last few tokens may remain buffered.</p>
+          </div>
+        </div>
+
+        <h3 data-lang="zh">5.2 我会怎么理解部署选型</h3>
+        <h3 data-lang="en">5.2 How I think about deployment choices</h3>
+        <ul data-lang="zh">
+          <li>如果你只是离线批量转写，Python + AutoModel 往往已经够用。</li>
+          <li>如果你需要高并发、稳定服务、镜像化交付，应该尽早转向 runtime SDK / docker。</li>
+          <li>如果你的目标平台偏 CPU、跨平台或推理引擎统一，ONNX 路线通常更自然。</li>
+        </ul>
+        <ul data-lang="en">
+          <li>If you only need offline batch transcription, Python + AutoModel is often enough.</li>
+          <li>If you need concurrency, service stability, and containerized delivery, move early toward runtime SDK / docker.</li>
+          <li>If your target platform is CPU-heavy, cross-platform, or uses a unified inference engine, ONNX is often the more natural path.</li>
+        </ul>
+      </section>
+
+      <section id="sec-6">
+        <h2 data-lang="zh">6. 场景模型推荐器（交互式）</h2>
+
+        <div class="dt-container">
+          <div class="dt-step active" id="dt-1">
+            <h3><span data-lang="zh">你的主要应用场景是什么？</span><span data-lang="en">What is your primary use case?</span></h3>
+            <div class="dt-options">
+              <button type="button" class="dt-btn" data-next="dt-2"><span data-lang="zh">纯中文转写/听写</span><span data-lang="en">Chinese Transcription / Dictation</span></button>
+              <button type="button" class="dt-btn" data-next="dt-res-sensevoice"><span data-lang="zh">多语种、情感、事件识别</span><span data-lang="en">Multilingual, Emotion, Event Recognition</span></button>
+              <button type="button" class="dt-btn" data-next="dt-res-nano"><span data-lang="zh">超大规模多语言 (31+ 种)</span><span data-lang="en">Massive Scale Multilingual (31+ Langs)</span></button>
+            </div>
+          </div>
+
+          <div class="dt-step" id="dt-2">
+            <h3><span data-lang="zh">你需要“边说边出字”（低延迟流式）吗？</span><span data-lang="en">Do you need "Real-time Streaming" (low latency)?</span></h3>
+            <div class="dt-options">
+              <button type="button" class="dt-btn" data-next="dt-res-stream"><span data-lang="zh">是的，越快越好</span><span data-lang="en">Yes, as fast as possible</span></button>
+              <button type="button" class="dt-btn" data-next="dt-3"><span data-lang="zh">不需要，我处理录音文件</span><span data-lang="en">No, I process recorded files</span></button>
+            </div>
+          </div>
+
+          <div class="dt-step" id="dt-3">
+            <h3><span data-lang="zh">你需要区分“谁在说话”吗？（说话人分离）</span><span data-lang="en">Do you need Speaker Diarization (who spoke when)?</span></h3>
+            <div class="dt-options">
+              <button type="button" class="dt-btn" data-next="dt-res-diarization"><span data-lang="zh">需要</span><span data-lang="en">Yes, definitely</span></button>
+              <button type="button" class="dt-btn" data-next="dt-res-offline"><span data-lang="zh">不需要，只要文字</span><span data-lang="en">No, just the text</span></button>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div class="dt-step" id="dt-res-sensevoice">
+            <div class="dt-result">
+              <h4>🎯 SenseVoice</h4>
+              <p><span data-lang="zh">它是 FunASR 家族中的“语音理解基础模型”。不仅能转写多语言，还能识别情绪（开心/生气）和声音事件（笑声/掌声）。</span><span data-lang="en">It's the "Speech Understanding Foundation Model" in the FunASR family. It handles multiple languages, emotion detection, and acoustic events (laughter/applause).</span></p>
+            </div>
+            <button type="button" class="dt-reset"><span data-lang="zh">重新选择</span><span data-lang="en">Start Over</span></button>
+          </div>
+
+          <div class="dt-step" id="dt-res-nano">
+            <div class="dt-result">
+              <h4>🎯 Fun-ASR-Nano</h4>
+              <p><span data-lang="zh">适合大范围国际化业务，支持 31 种语言的端到端转写。</span><span data-lang="en">Ideal for broad internationalization, supporting E2E transcription across 31 languages.</span></p>
+            </div>
+            <button type="button" class="dt-reset"><span data-lang="zh">重新选择</span><span data-lang="en">Start Over</span></button>
+          </div>
+
+          <div class="dt-step" id="dt-res-stream">
+            <div class="dt-result">
+              <h4>🎯 Paraformer-Streaming / 2-Pass Runtime</h4>
+              <p><span data-lang="zh">你应该使用带有 <code>-streaming</code> 后缀的模型，或直接部署官方的 C++ Runtime 在线服务。注意配置好 <code>chunk_size</code> 以平衡延迟与精度。</span><span data-lang="en">You should use the <code>-streaming</code> models, or deploy the official C++ Runtime online service. Make sure to tune <code>chunk_size</code> to balance latency and accuracy.</span></p>
+            </div>
+            <button type="button" class="dt-reset"><span data-lang="zh">重新选择</span><span data-lang="en">Start Over</span></button>
+          </div>
+
+          <div class="dt-step" id="dt-res-diarization">
+            <div class="dt-result">
+              <h4>🎯 Paraformer + cam++ (说话人分离)</h4>
+              <p><span data-lang="zh">在标准的离线转写管道上叠加 <code>cam++</code> 模型。它会提取说话人声纹特征并进行聚类，输出带角色标签的纪要。</span><span data-lang="en">Stack the <code>cam++</code> model on top of the standard offline pipeline. It extracts speaker voiceprints and clusters them, outputting role-tagged transcripts.</span></p>
+            </div>
+            <button type="button" class="dt-reset"><span data-lang="zh">重新选择</span><span data-lang="en">Start Over</span></button>
+          </div>
+
+          <div class="dt-step" id="dt-res-offline">
+            <div class="dt-result">
+              <h4>🎯 Paraformer + VAD + Punc (经典离线管道)</h4>
+              <p><span data-lang="zh">最稳健的工业组合。VAD 切分长音频，Paraformer 主力识别，最后用 CT-Punc 加上标点，FA-ZH 对齐时间戳。</span><span data-lang="en">The most robust industrial combo. VAD segments audio, Paraformer recognizes, CT-Punc adds punctuation, and FA-ZH aligns timestamps.</span></p>
+            </div>
+            <button type="button" class="dt-reset"><span data-lang="zh">重新选择</span><span data-lang="en">Start Over</span></button>
+          </div>
+        </div>
+
+        <h2 data-lang="en">6. Scenario Model Recommender (Interactive)</h2>
+        <p data-lang="zh">根据您的具体需求，选择最合适的 FunASR 组件组合。点击下方选项卡查看详细架构与参数建议：</p>
+        <p data-lang="en">Select the most appropriate FunASR component combination based on your specific requirements. Click the tabs below to view detailed architectures and parameter recommendations:</p>
+
+        <div class="model-selector">
+          <div class="model-tabs">
+            <button type="button" class="model-tab active" data-target="tab-offline">
+              <span data-lang="zh">中文长篇转写</span><span data-lang="en">Offline Long Audio</span>
+            </button>
+            <button type="button" class="model-tab" data-target="tab-stream">
+              <span data-lang="zh">实时语音上屏</span><span data-lang="en">Real-time Streaming</span>
+            </button>
+            <button type="button" class="model-tab" data-target="tab-multi">
+              <span data-lang="zh">多语言 & 情感理解</span><span data-lang="en">Multilingual & Emotion</span>
+            </button>
+            <button type="button" class="model-tab" data-target="tab-diarization">
+              <span data-lang="zh">会议说话人分离</span><span data-lang="en">Speaker Diarization</span>
+            </button>
+          </div>
+          
+          <div class="model-content active" id="tab-offline">
+            <h4 data-lang="zh">长音频高精转写管道 (会议纪要、播客、视频字幕)</h4>
+            <h4 data-lang="en">High-Precision Pipeline for Long Audio (Meetings, Podcasts, Subs)</h4>
+            <p data-lang="zh">这是目前最稳健的离线组合。利用 VAD 切割长语音，Paraformer 主力识别，最后用 CT-Punc 和 FA-ZH 赋予文本标点与精确的时间戳对齐。</p>
+            <p data-lang="en">The most robust offline stack. VAD segments long audio, Paraformer recognizes the text, and CT-Punc & FA-ZH provide punctuation and precise timestamp alignment.</p>
+            <div class="model-features">
+              <span class="feature-tag">paraformer-zh</span>
+              <span class="feature-tag">fsmn-vad</span>
+              <span class="feature-tag">ct-punc</span>
+              <span class="feature-tag">fa-zh</span>
+            </div>
+            <pre><code>model = AutoModel(model="paraformer-zh", vad_model="fsmn-vad", punc_model="ct-punc", spk_model="cam++")</code></pre>
+          </div>
+
+          <div class="model-content" id="tab-stream">
+            <h4 data-lang="zh">低延迟流式听写管道 (直播字幕、语音助手)</h4>
+            <h4 data-lang="en">Low-latency Streaming Pipeline (Live Subs, Voice Assistants)</h4>
+            <p data-lang="zh">使用带有流式后缀的 Paraformer 模型。需要精确控制 <code>chunk_size</code> 和 <code>cache</code> 以在延迟（通常设定为 600ms）和识别精度间取得平衡。</p>
+            <p data-lang="en">Utilizes the streaming variant of Paraformer. Requires precise control over <code>chunk_size</code> and <code>cache</code> to balance latency (typically ~600ms) and accuracy.</p>
+            <div class="model-features">
+              <span class="feature-tag">paraformer-zh-streaming</span>
+              <span class="feature-tag">Chunking (600ms)</span>
+              <span class="feature-tag">Cache Management</span>
+            </div>
+            <pre><code>model = AutoModel(model="paraformer-zh-streaming")
+res = model.generate(input=chunk, cache=cache, is_final=is_final, chunk_size=[0, 10, 5])</code></pre>
+          </div>
+
+          <div class="model-content" id="tab-multi">
+            <h4 data-lang="zh">泛语音理解基础模型 (跨语种转写、视频事件分析)</h4>
+            <h4 data-lang="en">Universal Speech Understanding (Cross-lingual, Event Analysis)</h4>
+            <p data-lang="zh">如果音频包含中英混杂，甚至日韩小语种，或者你需要知道说话者的情绪（开心/生气）与环境音（鼓掌/笑声），请放弃 Paraformer，直接上 SenseVoice。</p>
+            <p data-lang="en">If your audio contains mixed languages, or you need to detect emotion (happy/angry) and ambient sounds (applause/laughter), switch from Paraformer to SenseVoice.</p>
+            <div class="model-features">
+              <span class="feature-tag">SenseVoiceSmall</span>
+              <span class="feature-tag">fsmn-vad</span>
+              <span class="feature-tag">Emotion / LID</span>
+            </div>
+            <pre><code>model = AutoModel(model="iic/SenseVoiceSmall", vad_model="fsmn-vad")
+res = model.generate(input="audio.wav", language="auto", use_itn=True)</code></pre>
+          </div>
+
+          <div class="model-content" id="tab-diarization">
+            <h4 data-lang="zh">结构化会议记录 (谁在什么时候说了什么)</h4>
+            <h4 data-lang="en">Structured Meeting Minutes (Who said what, and when)</h4>
+            <p data-lang="zh">在标准 ASR 管道上额外叠加 <code>cam++</code> 模型。它会在识别文本的同时，提取说话人特征（Speaker Embeddings）并进行聚类，输出带 SPK-ID 的结构化日志。</p>
+            <p data-lang="en">Adds the <code>cam++</code> model on top of the standard ASR pipeline. It extracts Speaker Embeddings and performs clustering, outputting structured logs with SPK-IDs.</p>
+            <div class="model-features">
+              <span class="feature-tag">paraformer-zh</span>
+              <span class="feature-tag">cam++ (Speaker)</span>
+              <span class="feature-tag">Clustering</span>
+            </div>
+            <pre><code>model = AutoModel(model="paraformer-zh", spk_model="cam++", vad_model="fsmn-vad")</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-7">
+        <h2 data-lang="zh">7. 优势与局限</h2>
+        <h2 data-lang="en">7. Advantages and Limitations</h2>
+
+        <div class="two-col">
+          <div class="card">
+            <h3 data-lang="zh">优势</h3>
+            <h3 data-lang="en">Pros</h3>
+            <ul data-lang="zh">
+              <li>从模型到部署链路非常完整。</li>
+              <li>统一 <code>AutoModel</code> 显著降低组装难度。</li>
+              <li>原生支持 VAD 和标点热词，极具工程实用性。</li>
+              <li>官方维护 C++ Runtime 与 ONNX 支持。</li>
+            </ul>
+            <ul data-lang="en">
+              <li>Complete pipeline from model to deployment.</li>
+              <li>Unified <code>AutoModel</code> drastically reduces boilerplate.</li>
+              <li>Native support for VAD, Punctuation, and Hotwords.</li>
+              <li>Officially maintained C++ Runtime and ONNX export.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 data-lang="zh">局限</h3>
+            <h3 data-lang="en">Cons</h3>
+            <ul data-lang="zh">
+              <li>能力过广，初学者容易被参数海洋淹没。</li>
+              <li>文档与版本迭代极快，部分示例偶尔脱节。</li>
+              <li>统一 API 封装过深，定制底层逻辑需要扒源码。</li>
+            </ul>
+            <ul data-lang="en">
+              <li>Broad capabilities can overwhelm beginners.</li>
+              <li>Fast iterations cause occasional documentation lag.</li>
+              <li>Deep API encapsulation makes low-level custom logic harder.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-8">
+        <h2 data-lang="zh">8. 总结</h2>
+        <h2 data-lang="en">8. Conclusion</h2>
+        <p data-lang="zh">
+          如果你的目标是处理长音频、生成带时间戳和标点的字幕、或者需要高并发的在线服务部署，FunASR 是目前最成熟的开源选择之一。它最大的价值在于将散落的论文能力，拧成了一股工业可用的绳。
+        </p>
+        <p data-lang="en">
+          If your goal is handling long audio, generating timestamped/punctuated subtitles, or deploying high-concurrency online services, FunASR is one of the most mature open-source choices. Its true value lies in weaving scattered academic capabilities into an industrial-strength rope.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      // Language Toggle Logic
+      const langToggle = document.getElementById('lang-toggle');
+      let currentLang = 'zh';
+      langToggle.addEventListener('click', () => {
+        currentLang = currentLang === 'zh' ? 'en' : 'zh';
+        document.documentElement.lang = currentLang;
+        langToggle.textContent = currentLang === 'zh' ? 'EN' : 'ZH';
+        updateProgress(); // re-trigger TOC logic
+      });
+
+      // Interactive Model Selector Logic
+      const tabs = document.querySelectorAll('.model-tab');
+      const contents = document.querySelectorAll('.model-content');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach((t) => { t.classList.remove('active'); });
+          contents.forEach((c) => { c.classList.remove('active'); });
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.target).classList.add('active');
+        });
+      });
+
+      // Progress Bar and TOC highlighting
+      const progressBar = document.getElementById("progress-bar");
+      const backToTop = document.getElementById("back-to-top");
+      const tocLinks = [...document.querySelectorAll(".toc a")];
+      const sections = tocLinks
+        .map((link) => document.querySelector(link.getAttribute("href")))
+        .filter(Boolean);
+
+      function updateProgress() {
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const progress = height > 0 ? (scrollTop / height) * 100 : 0;
+        progressBar.style.width = `${progress}%`;
+        backToTop.classList.toggle("visible", scrollTop > 420);
+
+        let activeId = "";
+        for (const section of sections) {
+          if (window.scrollY >= section.offsetTop - 140) {
+            activeId = `#${section.id}`;
+          }
+        }
+
+        tocLinks.forEach((link) => {
+          link.classList.toggle("active", link.getAttribute("href") === activeId);
+        });
+      }
+
+      window.addEventListener("scroll", updateProgress, { passive: true });
+      window.addEventListener("load", updateProgress);
+
+      // --- INTERACTIVE PIPELINE ANIMATION ---
+      const btnPlayPipeline = document.getElementById('btn-play-pipeline');
+      const animTrack = document.getElementById('anim-track');
+      
+      const animStateLabel = document.getElementById('anim-state-label');
+      let pipelineRunning = false;
+
+      btnPlayPipeline.addEventListener('click', () => {
+        if(pipelineRunning) return;
+        pipelineRunning = true;
+        
+        // Reset
+        animTrack.innerHTML = '<div class="anim-audio-bar" id="anim-audio-bar" style="width:100%;"></div>';
+        animStateLabel.textContent = 'State: 1. Input Raw Audio';
+        
+        setTimeout(() => {
+          // VAD Step
+          animStateLabel.textContent = 'State: 2. VAD Segmentation';
+          animTrack.innerHTML = '';
+          for(let i=0; i<4; i++) {
+            const slice = document.createElement('div');
+            slice.style.height = '40px';
+            slice.style.width = '20%';
+            slice.style.background = '#3b82f6';
+            slice.style.marginRight = '5%';
+            slice.style.borderRadius = '8px';
+            slice.style.transition = 'all 0.5s';
+            animTrack.appendChild(slice);
+          }
+        }, 1500);
+
+        setTimeout(() => {
+          // ASR Step
+          animStateLabel.textContent = 'State: 3. ASR Decoding (No Punctuation)';
+          Array.from(animTrack.children).forEach((child, idx) => {
+            child.style.background = 'transparent';
+            child.style.color = '#fff';
+            child.style.fontFamily = 'var(--font-mono)';
+            child.style.fontSize = '0.9rem';
+            child.style.display = 'flex';
+            child.style.alignItems = 'center';
+            child.innerText = ['hello', 'this', 'is', 'funasr'][idx];
+          });
+        }, 3000);
+
+        setTimeout(() => {
+          // PUNC Step
+          animStateLabel.textContent = 'State: 4. CT-Punc (Formatting & Timestamps)';
+          Array.from(animTrack.children).forEach((child, idx) => {
+            child.style.color = '#a7f3d0';
+            child.innerText = ['Hello,', 'this', 'is', 'FunASR.'][idx];
+          });
+          pipelineRunning = false;
+        }, 4500);
+      });
+
+      // --- MODEL COMPARISON PANEL ---
+      const compData = {
+        paraformer: {
+          title: 'Paraformer (Non-Autoregressive)',
+          descZh: '核心非自回归端到端识别模型。高精度、高效率，是中文离线/流式的主力。',
+          descEn: 'Core Non-Autoregressive E2E recognition model. High accuracy and efficiency, main workhorse for Chinese.',
+          acc: 95, spd: 90, lng: 30, emo: 10
+        },
+        sensevoice: {
+          title: 'SenseVoice (Foundation Model)',
+          descZh: '偏“语音理解基础模型”。包含多语种识别(LID)、情绪识别(SER)、声学事件(AED)。',
+          descEn: 'Speech Understanding Foundation Model. Includes LID, Emotion Recognition (SER), Acoustic Events (AED).',
+          acc: 88, spd: 75, lng: 95, emo: 98
+        },
+        nano: {
+          title: 'Fun-ASR-Nano (LLM Era)',
+          descZh: '端到端大模型，支持 31 种语言和低延迟实时转写。',
+          descEn: 'Large E2E model supporting 31 languages and low-latency real-time transcription.',
+          acc: 92, spd: 85, lng: 85, emo: 40
+        }
+      };
+
+      const compBtns = document.querySelectorAll('.comp-btn');
+      const compTitle = document.getElementById('comp-title');
+      const compDesc = document.getElementById('comp-desc');
+      const barAcc = document.getElementById('bar-acc');
+      const barSpd = document.getElementById('bar-spd');
+      const barLng = document.getElementById('bar-lng');
+      const barEmo = document.getElementById('bar-emo');
+
+      function updateCompPanel(modelKey) {
+        compBtns.forEach((b) => { b.classList.remove('active'); });
+        document.querySelector(`.comp-btn[data-model="${modelKey}"]`).classList.add('active');
+        
+        const data = compData[modelKey];
+        compTitle.textContent = data.title;
+        compDesc.innerHTML = `<span data-lang="zh">${data.descZh}</span><span data-lang="en">${data.descEn}</span>`;
+        
+        // Re-apply display logic based on current language
+        const isEn = document.documentElement.lang === 'en';
+        compDesc.querySelector('[data-lang="zh"]').style.display = isEn ? 'none' : 'inline';
+        compDesc.querySelector('[data-lang="en"]').style.display = isEn ? 'inline' : 'none';
+
+        barAcc.style.width = `${data.acc}%`;
+        barSpd.style.width = `${data.spd}%`;
+        barLng.style.width = `${data.lng}%`;
+        barEmo.style.width = `${data.emo}%`;
+      }
+
+      compBtns.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          updateCompPanel(e.target.dataset.model);
+        });
+      });
+
+      // Override lang toggle specifically for the dynamically injected spans in compDesc
+      langToggle.addEventListener('click', () => {
+        setTimeout(() => {
+          const isEn = document.documentElement.lang === 'en';
+          const zhSpan = compDesc.querySelector('[data-lang="zh"]');
+          const enSpan = compDesc.querySelector('[data-lang="en"]');
+          if(zhSpan) zhSpan.style.display = isEn ? 'none' : 'inline';
+          if(enSpan) enSpan.style.display = isEn ? 'inline' : 'none';
+        }, 10); // Wait for the main click handler to run
+      });
+
+      
+      // --- DECISION TREE LOGIC ---
+      const dtBtns = document.querySelectorAll('.dt-btn');
+      const dtResets = document.querySelectorAll('.dt-reset');
+      const dtSteps = document.querySelectorAll('.dt-step');
+
+      dtBtns.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          const nextId = e.currentTarget.dataset.next;
+          dtSteps.forEach((step) => { step.classList.remove('active'); });
+          document.getElementById(nextId).classList.add('active');
+        });
+      });
+      dtResets.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          dtSteps.forEach((step) => { step.classList.remove('active'); });
+          document.getElementById('dt-1').classList.add('active');
+        });
+      });
+
+      // --- ADVANCED STREAMING DEMO ---
+      const btnStreamNext = document.getElementById('btn-stream-next');
+      const btnStreamFlush = document.getElementById('btn-stream-flush');
+      const btnStreamReset = document.getElementById('btn-stream-reset');
+      const blocksContainer = document.getElementById('stream-blocks-container');
+      const streamWindow = document.getElementById('stream-window');
+      const winCache = document.getElementById('win-cache');
+      const winCurr = document.getElementById('win-curr');
+      const winLook = document.getElementById('win-look');
+      const streamOutput = document.getElementById('stream-output');
+      
+      let streamStep = 0;
+      const totalBlocks = 24;
+      const blockWidth = 20; // 16 width + 4 margin
+      const cCache = 2;
+      const cCurr = 6;
+      const cLook = 2;
+      let isFlushed = false;
+      
+      function initStream() {
+        blocksContainer.innerHTML = '';
+        for(let i=0; i<totalBlocks; i++) {
+          const b = document.createElement('div');
+          b.className = 'stream-block';
+          blocksContainer.appendChild(b);
+        }
+        streamStep = 0;
+        isFlushed = false;
+        
+        // Initial window sizing
+        winCache.style.width = `${cCache * blockWidth}px`;
+        winCurr.style.width = `${cCurr * blockWidth}px`;
+        winLook.style.width = `${cLook * blockWidth}px`;
+        streamWindow.style.width = `${(cCache + cCurr + cLook) * blockWidth}px`;
+        
+        // Hide window initially or set to start
+        streamWindow.style.left = '0px';
+        streamWindow.style.opacity = '0';
+        
+        streamOutput.innerHTML = 'Output: ';
+        btnStreamNext.disabled = false;
+        btnStreamFlush.disabled = false;
+        btnStreamNext.style.opacity = '1';
+      }
+
+      btnStreamNext.addEventListener('click', () => {
+        if(isFlushed) return;
+        if(streamStep >= Math.floor(totalBlocks / cCurr)) return;
+        
+        streamWindow.style.opacity = '1';
+        
+        // Calculate bounds
+        // step 0: cache is empty visually (or out of bounds), curr starts at 0
+        const startIdx = streamStep * cCurr;
+        
+        const blocks = document.querySelectorAll('.stream-block');
+        
+        // Color processed blocks up to startIdx
+        for(let i=0; i<startIdx && i<blocks.length; i++) {
+          blocks[i].style.background = 'rgba(37, 99, 235, 0.4)';
+        }
+        
+        // Position window: The 'current' part must align with startIdx
+        // So window left = (startIdx - cCache) * blockWidth
+        const leftPos = (startIdx - cCache) * blockWidth;
+        streamWindow.style.left = `${Math.max(0, leftPos)}px`;
+        
+        // Simulate output words
+        const words = ['"Hello,"', '"this is"', '"streaming"', '"demo."'];
+        if(streamStep < words.length) {
+          streamOutput.innerHTML += `${words[streamStep]} `;
+        }
+        
+        streamStep++;
+      });
+
+      btnStreamFlush.addEventListener('click', () => {
+        if(isFlushed) return;
+        isFlushed = true;
+        
+        const blocks = document.querySelectorAll('.stream-block');
+        for(let i=0; i<blocks.length; i++) {
+          blocks[i].style.background = 'rgba(16, 185, 129, 0.6)'; // Green finish
+        }
+        streamWindow.style.opacity = '0';
+        streamOutput.innerHTML += ' [FLUSHED: <span data-lang="zh">剩余尾部音频已处理</span><span data-lang="en">Remaining tail processed</span>]';
+        
+        // enforce translation visibility logic on newly injected span
+        const isEn = document.documentElement.lang === 'en';
+        const flushZh = streamOutput.querySelector('[data-lang="zh"]');
+        const flushEn = streamOutput.querySelector('[data-lang="en"]');
+        if(flushZh) flushZh.style.display = isEn ? 'none' : 'inline';
+        if(flushEn) flushEn.style.display = isEn ? 'inline' : 'none';
+
+        btnStreamNext.disabled = true;
+        btnStreamNext.style.opacity = '0.5';
+      });
+
+      btnStreamReset.addEventListener('click', initStream);
+      initStream(); // Call on load
+      // Dark Mode Logic
+      const darkToggle = document.getElementById('dark-toggle');
+      if (darkToggle) {
+        const isDark = localStorage.getItem('theme') === 'dark';
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          darkToggle.innerText = '☀️';
+        }
+        darkToggle.addEventListener('click', () => {
+          document.documentElement.classList.toggle('dark');
+          if (document.documentElement.classList.contains('dark')) {
+            localStorage.setItem('theme', 'dark');
+            darkToggle.innerText = '☀️';
+          } else {
+            localStorage.setItem('theme', 'light');
+            darkToggle.innerText = '🌙';
+          }
+        });
+      }
+
+      // Fade-in animations
+      document.addEventListener('DOMContentLoaded', () => {
+        const fadeElements = document.querySelectorAll('section, .card-grid, .arch-grid, .comp-panel, .dt-container, .model-selector, .stream-container, .anim-container');
+        fadeElements.forEach(el => { el.classList.add('fade-section'); });
+        
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        
+        fadeElements.forEach(el => { observer.observe(el); });
+      });
+
+
+    </script>
+  </body>
+</html>
