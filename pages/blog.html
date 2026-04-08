@@ -362,20 +362,55 @@
 
     <div class="blog-container">
       <h1 class="blog-page-title">Blog</h1>
-      <p class="blog-subtitle">Research notes and interactive visualizations</p>
+      <p class="blog-subtitle">Research notes, benchmark teardowns, and interactive visualizations</p>
 
       <div class="blog-filters">
         <button type="button" class="blog-filter-btn active" data-filter="all">All</button>
         <button type="button" class="blog-filter-btn" data-filter="llm">LLM</button>
         <button type="button" class="blog-filter-btn" data-filter="training">Training</button>
         <button type="button" class="blog-filter-btn" data-filter="vision">Vision</button>
+        <button type="button" class="blog-filter-btn" data-filter="video">Video</button>
+        <button type="button" class="blog-filter-btn" data-filter="speech">Speech</button>
       </div>
       <h2 class="blog-year">2026</h2>
       <ul class="blog-timeline">
+        <li class="blog-entry featured" data-category="speech asr audio deployment">
+          <span class="blog-date">Apr 8, 2026</span>
+          <div>
+            <span class="blog-pinned">📌 Latest</span>
+            <a class="blog-link" href="/pages/funasr.html">FunASR 调研：从原理、模型家族到部署实践指南</a>
+            <span class="blog-type">Research Note</span>
+            <span class="blog-tag">FunASR</span>
+            <span class="blog-tag">ASR</span>
+            <span class="blog-tag">Paraformer</span>
+            <span class="blog-tag">SenseVoice</span>
+            <span class="blog-tag">Runtime</span>
+            <span class="blog-reading-time">~14 min</span>
+            <p class="blog-summary">
+              深入梳理 FunASR 的统一接口、可组合语音流水线与 runtime 服务能力，覆盖 Paraformer / SenseVoice / VAD / 标点 /
+              时间戳 / ONNX / 流式部署，并给出更贴近工程落地的模型选型建议。
+            </p>
+          </div>
+        </li>
+        <li class="blog-entry featured" data-category="vision llm video">
+          <span class="blog-date">Apr 8, 2026</span>
+          <div>
+            <a class="blog-link" href="/pages/video_subtitle_benchmark.html">视频理解Benchmark中的字幕评测：从VideoMME到VideoMME-v2</a>
+            <span class="blog-type">Research Note</span>
+            <span class="blog-tag">VideoMME</span>
+            <span class="blog-tag">Subtitle</span>
+            <span class="blog-tag">lmms_eval</span>
+            <span class="blog-tag">Qwen3-VL</span>
+            <span class="blog-reading-time">~12 min</span>
+            <p class="blog-summary">
+              从 VideoMME 到 VideoMME-v2，系统拆解字幕如何进入视频理解评测：包括 benchmark 任务设计、lmms_eval 与
+              VLMEvalKit 的 SRT 解析/帧对齐/Prompt 注入流程，以及 Qwen3-VL 一类模型对字幕信息的实际利用方式。
+            </p>
+          </div>
+        </li>
         <li class="blog-entry featured" data-category="vision llm">
           <span class="blog-date">Apr 7, 2026</span>
           <div>
-            <span class="blog-pinned">📌 Latest</span>
             <a class="blog-link" href="/pages/video_codec.html">Video Codec 基础 & OneVision-Encoder Codec 对齐的稀疏 Patch 选择</a>
             <span class="blog-type">Interactive Viz</span>
             <span class="blog-tag">Video Codec</span>
