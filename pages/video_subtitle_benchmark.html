@@ -1,0 +1,2157 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频理解Benchmark中的字幕评测：从VideoMME到VideoMME-v2</title>
+    <meta name="description" content="深度梳理 VideoMME、VideoMME-v2、MLVU、LVBench、MMOU 等视频理解 benchmark 中的字幕评测设计，分析 lmms_eval、VLMEvalKit 与 Qwen3-VL 的字幕注入与处理机制。">
+    <meta name="theme-color" content="#2b5797">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="视频理解Benchmark中的字幕评测：从VideoMME到VideoMME-v2">
+    <meta property="og:description" content="从 benchmark 设计到评测代码路径，系统拆解字幕如何进入视频理解任务。">
+    <meta property="og:url" content="https://anxiangsir.github.io/pages/video_subtitle_benchmark.html">
+    <meta property="og:image" content="https://anxiangsir.github.io/assets/img/profile_pic.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="视频理解Benchmark中的字幕评测：从VideoMME到VideoMME-v2">
+    <meta name="twitter:description" content="系统拆解字幕如何被 benchmark、评测框架与模型真正使用。">
+    <link rel="canonical" href="https://anxiangsir.github.io/pages/video_subtitle_benchmark.html">
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg">
+    <script defer src="/_vercel/insights/script.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+    <style>
+        /* ==========================================================================
+           VARIABLES & THEMING
+           ========================================================================== */
+        :root {
+            --bg: #fafafa;
+            --bg-alt: #f0f0f0;
+            --bg-gradient: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+            --text: #2c2c2c;
+            --text-light: #555;
+            --text-muted: #888;
+            --accent: #2b5797;
+            --accent-hover: #1e3d6b;
+            --accent-glow: rgba(43, 87, 151, 0.2);
+            --border: #e0e0e0;
+            --border-light: #eeeeee;
+            --code-bg: #1e1e2e;
+            --code-bg-alt: #181825;
+            --code-text: #cdd6f4;
+            --font-head: 'Playfair Display', serif;
+            --font-body: 'Cormorant Garamond', serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --container-w: 1200px; /* WIDE LAYOUT */
+            --nav-h: 70px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #121212;
+                --bg-alt: #1a1a1a;
+                --bg-gradient: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+                --text: #e0e0e0;
+                --text-light: #aaaaaa;
+                --text-muted: #666666;
+                --accent: #6699cc;
+                --accent-hover: #8ab4f8;
+                --accent-glow: rgba(102, 153, 204, 0.2);
+                --border: #333333;
+                --border-light: #222222;
+                --code-bg: #181825;
+                --code-bg-alt: #11111b;
+            }
+        }
+
+        /* ==========================================================================
+           RESET & BASE
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            font-size: 22px;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            position: relative;
+        }
+
+        ::selection {
+            background: var(--accent-glow);
+            color: var(--text);
+        }
+
+        /* Subtle background particles / noise effect */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.4;
+        }
+
+        /* ==========================================================================
+           PROGRESS BAR
+           ========================================================================== */
+        #progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            z-index: 1000;
+        }
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+            width: 0%;
+            transition: width 0.1s ease-out;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* ==========================================================================
+           NAVIGATION
+           ========================================================================== */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            height: var(--nav-h);
+            border-bottom: 1px solid var(--border);
+            max-width: var(--container-w);
+            margin: 0 auto;
+            font-family: var(--font-head);
+            font-size: 1.1rem;
+            position: sticky;
+            top: 0;
+            background: rgba(var(--bg), 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            margin-right: 1.5rem;
+            position: relative;
+            transition: color 0.2s;
+            font-weight: 600;
+        }
+        nav a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--accent);
+            transition: width 0.3s ease;
+        }
+        nav a:hover {
+            color: var(--accent);
+        }
+        nav a:hover::after {
+            width: 100%;
+        }
+        
+        .lang-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .lang-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-glow);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+        .lang-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 4px 12px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+        .lang-btn:hover::before {
+            left: 0;
+        }
+
+        /* ==========================================================================
+           LAYOUT & TYPOGRAPHY
+           ========================================================================== */
+        main {
+            max-width: var(--container-w);
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+        }
+
+        /* Floating Section Nav */
+        .section-nav {
+            position: fixed;
+            left: max(20px, calc(50% - (var(--container-w) / 2) - 80px));
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 90;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .section-nav.visible {
+            opacity: 1;
+        }
+        .sec-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .sec-dot::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-10px);
+            opacity: 0;
+            white-space: nowrap;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .sec-dot:hover, .sec-dot.active {
+            background: var(--accent);
+            transform: scale(1.3);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+        .sec-dot:hover::before, .sec-dot.active::before {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+            color: var(--accent);
+        }
+
+        h1, h2, h3, h4 {
+            font-family: var(--font-head);
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--text);
+            margin-top: 4rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .hero {
+            position: relative;
+            text-align: center;
+            padding: 4rem 0 6rem;
+            perspective: 1000px;
+        }
+
+        .hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 1rem;
+            margin-bottom: 1.4rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(43, 87, 151, 0.08);
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: 2rem;
+            margin-top: 0;
+            will-change: transform, opacity;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: var(--text-light);
+            max-width: 800px;
+            margin: 0 auto;
+            font-family: var(--font-body);
+            font-style: italic;
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .hero-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--bg-alt);
+            color: var(--text-light);
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+        }
+        
+        h2 {
+            font-size: 2.4rem;
+            padding-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid transparent;
+            position: relative;
+        }
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+        h2 .sec-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            font-family: var(--font-mono);
+            box-shadow: 0 4px 15px var(--accent-glow);
+            flex-shrink: 0;
+        }
+        
+        h3 {
+            font-size: 1.8rem;
+            color: var(--accent);
+            margin-top: 3rem;
+            display: flex;
+            align-items: center;
+        }
+        h3::before {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 2px;
+            background: var(--accent);
+            margin-right: 15px;
+        }
+        
+        p {
+            margin-bottom: 1.8rem;
+            text-align: justify;
+            color: var(--text-light);
+        }
+        
+        ul, ol {
+            margin-bottom: 2rem;
+            padding-left: 2.5rem;
+            color: var(--text-light);
+        }
+        li {
+            margin-bottom: 0.8rem;
+            position: relative;
+        }
+        
+        .highlight-box {
+            background: var(--bg-alt);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* ==========================================================================
+           BILINGUAL
+           ========================================================================== */
+        .en-content { display: none; }
+        body.lang-en .en-content { display: block; }
+        body.lang-en .zh-content { display: none; }
+
+        /* ==========================================================================
+           TABLES
+           ========================================================================== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 3rem 0;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            background: var(--bg);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-body);
+            font-size: 1.2rem;
+            white-space: nowrap;
+        }
+        th, td {
+            padding: 1.2rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+        th {
+            background-color: var(--bg-alt);
+            font-family: var(--font-head);
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tbody tr {
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            will-change: transform;
+        }
+        tbody tr:hover {
+            background-color: var(--bg-alt);
+            transform: scale(1.01) translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            z-index: 2;
+            position: relative;
+        }
+        tbody tr:hover td {
+            color: var(--accent);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .table-wrapper { box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+            th { background-color: rgba(255,255,255,0.03); }
+            tbody tr:hover { background-color: rgba(255,255,255,0.05); }
+        }
+
+        /* ==========================================================================
+           CODE BLOCKS
+           ========================================================================== */
+        .code-block-wrapper {
+            position: relative;
+            margin: 3rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--code-bg);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .code-block-wrapper:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2), 0 0 20px var(--accent-glow);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 1.5rem;
+            background: var(--code-bg-alt);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #888;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            align-items: center;
+        }
+        .code-header .lang-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #ccc;
+            font-size: 0.8rem;
+        }
+        pre {
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--code-text);
+        }
+        code {
+            font-family: var(--font-mono);
+        }
+        p code, li code {
+            background: rgba(0,0,0,0.05);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--accent);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        p code:hover, li code:hover {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+        }
+        @media (prefers-color-scheme: dark) {
+            p code, li code { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1); }
+            p code:hover, li code:hover { background: var(--accent-glow); }
+        }
+        
+        /* Syntax Highlighting */
+        .k { color: #cba6f7; font-weight: bold; } /* keyword */
+        .f { color: #89b4fa; } /* function */
+        .s { color: #a6e3a1; } /* string */
+        .c { color: #6c7086; font-style: italic; } /* comment */
+        .n { color: #fab387; } /* number */
+        .p { color: #94e2d5; } /* punctuation */
+        .op { color: #f38ba8; } /* operator */
+        .v { color: #f5c2e7; } /* variable */
+
+        /* ==========================================================================
+           SVGS & DIAGRAMS
+           ========================================================================== */
+        .svg-container {
+            width: 100%;
+            margin: 4rem 0;
+            text-align: center;
+            position: relative;
+        }
+        .svg-container svg {
+            max-width: 100%;
+            height: auto;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            transition: all 0.4s ease;
+        }
+        .svg-container svg:hover {
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            transform: scale(1.02);
+        }
+        .svg-text { font-family: var(--font-body); font-size: 16px; fill: var(--text); }
+        .svg-text-mono { font-family: var(--font-mono); font-size: 14px; fill: var(--text-light); }
+        .svg-head { font-family: var(--font-head); font-weight: bold; font-size: 20px; fill: var(--text); }
+        .svg-box { fill: var(--bg-alt); stroke: var(--border); stroke-width: 2; rx: 8; transition: all 0.3s; }
+        .svg-box-accent { fill: var(--accent-glow); stroke: var(--accent); stroke-width: 2; rx: 8; transition: all 0.3s; }
+        .svg-line { stroke: var(--text-muted); stroke-width: 2; fill: none; transition: stroke-dashoffset 1s ease; }
+        .svg-arrow { fill: var(--text-muted); }
+        
+        .svg-animate-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+        }
+        .svg-container.visible .svg-animate-path {
+            animation: drawPath 2s ease forwards;
+        }
+        @keyframes drawPath {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .svg-animate-box {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .svg-container.visible .svg-animate-box {
+            animation: fadeBox 0.5s ease forwards;
+        }
+        @keyframes fadeBox {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .svg-box { fill: #1e1e1e; }
+            .svg-container svg { box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        }
+
+        /* ==========================================================================
+           COUNTERS
+           ========================================================================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .stat-card {
+            background: var(--bg-alt);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 25px var(--accent-glow);
+        }
+        .stat-num {
+            font-family: var(--font-head);
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+        .stat-label {
+            font-family: var(--font-body);
+            font-size: 1.2rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ==========================================================================
+           BACK TO TOP
+           ========================================================================== */
+        #btt {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        #btt.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+        #btt:hover {
+            transform: translateY(-5px);
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 8px 25px var(--accent-glow);
+        }
+
+        /* ==========================================================================
+           ANIMATIONS
+           ========================================================================== */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .slide-in-left {
+            opacity: 0;
+            transform: translateX(-40px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, transform;
+        }
+        .slide-in-left.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide-in-bottom {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+            will-change: opacity, transform;
+        }
+        .slide-in-bottom.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ==========================================================================
+           RESPONSIVE MEDIA QUERIES
+           ========================================================================== */
+        /* Widescreen - Full Layout (Default is already wide) */
+        
+        /* Tablet Landscape to Desktop */
+        @media (max-width: 1200px) {
+            :root {
+                --container-w: 960px;
+            }
+            .section-nav {
+                display: none; /* Hide side nav on smaller screens */
+            }
+            h1 { font-size: 3rem; }
+        }
+
+        /* Tablet Portrait */
+        @media (max-width: 1024px) {
+            :root {
+                --container-w: 100%;
+            }
+            main { padding: 3rem 2rem; }
+            h1 { font-size: 2.5rem; }
+            h2 { font-size: 2rem; }
+            body { font-size: 20px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            main { padding: 2rem 1.5rem; margin: 1rem auto; }
+            nav { 
+                padding: 1rem; 
+                flex-wrap: wrap; 
+                height: auto;
+                justify-content: center;
+                gap: 1rem;
+            }
+            nav a { margin-right: 1rem; font-size: 1rem; }
+            h1 { font-size: 2.2rem; margin-top: 1rem; }
+            h2 { font-size: 1.8rem; }
+            h2 .sec-num { width: 35px; height: 35px; font-size: 1.2rem; }
+            h3 { font-size: 1.5rem; }
+            body { font-size: 18px; }
+            .hero-kicker { font-size: 0.72rem; padding: 0.4rem 0.8rem; }
+            .hero-subtitle { font-size: 1.2rem; }
+            
+            .table-wrapper {
+                margin: 2rem -1.5rem; /* Full width tables on mobile */
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
+            th, td { padding: 1rem; font-size: 1rem; }
+            
+            .stats-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .stat-num { font-size: 2.5rem; }
+            
+            .highlight-box {
+                margin: 1.5rem -1.5rem;
+                border-radius: 0;
+                padding: 1.5rem;
+            }
+        }
+
+        /* Small Mobile */
+        @media (max-width: 480px) {
+            nav a { margin-right: 0.5rem; font-size: 0.9rem; }
+            h1 { font-size: 1.8rem; }
+            h2 { font-size: 1.5rem; }
+            body { font-size: 16px; }
+            .svg-container svg { padding: 1rem; }
+            #btt { width: 40px; height: 40px; bottom: 1rem; right: 1rem; }
+        }
+        /* ==========================================================================
+           CUSTOM ANIMATIONS (PIPELINE & TOGGLE)
+           ========================================================================== */
+        .pipeline-demo { display: flex; flex-direction: column; gap: 1.5rem; margin: 3rem 0; padding: 2rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; }
+        .pipeline-step { position: relative; background: var(--code-bg); color: var(--code-text); padding: 1.5rem; border-radius: 8px; font-family: var(--font-mono); font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); opacity: 0; transform: translateY(20px); }
+        .pipeline-demo.is-animating .pipeline-step { animation: pipelineSlideUp 0.6s forwards; }
+        .pipeline-demo.is-animating .pipeline-step[data-stage="1"] { animation-delay: 0.2s; }
+        .pipeline-demo.is-animating .pipeline-step[data-stage="2"] { animation-delay: 3.5s; }
+        .pipeline-demo.is-animating .pipeline-step[data-stage="3"] { animation-delay: 6.5s; }
+        .pipeline-demo.is-animating .pipeline-step[data-stage="4"] { animation-delay: 10.5s; }
+        .pipeline-demo.is-animating .pipeline-step[data-stage="5"] { animation-delay: 14.5s; }
+        .pipe-arrow { height: 30px; width: 2px; background: var(--accent); margin: 0 auto; opacity: 0; position: relative; }
+        .pipe-arrow::after { content: ''; position: absolute; bottom: -5px; left: -4px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid var(--accent); }
+        .pipeline-demo.is-animating .pipe-arrow { animation: fadeInArrow 0.4s forwards; }
+        .pipeline-demo.is-animating .pipe-arrow:nth-of-type(1) { animation-delay: 3.0s; }
+        .pipeline-demo.is-animating .pipe-arrow:nth-of-type(2) { animation-delay: 6.0s; }
+        .pipeline-demo.is-animating .pipe-arrow:nth-of-type(3) { animation-delay: 10.0s; }
+        .pipeline-demo.is-animating .pipe-arrow:nth-of-type(4) { animation-delay: 14.0s; }
+        @keyframes pipelineSlideUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInArrow { to { opacity: 1; } }
+        .srt-block { opacity: 0; margin-bottom: 0.5rem; }
+        .pipeline-demo.is-animating .srt-block.b1 { animation: fadeIn 0.5s forwards 0.8s; }
+        .pipeline-demo.is-animating .srt-block.b2 { animation: fadeIn 0.5s forwards 1.6s; }
+        .pipeline-demo.is-animating .srt-block.b3 { animation: fadeIn 0.5s forwards 2.4s; }
+        .srt-idx { color: #585b70; display: block; }
+        .srt-time { color: #8aadf4; display: block; }
+        .parse-dict { opacity: 0; transform: translateX(-10px); margin-bottom: 0.3rem; }
+        .pipeline-demo.is-animating .parse-dict.d1 { animation: slideRight 0.5s forwards 3.8s; }
+        .pipeline-demo.is-animating .parse-dict.d2 { animation: slideRight 0.5s forwards 4.6s; }
+        .pipeline-demo.is-animating .parse-dict.d3 { animation: slideRight 0.5s forwards 5.4s; }
+        .parse-key { color: #f5a97f; }
+        .parse-val { color: #a6da95; }
+        .frame-track { display: flex; gap: 10px; margin-top: 1.5rem; position: relative; }
+        .v-frame { width: 60px; height: 40px; background: #313244; border: 2px solid #585b70; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; opacity: 0; z-index: 2; position: relative; }
+        .pipeline-demo.is-animating .v-frame { animation: popIn 0.4s forwards; }
+        .pipeline-demo.is-animating .v-frame.f1 { animation-delay: 6.8s; }
+        .pipeline-demo.is-animating .v-frame.f2 { animation-delay: 7.0s; }
+        .pipeline-demo.is-animating .v-frame.f3 { animation-delay: 7.2s; }
+        .pipeline-demo.is-animating .v-frame.f4 { animation-delay: 7.4s; }
+        .pipeline-demo.is-animating .v-frame.f5 { animation-delay: 7.6s; }
+        .match-line { position: absolute; width: 2px; height: 20px; background: #a6da95; top: 45px; opacity: 0; transform: scaleY(0); transform-origin: top; }
+        .pipeline-demo.is-animating .match-line { animation: growDown 0.3s forwards; }
+        .pipeline-demo.is-animating .match-line.m1 { left: 30px; animation-delay: 8.3s; }
+        .pipeline-demo.is-animating .match-line.m2 { left: 170px; animation-delay: 8.8s; }
+        .pipeline-demo.is-animating .match-line.m3 { left: 310px; animation-delay: 9.3s; }
+        .match-status { position: absolute; top: 70px; opacity: 0; font-size: 0.75rem; white-space: nowrap; font-family: sans-serif; }
+        .pipeline-demo.is-animating .match-status { animation: fadeIn 0.3s forwards; }
+        .pipeline-demo.is-animating .match-status.s1 { left: 10px; color: #a6da95; animation-delay: 8.6s; }
+        .pipeline-demo.is-animating .match-status.s2 { left: 145px; color: #a6da95; animation-delay: 9.1s; }
+        .pipeline-demo.is-animating .match-status.s3 { left: 285px; color: #a6da95; animation-delay: 9.6s; }
+        .pipeline-demo.is-animating .v-frame.f2 { animation: popIn 0.4s forwards 7.0s, dimOut 0.5s forwards 8.3s; }
+        .pipeline-demo.is-animating .v-frame.f4 { animation: popIn 0.4s forwards 7.4s, dimOut 0.5s forwards 8.3s; }
+        .p-piece { opacity: 0; margin-bottom: 0.3rem; }
+        .pipeline-demo.is-animating .p-piece.p1 { animation: fadeIn 0.4s forwards 10.8s; color: #cba6f7; }
+        .pipeline-demo.is-animating .p-piece.p2 { animation: fadeIn 0.4s forwards 11.3s; color: #94e2d5; }
+        .pipeline-demo.is-animating .p-piece.p3 { animation: fadeIn 0.4s forwards 11.8s; color: #a6da95; margin-left: 1rem; }
+        .pipeline-demo.is-animating .p-piece.p4 { animation: fadeIn 0.4s forwards 12.6s; color: #8aadf4; margin-top: 1rem; }
+        .pipeline-demo.is-animating .p-piece.p5 { animation: fadeIn 0.4s forwards 13.0s; color: #f38ba8; }
+        .pipeline-demo.is-animating .p-piece.p6 { animation: fadeIn 0.4s forwards 13.4s; color: #eed49f; margin-top: 0.5rem; }
+        .model-box { border: 2px dashed #8aadf4; padding: 1.5rem; text-align: center; margin-top: 0.5rem; border-radius: 8px; position: relative; overflow: hidden; background: #1e1e2e; }
+        .model-scan { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(138,173,244,0.3), transparent); opacity: 0; z-index: 1; }
+        .pipeline-demo.is-animating .model-scan { animation: scanRight 1.5s forwards 14.8s; }
+        .final-output { opacity: 0; font-size: 2rem; color: #a6da95; font-weight: bold; text-align: center; margin-top: 1rem; text-shadow: 0 0 10px rgba(166,218,149,0.5); position: relative; z-index: 2; font-family: sans-serif; }
+        .pipeline-demo.is-animating .final-output { animation: scaleUp 0.5s forwards 16.3s; }
+        .step-badge { position: absolute; top: -15px; left: -15px; width: 32px; height: 32px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: var(--font-head); box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 5; }
+        .step-title { font-family: var(--font-head); font-size: 1.2rem; color: var(--code-text); margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; font-weight: bold; }
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes slideRight { to { opacity: 1; transform: translateX(0); } }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes dimOut { to { opacity: 0.3; filter: grayscale(100%); border-color: #313244; } }
+        @keyframes growDown { to { opacity: 1; transform: scaleY(1); } }
+        @keyframes scanRight { 0% { opacity: 1; left: -50%; } 100% { opacity: 1; left: 150%; } }
+        @keyframes scaleUp { 0% { opacity: 0; transform: scale(0.5); } 100% { opacity: 1; transform: scale(1); } }
+        .toggle-wrapper { display: flex; justify-content: center; gap: 1rem; margin: 2rem 0; }
+        .toggle-btn { background: transparent; border: 2px solid var(--accent); color: var(--text); padding: 0.5rem 1.5rem; border-radius: 20px; cursor: pointer; font-family: var(--font-head); font-weight: bold; transition: all 0.3s; }
+        .toggle-btn.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px var(--accent-glow); }
+        .demo-container { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; position: relative; height: 200px; overflow: hidden; font-family: var(--font-mono); }
+        .demo-frame, .demo-sub { position: absolute; opacity: 0; transition: all 0.6s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 0.8rem; }
+        .demo-frame { width: 80px; height: 60px; background: var(--accent-glow); border: 2px solid var(--accent); color: var(--text); z-index: 2; }
+        .demo-sub { height: 40px; background: var(--bg); color: var(--text); border: 1px dashed var(--accent); padding: 0 10px; z-index: 1; white-space: nowrap; }
+        .demo-mode-concat .df1 { opacity: 1; transform: translate(50px, 30px); }
+        .demo-mode-concat .df2 { opacity: 1; transform: translate(150px, 30px); }
+        .demo-mode-concat .df3 { opacity: 1; transform: translate(250px, 30px); }
+        .demo-mode-concat .ds-all { opacity: 1; transform: translate(50px, 110px); width: 280px; justify-content: flex-start; }
+        .demo-mode-concat .ds1, .demo-mode-concat .ds2, .demo-mode-concat .ds3 { opacity: 0; pointer-events: none; transform: translate(50px, 110px); }
+        .demo-mode-interleave .df1 { opacity: 1; transform: translate(50px, 70px); }
+        .demo-mode-interleave .ds1 { opacity: 1; transform: translate(140px, 80px); }
+        .demo-mode-interleave .df2 { opacity: 1; transform: translate(240px, 70px); }
+        .demo-mode-interleave .ds2 { opacity: 1; transform: translate(330px, 80px); }
+        .demo-mode-interleave .df3 { opacity: 1; transform: translate(480px, 70px); }
+        .demo-mode-interleave .ds-all { opacity: 0; pointer-events: none; transform: translate(50px, 30px); }
+        .demo-arrow { position: absolute; height: 2px; background: var(--accent); right: 70px; top: 100px; width: 100px; transition: top 0.6s cubic-bezier(0.4,0,0.2,1); }
+        .demo-arrow::after { content: ''; position: absolute; right: -5px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 5px solid var(--accent); }
+        .demo-llm { position: absolute; right: 20px; top: 88px; font-weight: bold; color: var(--text); font-family: var(--font-head); transition: top 0.6s cubic-bezier(0.4,0,0.2,1); }
+        .demo-mode-concat .demo-arrow { top: 80px; }
+        .demo-mode-concat .demo-llm { top: 68px; }
+        .mobile-scroll-hint { display: none; margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+        @media (max-width: 768px) {
+            .demo-container { height: 320px; }
+            .demo-mode-concat .df1 { transform: translate(20px, 20px); }
+            .demo-mode-concat .df2 { transform: translate(110px, 20px); }
+            .demo-mode-concat .df3 { transform: translate(200px, 20px); }
+            .demo-mode-concat .ds-all { transform: translate(20px, 100px); width: 260px; }
+            .demo-mode-interleave .df1 { transform: translate(20px, 20px); }
+            .demo-mode-interleave .ds1 { transform: translate(110px, 30px); }
+            .demo-mode-interleave .df2 { transform: translate(20px, 100px); }
+            .demo-mode-interleave .ds2 { transform: translate(110px, 110px); }
+            .demo-mode-interleave .df3 { transform: translate(20px, 180px); }
+            .demo-arrow { display: none; }
+            .demo-llm { display: none; }
+            .mobile-scroll-hint { display: block; }
+            .frame-track { flex-wrap: wrap; justify-content: center; }
+            .match-line { display: none; }
+            .match-status { position: static; margin-top: 0.5rem; opacity: 1; animation: none; text-align: center; display: none; }
+            .pipeline-demo.is-animating .match-status { display: block; animation: fadeIn 0.3s forwards; }
+        }
+        /* ==========================================================================
+           DUAL PIPELINE COMPARISON (Section 7 Expanded)
+           ========================================================================== */
+        .dual-pipeline { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 3rem 0; }
+        .dual-pipeline .pipeline-col { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; overflow: hidden; }
+        .dual-pipeline .pipeline-col::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 12px 12px 0 0; }
+        .dual-pipeline .col-lmms::before { background: linear-gradient(90deg, #cba6f7, #f5a97f); }
+        .dual-pipeline .col-vlm::before { background: linear-gradient(90deg, #89b4fa, #a6e3a1); }
+        .col-label { font-family: var(--font-head); font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+        .col-label .col-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; color: #fff; }
+        .col-lmms .col-icon { background: #cba6f7; }
+        .col-vlm .col-icon { background: #89b4fa; }
+        .dp-step { background: var(--code-bg); color: var(--code-text); padding: 1rem 1.2rem; border-radius: 8px; margin-bottom: 0.8rem; font-family: var(--font-mono); font-size: 0.85rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); opacity: 0; transform: translateX(-20px); position: relative; }
+        .col-vlm .dp-step { transform: translateX(20px); }
+        .dual-pipeline.is-animating .dp-step { animation: dpSlideIn 0.5s ease forwards; }
+        .dual-pipeline.is-animating .dp-step:nth-child(2) { animation-delay: 0.3s; }
+        .dual-pipeline.is-animating .dp-step:nth-child(3) { animation-delay: 1.2s; }
+        .dual-pipeline.is-animating .dp-step:nth-child(4) { animation-delay: 2.1s; }
+        .dual-pipeline.is-animating .dp-step:nth-child(5) { animation-delay: 3.0s; }
+        .dual-pipeline.is-animating .dp-step:nth-child(6) { animation-delay: 3.9s; }
+        .dp-step-label { font-family: var(--font-head); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; display: block; }
+        .col-lmms .dp-step-label { color: #cba6f7; }
+        .col-vlm .dp-step-label { color: #89b4fa; }
+        .dp-arrow { text-align: center; color: var(--accent); font-size: 1.2rem; margin: 0.3rem 0; opacity: 0; }
+        .dual-pipeline.is-animating .dp-arrow { animation: fadeIn 0.3s forwards; }
+        .dual-pipeline.is-animating .dp-arrow:nth-of-type(2) { animation-delay: 0.9s; }
+        .dual-pipeline.is-animating .dp-arrow:nth-of-type(3) { animation-delay: 1.8s; }
+        .dual-pipeline.is-animating .dp-arrow:nth-of-type(4) { animation-delay: 2.7s; }
+        .dual-pipeline.is-animating .dp-arrow:nth-of-type(5) { animation-delay: 3.6s; }
+        @keyframes dpSlideIn { to { opacity: 1; transform: translateX(0); } }
+        .dp-verdict { text-align: center; padding: 0.8rem; margin-top: 0.5rem; border-radius: 8px; font-family: var(--font-head); font-weight: 700; font-size: 1rem; opacity: 0; }
+        .dual-pipeline.is-animating .dp-verdict { animation: scaleUp 0.5s forwards 4.5s; }
+        .dp-verdict.good { background: rgba(166,218,149,0.15); color: #a6da95; border: 1px solid rgba(166,218,149,0.3); }
+        .dp-verdict.warn { background: rgba(245,169,127,0.15); color: #f5a97f; border: 1px solid rgba(245,169,127,0.3); }
+        .dirty-demo { background: var(--code-bg); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; font-family: var(--font-mono); font-size: 0.9rem; color: var(--code-text); position: relative; overflow: hidden; }
+        .dirty-input { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed rgba(255,255,255,0.1); }
+        .dirty-output { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .dirty-result { padding: 1rem; border-radius: 6px; position: relative; }
+        .dirty-result.fail { background: rgba(243,139,168,0.1); border: 1px solid rgba(243,139,168,0.3); }
+        .dirty-result.pass { background: rgba(166,218,149,0.1); border: 1px solid rgba(166,218,149,0.3); }
+        .dirty-label { font-family: var(--font-head); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; display: block; }
+        .dirty-result.fail .dirty-label { color: #f38ba8; }
+        .dirty-result.pass .dirty-label { color: #a6da95; }
+        .code-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 2rem 0; }
+        .code-compare .code-block-wrapper { margin: 0; }
+        @media (max-width: 1024px) { .dual-pipeline { grid-template-columns: 1fr; } .code-compare { grid-template-columns: 1fr; } .dirty-output { grid-template-columns: 1fr; } }
+        /* ==========================================================================
+           MOLMO2 SECTION (Section 9)
+           ========================================================================== */
+        .arch-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin: 3rem 0; }
+        .arch-card { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .arch-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+        .arch-card:nth-child(1)::before { background: #cba6f7; }
+        .arch-card:nth-child(2)::before { background: #89b4fa; }
+        .arch-card:nth-child(3)::before { background: #a6e3a1; }
+        .arch-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); border-color: var(--accent); }
+        .arch-card h4 { font-size: 1.1rem; margin-top: 0; margin-bottom: 0.8rem; color: var(--accent); }
+        .arch-card p { font-size: 0.95rem; margin-bottom: 0.5rem; }
+        .arch-card code { font-size: 0.8rem; }
+        .training-stages { display: flex; align-items: center; gap: 0; margin: 3rem 0; flex-wrap: wrap; justify-content: center; }
+        .train-stage { background: var(--code-bg); color: var(--code-text); padding: 1.2rem 1.5rem; border-radius: 8px; font-family: var(--font-mono); font-size: 0.85rem; min-width: 200px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); opacity: 0; transform: scale(0.9); }
+        .training-stages.is-animating .train-stage { animation: popIn 0.5s forwards; }
+        .training-stages.is-animating .train-stage:nth-child(1) { animation-delay: 0.2s; }
+        .training-stages.is-animating .train-stage:nth-child(3) { animation-delay: 0.6s; }
+        .training-stages.is-animating .train-stage:nth-child(5) { animation-delay: 1.0s; }
+        .train-stage .ts-label { font-family: var(--font-head); font-weight: 700; font-size: 1rem; display: block; margin-bottom: 0.5rem; }
+        .train-stage:nth-child(1) .ts-label { color: #cba6f7; }
+        .train-stage:nth-child(3) .ts-label { color: #89b4fa; }
+        .train-stage:nth-child(5) .ts-label { color: #a6e3a1; }
+        .train-arrow { font-size: 2rem; color: var(--accent); opacity: 0; padding: 0 0.5rem; }
+        .training-stages.is-animating .train-arrow { animation: fadeIn 0.3s forwards; }
+        .training-stages.is-animating .train-arrow:nth-child(2) { animation-delay: 0.4s; }
+        .training-stages.is-animating .train-arrow:nth-child(4) { animation-delay: 0.8s; }
+        .vs-table { margin: 3rem 0; }
+        .vs-table td:first-child { font-weight: 700; color: var(--text); }
+        @media (max-width: 768px) { .arch-cards { grid-template-columns: 1fr; } .training-stages { flex-direction: column; gap: 0.5rem; } .train-arrow { transform: rotate(90deg); } }
+    </style>
+</head>
+<body class="lang-zh">
+
+    <div class="bg-particles"></div>
+
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+
+    <nav>
+        <div>
+            <a href="/">Home</a>
+            <a href="/pages/partial_fc.html">PFC</a>
+            <a href="/pages/llava_onevision2.html">OV2</a>
+            <a href="/pages/blog.html">Blog</a>
+        </div>
+        <button type="button" class="lang-btn" id="lang-toggle-btn">EN / ZH</button>
+    </nav>
+
+    <!-- Side Navigation -->
+    <div class="section-nav" id="section-nav">
+        <!-- Injected via JS -->
+    </div>
+
+    <main>
+        <div class="hero">
+            <div class="zh-content fade-in">
+                <div class="hero-kicker">Research Note · Video Understanding · Subtitle Evaluation</div>
+                <h1 id="hero-title">视频理解Benchmark中的字幕评测：<br>从VideoMME到VideoMME-v2</h1>
+                <p class="hero-subtitle">聚焦 <strong>VideoMME / VideoMME-v2</strong> 与主流评测框架，拆清字幕如何被切分、对齐、注入 prompt，并最终影响视频理解模型的推理难度与得分。</p>
+                <div class="hero-meta">
+                    <span class="hero-chip">Apr 8, 2026</span>
+                    <span class="hero-chip">Benchmark Analysis</span>
+                    <span class="hero-chip">Subtitle Pipeline</span>
+                    <span class="hero-chip">~12 min</span>
+                </div>
+            </div>
+            <div class="en-content fade-in">
+                <div class="hero-kicker">Research Note · Video Understanding · Subtitle Evaluation</div>
+                <h1 id="hero-title-en">Subtitle Evaluation in Video Understanding Benchmarks:<br>From VideoMME to VideoMME-v2</h1>
+                <p class="hero-subtitle">A concrete walkthrough of how <strong>VideoMME / VideoMME-v2</strong> and mainstream evaluation stacks parse, align, and inject subtitles into prompts—and why that changes what video understanding scores actually measure.</p>
+                <div class="hero-meta">
+                    <span class="hero-chip">Apr 8, 2026</span>
+                    <span class="hero-chip">Benchmark Analysis</span>
+                    <span class="hero-chip">Subtitle Pipeline</span>
+                    <span class="hero-chip">~12 min</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="fade-in" id="sec-1" data-label="引言/Intro">
+            <div class="zh-content">
+                <h2><span class="sec-num">1</span>引言 — 为什么需要字幕评测</h2>
+                <p>在多模态大型语言模型（MLLMs）如 GPT-4o、Gemini 1.5 Pro、Qwen-VL 和 InternVL 的高速迭代中，视频理解正逐渐从单纯的“看”（视觉帧序列处理）向更深层次的“听”和“读”演进。视频本身是高度多模态的媒介，而<strong>字幕（Subtitle）</strong>作为视频中文本信息的直接载体，不仅精确包含了对话内容，更是串联视频剧情、理解人物意图、甚至进行多跳逻辑推理的关键维度。</p>
+                <p>不同模型家族对字幕的处理能力差异巨大。例如，GPT-4o 展现了强大的原生视听融合能力，而多数开源模型目前仍依赖外部抽取的文本字幕进行 Prompt 拼接。这种差异直接催生了对字幕评测基准的迫切需求。</p>
+                
+                <div class="highlight-box">
+                    <strong>本文核心脉络：</strong>
+                    <br>1. 盘点当前主流 Benchmark 如何设计字幕测试（VideoMME, MMOU 等）。
+                    <br>2. 深入解析最新一代 VideoMME-v2 的渐进式复杂推理机制。
+                    <br>3. 从底层代码（lmms_eval, VLMEvalKit）剖析框架是如何将字幕注入到视觉模型中的。
+                    <br>4. 探讨 Qwen3-VL 等前沿模型在数据集层面的字幕处理范式。
+                </div>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">1</span>Introduction — Why Subtitle Evaluation Matters</h2>
+                <p>In the rapid iteration of Multimodal Large Language Models (MLLMs) such as GPT-4o, Gemini 1.5 Pro, Qwen-VL, and InternVL, video understanding is evolving from merely "watching" (visual frame processing) to deeper levels of "listening" and "reading". Video is inherently a highly multimodal medium, and <strong>subtitles</strong>, as the direct carrier of textual information, not only contain exact dialogues but also serve as a crucial dimension for connecting plots, understanding human intentions, and performing multi-hop logical reasoning.</p>
+                <p>Different model families exhibit vast differences in handling subtitles. For instance, GPT-4o demonstrates strong native audio-visual fusion, while most open-source models currently rely on externally extracted text subtitles concatenated via Prompts. This divergence has directly birthed an urgent need for subtitle evaluation benchmarks.</p>
+                
+                <div class="highlight-box">
+                    <strong>Article Roadmap:</strong>
+                    <br>1. Review how mainstream Benchmarks design subtitle tests (VideoMME, MMOU, etc.).
+                    <br>2. Deep dive into the progressive complex reasoning mechanisms of the next-gen VideoMME-v2.
+                    <br>3. Analyze from the code level (lmms_eval, VLMEvalKit) how frameworks inject subtitles into vision models.
+                    <br>4. Discuss the dataset-level subtitle processing paradigms of cutting-edge models like Qwen3-VL.
+                </div>
+            </div>
+        </section>
+
+        <section class="fade-in" id="sec-2" data-label="总览/Overview">
+            <div class="zh-content">
+                <h2><span class="sec-num">2</span>Benchmark字幕支持总览</h2>
+                <p>不同的 Benchmark 对视频理解的侧重点不同，这也直接体现在它们对字幕的支持和处理方式上。从早期的纯视觉评测，到加入 SRT 文本，再到如今的词级别时间戳与原生音频理解，基准测试的难度在不断攀升。</p>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">2</span>Overview of Benchmark Subtitle Support</h2>
+                <p>Different benchmarks emphasize varying aspects of video understanding, which is directly reflected in their subtitle support. From early pure-visual evaluations to the inclusion of SRT texts, and now word-level timestamps and native audio understanding, the difficulty of benchmarks is constantly escalating.</p>
+            </div>
+            
+            <div class="table-wrapper slide-in-bottom">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="zh-content">评测集 (Benchmark)</th><th class="en-content">Benchmark</th>
+                            <th class="zh-content">发布时间</th><th class="en-content">Release Date</th>
+                            <th class="zh-content">字幕支持与格式</th><th class="en-content">Subtitle Support & Format</th>
+                            <th class="zh-content">评测模式与特点</th><th class="en-content">Eval Mode & Features</th>
+                            <th class="zh-content">论文链接</th><th class="en-content">Paper Link</th>
+                        </tr>
+                    </thead>
+                    <tbody id="benchmark-table-body">
+                        <tr>
+                            <td><strong>VideoMME</strong></td>
+                            <td>2024.05</td>
+                            <td>✅ <span class="zh-content">显式 (SRT文件)</span><span class="en-content">Explicit (SRT File)</span></td>
+                            <td><span class="zh-content">双轨测试: w/ subs vs w/o subs. 首个系统性引入字幕</span><span class="en-content">w/ subs vs w/o subs. First systematic subtitle eval.</span></td>
+                            <td><a href="https://arxiv.org/abs/2405.21075" style="color:var(--accent)">2405.21075</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>VideoMME-v2</strong></td>
+                            <td>2026.04</td>
+                            <td>✅ <span class="zh-content">Word-level JSONL</span><span class="en-content">Word-level JSONL</span></td>
+                            <td><span class="zh-content">8选项非线性评分, Concatenated vs Interleaved 注入</span><span class="en-content">8 options, non-linear scoring, Concat vs Interleave.</span></td>
+                            <td><a href="https://arxiv.org/abs/2604.05015" style="color:var(--accent)">2604.05015</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>MMOU</strong></td>
+                            <td>2026.03</td>
+                            <td>🔄 <span class="zh-content">隐式 (原生音频流)</span><span class="en-content">Implicit (Raw Audio)</span></td>
+                            <td><span class="zh-content">无文本文件, 强迫端到端 Omni 语音识别与视觉对齐</span><span class="en-content">No text files, forces end-to-end Omni speech-vision alignment.</span></td>
+                            <td><a href="https://arxiv.org/abs/2603.14145" style="color:var(--accent)">2603.14145</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>MLVU</strong></td>
+                            <td>2024.06</td>
+                            <td>❌ <span class="zh-content">无字幕 (纯视觉)</span><span class="en-content">No Subtitles (Pure Visual)</span></td>
+                            <td><span class="zh-content">专注极长视频 (3min-2hr) 的纯视觉情节理解</span><span class="en-content">Focuses on pure visual plot in extremely long videos.</span></td>
+                            <td><a href="https://arxiv.org/abs/2406.04306" style="color:var(--accent)">2406.04306</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="zh-content fade-in">
+                <p><strong>趋势分析：</strong>从上表可以看出，评测体系正在经历从“文本附加物”向“原生模态”的转变。早期的评测集要么忽略字幕（如 MLVU），要么简单地将 SRT 作为文本补充（VideoMME）。而新一代评测集则开始追求极高的时间精度（VideoMME-v2 的词级时间戳）或完全抛弃文本转向真正的多模态端到端音频理解（MMOU）。</p>
+            </div>
+            <div class="en-content fade-in">
+                <p><strong>Trend Analysis:</strong> As seen in the table, the evaluation paradigm is shifting from treating subtitles as a "textual appendage" to treating them as a "native modality". Early benchmarks either ignored subtitles (MLVU) or simply used SRT as a text supplement (VideoMME). New generation benchmarks pursue extreme temporal precision (word-level timestamps in VideoMME-v2) or completely abandon text for true multimodal end-to-end audio understanding (MMOU).</p>
+            </div>
+        </section>
+
+        <section class="fade-in" id="sec-3" data-label="VideoMME">
+            <div class="zh-content">
+                <h2><span class="sec-num">3</span>VideoMME — 首个系统性字幕评测</h2>
+                <p>作为视频理解领域的标杆之一，VideoMME 开创性地将字幕作为评测的一个独立控制变量。它构建了一个包含 <strong>900 个视频</strong> 的庞大数据集，广泛覆盖了 6 大领域（知识、电影、体育、艺术、生活、科学）。</p>
+                <p>在时长分布上，数据集被精心划分为三个层级：短视频（&lt; 2分钟）、中等视频（4-15分钟）和长视频（30-60分钟）。为了保证评测质量，VideoMME 提供了 <strong>744 个标准 SRT 格式字幕文件</strong>。特别是对于长视频，考虑到自动生成字幕（ASR）可能存在的幻觉和漂移，团队几乎全部采用了高质量的人工校对字幕。</p>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">3</span>VideoMME — First Systematic Evaluation</h2>
+                <p>As a flagship in video understanding, VideoMME pioneered the use of subtitles as an independent control variable for evaluation. It constructed a massive dataset of <strong>900 videos</strong>, covering 6 major domains (Knowledge, Film, Sports, Artistic, Life, Science).</p>
+                <p>In terms of duration, the dataset is meticulously divided into three tiers: short (&lt; 2min), medium (4-15min), and long (30-60min) videos. To ensure evaluation quality, VideoMME provides <strong>744 standard SRT formatted subtitle files</strong>. Notably, for long videos, considering the hallucinations and drift of auto-generated subtitles (ASR), the team almost exclusively utilized high-quality human-proofread subtitles.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-num counter" data-target="900">0</div>
+                    <div class="stat-label zh-content">测试视频总数</div>
+                    <div class="stat-label en-content">Total Videos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num counter" data-target="744">0</div>
+                    <div class="stat-label zh-content">SRT 字幕文件</div>
+                    <div class="stat-label en-content">SRT Subtitle Files</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num counter" data-target="6">0</div>
+                    <div class="stat-label zh-content">覆盖领域大类</div>
+                    <div class="stat-label en-content">Domain Categories</div>
+                </div>
+            </div>
+
+            <div class="zh-content fade-in">
+                <p>VideoMME 采用了严格的平行测试模式。在启用字幕时，使用的 Prompt 模板极为直接：</p>
+            </div>
+            <div class="en-content fade-in">
+                <p>VideoMME employs a strict parallel testing mode. When subtitles are enabled, the Prompt template used is extremely direct:</p>
+            </div>
+
+            <div class="code-block-wrapper slide-in-bottom">
+                <div class="code-header"><span>VideoMME Subtitle Prompt</span><span class="lang-badge">Text</span></div>
+                <pre><code><span class="c"># The subtitles are injected directly before the question</span>
+<span class="s">"This video's subtitles are listed below:\n{subtitles}\n\nQuestion: {question}\nOptions: {options}"</span></code></pre>
+            </div>
+
+            <div class="zh-content fade-in">
+                <p><strong>核心发现：</strong>研究结果明确表明，对于对话密集型视频（如访谈、电影片段），引入高质量的人工字幕能使主流开源 MLLMs 的准确率平均提升 <strong>12% - 15%</strong>。然而，当使用低质量自动生成的字幕时，模型的表现甚至可能产生倒退。这揭示了大模型强烈的“文本依赖偏见”——当视觉信号与文本信号冲突时，模型往往盲信文本。</p>
+            </div>
+            <div class="en-content fade-in">
+                <p><strong>Key Finding:</strong> Research results clearly show that for dialogue-dense videos (e.g., interviews, movie clips), introducing high-quality human subtitles boosts the accuracy of mainstream open-source MLLMs by <strong>12% - 15%</strong> on average. However, when using low-quality auto-generated subtitles, model performance can actually degrade. This reveals a strong "text dependency bias" in LLMs—when visual signals conflict with text signals, models tend to blindly trust the text.</p>
+            </div>
+        </section>
+
+        <section class="fade-in" id="sec-4" data-label="VideoMME-v2">
+            <div class="zh-content">
+                <h2><span class="sec-num">4</span>VideoMME-v2 — 下一代字幕评测 (2604.05015)</h2>
+                <p>2026年4月，VideoMME 团队推出了重磅升级的 <strong>VideoMME-v2</strong>。这一版本彻底重构了评测体系，包含 800 个精选视频和 800 个精准字幕文件，构建了 3200 个精标注问答对，耗费了惊人的 3300 个人类标注工时。它带来了三大革命性创新：</p>
+                
+                <h3>A. 渐进式多层级系统 (Progressive Multi-Level)</h3>
+                <p>VideoMME-v2 摒弃了扁平的提问方式，将视频理解拆解为三个严格递进的认知层级。只有当模型在底层理解无误时，才能真正证明其具备高层推理能力，从而严厉打击了模型的“猜题”行为：</p>
+                <ul>
+                    <li><strong>L1: Information Aggregation (信息聚合)</strong> - 考察模型对字幕基本事实、视频画面实体的基础识别与提取。</li>
+                    <li><strong>L2: Temporal Understanding (时序理解)</strong> - 考察事件发生的先后顺序、因果关系，以及字幕台词与特定画面的时序对齐。</li>
+                    <li><strong>L3: Temporal Complex Reasoning (时空复杂推理)</strong> - 需要跨越长视频的多个片段，结合前后文语境进行多跳逻辑推理。</li>
+                </ul>
+
+                <h3>B. 分组非线性评分机制 (Grouped Non-Linear Scoring)</h3>
+                <p>为了进一步消除随机猜测带来的虚高分数，v2 版本将传统选择题的选项数从 4 个激增至 <strong>8 个（选项 A-H）</strong>。更绝的是其独特的评分公式：</p>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">4</span>VideoMME-v2 — Next-Gen Eval (2604.05015)</h2>
+                <p>In April 2026, the VideoMME team launched the massive upgrade: <strong>VideoMME-v2</strong>. This version completely restructures the evaluation system, containing 800 curated videos and 800 precise subtitle files, formulating 3,200 meticulously annotated QA pairs at the cost of a staggering 3,300 human-hours. It introduces three revolutionary innovations:</p>
+                
+                <h3>A. Progressive Multi-Level System</h3>
+                <p>VideoMME-v2 abandons flat questioning, dissecting video understanding into three strictly progressive cognitive levels. Only when a model succeeds at the base level can it prove high-level reasoning, heavily penalizing "guessing":</p>
+                <ul>
+                    <li><strong>L1: Information Aggregation</strong> - Tests basic recognition and extraction of facts from subtitles and visual entities.</li>
+                    <li><strong>L2: Temporal Understanding</strong> - Examines chronological order, causality, and temporal alignment between spoken lines and specific frames.</li>
+                    <li><strong>L3: Temporal Complex Reasoning</strong> - Requires multi-hop logical inference across multiple segments of a long video, combining context.</li>
+                </ul>
+
+                <h3>B. Grouped Non-Linear Scoring</h3>
+                <p>To further eliminate inflated scores from random guessing, v2 expands the number of multiple-choice options from 4 to <strong>8 (A-H)</strong>. More impressively, it introduces a unique scoring formula:</p>
+            </div>
+
+            <div class="code-block-wrapper" style="text-align: center; padding: 2rem; font-size: 1.5rem; background: var(--bg-alt);">
+                $$ \text{Score}_{\text{group}} = \left(\frac{N_{\text{correct}}}{N_{\text{total}}}\right)^2 $$
+            </div>
+
+            <div class="zh-content fade-in">
+                <p>在这个机制下，同一个视频的多个相关问题被打包成一个“Group”。系统实行<strong>首错截断 (First-error truncation)</strong>：如果模型在 L1 级别的问题上回答错误，那么该组后续的 L2、L3 问题无论是否猜对，都记为错误。这种指数级的惩罚曲线 ($x^2$) 迫使模型必须展现出高度的内部一致性。</p>
+
+                <h3>C. 词级别时间戳与双重注入模式</h3>
+                <p>格式上，v2 彻底抛弃了粗粒度的 SRT，转而采用词级别（Word-level）时间戳的 JSONL 格式。在评测框架（如 VLMEvalKit）中，它提供了多种 Config 变体（如 <code>Video-MME-v2_64frame_subs</code>），并定义了两种字幕与视频帧的融合注入模式：</p>
+            </div>
+            <div class="en-content fade-in">
+                <p>Under this mechanism, multiple related questions for a single video are bundled into a "Group". The system enforces <strong>First-error truncation</strong>: if a model fails an L1 question, subsequent L2/L3 questions in that group are marked wrong regardless of the guess. This exponential penalty curve ($x^2$) forces models to exhibit high internal consistency.</p>
+
+                <h3>C. Word-level Timestamps & Dual Injection Modes</h3>
+                <p>Format-wise, v2 abandons coarse SRT for Word-level timestamped JSONL. In evaluation frameworks (e.g., VLMEvalKit), it provides various Config variants (like <code>Video-MME-v2_64frame_subs</code>) and defines two distinct modes for fusing subtitles with video frames:</p>
+            </div>
+
+            <!-- SVG Diagram: Injection Modes -->
+            <!-- Interactive Demo: Injection Modes -->
+            <div class="toggle-wrapper fade-in">
+                <button type="button" class="toggle-btn active" data-mode="concat"><span class="zh-content">1. 拼接式 (Concatenated)</span><span class="en-content">1. Concatenated</span></button>
+                <button type="button" class="toggle-btn" data-mode="interleave"><span class="zh-content">2. 交织穿插式 (Interleaved)</span><span class="en-content">2. Interleaved</span></button>
+            </div>
+            <div class="demo-container demo-mode-concat fade-in" id="sec4-demo">
+                <!-- Frames -->
+                <div class="demo-frame df1">Frame 1</div>
+                <div class="demo-frame df2">Frame 2</div>
+                <div class="demo-frame df3">Frame 3</div>
+                
+                <!-- Subtitles -->
+                <div class="demo-sub ds-all">"Hello world, today we..."</div>
+                <div class="demo-sub ds1">"Hello"</div>
+                <div class="demo-sub ds2">"world, today"</div>
+                
+                <!-- Arrow -->
+                <div class="demo-arrow"></div>
+                <div class="demo-llm">LLM</div>
+            </div>
+            <div class="mobile-scroll-hint zh-content fade-in">（在窄屏设备上排版已适配简化）</div>
+            <div class="mobile-scroll-hint en-content fade-in">(Layout adapted for narrow screens)</div>
+        </section>
+
+        <section class="fade-in" id="sec-5" data-label="MMOU">
+            <div class="zh-content">
+                <h2><span class="sec-num">5</span>MMOU — Omni-Modal的隐式路径 (2603.14145)</h2>
+                <p>如果说 VideoMME 致力于将文本字幕做到极致，那么由 NVIDIA 发布的 <strong>MMOU</strong> 则代表了迈向 AGI 的另一种截然不同的路径：<strong>抛弃文本，拥抱原生音频</strong>。</p>
+                <p>MMOU 包含 9038 个视频和 15000 个问题，横跨 6 大能力维度。其最核心的特点是<strong>拒绝提供任何形式的字幕文件</strong>。模型必须像人类一样，直接处理视频帧和伴随的 Raw Audio 流。这意味着模型必须在内部同时完成语音识别（ASR）和多模态联合语义推理。</p>
+                <p>这种隐式理解范式带来了全新的提问结构。常见的测试题如：<br>
+                <em>"When the speaker says [specific audio segment], what object is shown on the right side of the screen?"</em><br>
+                这里，声音信号成为了视觉帧序列的“时间锚点”。这不仅测试了模型是否“听懂了”，更测试了模型是否能在毫秒级别上将声音流与像素流进行对齐对位。</p>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">5</span>MMOU — The Implicit Omni-Modal Path (2603.14145)</h2>
+                <p>If VideoMME strives to perfect text subtitles, <strong>MMOU</strong> released by NVIDIA represents an entirely different path towards AGI: <strong>abandoning text to embrace raw audio</strong>.</p>
+                <p>MMOU encompasses 9,038 videos and 15,000 questions across 6 capability dimensions. Its defining feature is the <strong>refusal to provide any subtitle files</strong>. The model must process video frames and the accompanying Raw Audio stream directly, like a human. This means the model must internally perform simultaneous Speech Recognition (ASR) and multimodal joint semantic reasoning.</p>
+                <p>This implicit understanding paradigm introduces novel question structures. Common test formats include:<br>
+                <em>"When the speaker says [specific audio segment], what object is shown on the right side of the screen?"</em><br>
+                Here, the audio signal becomes the "temporal anchor" for the visual frame sequence. This tests not just whether the model "heard it", but whether it can align the audio stream with the pixel stream at millisecond precision.</p>
+            </div>
+        </section>
+
+        <section class="fade-in" id="sec-6" data-label="lmms_eval解析">
+            <div class="zh-content">
+                <h2><span class="sec-num">6</span>技术解密：lmms_eval 的字幕管线</h2>
+                <p>在工程层面，评测框架是如何将孤立的字幕文件与视频帧耦合在一起的？在开源评测集大成的 <code>lmms_eval</code> 中，这一切由精确的时间戳计算和 Prompt 模板注入完成。</p>
+                <p>通过对比其 YAML 配置文件（<code>videomme.yaml</code> 与 <code>videomme_w_subtitle.yaml</code>），我们可以清晰地看到字幕流的开关。当开启字幕模式时，系统会调用手写的正则解析器读取 SRT，并根据模型指定的 <code>frame_num</code> 参数（采样帧数）使用 <code>np.linspace</code> 进行帧对齐。</p>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">6</span>Tech Decoded: Subtitle Pipeline in lmms_eval</h2>
+                <p>At the engineering level, how do evaluation frameworks couple isolated subtitle files with video frames? In the widely used <code>lmms_eval</code> suite, this is accomplished via precise timestamp calculation and Prompt template injection.</p>
+                <p>By comparing its YAML configurations (<code>videomme.yaml</code> vs <code>videomme_w_subtitle.yaml</code>), we can clearly see the subtitle stream switch. When enabled, the system uses a hand-written regex parser to read the SRT and applies <code>np.linspace</code> for frame alignment based on the model's <code>frame_num</code> parameter.</p>
+            </div>
+
+            <div class="code-block-wrapper slide-in-bottom">
+                <div class="code-header">
+                    <span>lmms_eval/utils.py — Subtitle Frame Alignment</span>
+                    <span class="lang-badge">Python</span>
+                </div>
+                <pre><code><span class="c"># Generate uniform frame indices based on model config (e.g. frame_num=768 for Qwen3-VL)</span>
+<span class="v">uniform_sampled_frames</span> <span class="op">=</span> np<span class="op">.</span><span class="f">linspace</span><span class="p">(</span><span class="n">0</span><span class="p">,</span> total_frame <span class="op">-</span> <span class="n">1</span><span class="p">,</span> frame_num<span class="p">,</span> dtype<span class="op">=</span><span class="f">int</span><span class="p">)</span><span class="op">.</span>tolist<span class="p">()</span>
+<span class="v">subtitle_by_frame_idx</span> <span class="op">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> frame_idx <span class="k">in</span> uniform_sampled_frames<span class="p">:</span>
+    <span class="k">for</span> idx<span class="p">,</span> title <span class="k">in</span> <span class="f">enumerate</span><span class="p">(</span>subtitle_by_frame<span class="p">):</span>
+        <span class="c"># Check if the uniformly sampled frame falls within the subtitle's timestamp window</span>
+        <span class="k">if</span> frame_idx <span class="op">&lt;</span> title<span class="p">[</span><span class="n">1</span><span class="p">]</span> <span class="op">and</span> frame_idx <span class="op">&gt;=</span> title<span class="p">[</span><span class="n">0</span><span class="p">]:</span>
+            subtitle_by_frame_idx<span class="op">.</span><span class="f">append</span><span class="p">(</span>idx<span class="p">)</span>
+
+<span class="c"># Subtitle text is then actually inserted into the prompt string</span>
+<span class="v">prompt_template</span> <span class="op">=</span> <span class="s">"This video's subtitles are listed below:\n{subs}\nQuestion..."</span></code></pre>
+            </div>
+            <div class="zh-content fade-in" style="margin-top: 3rem;">
+                <p><strong>实况演示：从 SRT 到 Prompt 的数据流管线</strong></p>
+            </div>
+            <div class="en-content fade-in" style="margin-top: 3rem;">
+                <p><strong>Live Demo: Data Pipeline from SRT to Prompt</strong></p>
+            </div>
+
+            <div class="pipeline-demo" id="subtitle-pipeline">
+                <div class="pipeline-step" data-stage="1">
+                    <div class="step-badge">1</div>
+                    <div class="step-title"><span class="zh-content">解析原始 SRT 文件</span><span class="en-content">Raw SRT File</span></div>
+                    <div class="srt-block b1">
+                        <span class="srt-idx">1</span>
+                        <span class="srt-time">00:00:01,000 --&gt; 00:00:03,500</span>
+                        <span class="srt-text">Hello everyone, welcome.</span>
+                    </div>
+                    <div class="srt-block b2">
+                        <span class="srt-idx">2</span>
+                        <span class="srt-time">00:00:04,000 --&gt; 00:00:07,200</span>
+                        <span class="srt-text">Today we discuss video understanding.</span>
+                    </div>
+                    <div class="srt-block b3">
+                        <span class="srt-idx">3</span>
+                        <span class="srt-time">00:00:08,500 --&gt; 00:00:12,000</span>
+                        <span class="srt-text">Let's look at how models process subtitles.</span>
+                    </div>
+                </div>
+
+                <div class="pipe-arrow"></div>
+
+                <div class="pipeline-step" data-stage="2">
+                    <div class="step-badge">2</div>
+                    <div class="step-title"><span class="zh-content">时间戳与文本分离 (解析提取)</span><span class="en-content">Parsing & Extraction</span></div>
+                    <div class="parse-dict d1"><span class="parse-key">{(1.0, 3.5)}</span>: <span class="parse-val">"Hello everyone, welcome."</span>,</div>
+                    <div class="parse-dict d2"><span class="parse-key">{(4.0, 7.2)}</span>: <span class="parse-val">"Today we discuss video understanding."</span>,</div>
+                    <div class="parse-dict d3"><span class="parse-key">{(8.5, 12.0)}</span>: <span class="parse-val">"Let's look at how models process subtitles."</span></div>
+                </div>
+
+                <div class="pipe-arrow"></div>
+
+                <div class="pipeline-step" data-stage="3">
+                    <div class="step-badge">3</div>
+                    <div class="step-title"><span class="zh-content">np.linspace 帧采样与对齐</span><span class="en-content">Frame Sampling & Alignment</span></div>
+                    <div class="frame-track">
+                        <div class="v-frame f1">Frame 0</div>
+                        <div class="v-frame f2">Frame 1</div>
+                        <div class="v-frame f3">Frame 47</div>
+                        <div class="v-frame f4">Frame 98</div>
+                        <div class="v-frame f5">Frame N</div>
+                        
+                        <div class="match-line m1"></div>
+                        <div class="match-status s1">t=1.2s <br>✓ [1.0, 3.5]</div>
+                        
+                        <div class="match-line m2"></div>
+                        <div class="match-status s2">t=2.3s <br>✓ [1.0, 3.5]</div>
+                        
+                        <div class="match-line m3"></div>
+                        <div class="match-status s3">t=9.1s <br>✓ [8.5, 12.0]</div>
+                    </div>
+                </div>
+
+                <div class="pipe-arrow"></div>
+
+                <div class="pipeline-step" data-stage="4">
+                    <div class="step-badge">4</div>
+                    <div class="step-title"><span class="zh-content">Prompt 构建组装</span><span class="en-content">Prompt Construction</span></div>
+                    <div class="p-piece p1">&lt;frame_0&gt;, &lt;frame_1&gt;, ... &lt;frame_N&gt;</div>
+                    <div class="p-piece p2">"This video's subtitles are listed below:"</div>
+                    <div class="p-piece p3">- Hello everyone, welcome.<br>- Today we discuss video understanding.<br>- Let's look at how models process subtitles.</div>
+                    <div class="p-piece p4">"Question: What is discussed in this video?"</div>
+                    <div class="p-piece p5">"A. Cooking  B. Video understanding  C. Sports"</div>
+                    <div class="p-piece p6">"Answer with the option letter only."</div>
+                </div>
+
+                <div class="pipe-arrow"></div>
+
+                <div class="pipeline-step" style="border: 2px solid var(--accent);" data-stage="5">
+                    <div class="step-badge">5</div>
+                    <div class="step-title"><span class="zh-content">输入模型 (Qwen3-VL / GPT-4o)</span><span class="en-content">Into the Model</span></div>
+                    <div class="model-box">
+                        <div class="model-scan"></div>
+                        <span style="position:relative; z-index:2; color: var(--text-light); font-family: sans-serif;">Processing Multi-modal Stream...</span>
+                        <div class="final-output">✅ Output: B</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="fade-in" id="sec-7" data-label="VLMEvalKit对比">
+            <div class="zh-content">
+                <h2><span class="sec-num">7</span>VLMEvalKit vs lmms_eval 架构深度对比</h2>
+                <p>与 <code>lmms_eval</code> 的纯手工解析不同，OpenCompass 团队主导的 <code>VLMEvalKit</code> 采用了更工程化的设计模式。两者在字幕解析、时间轴对齐、配置管理和异常处理上存在<strong>根本性的架构分歧</strong>。接下来我们从代码级别逐层拆解。</p>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">7</span>VLMEvalKit vs lmms_eval: Deep Architecture Comparison</h2>
+                <p>Unlike the manual parsing in <code>lmms_eval</code>, the <code>VLMEvalKit</code> led by the OpenCompass team adopts a fundamentally different engineering approach. The two frameworks diverge at <strong>every layer</strong> — from subtitle parsing to timeline alignment, configuration management, and error handling. Let's dissect them at code level.</p>
+            </div>
+
+            <div class="zh-content fade-in">
+                <h3>A. 技术路线全景对比</h3>
+            </div>
+            <div class="en-content fade-in">
+                <h3>A. Full Technical Comparison</h3>
+            </div>
+
+            <div class="table-wrapper slide-in-left">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="zh-content">处理环节</th><th class="en-content">Pipeline Stage</th>
+                            <th>lmms_eval</th>
+                            <th>VLMEvalKit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="zh-content">文件解析器</span><span class="en-content">File Parser</span></td>
+                            <td><span class="zh-content">手动 Regex 与 string split</span><span class="en-content">Manual Regex & split</span></td>
+                            <td><span class="zh-content">强大的 <code>pysubs2</code> 库</span><span class="en-content">Robust <code>pysubs2</code> library</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">时间轴对齐</span><span class="en-content">Timeline Align</span></td>
+                            <td><code>np.linspace(0, total_frames, n)</code></td>
+                            <td><code>pysubs2.make_time(fps, frames)</code> <span class="zh-content">(绝对时间)</span><span class="en-content">(Absolute)</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">配置管理层</span><span class="en-content">Config Layer</span></td>
+                            <td><span class="zh-content">独立 YAML (videomme_w_subtitle)</span><span class="en-content">Standalone YAML files</span></td>
+                            <td><span class="zh-content">代码层级 <code>partial()</code> 参数动态绑定</span><span class="en-content">Python <code>partial()</code> dynamic bind</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">支持格式</span><span class="en-content">Format Support</span></td>
+                            <td><span class="zh-content">仅 SRT</span><span class="en-content">SRT only</span></td>
+                            <td><span class="zh-content">SRT / ASS / SSA / VTT (pysubs2 原生)</span><span class="en-content">SRT / ASS / SSA / VTT (pysubs2 native)</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">HTML 标签处理</span><span class="en-content">HTML Tag Handling</span></td>
+                            <td><span class="zh-content">❌ 无 — 脏标签残留在文本中</span><span class="en-content">❌ None — dirty tags leak into text</span></td>
+                            <td><span class="zh-content">✅ pysubs2 自动剥离 <code>&lt;font&gt;</code>, <code>&lt;i&gt;</code> 等</span><span class="en-content">✅ Auto-strips <code>&lt;font&gt;</code>, <code>&lt;i&gt;</code> etc.</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">编码容错</span><span class="en-content">Encoding Tolerance</span></td>
+                            <td><span class="zh-content">UTF-8 硬编码, BOM 可能出错</span><span class="en-content">UTF-8 hardcoded, BOM may break</span></td>
+                            <td><span class="zh-content">自动检测 (chardet)</span><span class="en-content">Auto-detect (chardet)</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">时间精度</span><span class="en-content">Time Precision</span></td>
+                            <td><span class="zh-content">帧索引相对值 (int)</span><span class="en-content">Frame-index relative (int)</span></td>
+                            <td><span class="zh-content">毫秒绝对值 (ms)</span><span class="en-content">Absolute milliseconds (ms)</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">VideoMME-v2 支持</span><span class="en-content">VideoMME-v2 Support</span></td>
+                            <td><span class="zh-content">需扩展 JSONL 解析器</span><span class="en-content">Requires JSONL parser extension</span></td>
+                            <td><span class="zh-content">原生 Config 变体 (Video-MME-v2_*_subs)</span><span class="en-content">Native Config variant (Video-MME-v2_*_subs)</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ========== 7B: PARSER CODE COMPARISON ========== -->
+            <div class="zh-content fade-in">
+                <h3>B. 字幕解析器：手工正则 vs pysubs2</h3>
+                <p>这是两个框架最根本的分歧。lmms_eval 使用手写正则逐行切割 SRT 文件，手动将时间戳字符串 <code>HH:MM:SS,mmm</code> 转换为秒数；而 VLMEvalKit 直接调用 pysubs2 的高级 API，一行完成全部解析。</p>
+            </div>
+            <div class="en-content fade-in">
+                <h3>B. Subtitle Parser: Hand-written Regex vs pysubs2</h3>
+                <p>This is the most fundamental divergence. lmms_eval splits SRT files line-by-line with hand-crafted regex, manually converting <code>HH:MM:SS,mmm</code> timestamp strings into seconds; VLMEvalKit calls the pysubs2 high-level API to parse everything in one line.</p>
+            </div>
+
+            <div class="code-compare fade-in">
+                <div class="code-block-wrapper">
+                    <div class="code-header"><span>lmms_eval — Hand-written SRT Parser</span><span class="lang-badge">Python</span></div>
+                    <pre><code><span class="c"># load_subtitles() in lmms_eval/utils.py</span>
+<span class="k">def</span> <span class="f">load_subtitles</span><span class="p">(</span>srt_path<span class="p">):</span>
+    <span class="k">with</span> <span class="f">open</span><span class="p">(</span>srt_path<span class="p">,</span> <span class="s">'r'</span><span class="p">)</span> <span class="k">as</span> f<span class="p">:</span>
+        content <span class="op">=</span> f<span class="op">.</span>read<span class="p">()</span>
+
+    <span class="c"># Hand-crafted regex to split SRT blocks</span>
+    pattern <span class="op">=</span> <span class="s">r'(\d+)\n(\d{2}:\d{2}:\d{2},\d{3})'</span>
+    blocks <span class="op">=</span> re<span class="op">.</span><span class="f">findall</span><span class="p">(</span>pattern<span class="p">,</span> content<span class="p">)</span>
+
+    <span class="c"># Manual time conversion</span>
+    <span class="k">def</span> <span class="f">to_seconds</span><span class="p">(</span>ts<span class="p">):</span>
+        h<span class="p">,</span> m<span class="p">,</span> rest <span class="op">=</span> ts<span class="op">.</span>split<span class="p">(</span><span class="s">':'</span><span class="p">)</span>
+        s<span class="p">,</span> ms <span class="op">=</span> rest<span class="op">.</span>split<span class="p">(</span><span class="s">','</span><span class="p">)</span>
+        <span class="k">return</span> (<span class="f">int</span><span class="p">(</span>h<span class="p">)</span><span class="op">*</span><span class="n">3600</span>
+            <span class="op">+</span> <span class="f">int</span><span class="p">(</span>m<span class="p">)</span><span class="op">*</span><span class="n">60</span>
+            <span class="op">+</span> <span class="f">int</span><span class="p">(</span>s<span class="p">)</span>
+            <span class="op">+</span> <span class="f">int</span><span class="p">(</span>ms<span class="p">)</span><span class="op">/</span><span class="n">1000</span><span class="p">)</span></code></pre>
+                </div>
+                <div class="code-block-wrapper">
+                    <div class="code-header"><span>VLMEvalKit — pysubs2 One-liner</span><span class="lang-badge">Python</span></div>
+                    <pre><code><span class="c"># video_dataset_config.py</span>
+<span class="k">import</span> pysubs2
+
+<span class="c"># Entire parsing: one line</span>
+subs <span class="op">=</span> pysubs2<span class="op">.</span><span class="f">load</span><span class="p">(</span>srt_path<span class="p">)</span>
+
+<span class="c"># Handles SRT, ASS, SSA, VTT auto</span>
+<span class="c"># Auto-strips HTML tags</span>
+<span class="c"># Auto-detects encoding</span>
+
+<span class="c"># Time alignment via absolute ms</span>
+frame_time <span class="op">=</span> pysubs2<span class="op">.</span><span class="f">make_time</span><span class="p">(</span>
+    fps<span class="op">=</span>fps<span class="p">,</span> frames<span class="op">=</span>frame_idx<span class="p">)</span>
+
+<span class="c"># Match subtitle to frame</span>
+matched <span class="op">=</span> <span class="p">[</span>s<span class="op">.</span>text <span class="k">for</span> s <span class="k">in</span> subs
+    <span class="k">if</span> s<span class="op">.</span>start <span class="op">&lt;=</span> frame_time
+    <span class="op">&lt;</span> s<span class="op">.</span>end<span class="p">]</span></code></pre>
+                </div>
+            </div>
+
+            <!-- ========== 7C: CONFIG COMPARISON ========== -->
+            <div class="zh-content fade-in">
+                <h3>C. 配置管理哲学</h3>
+                <p>两个框架在“如何控制字幕开关”上也走了截然不同的路线。lmms_eval 采用<strong>声明式 YAML</strong>：为每个评测变体创建独立的 YAML 文件；VLMEvalKit 则采用<strong>编程式 Python</strong>：用 <code>functools.partial()</code> 在代码中动态绑定参数。</p>
+            </div>
+            <div class="en-content fade-in">
+                <h3>C. Configuration Philosophy</h3>
+                <p>The two frameworks also differ in how they toggle subtitle mode. lmms_eval uses <strong>declarative YAML</strong>: creating standalone YAML files for each eval variant; VLMEvalKit uses <strong>programmatic Python</strong>: dynamically binding parameters via <code>functools.partial()</code>.</p>
+            </div>
+
+            <div class="code-compare fade-in">
+                <div class="code-block-wrapper">
+                    <div class="code-header"><span>lmms_eval — YAML Config</span><span class="lang-badge">YAML</span></div>
+                    <pre><code><span class="c"># videomme_w_subtitle.yaml</span>
+<span class="v">include</span><span class="p">:</span> <span class="s">videomme.yaml</span>
+
+<span class="v">metadata</span><span class="p">:</span>
+  <span class="v">load_subtitle</span><span class="p">:</span> <span class="n">true</span>
+  <span class="v">subtitle_dir</span><span class="p">:</span> <span class="s">/data/videomme/srt/</span>
+
+<span class="c"># Separate file per variant</span>
+<span class="c"># videomme.yaml → no subs</span>
+<span class="c"># videomme_w_subtitle.yaml → subs</span></code></pre>
+                </div>
+                <div class="code-block-wrapper">
+                    <div class="code-header"><span>VLMEvalKit — Python partial()</span><span class="lang-badge">Python</span></div>
+                    <pre><code><span class="c"># Programmatic config</span>
+<span class="k">from</span> functools <span class="k">import</span> partial
+
+<span class="v">DATASETS</span> <span class="op">=</span> <span class="p">{</span>
+  <span class="s">'Video-MME'</span><span class="p">:</span> <span class="f">partial</span><span class="p">(</span>
+    VideoMME<span class="p">,</span>
+    use_subtitle<span class="op">=</span><span class="n">False</span><span class="p">,</span>
+    nframe<span class="op">=</span><span class="n">128</span>
+  <span class="p">),</span>
+  <span class="s">'Video-MME_sub'</span><span class="p">:</span> <span class="f">partial</span><span class="p">(</span>
+    VideoMME<span class="p">,</span>
+    use_subtitle<span class="op">=</span><span class="n">True</span><span class="p">,</span>
+    nframe<span class="op">=</span><span class="n">128</span>
+  <span class="p">),</span>
+<span class="p">}</span></code></pre>
+                </div>
+            </div>
+
+            <!-- ========== 7D: DUAL PIPELINE ANIMATION ========== -->
+            <div class="zh-content fade-in" style="margin-top: 3rem;">
+                <h3>D. 完整数据流对比动画</h3>
+                <p>下面的动画展示了同一份 SRT 文件在两个框架中的完整处理流程。左侧是 lmms_eval 的手工流水线，右侧是 VLMEvalKit 的 pysubs2 流水线：</p>
+            </div>
+            <div class="en-content fade-in" style="margin-top: 3rem;">
+                <h3>D. Full Data Flow Comparison Animation</h3>
+                <p>The animation below shows how the same SRT file is processed through both frameworks. Left: lmms_eval manual pipeline. Right: VLMEvalKit pysubs2 pipeline:</p>
+            </div>
+
+            <div class="dual-pipeline fade-in" id="dual-pipeline-demo">
+                <!-- LEFT: lmms_eval -->
+                <div class="pipeline-col col-lmms">
+                    <div class="col-label"><span class="col-icon">L</span> lmms_eval</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 1 · Input</span>
+                        <span style="color:#585b70">1</span><br>
+                        <span style="color:#8aadf4">00:00:01,000 --&gt; 00:00:03,500</span><br>
+                        Hello everyone, welcome.
+                    </div>
+                    <div class="dp-arrow">↓</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 2 · Regex Parse</span>
+                        <span style="color:#f5a97f">re.findall(</span><span style="color:#a6e3a1">r'(\d+)\n...'</span><span style="color:#f5a97f">)</span><br>
+                        <span style="color:#585b70">→ manual string split</span>
+                    </div>
+                    <div class="dp-arrow">↓</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 3 · Time Convert</span>
+                        <span style="color:#cba6f7">int(h)*3600 + int(m)*60</span><br>
+                        <span style="color:#cba6f7">+ int(s) + int(ms)/1000</span><br>
+                        <span style="color:#585b70">→ {(1.0, 3.5): "Hello..."}</span>
+                    </div>
+                    <div class="dp-arrow">↓</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 4 · Frame Align</span>
+                        <span style="color:#89b4fa">np.linspace(0, N, frame_num)</span><br>
+                        <span style="color:#585b70">→ loop & window match</span>
+                    </div>
+                    <div class="dp-arrow">↓</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 5 · Prompt Concat</span>
+                        <span style="color:#a6e3a1">"This video's subtitles..."</span><br>
+                        <span style="color:#585b70">+ matched subtitle text</span>
+                    </div>
+                    <div class="dp-verdict warn"><span class="zh-content">⚠️ 依赖正则健壮性</span><span class="en-content">⚠️ Regex-Dependent</span></div>
+                </div>
+
+                <!-- RIGHT: VLMEvalKit -->
+                <div class="pipeline-col col-vlm">
+                    <div class="col-label"><span class="col-icon">V</span> VLMEvalKit</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 1 · Input (dirty)</span>
+                        <span style="color:#585b70">1</span><br>
+                        <span style="color:#8aadf4">00:00:01,000 --&gt; 00:00:03,500</span><br>
+                        <span style="color:#f38ba8">&lt;font&gt;</span>Hello everyone<span style="color:#f38ba8">&lt;/font&gt;</span>
+                    </div>
+                    <div class="dp-arrow">↓</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 2 · pysubs2.load()</span>
+                        <span style="color:#89b4fa">subs = pysubs2.load(path)</span><br>
+                        <span style="color:#585b70">→ auto format detect</span><br>
+                        <span style="color:#a6e3a1">→ HTML tags stripped ✓</span>
+                    </div>
+                    <div class="dp-arrow">↓</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 3 · make_time()</span>
+                        <span style="color:#89b4fa">pysubs2.make_time(</span><br>
+                        <span style="color:#89b4fa">  fps=30, frames=idx)</span><br>
+                        <span style="color:#585b70">→ absolute ms timestamps</span>
+                    </div>
+                    <div class="dp-arrow">↓</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 4 · Match & Extract</span>
+                        <span style="color:#a6e3a1">[s.text for s in subs</span><br>
+                        <span style="color:#a6e3a1"> if s.start &lt;= t &lt; s.end]</span>
+                    </div>
+                    <div class="dp-arrow">↓</div>
+                    <div class="dp-step">
+                        <span class="dp-step-label">Step 5 · Prompt Fill</span>
+                        <span style="color:#a6e3a1">"Subtitles: ..."</span><br>
+                        <span style="color:#585b70">+ clean subtitle text</span>
+                    </div>
+                    <div class="dp-verdict good"><span class="zh-content">✅ 工业级健壮性</span><span class="en-content">✅ Production-Grade</span></div>
+                </div>
+            </div>
+
+            <!-- ========== 7E: DIRTY DATA DEMO ========== -->
+            <div class="zh-content fade-in" style="margin-top: 3rem;">
+                <h3>E. 脏数据处理实战</h3>
+                <p>真实世界的 SRT 文件经常包含 HTML 样式标签。以下是同一段脏字幕在两个框架中的不同命运：</p>
+            </div>
+            <div class="en-content fade-in" style="margin-top: 3rem;">
+                <h3>E. Dirty Data Handling in Practice</h3>
+                <p>Real-world SRT files frequently contain HTML styling tags. Here's how the same dirty subtitle is handled differently:</p>
+            </div>
+
+            <div class="dirty-demo fade-in">
+                <div class="dirty-input">
+                    <span style="color:#585b70;">Input SRT line:</span><br>
+                    <span style="color:#f5a97f">&lt;font color="#ffffff"&gt;&lt;i&gt;</span><span style="color:#a6e3a1;">Hello everyone, welcome to the show.</span><span style="color:#f5a97f">&lt;/i&gt;&lt;/font&gt;</span>
+                </div>
+                <div class="dirty-output">
+                    <div class="dirty-result fail">
+                        <span class="dirty-label">lmms_eval output</span>
+                        <span style="color:#f38ba8;">&lt;font color="#ffffff"&gt;&lt;i&gt;</span>Hello everyone, welcome to the show.<span style="color:#f38ba8;">&lt;/i&gt;&lt;/font&gt;</span>
+                        <br><br>
+                        <span style="color:#f38ba8; font-size: 0.8rem;"><span class="zh-content">❌ HTML 标签残留，污染 Prompt，可能误导模型</span><span class="en-content">❌ HTML tags leak into prompt, may confuse model</span></span>
+                    </div>
+                    <div class="dirty-result pass">
+                        <span class="dirty-label">VLMEvalKit output</span>
+                        <span style="color:#a6e3a1;">Hello everyone, welcome to the show.</span>
+                        <br><br>
+                        <span style="color:#a6e3a1; font-size: 0.8rem;"><span class="zh-content">✅ 干净文本，pysubs2 自动剥离所有标签</span><span class="en-content">✅ Clean text, pysubs2 auto-strips all tags</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== 7F: SUMMARY ========== -->
+            <div class="highlight-box fade-in" style="margin-top: 3rem;">
+                <div class="zh-content">
+                    <strong>关键结论：</strong>
+                    <br>• <strong>lmms_eval</strong> 的优势在于透明性——所有逻辑一目了然，适合快速定制和学术研究。但其手工 Regex 在面对脏数据、非 SRT 格式、BOM 编码时较脆弱。
+                    <br>• <strong>VLMEvalKit</strong> 的优势在于工程健壮性——pysubs2 天然支持多格式、多编码、HTML 标签清洗。<code>partial()</code> 配置模式也更 Pythonic，适合大规模评测。
+                    <br>• 两者在功能上互补：lmms_eval 的 YAML 声明式配置更利于可复现研究，VLMEvalKit 的编程式配置更利于生产环境部署。
+                </div>
+                <div class="en-content">
+                    <strong>Key Takeaways:</strong>
+                    <br>• <strong>lmms_eval</strong> excels at transparency—all logic is visible, ideal for quick customization and academic research. But its hand-crafted Regex breaks on dirty data, non-SRT formats, and BOM encodings.
+                    <br>• <strong>VLMEvalKit</strong> excels at engineering robustness—pysubs2 natively supports multi-format, multi-encoding, HTML tag stripping. The <code>partial()</code> config pattern is more Pythonic for large-scale evaluation.
+                    <br>• The two are complementary: lmms_eval's declarative YAML is better for reproducible research; VLMEvalKit's programmatic config is better for production deployment.
+                </div>
+            </div>
+        </section>
+
+        <section class="fade-in" id="sec-8" data-label="Qwen3-VL分析">
+            <div class="zh-content">
+                <h2><span class="sec-num">8</span>深度案例：Qwen3-VL 的极简哲学</h2>
+                <p>当我们审视当今最强的开源视听模型 Qwen3-VL 时，会发现一个令人惊讶的现象：<strong>在模型网络结构层面，Qwen3-VL 并没有为“字幕”设计任何特殊的模块。</strong></p>
+                <p>为什么不需要架构改动？因为 Qwen3-VL 拥有极其强悍的长上下文 Tokenizer，能够原生无缝处理交织的文本和图像 Token。因此，字幕的处理完全被抽象成了一个<strong>数据集构造（Dataset）</strong>的问题。</p>
+                <p>在评测运行中，Qwen3-VL 会将采样帧数推向极限：<code>frame_num=768</code>（而常规模型通常仅为 8 到 32 帧，VLMEvalKit 默认也是保守的 128 帧）。极高密度的视频帧与成百上千字的字幕文本被简单粗暴地拼接在一起，输入模型。这种“大力出奇迹”的极简哲学，恰恰证明了强大的基础模型不需要花哨的插件工程。</p>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">8</span>Deep Case: The Minimalist Philosophy of Qwen3-VL</h2>
+                <p>When examining today's strongest open-source audio-visual model, Qwen3-VL, a surprising phenomenon emerges: <strong>at the model network architecture level, Qwen3-VL incorporates absolutely zero special modules for "subtitles".</strong></p>
+                <p>Why are no architectural changes needed? Because Qwen3-VL possesses an overwhelmingly powerful long-context Tokenizer capable of natively processing seamlessly interleaved text and image Tokens. Therefore, subtitle processing is entirely abstracted as a <strong>Dataset construction</strong> problem.</p>
+                <p>During evaluation, Qwen3-VL pushes the sampled frames to the extreme: <code>frame_num=768</code> (whereas conventional models typically sample 8 to 32 frames, and VLMEvalKit defaults conservatively to 128). An incredibly high density of video frames combined with thousands of words of subtitle text are simply and brutally concatenated into the model. This minimalist "brute force" philosophy exactly proves that powerful base models do not require flashy engineering plugins.</p>
+            </div>
+            
+            <div class="code-block-wrapper slide-in-bottom">
+                <div class="code-header">
+                    <span>Qwen3-VL Final Injected Prompt Structure</span>
+                    <span class="lang-badge">Text</span>
+                </div>
+                <pre><code><span class="c">&lt;|vision_start|&gt;&lt;|frame_0|&gt;&lt;|vision_end|&gt;</span>
+<span class="c">&lt;|vision_start|&gt;&lt;|frame_1|&gt;&lt;|vision_end|&gt;</span>
+<span class="c">... (up to 768 frames) ...</span>
+
+<span class="v">This video's subtitles are listed below:</span>
+<span class="s">[00:00:01] Hello everyone, welcome to the test.
+[00:00:05] Today we are exploring MLLMs.</span>
+
+<span class="v">Question:</span> <span class="s">What is the speaker discussing?</span>
+<span class="v">Options:</span>
+<span class="s">A. Baking a cake
+B. MLLMs
+C. Sports</span>
+<span class="k">Answer with the option letter only.</span></code></pre>
+            </div>
+        </section>
+
+        <section class="fade-in" id="sec-9" data-label="Molmo2">
+            <div class="zh-content">
+                <h2><span class="sec-num">9</span>Allen AI 的 Molmo2：训练阶段融入字幕</h2>
+                <p>与仅在评测阶段拼接字幕的方法不同，Allen AI 的 Molmo2 采用了一种全新的范式：<strong>将字幕处理视为训练层面的核心任务，而非仅仅是评测层面的工程手段。</strong>通过在训练阶段引入特定的字幕问答数据集，Molmo2 能够原生理解字幕与视频画面之间的关联，让模型在学习期间就“看过”并“读过”字幕。</p>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">9</span>Allen AI's Molmo2: Integrating Subtitles at Training Time</h2>
+                <p>Unlike approaches that merely concatenate subtitles during evaluation, Allen AI's Molmo2 adopts a completely new paradigm: <strong>treating subtitle processing as a core training concern, rather than just an engineering mechanism for evaluation.</strong> By introducing specific subtitle QA datasets during the training phase, Molmo2 natively understands the correlation between subtitles and video frames, enabling the model to have "seen" and "read" subtitles during its learning process.</p>
+            </div>
+
+            <div class="arch-cards slide-in-bottom">
+                <div class="arch-card">
+                    <div class="zh-content">
+                        <h4>Molmo2-4B</h4>
+                        <p>最小巧且高效的变体。基于 Qwen3-4B-Instruct 与 SigLIP2 视觉编码器，适合资源受限场景。</p>
+                    </div>
+                    <div class="en-content">
+                        <h4>Molmo2-4B</h4>
+                        <p>The smallest and most efficient variant. Based on Qwen3-4B-Instruct and SigLIP2 vision encoder, ideal for resource-constrained scenarios.</p>
+                    </div>
+                    <code>Base: Qwen3-4B<br>Vision: SigLIP2</code>
+                </div>
+                <div class="arch-card">
+                    <div class="zh-content">
+                        <h4>Molmo2-8B</h4>
+                        <p>在体积与性能之间取得最佳平衡的旗舰模型。基于 Qwen3-8B 与 SigLIP2，全面超越同级开源模型。</p>
+                    </div>
+                    <div class="en-content">
+                        <h4>Molmo2-8B</h4>
+                        <p>The flagship model striking the best balance between size and performance. Based on Qwen3-8B and SigLIP2, outperforming peers.</p>
+                    </div>
+                    <code>Base: Qwen3-8B<br>Vision: SigLIP2</code>
+                </div>
+                <div class="arch-card">
+                    <div class="zh-content">
+                        <h4>Molmo2-O-7B</h4>
+                        <p>完全开源的纯血模型（Apache 2.0 协议）。基于完全开源的 OLMo3-7B-Instruct 构建。</p>
+                    </div>
+                    <div class="en-content">
+                        <h4>Molmo2-O-7B</h4>
+                        <p>A fully open-source pure-blood model (Apache 2.0). Built entirely on the fully open-source OLMo3-7B-Instruct.</p>
+                    </div>
+                    <code>Base: OLMo3-7B<br>Vision: SigLIP2</code>
+                </div>
+            </div>
+
+            <!-- Training Stages -->
+            <div class="training-stages slide-in-bottom">
+                <div class="train-stage">
+                    <div class="ts-label">Pre-Training</div>
+                    <div class="zh-content"><p>图文对齐与基础视觉理解，使用海量 image-text 数据。</p></div>
+                    <div class="en-content"><p>Vision-language alignment and basic understanding using massive image-text pairs.</p></div>
+                </div>
+                <div class="train-arrow">→</div>
+                <div class="train-stage">
+                    <div class="ts-label">SFT</div>
+                    <div class="zh-content"><p>监督微调。涵盖指令遵循、常规图文QA与VQA任务。</p></div>
+                    <div class="en-content"><p>Supervised fine-tuning. Covers instruction following, general image-text QA, and VQA.</p></div>
+                </div>
+                <div class="train-arrow">→</div>
+                <div class="train-stage">
+                    <div class="ts-label">Long-Context SFT</div>
+                    <div class="zh-content"><p>超长上下文微调。序列长度扩展至 36,864 tokens，最大支持 384 帧的长视频理解与字幕QA。</p></div>
+                    <div class="en-content"><p>Long-context fine-tuning. Extends seq_len to 36,864 tokens, supporting up to 384 frames for long video understanding and subtitle QA.</p></div>
+                </div>
+            </div>
+
+            <div class="highlight-box slide-in-left">
+                <div class="zh-content"><strong>关键突破：</strong>在第三阶段，Molmo2 引入了字幕 QA 训练数据（<code>Molmo2SynCaptionsSubtitleQA</code>, <code>CinepileHf(with_subtitle=True)</code>, <code>TVQA(with_subtitle=True)</code>），使模型在训练阶段就学会了理解字幕与视频内容的关联。</div>
+                <div class="en-content"><strong>Key breakthrough:</strong> In Stage 3, Molmo2 incorporates subtitle QA training data (<code>Molmo2SynCaptionsSubtitleQA</code>, <code>CinepileHf(with_subtitle=True)</code>, <code>TVQA(with_subtitle=True)</code>), enabling the model to learn subtitle-video correlation during training.</div>
+            </div>
+
+            <!-- VideoMME Subtitle Handling Code -->
+            <div class="zh-content fade-in"><p>与 lmms_eval 不同，Molmo2 使用自定义的 <code>subtitles.json</code> 格式（从 HuggingFace 仓库 <code>allenai/Molmo2-VideoMME</code> 下载），将字幕以 <code>{(start, end): text}</code> 字典形式附加到每个样本，并通过 <code>style</code> 字段区分有/无字幕模式。</p></div>
+            <div class="en-content fade-in"><p>Unlike lmms_eval, Molmo2 uses a custom <code>subtitles.json</code> format (downloaded from HuggingFace repo <code>allenai/Molmo2-VideoMME</code>), attaching subtitles as <code>{(start, end): text}</code> dictionaries to each example, and distinguishing subtitle/no-subtitle modes via the <code>style</code> field.</p></div>
+
+            <div class="code-block-wrapper slide-in-bottom">
+                <div class="code-header">
+                    <span>Molmo2 VideoMME Dataset Processing</span>
+                    <span class="lang-badge">Python</span>
+                </div>
+                <pre><code><span class="k">class</span> <span class="v">VideoMME</span>(<span class="v">DatasetBase</span>):
+    <span class="k">def</span> <span class="v">__init__</span>(<span class="v">self</span>, <span class="v">split</span>, <span class="v">duration</span>=<span class="s">"all"</span>, 
+                 <span class="v">difficulty</span>=<span class="s">"all"</span>, <span class="v">with_subtitle</span>=<span class="k">False</span>):
+        <span class="v">self</span>.with_subtitle = with_subtitle
+    
+    <span class="k">def</span> <span class="v">load</span>(<span class="v">self</span>):
+        <span class="c"># Custom subtitles.json from HuggingFace</span>
+        subtitles = json.loads(read_file(
+            os.path.join(<span class="v">self</span>.data_path, <span class="s">"subtitles.json"</span>)))
+        
+        <span class="k">for</span> idx, row <span class="k">in</span> df.iterrows():
+            example = {
+                <span class="s">"question"</span>: question,
+                <span class="s">"video"</span>: video_path,
+                <span class="s">"style"</span>: <span class="s">"video_eval_multiple_choice"</span>
+            }
+            <span class="k">if</span> <span class="v">self</span>.with_subtitle <span class="k">and</span> row[<span class="s">"videoID"</span>] <span class="k">in</span> subtitles:
+                subtitle = {}
+                <span class="k">for</span> i, entry <span class="k">in</span> subtitles[row[<span class="s">"videoID"</span>]].items():
+                    subtitle[(entry[<span class="s">"start"</span>], entry[<span class="s">"end"</span>])] = entry[<span class="s">"text"</span>]
+                example[<span class="s">"subtitle"</span>] = subtitle
+                example[<span class="s">"style"</span>] = <span class="s">"video_eval_multiple_choice_w_subtitle"</span></code></pre>
+            </div>
+
+            <!-- Eval Groups -->
+            <div class="zh-content fade-in"><p>Molmo2 将评测任务明确分为“有字幕”和“无字幕”两大组，支持通过 <code>--tasks=video_subtitle</code> 或 <code>--tasks=video_no_subtitle</code> 命令行参数选择性运行，实现了字幕测试的清晰隔离。</p></div>
+            <div class="en-content fade-in"><p>Molmo2 explicitly divides evaluation tasks into "with subtitle" and "no subtitle" groups, supporting selective execution via <code>--tasks=video_subtitle</code> or <code>--tasks=video_no_subtitle</code> CLI arguments, achieving clean isolation of subtitle testing.</p></div>
+
+            <div class="code-block-wrapper slide-in-bottom">
+                <div class="code-header">
+                    <span>Task Groups Configuration</span>
+                    <span class="lang-badge">YAML</span>
+                </div>
+                <pre><code><span class="v">LONG_VIDEO_SUBTITLES</span>:
+  <span class="c">- video_mme_w_subtitle</span>
+  <span class="c">- long_video_bench_w_subtitle</span>
+  <span class="c">- lvbench</span>
+
+<span class="v">LONG_VIDEO_NO_SUBTITLES</span>:
+  <span class="c">- mlvu_mc</span>
+  <span class="c">- video_mme</span>
+  <span class="c">- long_video_bench_no_subtitle</span>
+  <span class="c">- vixmo_caps_eval2:test</span>
+  <span class="c">- video_eval_pro_mc:test</span></code></pre>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="table-wrapper slide-in-bottom">
+                <table class="vs-table">
+                    <thead>
+                        <tr>
+                            <th><span class="zh-content">维度</span><span class="en-content">Dimension</span></th>
+                            <th>Qwen3-VL</th>
+                            <th>Molmo2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="zh-content">字幕在训练中</span><span class="en-content">Subtitles in Training</span></td>
+                            <td><span class="zh-content">❌ 仅评测时注入</span><span class="en-content">❌ Injected only at Eval</span></td>
+                            <td><span class="zh-content">✅ 训练数据包含字幕QA</span><span class="en-content">✅ Subtitle QA in Training</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">字幕格式</span><span class="en-content">Subtitle Format</span></td>
+                            <td>SRT (via lmms_eval)</td>
+                            <td><span class="zh-content">自定义 subtitles.json</span><span class="en-content">Custom subtitles.json</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">最大帧数</span><span class="en-content">Max Frames</span></td>
+                            <td>768</td>
+                            <td>384</td>
+                        </tr>
+                        <tr>
+                            <td><span class="zh-content">长上下文</span><span class="en-content">Long Context</span></td>
+                            <td><span class="zh-content">原生支持</span><span class="en-content">Native Support</span></td>
+                            <td>Context Parallel (跨GPU分片)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="fade-in" id="sec-10" data-label="总结/Conclusion">
+            <div class="zh-content">
+                <h2><span class="sec-num">10</span>总结：走向 AGI 的分岔路口</h2>
+                <p>回顾从 VideoMME 到 VideoMME-v2，再到 MMOU 的演进，我们清晰地看到视频评测中针对声音与文本的探索，已经分化出三种主流范式：</p>
+                <ol>
+                    <li><strong>显式文本流（Explicit Text）：</strong>如 VideoMME，将外部获取的 SRT/JSONL 作为坚实的提示词后盾，适合需要极高精度知识提取的场景。</li>
+                    <li><strong>纯视觉流（Pure Visual）：</strong>如 MLVU，刻意剥离声音和字幕，强迫模型提升对长视频纯视觉情节和微小动作的洞察力。</li>
+                    <li><strong>隐式全能流（Implicit Omni）：</strong>如 MMOU，代表着未来的终极形态。模型必须直面嘈杂的原生音频流，在视听交融的混沌中提取真理。</li>
+                </ol>
+                <p>未来的研究留下了激动人心的开放问题：随着模型 OCR 能力的突破，未来的 MLLM 是否能直接“读懂”画面中烧录（Burned-in）的字幕，从而彻底终结外部字幕文件的历史？让我们拭目以待。</p>
+            </div>
+            <div class="en-content">
+                <h2><span class="sec-num">10</span>Conclusion: Crossings on the Path to AGI</h2>
+                <p>Looking back at the evolution from VideoMME to VideoMME-v2, and on to MMOU, we clearly see that the exploration of audio and text in video evaluation has branched into three mainstream paradigms:</p>
+                <ol>
+                    <li><strong>Explicit Text Stream:</strong> Like VideoMME, utilizing externally acquired SRT/JSONL as a solid prompt backbone. Ideal for scenarios requiring extreme precision in knowledge extraction.</li>
+                    <li><strong>Pure Visual Stream:</strong> Like MLVU, deliberately stripping away audio and subtitles to force models to enhance their insight into pure visual plots and subtle actions in long videos.</li>
+                    <li><strong>Implicit Omni Stream:</strong> Like MMOU, representing the ultimate future form. Models must confront noisy raw audio streams, extracting truth from the chaos of audio-visual fusion.</li>
+                </ol>
+                <p>Future research leaves thrilling open questions: As model OCR capabilities break through, will future MLLMs directly "read" burned-in subtitles from the frames, thereby entirely ending the history of external subtitle files? We wait with anticipation.</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="btt" title="Back to Top">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <title>Back to top</title>
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </div>
+
+    <script>
+        // ==========================================================================
+        // LANGUAGE TOGGLE
+        // ==========================================================================
+        function toggleLanguage() {
+            const body = document.body;
+            if (body.classList.contains('lang-zh')) {
+                body.classList.remove('lang-zh');
+                body.classList.add('lang-en');
+                document.title = "Subtitle Evaluation in Video Understanding: From VideoMME to VideoMME-v2";
+            } else {
+                body.classList.remove('lang-en');
+                body.classList.add('lang-zh');
+                document.title = "视频理解Benchmark中的字幕评测：从VideoMME到VideoMME-v2";
+            }
+        }
+
+        // ==========================================================================
+        // SCROLL & UI LOGIC
+        // ==========================================================================
+        const progressBar = document.getElementById('progress-bar');
+        const btt = document.getElementById('btt');
+        const langToggleBtn = document.getElementById('lang-toggle-btn');
+        const heroTitle = document.getElementById('hero-title');
+        const heroTitleEn = document.getElementById('hero-title-en');
+
+        window.addEventListener('scroll', () => {
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            
+            // Progress Bar
+            const progress = (scrollTop / scrollHeight) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Back to Top Button
+            if (scrollTop > 500) {
+                btt.classList.add('visible');
+            } else {
+                btt.classList.remove('visible');
+            }
+
+            // Parallax on Hero
+            if (scrollTop < 500) {
+                const yPos = scrollTop * 0.4;
+                const opacity = 1 - (scrollTop / 400);
+                heroTitle.style.transform = `translateY(${yPos}px)`;
+                heroTitle.style.opacity = opacity > 0 ? opacity : 0;
+                heroTitleEn.style.transform = `translateY(${yPos}px)`;
+                heroTitleEn.style.opacity = opacity > 0 ? opacity : 0;
+            }
+        });
+
+        // ==========================================================================
+        // DYNAMIC SECTION NAVIGATION
+        // ==========================================================================
+        const sections = document.querySelectorAll('section[id]');
+        const navContainer = document.getElementById('section-nav');
+        
+        // Build dots
+        sections.forEach((sec, idx) => {
+            const dot = document.createElement('div');
+            dot.className = 'sec-dot';
+            dot.setAttribute('data-label', sec.getAttribute('data-label') || `Section ${idx+1}`);
+            dot.addEventListener('click', () => {
+                const y = sec.getBoundingClientRect().top + window.pageYOffset - 100;
+                window.scrollTo({top: y, behavior: 'smooth'});
+            });
+            navContainer.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.sec-dot');
+
+        const navObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    // Find index
+                    const idx = Array.from(sections).indexOf(entry.target);
+                    dots.forEach(d => {
+                        d.classList.remove('active');
+                    });
+                    if(dots[idx]) dots[idx].classList.add('active');
+                }
+            });
+            
+            // Show nav only when scrolled past intro roughly
+            if (window.scrollY > 300) {
+                navContainer.classList.add('visible');
+            } else {
+                navContainer.classList.remove('visible');
+            }
+        }, { threshold: 0.3, rootMargin: "-100px 0px -200px 0px" });
+
+        sections.forEach(sec => {
+            navObserver.observe(sec);
+        });
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                navContainer.classList.add('visible');
+            } else {
+                navContainer.classList.remove('visible');
+            }
+        });
+
+        // ==========================================================================
+        // INTERSECTION OBSERVER FOR ANIMATIONS
+        // ==========================================================================
+        const animObserverOptions = {
+            root: null,
+            rootMargin: '0px 0px -50px 0px',
+            threshold: 0.1
+        };
+
+        const animObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // If it's a stats grid container, animate numbers
+                    if (entry.target.classList.contains('stats-grid') || entry.target.querySelector('.counter')) {
+                        animateCounters(entry.target);
+                    }
+                    
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, animObserverOptions);
+
+        // Observe elements
+        document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-bottom, .svg-container').forEach((el, index) => {
+            // Add subtle staggering based on DOM order for sibling elements
+            if (!el.style.transitionDelay && el.parentElement.tagName !== 'MAIN') {
+                const delay = (index % 3) * 0.15;
+                el.style.transitionDelay = `${delay}s`;
+            }
+            animObserver.observe(el);
+        });
+
+        // Add stagger to table rows
+        document.querySelectorAll('tbody tr').forEach((tr, index) => {
+            tr.classList.add('slide-in-left');
+            tr.style.transitionDelay = `${index * 0.1}s`;
+            animObserver.observe(tr);
+        });
+
+        // ==========================================================================
+        // NUMBER COUNTER ANIMATION
+        // ==========================================================================
+        function animateCounters(container) {
+            const counters = container.querySelectorAll('.counter');
+            const speed = 2000; // Total duration in ms
+
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const updateCount = () => {
+                    const current = +counter.innerText.replace(/,/g, '');
+                    // Calculate increment based on remaining distance to smooth out ending
+                    const inc = target / (speed / 16); // 16ms roughly 60fps
+                    
+                    if (current < target) {
+                        const nextVal = Math.ceil(current + inc);
+                        counter.innerText = nextVal > target ? target : nextVal;
+                        setTimeout(updateCount, 16);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                updateCount();
+            });
+        }
+        // ==========================================================================
+        // PIPELINE & DEMO ANIMATIONS
+        // ==========================================================================
+        function setDemoMode(mode, btn) {
+            const container = document.getElementById('sec4-demo');
+            const btns = document.querySelectorAll('.toggle-btn');
+            btns.forEach(b => {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            
+            container.className = `demo-container demo-mode-${mode} fade-in visible`;
+        }
+
+        if (langToggleBtn) {
+            langToggleBtn.addEventListener('click', toggleLanguage);
+        }
+
+        if (btt) {
+            btt.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setDemoMode(btn.dataset.mode, btn);
+            });
+        });
+
+        const pipelineObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('is-animating');
+                    pipelineObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
+        
+        const pipelineEl = document.getElementById('subtitle-pipeline');
+        if (pipelineEl) pipelineObserver.observe(pipelineEl);
+
+        // Dual Pipeline animation observer
+        const dualPipelineEl = document.getElementById('dual-pipeline-demo');
+        if (dualPipelineEl) pipelineObserver.observe(dualPipelineEl);
+
+        // Training stages animation observer
+        document.querySelectorAll('.training-stages').forEach(el => {
+            pipelineObserver.observe(el);
+        });
+    </script>
+</body>
+</html>
