@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script defer src="/_vercel/insights/script.js"></script>
+    <title>蒙特卡洛方法：用随机试验逼近答案</title>
+    <meta
+      name="description"
+      content="用最简单的例子、代码和动画理解蒙特卡洛方法：为什么随机试很多次，可以逼近 π 和复杂问题的答案。"
+    />
+    <link rel="shortcut icon" href="/assets/img/profile_pic.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-soft: #f7f9fc;
+        --panel: #fbfcfe;
+        --text: #1f2937;
+        --muted: #5b6472;
+        --border: #d7dee8;
+        --accent: #2563eb;
+        --accent-soft: #dbeafe;
+        --good: #dc2626;
+        --bad: #2563eb;
+        --font-headline: "Playfair Display", Georgia, serif;
+        --font-serif: "Cormorant Garamond", Georgia, serif;
+        --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-serif);
+        line-height: 1.65;
+        padding: 2rem 1rem 3rem;
+      }
+
+      .site-nav {
+        max-width: 920px;
+        margin: 0 auto 1rem;
+        padding: 0 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-family: var(--font-sans);
+        font-size: 0.88rem;
+      }
+
+      .site-nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .site-nav a:hover {
+        color: var(--accent);
+        text-decoration: underline;
+      }
+
+      .nav-sep {
+        color: var(--border);
+        user-select: none;
+      }
+
+      .article {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 0 1rem;
+      }
+
+      .masthead {
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .eyebrow {
+        font-family: var(--font-sans);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+      }
+
+      .masthead-title {
+        font-family: var(--font-headline);
+        font-size: clamp(2.4rem, 5vw, 3.6rem);
+        line-height: 1.08;
+        margin-bottom: 0.7rem;
+      }
+
+      .masthead-sub {
+        font-family: var(--font-sans);
+        color: var(--muted);
+        font-size: 1rem;
+        max-width: 760px;
+        margin: 0 auto 0.75rem;
+      }
+
+      .meta {
+        font-family: var(--font-sans);
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .hero-note {
+        background: linear-gradient(135deg, var(--panel), var(--accent-soft));
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+        margin: 1.5rem 0 2rem;
+        font-size: 1.14rem;
+      }
+
+      .section-title {
+        font-family: var(--font-headline);
+        font-size: 1.65rem;
+        margin: 2.2rem 0 0.85rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+      }
+
+      p {
+        font-size: 1.16rem;
+        margin-bottom: 0.95rem;
+      }
+
+      ul,
+      ol {
+        margin: 0.2rem 0 1rem 1.4rem;
+        font-size: 1.12rem;
+      }
+
+      li {
+        margin-bottom: 0.5rem;
+      }
+
+      .grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        margin: 1rem 0 1.4rem;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1rem 0.9rem;
+      }
+
+      .card h3 {
+        font-family: var(--font-sans);
+        font-size: 1rem;
+        margin-bottom: 0.45rem;
+      }
+
+      .card p {
+        font-size: 1.03rem;
+        color: var(--muted);
+        margin-bottom: 0;
+      }
+
+      .formula {
+        display: inline-block;
+        padding: 0.14rem 0.45rem;
+        border-radius: 6px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 0.92em;
+      }
+
+      .formula-block {
+        margin: 1.2rem 0 1.4rem;
+        padding: 1rem 1.2rem;
+        background: var(--bg-soft);
+        border-left: 4px solid var(--accent);
+        border-radius: 8px;
+        font-family: var(--font-mono);
+        font-size: 1rem;
+        overflow-x: auto;
+      }
+
+      .code-block {
+        background: #0f172a;
+        color: #e2e8f0;
+        border-radius: 12px;
+        padding: 1.1rem 1.15rem;
+        margin: 1.1rem 0 1rem;
+        font-family: var(--font-mono);
+        font-size: 0.88rem;
+        line-height: 1.7;
+        overflow-x: auto;
+        white-space: pre;
+        border: 1px solid #1e293b;
+      }
+
+      .code-caption {
+        font-family: var(--font-sans);
+        color: var(--muted);
+        font-size: 0.92rem;
+        margin-top: -0.2rem;
+      }
+
+      .viz-shell {
+        margin: 1.2rem 0 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--panel);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      }
+
+      .viz-stage {
+        padding: 1rem;
+        display: grid;
+        grid-template-columns: minmax(260px, 480px) minmax(220px, 1fr);
+        gap: 1rem;
+        align-items: start;
+      }
+
+      canvas {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        display: block;
+      }
+
+      .viz-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        font-family: var(--font-sans);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(100px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .stat-box {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.8rem;
+      }
+
+      .stat-label {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem;
+      }
+
+      button {
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #fff;
+        padding: 0.65rem 0.95rem;
+        border-radius: 999px;
+        font-family: var(--font-sans);
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #fff;
+        color: var(--accent);
+      }
+
+      button:hover {
+        filter: brightness(1.03);
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem 1rem;
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .dot.inside {
+        background: var(--good);
+      }
+
+      .dot.outside {
+        background: var(--bad);
+      }
+
+      .viz-footer {
+        border-top: 1px solid var(--border);
+        padding: 0.85rem 1rem 1rem;
+        font-family: var(--font-sans);
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .footer-links {
+        margin-top: 2.4rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        font-family: var(--font-sans);
+        color: var(--muted);
+      }
+
+      .footer-links a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .footer-links a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 780px) {
+        body {
+          padding: 1rem 0.4rem 2rem;
+        }
+
+        .article {
+          padding: 0 0.5rem;
+        }
+
+        .viz-stage {
+          grid-template-columns: 1fr;
+        }
+
+        p,
+        ul,
+        ol {
+          font-size: 1.05rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/partial_fc.html">PFC</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/llava_onevision2.html">OV2</a>
+      <span class="nav-sep">|</span>
+      <a href="/pages/blog.html">Blog</a>
+    </nav>
+
+    <main class="article">
+      <header class="masthead">
+        <div class="eyebrow">Simulation · Beginner Friendly</div>
+        <h1 class="masthead-title">蒙特卡洛方法：用随机试验逼近答案</h1>
+        <p class="masthead-sub">
+          不靠复杂公式，先靠“随机试很多次”抓住直觉，再用一个可运行的小动画和一段 Python 代码把它讲明白。
+        </p>
+        <div class="meta">Apr 8, 2026 · ~6 min read</div>
+      </header>
+
+      <div class="hero-note">
+        <strong>一句话版：</strong>
+        蒙特卡洛方法就是：<strong>当一个问题很难直接算时，用大量随机试验，去逼近它的答案。</strong>
+      </div>
+
+      <h2 class="section-title">1. 先不要想公式，先想“反复试”</h2>
+      <p>
+        假设你想知道一个大盒子里红球大概占多少，但你又不想把所有球一个个数完。最自然的办法不是推公式，而是每次随机抓一把，记下红球比例，重复很多次，再看平均结果。
+      </p>
+      <p>
+        这就是蒙特卡洛方法最核心的味道：<strong>不直接硬算，而是通过随机抽样，让答案慢慢浮出来。</strong>
+      </p>
+
+      <h2 class="section-title">2. 两个最容易懂的例子</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>例子 A：撒点估计 π</h3>
+          <p>
+            在一个正方形里画一个圆，然后随机撒点。落进圆里的点越多，说明圆占的面积比例越大。这个比例就能反推 π。
+          </p>
+        </div>
+        <div class="card">
+          <h3>例子 B：猜盒子里红球比例</h3>
+          <p>
+            每次随机摸一个球，记它是不是红色。摸很多次后，红球出现的比例会越来越接近真实比例。
+          </p>
+        </div>
+      </div>
+      <p>
+        这两个例子其实在说同一件事：<strong>只要随机抽样足够多，样本里的比例，通常会越来越接近真实世界里的比例。</strong>
+      </p>
+
+      <h2 class="section-title">3. 为什么它有用</h2>
+      <ul>
+        <li>有些问题公式能写出来，但真正算起来太麻烦。</li>
+        <li>有些问题维度太高，直接枚举几乎不可能。</li>
+        <li>很多真实系统本来就带随机性，比如金融风险、排队等待、网络延迟。</li>
+        <li>很多时候我们不需要“绝对精确”，只要一个足够好的近似答案。</li>
+      </ul>
+      <p>
+        所以蒙特卡洛方法的价值不在于“特别精确”，而在于它经常能在复杂问题面前，给出一个<strong>简单、可实现、还挺靠谱</strong>的答案。
+      </p>
+
+      <h2 class="section-title">4. 现实里它常用在哪</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>金融风险</h3>
+          <p>随机模拟很多种市场变化，看看投资组合最坏时可能亏多少。</p>
+        </div>
+        <div class="card">
+          <h3>游戏 AI</h3>
+          <p>随机尝试很多走法，评估哪条路径更有希望赢。</p>
+        </div>
+        <div class="card">
+          <h3>物理模拟</h3>
+          <p>在粒子运动、辐射传输这类系统里，用随机采样逼近整体行为。</p>
+        </div>
+        <div class="card">
+          <h3>排队与交通</h3>
+          <p>模拟很多车辆、用户或请求的到来，估计拥堵和等待时间。</p>
+        </div>
+      </div>
+
+      <h2 class="section-title">5. 最经典的小演示：为什么能估计 π</h2>
+      <p>
+        我们画一个边长为 2 的正方形，里面放一个半径为 1 的圆。正方形面积是 4，圆面积是 π。于是有：
+      </p>
+      <div class="formula-block">圆面积 / 正方形面积 = π / 4</div>
+      <p>
+        如果我们在正方形里随机撒点，那么“落进圆里的点数 / 总点数”就会越来越接近 <span class="formula">π / 4</span>。
+        所以：
+      </p>
+      <div class="formula-block">π ≈ 4 × (圆内点数 / 总点数)</div>
+
+      <div class="viz-shell">
+        <div class="viz-stage">
+          <canvas id="mc-canvas" width="520" height="520"></canvas>
+          <div class="viz-panel">
+            <div class="stats">
+              <div class="stat-box">
+                <span class="stat-label">总点数</span>
+                <strong class="stat-value" id="total-points">0</strong>
+              </div>
+              <div class="stat-box">
+                <span class="stat-label">圆内点数</span>
+                <strong class="stat-value" id="inside-points">0</strong>
+              </div>
+              <div class="stat-box">
+                <span class="stat-label">当前 π 估计</span>
+                <strong class="stat-value" id="pi-estimate">0.00000</strong>
+              </div>
+              <div class="stat-box">
+                <span class="stat-label">和真实 π 的差</span>
+                <strong class="stat-value" id="pi-error">0.00000</strong>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button type="button" id="start-btn">开始动画</button>
+              <button type="button" class="secondary" id="step-btn">单次加 300 点</button>
+              <button type="button" class="secondary" id="reset-btn">重置</button>
+            </div>
+
+            <div class="legend">
+              <span><i class="dot inside"></i>圆内点</span>
+              <span><i class="dot outside"></i>圆外点</span>
+            </div>
+
+            <p>
+              你会看到：刚开始估计值会跳来跳去，但随着点越来越多，它会慢慢稳定，并靠近 3.14159。
+            </p>
+          </div>
+        </div>
+        <div class="viz-footer">
+          动画思路也很简单：先画正方形和圆，再不断生成随机点；圆内点标红，圆外点标蓝，同时实时更新
+          <span class="formula">π ≈ 4 × inside / total</span>。
+        </div>
+      </div>
+
+      <h2 class="section-title">6. 一个超简单的 Python 代码例子</h2>
+      <p>
+        下面这段代码做的事情，和上面的动画完全一样：每次随机生成一个点，判断它是不是落在圆里，然后用比例估计 π。
+      </p>
+      <pre class="code-block">import random
+
+# 总共随机撒多少个点
+n = 100000
+
+# 记录落在圆内的点数
+inside = 0
+
+for _ in range(n):
+    # 在 [-1, 1] × [-1, 1] 的正方形里随机取一个点
+    x = random.uniform(-1, 1)
+    y = random.uniform(-1, 1)
+
+    # 如果点满足 x² + y² <= 1，说明它落在单位圆内
+    if x * x + y * y &lt;= 1:
+        inside += 1
+
+# 圆面积 / 正方形面积 ≈ inside / n
+# 所以 π ≈ 4 * inside / n
+pi_estimate = 4 * inside / n
+
+print("估算的 π =", pi_estimate)</pre>
+      <p class="code-caption">
+        为什么这样能估计 π？因为单位圆面积是 π，外面的正方形面积是 4，所以圆内点的比例会接近 π/4。
+      </p>
+
+      <h2 class="section-title">7. 如果你想自己做一个动画，最简单的实现步骤</h2>
+      <ol>
+        <li>先画一个正方形作为采样区域。</li>
+        <li>在里面画一个圆，表示“目标区域”。</li>
+        <li>不断随机生成点，把它们画到画布上。</li>
+        <li>如果点在圆里，就用一种颜色；否则用另一种颜色。</li>
+        <li>每批点生成后，更新总点数、圆内点数和 π 的估计值。</li>
+        <li>让用户能开始、暂停、重置，这样动画就既直观又可互动。</li>
+      </ol>
+      <p>
+        这个思路不只适合前端 Canvas，用 Python 的 matplotlib 动画、Processing，甚至课堂 PPT 的逐帧动画都能做。
+      </p>
+
+      <h2 class="section-title">8. 最后只记住三句话</h2>
+      <ul>
+        <li>蒙特卡洛方法，本质上是<strong>用随机抽样逼近答案</strong>。</li>
+        <li>它之所以有效，是因为样本多了以后，统计比例会越来越接近真实比例。</li>
+        <li>它特别适合那些<strong>难算、太复杂、但允许近似</strong>的问题。</li>
+      </ul>
+
+      <div class="footer-links">
+        <a href="/pages/blog.html">Back to Blog</a>
+        <span class="nav-sep">·</span>
+        <a href="/">Home</a>
+      </div>
+    </main>
+
+    <script>
+      const canvas = document.getElementById('mc-canvas');
+      const ctx = canvas.getContext('2d');
+      const totalPointsEl = document.getElementById('total-points');
+      const insidePointsEl = document.getElementById('inside-points');
+      const piEstimateEl = document.getElementById('pi-estimate');
+      const piErrorEl = document.getElementById('pi-error');
+      const startBtn = document.getElementById('start-btn');
+      const stepBtn = document.getElementById('step-btn');
+      const resetBtn = document.getElementById('reset-btn');
+
+      const size = canvas.width;
+      const padding = 30;
+      const plotSize = size - padding * 2;
+      const center = size / 2;
+      const radius = plotSize / 2;
+      let total = 0;
+      let inside = 0;
+      let running = false;
+      let rafId = null;
+
+      function toCanvasX(x) {
+        return padding + ((x + 1) / 2) * plotSize;
+      }
+
+      function toCanvasY(y) {
+        return size - padding - ((y + 1) / 2) * plotSize;
+      }
+
+      function drawBase() {
+        ctx.clearRect(0, 0, size, size);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(padding, padding, plotSize, plotSize);
+
+        ctx.beginPath();
+        ctx.arc(center, center, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(center, padding);
+        ctx.lineTo(center, size - padding);
+        ctx.moveTo(padding, center);
+        ctx.lineTo(size - padding, center);
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      function updateStats() {
+        const estimate = total === 0 ? 0 : 4 * inside / total;
+        totalPointsEl.textContent = total.toLocaleString('en-US');
+        insidePointsEl.textContent = inside.toLocaleString('en-US');
+        piEstimateEl.textContent = estimate.toFixed(5);
+        piErrorEl.textContent = Math.abs(Math.PI - estimate).toFixed(5);
+      }
+
+      function addPoint() {
+        const x = Math.random() * 2 - 1;
+        const y = Math.random() * 2 - 1;
+        const isInside = x * x + y * y <= 1;
+
+        total += 1;
+        if (isInside) inside += 1;
+
+        ctx.beginPath();
+        ctx.arc(toCanvasX(x), toCanvasY(y), 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = isInside ? '#dc2626' : '#2563eb';
+        ctx.globalAlpha = 0.78;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      function addBatch(count) {
+        for (let i = 0; i < count; i += 1) {
+          addPoint();
+        }
+        updateStats();
+      }
+
+      function tick() {
+        if (!running) return;
+        addBatch(180);
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function startAnimation() {
+        if (running) {
+          running = false;
+          startBtn.textContent = '继续动画';
+          if (rafId !== null) cancelAnimationFrame(rafId);
+          return;
+        }
+        running = true;
+        startBtn.textContent = '暂停动画';
+        tick();
+      }
+
+      function resetAll() {
+        running = false;
+        if (rafId !== null) cancelAnimationFrame(rafId);
+        rafId = null;
+        total = 0;
+        inside = 0;
+        startBtn.textContent = '开始动画';
+        drawBase();
+        updateStats();
+      }
+
+      startBtn.addEventListener('click', startAnimation);
+      stepBtn.addEventListener('click', () => addBatch(300));
+      resetBtn.addEventListener('click', resetAll);
+
+      drawBase();
+      updateStats();
+    </script>
+  </body>
+</html>
