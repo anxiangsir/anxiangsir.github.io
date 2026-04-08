@@ -816,6 +816,18 @@
         <strong>💡 Signal vs. noise:</strong> In the 2D plane spanned by o and q, the quantized vector ō decomposes into a component along o (the 'signal' — proportional to the target ⟨o, q⟩) and a perpendicular component (the 'noise'). Due to the random rotation, the noise term ⟨ō, e₁⟩ has zero expected value and concentrates tightly around 0 (see §8). Meanwhile ⟨ō, o⟩ concentrates around ≈0.8 and is pre-computed at index time.
       </div>
 
+      <div class="stage-wrapper" id="stage-signal-noise" style="height:320px; margin: 1.5em 0;">
+        <canvas id="canvas-signal-noise"></canvas>
+        <div class="viz-info" id="signal-noise-info"
+          data-en="Signal ⟨ō, o⟩ concentrates near 0.8; noise ⟨ō, e₁⟩ averages to 0" data-zh="信号 ⟨ō, o⟩ 集中在 0.8 附近；噪声 ⟨ō, e₁⟩ 平均为 0">
+          Signal ⟨ō, o⟩ concentrates near 0.8; noise ⟨ō, e₁⟩ averages to 0
+        </div>
+        <div class="controls">
+          <button class="btn-play" id="btn-sn-reroll" type="button"
+            data-en="🎲 New Vectors" data-zh="🎲 换一组向量">🎲 New Vectors</button>
+        </div>
+      </div>
+
       <p class="phase-desc" style="margin-top:0.5em"
         data-en="This leads directly to the paper's key result: dividing by ⟨ō, o⟩ corrects the scale and cancels the bias, giving an unbiased estimator:"
         data-zh="这直接导出论文的核心结果：除以 ⟨ō, o⟩ 修正了尺度并消除了偏差，得到一个无偏估计量：">
@@ -830,9 +842,14 @@
         <p style="margin-top:0; margin-bottom:15px; font-size:1.1em">
           <strong data-en="📐 D=3 Worked Example" data-zh="📐 D=3 具体示例">📐 D=3 Worked Example</strong>
         </p>
-        <div id="walkthrough-container" style="display:flex; flex-direction:column; gap:12px; margin-bottom:15px">
-          <!-- JS will fill this -->
+        <div style="display:flex; gap:8px; margin-bottom:12px">
+          <button class="btn-play" id="btn-walkthrough-next" type="button"
+            data-en="▶ Next Step" data-zh="▶ 下一步">▶ Next Step</button>
+          <button class="btn-play" id="btn-walkthrough-reset" type="button"
+            data-en="🔄 Reset" data-zh="🔄 重置">🔄 Reset</button>
         </div>
+        <div id="walkthrough-container" style="display:flex; flex-direction:column; gap:0; margin-bottom:15px">
+          <!-- JS will fill this -->
         <button class="btn-play" id="btn-walkthrough-reroll" type="button"
           data-en="🎲 New Vectors" data-zh="🎲 换一组向量">🎲 New Vectors</button>
       </div>
@@ -855,44 +872,90 @@
 
 
       <p class="phase-desc" style="margin-top:1.5em"
-        data-en="How does production code implement this? The official RaBitQ-Library reorganizes everything into three precomputed scalars per data vector:"
-        data-zh="生产代码如何实现？官方 RaBitQ-Library 将一切重组为每个数据向量预计算的三个标量：">
-        How does production code implement this? The official RaBitQ-Library reorganizes everything into three precomputed scalars per data vector:
+        data-en="How does the official RaBitQ-Library turn this into fast code? The trick is to pre-factor the distance formula so that the only per-pair computation is a single binary inner product. Let's walk through the algebra in three steps."
+        data-zh="官方 RaBitQ-Library 如何将其转化为高效代码？诀窍是预分解距离公式，使得每对向量只需计算一次二进制内积。让我们分三步走完代数推导。">
+        How does the official RaBitQ-Library turn this into fast code? The trick is to pre-factor the distance formula so that the only per-pair computation is a single binary inner product. Let's walk through the algebra in three steps.
       </p>
 
-      <div class="insight-box" style="padding:0; overflow:hidden">
-        <div style="padding:12px 20px; border-bottom:1px solid #bfdbfe; display:flex; gap:16px; align-items:baseline">
-          <strong style="color:var(--accent); font-family:var(--font-math); min-width:90px">f_add</strong>
-          <span data-en="= ‖x_r − c‖² + centroid correction. Pre-computed at index time. Captures the data vector's contribution to the squared distance."
-                data-zh="= ‖x_r − c‖² + 质心修正。建索引时预计算。捕获数据向量对平方距离的贡献。">
-            = ‖x_r − c‖² + centroid correction. Pre-computed at index time. Captures the data vector's contribution to the squared distance.
+      <!-- Derivation Step 1 -->
+      <div class="insight-box" style="border-left: 4px solid #3b82f6; margin-top: 1em">
+        <p style="margin:0 0 8px 0"><strong
+          data-en="Step ① Substitute the estimator into the distance formula"
+          data-zh="步骤 ① 将估计量代入距离公式">Step ① Substitute the estimator into the distance formula</strong></p>
+        <p class="phase-desc" style="margin:0; font-size:0.95em"
+          data-en="We already know ⟨o,q⟩ ≈ ⟨x̄,q'⟩ / ⟨ō,o⟩. Plug this into the distance formula from above:"
+          data-zh="我们已知 ⟨o,q⟩ ≈ ⟨x̄,q'⟩ / ⟨ō,o⟩。将其代入上面的距离公式：">
+          We already know ⟨o,q⟩ ≈ ⟨x̄,q'⟩ / ⟨ō,o⟩. Plug this into the distance formula from above:
+        </p>
+      </div>
+      <div class="math-block">
+        $$\widehat{\|x_r - q_r\|^2} \;=\; \underbrace{\|x_r - c\|^2}_{\text{data-only}} + \underbrace{\|q_r - c\|^2}_{\text{query-only}} - \underbrace{\frac{2\,\|x_r - c\|\cdot\|q_r - c\|}{\langle \bar{o},\,o \rangle}}_{\text{scale factor}} \cdot\, \langle \bar{x},\, q' \rangle$$
+      </div>
+
+      <!-- Derivation Step 2 -->
+      <div class="insight-box" style="border-left: 4px solid #3b82f6; margin-top: 1em">
+        <p style="margin:0 0 8px 0"><strong
+          data-en="Step ② Group terms by when they can be computed"
+          data-zh="步骤 ② 按计算时机分组">Step ② Group terms by when they can be computed</strong></p>
+        <p class="phase-desc" style="margin:0; font-size:0.95em"
+          data-en="The three groups above have different lifetimes: ‖x_r−c‖² depends only on the data vector (computed once at index time), ‖q_r−c‖² depends only on the query (computed once per search), and the scale factor combines both. We name them:"
+          data-zh="上面三组有不同的生命周期：‖x_r−c‖² 仅依赖数据向量（建索引时计算一次），‖q_r−c‖² 仅依赖查询（每次搜索计算一次），缩放因子则结合了两者。我们分别命名为：">
+          The three groups above have different lifetimes: ‖x_r−c‖² depends only on the data vector (computed once at index time), ‖q_r−c‖² depends only on the query (computed once per search), and the scale factor combines both. We name them:
+        </p>
+      </div>
+
+      <div class="insight-box" style="padding:0; overflow:hidden; margin-top:0.5em">
+        <div style="padding:12px 20px; border-bottom:1px solid #bfdbfe; display:flex; gap:16px; align-items:baseline; background:#f0f7ff">
+          <strong style="color:#2563eb; font-family:var(--font-math); min-width:100px">f_add</strong>
+          <span data-en="= ‖x_r − c‖² — the data vector's squared distance to centroid. Stored per vector at index time."
+                data-zh="= ‖x_r − c‖² — 数据向量到质心的平方距离。建索引时按向量存储。">
+            = ‖x_r − c‖² — the data vector's squared distance to centroid. Stored per vector at index time.
           </span>
         </div>
         <div style="padding:12px 20px; border-bottom:1px solid #bfdbfe; display:flex; gap:16px; align-items:baseline">
-          <strong style="color:var(--accent); font-family:var(--font-math); min-width:90px">f_rescale</strong>
-          <span data-en="= −2‖x_r − c‖² / ⟨ō, o⟩. Absorbs the division from the paper's estimator. At query time, just multiply — no division needed."
-                data-zh="= −2‖x_r − c‖² / ⟨ō, o⟩。吸收了论文估计量中的除法。查询时只需乘法——无需除法。">
-            = −2‖x_r − c‖² / ⟨ō, o⟩. Absorbs the division from the paper's estimator. At query time, just multiply — no division needed.
+          <strong style="color:#2563eb; font-family:var(--font-math); min-width:100px">f_rescale</strong>
+          <span data-en="= −2·‖x_r − c‖ / ⟨ō, o⟩ — absorbs the norm and the ⟨ō,o⟩ division. Stored per vector at index time. At query time, multiply by ‖q_r−c‖ to get the full scale factor."
+                data-zh="= −2·‖x_r − c‖ / ⟨ō, o⟩ — 吸收了范数和 ⟨ō,o⟩ 的除法。建索引时按向量存储。查询时乘以 ‖q_r−c‖ 得到完整的缩放因子。">
+            = −2·‖x_r − c‖ / ⟨ō, o⟩ — absorbs the norm and the ⟨ō,o⟩ division. Stored per vector at index time. At query time, multiply by ‖q_r−c‖ to get the full scale factor.
           </span>
         </div>
-        <div style="padding:12px 20px; border-bottom:1px solid #bfdbfe; display:flex; gap:16px; align-items:baseline">
-          <strong style="color:var(--accent); font-family:var(--font-math); min-width:90px">g_add</strong>
-          <span data-en="= ‖q_r − c‖². Query-side term, computed once per query."
-                data-zh="= ‖q_r − c‖²。查询侧项，每次查询只计算一次。">
-            = ‖q_r − c‖². Query-side term, computed once per query.
+        <div style="padding:12px 20px; border-bottom:1px solid #bfdbfe; display:flex; gap:16px; align-items:baseline; background:#f0f7ff">
+          <strong style="color:#2563eb; font-family:var(--font-math); min-width:100px">g_add</strong>
+          <span data-en="= ‖q_r − c‖² — the query's squared distance to centroid. Computed once per search."
+                data-zh="= ‖q_r − c‖² — 查询到质心的平方距离。每次搜索计算一次。">
+            = ‖q_r − c‖² — the query's squared distance to centroid. Computed once per search.
           </span>
         </div>
         <div style="padding:12px 20px; display:flex; gap:16px; align-items:baseline">
-          <strong style="color:var(--accent); font-family:var(--font-math); min-width:90px">k₁xsumq</strong>
-          <span data-en="= sum(q') × (−0.5). Corrects for the {0,1} → {−½,+½} binary encoding shift."
-                data-zh="= sum(q') × (−0.5)。修正 {0,1} → {−½,+½} 二进制编码偏移。">
-            = sum(q') × (−0.5). Corrects for the {0,1} → {−½,+½} binary encoding shift.
+          <strong style="color:#2563eb; font-family:var(--font-math); min-width:100px">k₁xsumq</strong>
+          <span data-en="= sum(q') × (−0.5) — encoding shift correction. The library stores x̄ as {0,1} bits, not {−1,+1}. POPCNT counts matching bits, but this counts from 0, not from −D/2. This offset absorbs that centering."
+                data-zh="= sum(q') × (−0.5) — 编码偏移修正。库将 x̄ 存为 {0,1} 比特而非 {−1,+1}。POPCNT 统计匹配位数，但从 0 开始计数，而非 −D/2。此偏移量吸收了该中心化。">
+            = sum(q') × (−0.5) — encoding shift correction. The library stores x̄ as {0,1} bits, not {−1,+1}. POPCNT counts matching bits, but this counts from 0, not from −D/2. This offset absorbs that centering.
           </span>
         </div>
       </div>
 
+      <!-- Derivation Step 3 -->
+      <div class="insight-box" style="border-left: 4px solid #3b82f6; margin-top: 1em">
+        <p style="margin:0 0 8px 0"><strong
+          data-en="Step ③ The final one-line formula — only ⟨x̄, q'⟩ is computed per pair"
+          data-zh="步骤 ③ 最终的一行公式 — 每对只计算 ⟨x̄, q'⟩">Step ③ The final one-line formula — only ⟨x̄, q'⟩ is computed per pair</strong></p>
+        <p class="phase-desc" style="margin:0; font-size:0.95em"
+          data-en="After precomputation, each candidate distance requires only a single binary dot product (via POPCNT) plus one multiply-add:"
+          data-zh="预计算之后，每个候选距离只需要一次二进制点积（通过 POPCNT）加一次乘加运算：">
+          After precomputation, each candidate distance requires only a single binary dot product (via POPCNT) plus one multiply-add:
+        </p>
+      </div>
+
       <div class="math-block">
-        $$\text{est\_dist} = f_{\text{add}} + g_{\text{add}} + f_{\text{rescale}} \cdot \bigl(\langle \bar{x},\, q' \rangle + k_{\text{1xsumq}}\bigr)$$
+        $$\text{est\_dist} = f_{\text{add}} + g_{\text{add}} + f_{\text{rescale}} \cdot \|q_r - c\| \cdot \bigl(\langle \bar{x},\, q' \rangle + k_{\text{1xsumq}}\bigr)$$
+      </div>
+
+      <div class="insight-box">
+        <p style="margin:0" data-en="<strong>💡 What makes this fast:</strong> f_add and f_rescale are stored per data vector (32 bits each). g_add and k₁xsumq are computed once per query. The only per-pair work is ⟨x̄, q'⟩ — a binary dot product that reduces to POPCNT on packed bits. Everything else is just a single <code>a + b + c × d</code> operation."
+          data-zh="<strong>💡 快在哪里：</strong>f_add 和 f_rescale 按数据向量存储（各 32 位）。g_add 和 k₁xsumq 每次查询只算一次。唯一的逐对计算是 ⟨x̄, q'⟩ — 一个可以用 POPCNT 在压缩比特上完成的二进制点积。其余只是一次 <code>a + b + c × d</code> 运算。">
+        <strong>💡 What makes this fast:</strong> f_add and f_rescale are stored per data vector (32 bits each). g_add and k₁xsumq are computed once per query. The only per-pair work is ⟨x̄, q'⟩ — a binary dot product that reduces to POPCNT on packed bits. Everything else is just a single <code>a + b + c × d</code> operation.
+        </p>
       </div>
 
       <div class="insight-box"
@@ -2087,90 +2150,476 @@
         runExperiment();
       })();
 
-      // ============ D=3 WALKTHROUGH ============
+      // ============ D=3 WALKTHROUGH (progressive reveal) ============
       ;(function() {
         const container = document.getElementById("walkthrough-container");
-        const btn = document.getElementById("btn-walkthrough-reroll");
-        
+        const btnReroll = document.getElementById("btn-walkthrough-reroll");
+        const btnNext = document.getElementById("btn-walkthrough-next");
+        const btnReset = document.getElementById("btn-walkthrough-reset");
+        if (!container || !btnNext) return;
+
+        let currentStep = 0;
+        let stepsEn = [];
+        let stepsZh = [];
+        const TOTAL_STEPS = 8;
+
         function formatVec(v) {
           return `(${v[0].toFixed(2)}, ${v[1].toFixed(2)}, ${v[2].toFixed(2)})`;
         }
 
-        function runWalkthrough() {
+        // Conceptual annotations for each step
+        const annotationsEn = [
+          "Start with two unit vectors on the sphere",
+          "Random rotation preserves all distances and angles",
+          "Quantize to binary: each coordinate becomes \u00b11/\u221aD",
+          "Cheap dot product: just add/subtract rotated query components",
+          "This measures how well \u014d approximates o (the \u2018signal strength\u2019)",
+          "Divide to cancel the \u27e8\u014d,o\u27e9 scale factor \u2192 unbiased estimate!",
+          "Ground truth for comparison",
+          "The estimation error shrinks as O(1/\u221aD)"
+        ];
+        const annotationsZh = [
+          "\u4ece\u7403\u9762\u4e0a\u53d6\u4e24\u4e2a\u5355\u4f4d\u5411\u91cf",
+          "\u968f\u673a\u65cb\u8f6c\u4fdd\u6301\u6240\u6709\u8ddd\u79bb\u548c\u89d2\u5ea6",
+          "\u91cf\u5316\u4e3a\u4e8c\u8fdb\u5236\uff1a\u6bcf\u4e2a\u5750\u6807\u53d8\u4e3a \u00b11/\u221aD",
+          "\u4f4e\u6210\u672c\u70b9\u79ef\uff1a\u53ea\u9700\u52a0\u51cf\u65cb\u8f6c\u540e\u7684\u67e5\u8be2\u5206\u91cf",
+          "\u8fd9\u8861\u91cf \u014d \u5bf9 o \u7684\u8fd1\u4f3c\u7a0b\u5ea6\uff08\u2018\u4fe1\u53f7\u5f3a\u5ea6\u2019\uff09",
+          "\u9664\u4ee5 \u27e8\u014d,o\u27e9 \u6d88\u9664\u7f29\u653e\u56e0\u5b50 \u2192 \u65e0\u504f\u4f30\u8ba1\uff01",
+          "\u7528\u4e8e\u6bd4\u8f83\u7684\u771f\u5b9e\u503c",
+          "\u4f30\u8ba1\u8bef\u5dee\u4ee5 O(1/\u221aD) \u901f\u7387\u7f29\u5c0f"
+        ];
+
+        function computeSteps() {
           const D = 3;
           const x = randomUnitVector(D);
           const q = randomUnitVector(D);
           const P = randomOrthogonal(D);
 
-          const o_prime = matTransposeVecMul(P, x); // o' = P^T x
-          const q_prime = matTransposeVecMul(P, q); // q' = P^T q
-
+          const o_prime = matTransposeVecMul(P, x);
+          const q_prime = matTransposeVecMul(P, q);
           const x_bar = o_prime.map(val => Math.sign(val) === 0 ? 1/Math.sqrt(D) : Math.sign(val)/Math.sqrt(D));
-          
-          let dot_xbar_qprime = 0;
-          for(let i=0; i<D; i++) dot_xbar_qprime += x_bar[i] * q_prime[i];
 
+          let dot_xbar_qprime = 0;
+          for (let i = 0; i < D; i++) dot_xbar_qprime += x_bar[i] * q_prime[i];
           let dot_xbar_oprime = 0;
-          for(let i=0; i<D; i++) dot_xbar_oprime += x_bar[i] * o_prime[i];
+          for (let i = 0; i < D; i++) dot_xbar_oprime += x_bar[i] * o_prime[i];
 
           const est_dot = dot_xbar_qprime / dot_xbar_oprime;
           const true_dot = dot(x, q);
-          
-          const est_dist = 2 - 2 * est_dot; // since ||x||=||q||=1, dist = 2 - 2*dot
+          const est_dist = 2 - 2 * est_dot;
           const true_dist = 2 - 2 * true_dot;
           const err = true_dist === 0 ? 0 : Math.abs(est_dist - true_dist) / true_dist * 100;
 
-          const stepsEn = [
+          stepsEn = [
             { label: "Step 1: Vectors", val: `x=${formatVec(x)}, q=${formatVec(q)}` },
             { label: "Step 2: Rotate", val: `o'=${formatVec(o_prime)}, q'=${formatVec(q_prime)}` },
-            { label: "Step 3: Quantize", val: `x̄=sign(o')=(${[...x_bar].map(v => v>0 ? '+1/√3' : '-1/√3').join(', ')})` },
-            { label: "Step 4: ⟨x̄, q'⟩", val: `sum(±q'ᵢ/√3) = ${dot_xbar_qprime.toFixed(4)}` },
-            { label: "Step 5: ⟨x̄, o'⟩", val: `sum(±o'ᵢ/√3) = ${dot_xbar_oprime.toFixed(4)}` },
-            { label: "Step 6: Estimate", val: `⟨o,q⟩_est = ${dot_xbar_qprime.toFixed(4)} / ${dot_xbar_oprime.toFixed(4)} = ${est_dot.toFixed(4)}` },
-            { label: "Step 7: True dot", val: `⟨o,q⟩_true = ${true_dot.toFixed(4)}` },
+            { label: "Step 3: Quantize", val: `x\u0304=sign(o')=(${[...x_bar].map(v => v>0 ? '+1/\u221a3' : '-1/\u221a3').join(', ')})` },
+            { label: "Step 4: \u27e8x\u0304, q'\u27e9", val: `sum(\u00b1q'\u1d62/\u221a3) = ${dot_xbar_qprime.toFixed(4)}` },
+            { label: "Step 5: \u27e8x\u0304, o'\u27e9", val: `sum(\u00b1o'\u1d62/\u221a3) = ${dot_xbar_oprime.toFixed(4)}` },
+            { label: "Step 6: Estimate", val: `\u27e8o,q\u27e9_est = ${dot_xbar_qprime.toFixed(4)} / ${dot_xbar_oprime.toFixed(4)} = ${est_dot.toFixed(4)}` },
+            { label: "Step 7: True dot", val: `\u27e8o,q\u27e9_true = ${true_dot.toFixed(4)}` },
             { label: "Step 8: Distance", val: `est_dist=${est_dist.toFixed(2)}, true_dist=${true_dist.toFixed(2)} (Err: ${err.toFixed(1)}%)` }
           ];
 
-          const stepsZh = [
-            { label: "步骤 1: 向量", val: `x=${formatVec(x)}, q=${formatVec(q)}` },
-            { label: "步骤 2: 旋转", val: `o'=${formatVec(o_prime)}, q'=${formatVec(q_prime)}` },
-            { label: "步骤 3: 量化", val: `x̄=sign(o')=(${[...x_bar].map(v => v>0 ? '+1/√3' : '-1/√3').join(', ')})` },
-            { label: "步骤 4: ⟨x̄, q'⟩", val: `sum(±q'ᵢ/√3) = ${dot_xbar_qprime.toFixed(4)}` },
-            { label: "步骤 5: ⟨x̄, o'⟩", val: `sum(±o'ᵢ/√3) = ${dot_xbar_oprime.toFixed(4)}` },
-            { label: "步骤 6: 估计内积", val: `⟨o,q⟩_est = ${dot_xbar_qprime.toFixed(4)} / ${dot_xbar_oprime.toFixed(4)} = ${est_dot.toFixed(4)}` },
-            { label: "步骤 7: 真实内积", val: `⟨o,q⟩_true = ${true_dot.toFixed(4)}` },
-            { label: "步骤 8: 距离", val: `est=${est_dist.toFixed(2)}, true=${true_dist.toFixed(2)} (误差: ${err.toFixed(1)}%)` }
+          stepsZh = [
+            { label: "\u6b65\u9aa4 1: \u5411\u91cf", val: `x=${formatVec(x)}, q=${formatVec(q)}` },
+            { label: "\u6b65\u9aa4 2: \u65cb\u8f6c", val: `o'=${formatVec(o_prime)}, q'=${formatVec(q_prime)}` },
+            { label: "\u6b65\u9aa4 3: \u91cf\u5316", val: `x\u0304=sign(o')=(${[...x_bar].map(v => v>0 ? '+1/\u221a3' : '-1/\u221a3').join(', ')})` },
+            { label: "\u6b65\u9aa4 4: \u27e8x\u0304, q'\u27e9", val: `sum(\u00b1q'\u1d62/\u221a3) = ${dot_xbar_qprime.toFixed(4)}` },
+            { label: "\u6b65\u9aa4 5: \u27e8x\u0304, o'\u27e9", val: `sum(\u00b1o'\u1d62/\u221a3) = ${dot_xbar_oprime.toFixed(4)}` },
+            { label: "\u6b65\u9aa4 6: \u4f30\u8ba1\u5185\u79ef", val: `\u27e8o,q\u27e9_est = ${dot_xbar_qprime.toFixed(4)} / ${dot_xbar_oprime.toFixed(4)} = ${est_dot.toFixed(4)}` },
+            { label: "\u6b65\u9aa4 7: \u771f\u5b9e\u5185\u79ef", val: `\u27e8o,q\u27e9_true = ${true_dot.toFixed(4)}` },
+            { label: "\u6b65\u9aa4 8: \u8ddd\u79bb", val: `est=${est_dist.toFixed(2)}, true=${true_dist.toFixed(2)} (\u8bef\u5dee: ${err.toFixed(1)}%)` }
           ];
+        }
 
+        function render() {
           container.innerHTML = '';
           const isZh = (typeof lang !== 'undefined' && lang === 'zh');
           const steps = isZh ? stepsZh : stepsEn;
+          const annotations = isZh ? annotationsZh : annotationsEn;
 
-          steps.forEach((step, i) => {
+          for (let i = 0; i < TOTAL_STEPS; i++) {
             const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.justifyContent = 'space-between';
-            row.style.paddingBottom = '8px';
-            if (i < steps.length - 1) {
-              row.style.borderBottom = '1px solid #bfdbfe';
-            }
-            row.innerHTML = `
-              <span style="font-family:var(--font-sans); font-weight:bold; color:var(--accent); min-width:140px" 
-                    data-en="${stepsEn[i].label}" data-zh="${stepsZh[i].label}">
-                ${step.label}
-              </span>
-              <span style="font-family:var(--font-math); text-align:right">
-                ${step.val}
-              </span>
+            const isVisible = i < currentStep;
+            const isCurrent = i === currentStep - 1;
+
+            row.style.cssText = `
+              padding: 10px 12px;
+              border-left: 4px solid ${isCurrent ? '#3b82f6' : '#e5e7eb'};
+              background: ${isCurrent ? '#eff6ff' : 'transparent'};
+              margin-bottom: 4px;
+              border-radius: 0 6px 6px 0;
+              transition: all 0.3s ease;
+              opacity: ${isVisible ? '1' : '0.25'};
             `;
+
+            if (isVisible) {
+              row.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:4px">
+                  <span style="font-family:var(--font-sans); font-weight:bold; color:${isCurrent ? '#2563eb' : 'var(--accent)'}; min-width:140px; font-size:${isCurrent ? '1.05em' : '0.95em'}"
+                        data-en="${stepsEn[i].label}" data-zh="${stepsZh[i].label}">
+                    ${steps[i].label}
+                  </span>
+                  <span style="font-family:var(--font-math); text-align:right; color:${isCurrent ? '#1e40af' : '#374151'}; font-size:0.93em">
+                    ${steps[i].val}
+                  </span>
+                </div>
+                <div style="font-size:0.85em; color:#6b7280; margin-top:4px; padding-left:2px; font-style:italic"
+                     data-en="${annotationsEn[i]}" data-zh="${annotationsZh[i]}">
+                  ${annotations[i]}
+                </div>
+              `;
+            } else {
+              row.innerHTML = `
+                <span style="font-family:var(--font-sans); color:#d1d5db; font-size:0.9em"
+                      data-en="${stepsEn[i].label}" data-zh="${stepsZh[i].label}">
+                  ${steps[i].label}
+                </span>
+              `;
+            }
             container.appendChild(row);
-          });
+          }
+
+          // Update Next button text
+          if (currentStep >= TOTAL_STEPS) {
+            btnNext.textContent = isZh ? '\u2714 \u5b8c\u6210' : '\u2714 Done';
+            btnNext.setAttribute('data-en', '\u2714 Done');
+            btnNext.setAttribute('data-zh', '\u2714 \u5b8c\u6210');
+            btnNext.disabled = true;
+          } else {
+            btnNext.textContent = isZh ? '\u25b6 \u4e0b\u4e00\u6b65' : '\u25b6 Next Step';
+            btnNext.setAttribute('data-en', '\u25b6 Next Step');
+            btnNext.setAttribute('data-zh', '\u25b6 \u4e0b\u4e00\u6b65');
+            btnNext.disabled = false;
+          }
         }
-        
-        btn.addEventListener('click', runWalkthrough);
-        // Re-render when lang changes if possible
-        document.addEventListener('languageChanged', runWalkthrough);
-        runWalkthrough();
+
+        function newVectors() {
+          computeSteps();
+          currentStep = 0;
+          render();
+        }
+
+        btnNext.addEventListener('click', () => {
+          if (currentStep < TOTAL_STEPS) {
+            currentStep++;
+            render();
+          }
+        });
+
+        btnReset.addEventListener('click', () => {
+          currentStep = 0;
+          render();
+        });
+
+        btnReroll.addEventListener('click', newVectors);
+        document.addEventListener('languageChanged', render);
+
+        computeSteps();
+        currentStep = 1; // show first step on load
+        render();
+      })();
+
+      // ============ SIGNAL vs NOISE GEOMETRIC DIAGRAM ============
+      ;(function() {
+        const canvas = document.getElementById('canvas-signal-noise');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const btn = document.getElementById('btn-sn-reroll');
+        const info = document.getElementById('signal-noise-info');
+
+        // State
+        let oVec, qVec, oBarVec; // 2D vectors on the unit circle
+        let signalProj, noiseComp;
+        let dotObarO, dotObarE1;
+
+        function generate() {
+          // Random angle for o (data unit vector)
+          const aO = Math.random() * Math.PI * 0.4 + Math.PI * 0.05; // upper-right quadrant
+          oVec = [Math.cos(aO), Math.sin(aO)];
+
+          // Random angle for q (query unit vector), different from o
+          const aQ = aO + (Math.random() * 0.8 + 0.3) * (Math.random() < 0.5 ? 1 : -1);
+          qVec = [Math.cos(aQ), Math.sin(aQ)];
+
+          // Simulate quantized vector ō: close to o but with some noise
+          // ⟨ō, o⟩ should be around 0.7-0.9 (signal), with small perpendicular noise
+          const signal = 0.7 + Math.random() * 0.2; // ~0.8
+          const noise = (Math.random() - 0.5) * 0.4; // small noise
+          // Perpendicular direction to o
+          const oPerpx = -oVec[1];
+          const oPerpy = oVec[0];
+          // ō = signal * o + noise * o_perp, then normalize
+          let obx = signal * oVec[0] + noise * oPerpx;
+          let oby = signal * oVec[1] + noise * oPerpy;
+          const obLen = Math.sqrt(obx * obx + oby * oby);
+          oBarVec = [obx / obLen, oby / obLen];
+
+          // Compute decomposition
+          dotObarO = oBarVec[0] * oVec[0] + oBarVec[1] * oVec[1]; // ⟨ō, o⟩ (signal)
+          // Noise component = ō - ⟨ō,o⟩·o
+          signalProj = [dotObarO * oVec[0], dotObarO * oVec[1]];
+          noiseComp = [oBarVec[0] - signalProj[0], oBarVec[1] - signalProj[1]];
+          dotObarE1 = Math.sqrt(noiseComp[0] * noiseComp[0] + noiseComp[1] * noiseComp[1]);
+          // Give noise a sign based on which side of o it falls
+          const cross = oVec[0] * oBarVec[1] - oVec[1] * oBarVec[0];
+          if (cross < 0) dotObarE1 = -dotObarE1;
+        }
+
+        function resize() {
+          if (!canvas || !canvas.parentElement) return;
+          const rect = canvas.parentElement.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = rect.width * dpr;
+          canvas.height = 320 * dpr;
+          canvas.style.width = rect.width + 'px';
+          canvas.style.height = '320px';
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          draw();
+        }
+
+        function drawArrow(x0, y0, x1, y1, color, lineWidth, dashed) {
+          const headLen = 10;
+          const dx = x1 - x0, dy = y1 - y0;
+          const angle = Math.atan2(dy, dx);
+
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = lineWidth || 2;
+          if (dashed) ctx.setLineDash([6, 4]);
+          else ctx.setLineDash([]);
+
+          ctx.beginPath();
+          ctx.moveTo(x0, y0);
+          ctx.lineTo(x1, y1);
+          ctx.stroke();
+
+          // Arrowhead
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x1 - headLen * Math.cos(angle - 0.35), y1 - headLen * Math.sin(angle - 0.35));
+          ctx.lineTo(x1 - headLen * Math.cos(angle + 0.35), y1 - headLen * Math.sin(angle + 0.35));
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+
+        function drawArc(cx, cy, r, startAngle, endAngle, color) {
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, -startAngle, -endAngle, startAngle < endAngle);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        function draw() {
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          const h = 320;
+          ctx.clearRect(0, 0, w, h);
+
+          const isZh = (typeof lang !== 'undefined' && lang === 'zh');
+
+          // Origin and scale
+          const cx = w * 0.38;
+          const cy = h * 0.58;
+          const scale = Math.min(w, h) * 0.38;
+
+          // Draw light axes
+          ctx.save();
+          ctx.strokeStyle = '#e5e7eb';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.moveTo(cx - scale * 0.3, cy);
+          ctx.lineTo(cx + scale * 1.15, cy);
+          ctx.moveTo(cx, cy + scale * 0.3);
+          ctx.lineTo(cx, cy - scale * 1.15);
+          ctx.stroke();
+          ctx.restore();
+
+          // Vector endpoints
+          const oEnd = [cx + oVec[0] * scale, cy - oVec[1] * scale];
+          const qEnd = [cx + qVec[0] * scale, cy - qVec[1] * scale];
+          const obEnd = [cx + oBarVec[0] * scale, cy - oBarVec[1] * scale];
+          const projEnd = [cx + signalProj[0] * scale, cy - signalProj[1] * scale];
+
+          // Draw signal projection (thick blue line from origin along o)
+          drawArrow(cx, cy, projEnd[0], projEnd[1], '#3b82f6', 3.5, false);
+
+          // Draw noise component (dashed red from projection tip to ō tip)
+          ctx.save();
+          ctx.strokeStyle = '#dc2626';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          ctx.moveTo(projEnd[0], projEnd[1]);
+          ctx.lineTo(obEnd[0], obEnd[1]);
+          ctx.stroke();
+          ctx.restore();
+
+          // Draw right-angle marker at projection point
+          const markerSize = 8;
+          const noiseDir = [oBarVec[0] - signalProj[0], oBarVec[1] - signalProj[1]];
+          const noiseDirLen = Math.sqrt(noiseDir[0] ** 2 + noiseDir[1] ** 2) || 1;
+          const nDx = noiseDir[0] / noiseDirLen;
+          const nDy = noiseDir[1] / noiseDirLen;
+          ctx.save();
+          ctx.strokeStyle = '#9ca3af';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          const rax = projEnd[0] + nDx * markerSize * (cy > projEnd[1] ? -1 : 1);
+          const ray = projEnd[1] - nDy * markerSize;
+          // Small square indicating right angle
+          const oDx = oVec[0] / 1, oDy = oVec[1] / 1; // unit direction of o
+          const px1 = projEnd[0] - oDx * markerSize;
+          const py1 = projEnd[1] + oDy * markerSize;
+          const px2 = px1 + nDx * markerSize * scale / Math.abs(scale);
+          const py2 = py1 - nDy * markerSize;
+          const px3 = projEnd[0] + nDx * markerSize * scale / Math.abs(scale);
+          const py3 = projEnd[1] - nDy * markerSize;
+          ctx.moveTo(px1, py1);
+          ctx.lineTo(px2, py2);
+          ctx.lineTo(px3, py3);
+          ctx.stroke();
+          ctx.restore();
+
+          // Draw vector o (dark blue)
+          drawArrow(cx, cy, oEnd[0], oEnd[1], '#1e40af', 2.5, false);
+
+          // Draw vector q (green)
+          drawArrow(cx, cy, qEnd[0], qEnd[1], '#059669', 2.5, false);
+
+          // Draw vector ō (orange)
+          drawArrow(cx, cy, obEnd[0], obEnd[1], '#ea580c', 2.5, false);
+
+          // Angle arc between o and q
+          const angleO = Math.atan2(oVec[1], oVec[0]);
+          const angleQ = Math.atan2(qVec[1], qVec[0]);
+          drawArc(cx, cy, scale * 0.22, angleO, angleQ, '#6b7280');
+
+          // Angle label θ
+          const midAngle = (angleO + angleQ) / 2;
+          ctx.save();
+          ctx.font = 'italic 14px var(--font-math, serif)';
+          ctx.fillStyle = '#6b7280';
+          ctx.textAlign = 'center';
+          ctx.fillText('θ', cx + Math.cos(midAngle) * scale * 0.28, cy - Math.sin(midAngle) * scale * 0.28);
+          ctx.restore();
+
+          // Labels
+          ctx.save();
+          ctx.font = 'bold 14px var(--font-sans, sans-serif)';
+
+          // Label o
+          ctx.fillStyle = '#1e40af';
+          ctx.textAlign = 'left';
+          ctx.fillText('o', oEnd[0] + 6, oEnd[1] - 6);
+
+          // Label q
+          ctx.fillStyle = '#059669';
+          ctx.fillText('q', qEnd[0] + 6, qEnd[1] - 6);
+
+          // Label ō
+          ctx.fillStyle = '#ea580c';
+          ctx.fillText('ō', obEnd[0] + 6, obEnd[1] - 4);
+          ctx.restore();
+
+          // Signal label
+          ctx.save();
+          ctx.font = '12px var(--font-math, monospace)';
+          ctx.fillStyle = '#3b82f6';
+          const sigMidX = (cx + projEnd[0]) / 2;
+          const sigMidY = (cy + projEnd[1]) / 2;
+          ctx.textAlign = 'center';
+          const sigLabel = isZh ? `⟨ō,o⟩=${dotObarO.toFixed(2)} (信号)` : `⟨ō,o⟩=${dotObarO.toFixed(2)} (signal)`;
+          ctx.fillText(sigLabel, sigMidX, sigMidY + 20);
+          ctx.restore();
+
+          // Noise label
+          ctx.save();
+          ctx.font = '12px var(--font-math, monospace)';
+          ctx.fillStyle = '#dc2626';
+          const noiseMidX = (projEnd[0] + obEnd[0]) / 2;
+          const noiseMidY = (projEnd[1] + obEnd[1]) / 2;
+          ctx.textAlign = 'left';
+          const noiseLabel = isZh ? `⟨ō,e₁⟩=${dotObarE1.toFixed(2)} (噪声)` : `⟨ō,e₁⟩=${dotObarE1.toFixed(2)} (noise)`;
+          ctx.fillText(noiseLabel, noiseMidX + 8, noiseMidY - 4);
+          ctx.restore();
+
+          // Legend box (right side)
+          const lx = w * 0.68;
+          let ly = h * 0.15;
+          const lineH = 22;
+          ctx.save();
+          ctx.font = '13px var(--font-sans, sans-serif)';
+
+          // Formula
+          ctx.fillStyle = '#374151';
+          ctx.textAlign = 'left';
+          ctx.fillText(isZh ? '公式分解:' : 'Formula decomposition:', lx, ly);
+          ly += lineH + 4;
+
+          ctx.font = '12px var(--font-math, monospace)';
+          ctx.fillStyle = '#1e40af';
+          ctx.fillText('⟨ō, q⟩ = ⟨ō,o⟩·⟨o,q⟩ + ⟨ō,e₁⟩·√(1−⟨o,q⟩²)', lx, ly);
+          ly += lineH + 8;
+
+          // Signal line
+          ctx.fillStyle = '#3b82f6';
+          ctx.fillRect(lx, ly - 4, 20, 3);
+          ctx.fillStyle = '#374151';
+          ctx.fillText(isZh ? ' ⟨ō,o⟩·⟨o,q⟩  (信号，≈0.8)' : ' ⟨ō,o⟩·⟨o,q⟩  (signal, ≈0.8)', lx + 26, ly);
+          ly += lineH;
+
+          // Noise line (dashed)
+          ctx.strokeStyle = '#dc2626';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          ctx.moveTo(lx, ly - 4);
+          ctx.lineTo(lx + 20, ly - 4);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#374151';
+          ctx.fillText(isZh ? ' ⟨ō,e₁⟩·√(…)  (噪声，≈0)' : ' ⟨ō,e₁⟩·√(…)  (noise, ≈0)', lx + 26, ly);
+          ly += lineH + 8;
+
+          // Computed values
+          ctx.font = 'bold 13px var(--font-sans, sans-serif)';
+          const trueIP = oVec[0] * qVec[0] + oVec[1] * qVec[1];
+          const estIP = (oBarVec[0] * qVec[0] + oBarVec[1] * qVec[1]) / dotObarO;
+          ctx.fillStyle = '#374151';
+          ctx.fillText(isZh ? '本次结果:' : 'This sample:', lx, ly);
+          ly += lineH;
+          ctx.font = '12px var(--font-math, monospace)';
+          ctx.fillStyle = '#1e40af';
+          ctx.fillText(`⟨o,q⟩_true = ${trueIP.toFixed(4)}`, lx, ly);
+          ly += lineH - 4;
+          ctx.fillStyle = '#ea580c';
+          ctx.fillText(`⟨o,q⟩_est  = ${estIP.toFixed(4)}`, lx, ly);
+          ly += lineH - 4;
+          const err = trueIP === 0 ? 0 : Math.abs(estIP - trueIP) / Math.abs(trueIP) * 100;
+          ctx.fillStyle = err < 10 ? '#10b981' : '#ef4444';
+          ctx.fillText(isZh ? `误差: ${err.toFixed(1)}%` : `Error: ${err.toFixed(1)}%`, lx, ly);
+          ctx.restore();
+        }
+
+        function init() {
+          generate();
+          resize();
+        }
+
+        btn.addEventListener('click', () => { generate(); draw(); });
+        window.addEventListener('resize', resize);
+        document.addEventListener('languageChanged', () => draw());
+        init();
       })();
 
       // ============ SINGLE-PAIR STEP-THROUGH VIZ ============
@@ -2256,18 +2705,59 @@
           draw();
         }
 
-        function drawTextRow(y, leftText, rightText, highlight) {
+        // Step color palette by category
+        const stepColors = [
+          { bg: '#faf5ff', border: '#a855f7', label: '#7c3aed', val: '#581c87' }, // Step 0: Vectors (purple)
+          { bg: '#eff6ff', border: '#3b82f6', label: '#2563eb', val: '#1e3a5f' }, // Step 1: Rotate (blue)
+          { bg: '#fff7ed', border: '#f97316', label: '#ea580c', val: '#7c2d12' }, // Step 2: Quantize (orange)
+          { bg: '#f0fdf4', border: '#22c55e', label: '#16a34a', val: '#14532d' }, // Step 3: IP (green)
+          { bg: '#f0fdfa', border: '#14b8a6', label: '#0d9488', val: '#134e4a' }, // Step 4: Estimate (teal)
+          { bg: '#fefce8', border: '#eab308', label: '#ca8a04', val: '#713f12' }, // Step 5: Distance (amber)
+        ];
+
+        function drawStepRow(y, stepIdx, leftText, rightText, isCurrent) {
           const w = canvas.width / (window.devicePixelRatio || 1);
-          // Label line
-          ctx.font = highlight ? "bold 13px var(--font-sans, sans-serif)" : "13px var(--font-sans, sans-serif)";
-          ctx.fillStyle = highlight ? "#2563eb" : "#9ca3af";
-          ctx.textAlign = "left";
-          ctx.fillText(leftText, 24, y);
-          // Value line (below label)
-          ctx.font = "14px var(--font-math, monospace)";
-          ctx.fillStyle = highlight ? "#1e40af" : "#374151";
-          ctx.textAlign = "left";
-          ctx.fillText(rightText, 36, y + 18);
+          const colors = stepColors[stepIdx] || stepColors[0];
+          const rowH = 52;
+          const isRevealed = stepIdx <= currentStep;
+
+          if (!isRevealed) return;
+
+          // Background band for current step
+          if (isCurrent) {
+            ctx.fillStyle = colors.bg;
+            ctx.fillRect(0, y - 10, w, rowH);
+          }
+
+          // Left color bar
+          ctx.fillStyle = isCurrent ? colors.border : '#e5e7eb';
+          ctx.fillRect(0, y - 10, 4, rowH);
+
+          // Step number circle
+          const circleX = 20;
+          const circleY = y + 6;
+          const circleR = 11;
+          ctx.beginPath();
+          ctx.arc(circleX, circleY, circleR, 0, Math.PI * 2);
+          ctx.fillStyle = isCurrent ? colors.border : '#d1d5db';
+          ctx.fill();
+          ctx.font = 'bold 11px var(--font-sans, sans-serif)';
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(stepIdx), circleX, circleY);
+          ctx.textBaseline = 'alphabetic';
+
+          // Label text
+          ctx.font = isCurrent ? 'bold 13px var(--font-sans, sans-serif)' : '13px var(--font-sans, sans-serif)';
+          ctx.fillStyle = isCurrent ? colors.label : '#9ca3af';
+          ctx.textAlign = 'left';
+          ctx.fillText(leftText, 38, y);
+
+          // Value text (below label, indented)
+          ctx.font = '14px var(--font-math, monospace)';
+          ctx.fillStyle = isCurrent ? colors.val : '#374151';
+          ctx.fillText(rightText, 42, y + 18);
         }
 
         function draw() {
@@ -2276,47 +2766,75 @@
           ctx.clearRect(0, 0, w, h);
 
           const isZh = (typeof lang !== 'undefined' && lang === 'zh');
-          
+
           let startY = 30;
           let rowH = 52;
 
           // Step 0: Vectors
-          if (currentStep >= 0) {
-            drawTextRow(startY, isZh ? "初始向量:" : "Original vectors:", `x = ${formatVec(x)}, q = ${formatVec(q)}`, currentStep === 0);
-          }
-          
+          drawStepRow(startY, 0,
+            isZh ? '\u521d\u59cb\u5411\u91cf:' : 'Original vectors:',
+            `x = ${formatVec(x)}, q = ${formatVec(q)}`,
+            currentStep === 0);
+
           // Step 1: Rotate
-          if (currentStep >= 1) {
-            drawTextRow(startY + rowH, isZh ? "反向旋转 P⁻¹:" : "Reverse Rotation P⁻¹:", `o' = ${formatVec(o_prime)}, q' = ${formatVec(q_prime)}`, currentStep === 1);
-          }
+          drawStepRow(startY + rowH, 1,
+            isZh ? '\u53cd\u5411\u65cb\u8f6c P\u207b\u00b9:' : 'Reverse Rotation P\u207b\u00b9:',
+            `o' = ${formatVec(o_prime)}, q' = ${formatVec(q_prime)}`,
+            currentStep === 1);
 
           // Step 2: Quantize
           if (currentStep >= 2) {
-            const xbStr = `(${[...x_bar].map(v => v>0 ? '+1/√3' : '-1/√3').join(', ')})`;
-            drawTextRow(startY + 2*rowH, isZh ? "量化 (取符号):" : "Quantization (sign):", `x̄ = ${xbStr}`, currentStep === 2);
+            const xbStr = `(${[...x_bar].map(v => v>0 ? '+1/\u221a3' : '-1/\u221a3').join(', ')})`;
+            drawStepRow(startY + 2*rowH, 2,
+              isZh ? '\u91cf\u5316 (\u53d6\u7b26\u53f7):' : 'Quantization (sign):',
+              `x\u0304 = ${xbStr}`,
+              currentStep === 2);
           }
 
-          // Step 3: <x_bar, q'>
+          // Step 3: Inner product
           if (currentStep >= 3) {
-            drawTextRow(startY + 3*rowH, isZh ? "近似内积:" : "Approx Inner Product:", `⟨x̄, q'⟩ = ${dot_xq.toFixed(4)}`, currentStep === 3);
+            drawStepRow(startY + 3*rowH, 3,
+              isZh ? '\u8fd1\u4f3c\u5185\u79ef:' : 'Approx Inner Product:',
+              `\u27e8x\u0304, q'\u27e9 = ${dot_xq.toFixed(4)}`,
+              currentStep === 3);
           }
 
           // Step 4: Estimate
           if (currentStep >= 4) {
-            drawTextRow(startY + 4*rowH, isZh ? "归一化估计内积:" : "Normalized Est. IP:", `⟨o,q⟩_est = ${dot_xq.toFixed(4)} / ${dot_xo.toFixed(4)} = ${est_dot.toFixed(4)}  (True: ${true_dot.toFixed(4)})`, currentStep === 4);
+            drawStepRow(startY + 4*rowH, 4,
+              isZh ? '\u5f52\u4e00\u5316\u4f30\u8ba1\u5185\u79ef:' : 'Normalized Est. IP:',
+              `\u27e8o,q\u27e9_est = ${dot_xq.toFixed(4)} / ${dot_xo.toFixed(4)} = ${est_dot.toFixed(4)}  (True: ${true_dot.toFixed(4)})`,
+              currentStep === 4);
           }
 
           // Step 5: Distance
           if (currentStep >= 5) {
             const err = true_dist === 0 ? 0 : Math.abs(est_dist - true_dist) / true_dist * 100;
-            const errColor = err < 5 ? "#10b981" : "#ef4444";
-            drawTextRow(startY + 5*rowH, isZh ? "最终距离估计:" : "Final Distance Estimate:", `est: ${est_dist.toFixed(3)}, true: ${true_dist.toFixed(3)}`, currentStep === 5);
-            // Error badge
-            const w = canvas.width / (window.devicePixelRatio || 1);
-            ctx.font = "bold 13px var(--font-math, monospace)";
+            const errColor = err < 5 ? '#10b981' : '#ef4444';
+            drawStepRow(startY + 5*rowH, 5,
+              isZh ? '\u6700\u7ec8\u8ddd\u79bb\u4f30\u8ba1:' : 'Final Distance Estimate:',
+              `est: ${est_dist.toFixed(3)}, true: ${true_dist.toFixed(3)}`,
+              currentStep === 5);
+            // Error badge (right-aligned)
+            ctx.font = 'bold 14px var(--font-math, monospace)';
             ctx.fillStyle = errColor;
-            ctx.textAlign = "right";
-            ctx.fillText(`Error: ${err.toFixed(1)}%`, w - 24, startY + 5*rowH + 18);
+            ctx.textAlign = 'right';
+            ctx.fillText(isZh ? `\u8bef\u5dee: ${err.toFixed(1)}%` : `Error: ${err.toFixed(1)}%`, w - 24, startY + 5*rowH + 18);
+          }
+
+          // Draw faint placeholder circles for unrevealed steps
+          for (let s = currentStep + 1; s < 6; s++) {
+            const sy = startY + s * rowH + 6;
+            ctx.beginPath();
+            ctx.arc(20, sy, 11, 0, Math.PI * 2);
+            ctx.fillStyle = '#f3f4f6';
+            ctx.fill();
+            ctx.font = 'bold 11px var(--font-sans, sans-serif)';
+            ctx.fillStyle = '#d1d5db';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(s), 20, sy);
+            ctx.textBaseline = 'alphabetic';
           }
         }
 
