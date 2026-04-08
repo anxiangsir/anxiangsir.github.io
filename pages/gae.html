@@ -162,6 +162,8 @@
           <li><a href="#sec-mc" data-zh="蒙特卡洛回报：N 步优势" data-en="Monte Carlo Returns: N-Step Advantage">蒙特卡洛回报：N 步优势</a></li>
           <li><a href="#sec-gae" data-zh="GAE：广义优势估计" data-en="GAE: Generalized Advantage Estimation">GAE：广义优势估计</a></li>
           <li><a href="#sec-viz" data-zh="交互可视化" data-en="Interactive Visualization">交互可视化</a></li>
+          <li><a href="#sec-lambda-tuning" data-zh="λ 调参实战指南" data-en="Practical λ Tuning Guide">λ 调参实战指南</a></li>
+          <li><a href="#sec-faq" data-zh="常见坑点与 FAQ" data-en="Common Pitfalls & FAQ">常见坑点与 FAQ</a></li>
           <li><a href="#sec-ppo" data-zh="GAE 在 PPO 中的位置" data-en="GAE in PPO Training Loop">GAE 在 PPO 中的位置</a></li>
         </ol>
       </div>
@@ -226,6 +228,26 @@
           \[ \nabla_\theta J(\theta) = \mathbb{E}\!\left[\nabla_\theta \log \pi_\theta(a_t \mid s_t) \cdot A^\pi(s_t, a_t)\right] \]
         </div>
         <p class="phase-desc" data-zh="问题来了：\(A^\pi(s,a)\) 无法直接计算（需要知道真实的 \(Q\) 和 \(V\)）。我们只能用 Critic 来估计它——这就引出了下面的内容。" data-en="The problem: \(A^\pi(s,a)\) cannot be computed directly (it requires knowing the true \(Q\) and \(V\)). We can only estimate it using the Critic — which leads us to the next sections.">问题来了：\(A^\pi(s,a)\) 无法直接计算（需要知道真实的 \(Q\) 和 \(V\)）。我们只能用 Critic 来估计它——这就引出了下面的内容。</p>
+
+        <div class="callout" style="background:#f0fdf4; border-left-color:#16a34a;">
+          <strong data-zh="📊 数值例子：网格世界" data-en="📊 Numerical Example: Grid World">📊 数值例子：网格世界</strong><br/>
+          <span data-zh="假设智能体在一个网格世界中，当前状态 \(s\) 有三个动作可选：" data-en="Suppose an agent in a grid world at state \(s\) has three possible actions:">假设智能体在一个网格世界中，当前状态 \(s\) 有三个动作可选：</span>
+          <table style="margin:0.75rem 0;">
+            <thead><tr>
+              <th data-zh="动作 a" data-en="Action a">动作 a</th>
+              <th>\(Q^\pi(s, a)\)</th>
+              <th>\(V^\pi(s)\)</th>
+              <th>\(A^\pi(s, a) = Q - V\)</th>
+              <th data-zh="含义" data-en="Meaning">含义</th>
+            </tr></thead>
+            <tbody>
+              <tr><td data-zh="→ 右移" data-en="→ Move Right">→ 右移</td><td>8.5</td><td>7.0</td><td style="color:#059669; font-weight:bold;">+1.5</td><td data-zh="比平均好，增大概率" data-en="Better than avg, increase prob">比平均好，增大概率</td></tr>
+              <tr><td data-zh="↑ 上移" data-en="↑ Move Up">↑ 上移</td><td>7.0</td><td>7.0</td><td>0.0</td><td data-zh="刚好等于平均" data-en="Exactly average">刚好等于平均</td></tr>
+              <tr><td data-zh="← 左移" data-en="← Move Left">← 左移</td><td>5.5</td><td>7.0</td><td style="color:#dc2626; font-weight:bold;">−1.5</td><td data-zh="比平均差，减小概率" data-en="Worse than avg, decrease prob">比平均差，减小概率</td></tr>
+            </tbody>
+          </table>
+          <span data-zh="这里 \(V^\pi(s)=7.0\) 是所有动作的期望价值。优势函数精确地告诉策略梯度：把概率从 ← 移到 → 上！" data-en="Here \(V^\pi(s)=7.0\) is the expected value across all actions. The advantage tells the policy gradient precisely: shift probability from ← to →!">这里 \(V^\pi(s)=7.0\) 是所有动作的期望价值。优势函数精确地告诉策略梯度：把概率从 ← 移到 → 上！</span>
+        </div>
       </section>
 
       <!-- SECTION 3: TD Residuals -->
@@ -236,6 +258,27 @@
           \[ \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t) \]
         </div>
         <p class="phase-desc" data-zh="解读：\(r_t + \gamma V(s_{t+1})\) 是对 \(Q(s_t, a_t)\) 的一步估计（TD 目标），减去 \(V(s_t)\) 就得到了优势估计 \(\hat{A}_t \approx \delta_t\)。" data-en="Interpretation: \(r_t + \gamma V(s_{t+1})\) is a one-step estimate of \(Q(s_t, a_t)\) (the TD target). Subtracting \(V(s_t)\) gives the advantage estimate \(\hat{A}_t \approx \delta_t\).">解读：\(r_t + \gamma V(s_{t+1})\) 是对 \(Q(s_t, a_t)\) 的一步估计（TD 目标），减去 \(V(s_t)\) 就得到了优势估计 \(\hat{A}_t \approx \delta_t\)。</p>
+
+        <div class="callout" style="background:#f0fdf4; border-left-color:#16a34a;">
+          <strong data-zh="📊 数值例子：计算 TD 残差" data-en="📊 Numerical Example: Computing TD Residuals">📊 数值例子：计算 TD 残差</strong><br/>
+          <span data-zh="假设一条轨迹的前 3 步，\(\gamma = 0.99\)：" data-en="Suppose the first 3 steps of a trajectory, with \(\gamma = 0.99\):">假设一条轨迹的前 3 步，\(\gamma = 0.99\)：</span>
+          <table style="margin:0.75rem 0;">
+            <thead><tr>
+              <th data-zh="时刻 t" data-en="Step t">时刻 t</th>
+              <th>\(r_t\)</th>
+              <th>\(V(s_t)\)</th>
+              <th>\(V(s_{t+1})\)</th>
+              <th data-zh="TD 目标 \(r_t + \gamma V(s_{t+1})\)" data-en="TD Target \(r_t + \gamma V(s_{t+1})\)">TD 目标 \(r_t + \gamma V(s_{t+1})\)</th>
+              <th>\(\delta_t\)</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>t=0</td><td>+1.0</td><td>5.0</td><td>5.2</td><td>1.0 + 0.99×5.2 = <b>6.148</b></td><td style="color:#059669; font-weight:bold;">6.148 − 5.0 = +1.148</td></tr>
+              <tr><td>t=1</td><td>−0.5</td><td>5.2</td><td>4.8</td><td>−0.5 + 0.99×4.8 = <b>4.252</b></td><td style="color:#dc2626; font-weight:bold;">4.252 − 5.2 = −0.948</td></tr>
+              <tr><td>t=2</td><td>+0.3</td><td>4.8</td><td>5.1</td><td>0.3 + 0.99×5.1 = <b>5.349</b></td><td style="color:#059669; font-weight:bold;">5.349 − 4.8 = +0.549</td></tr>
+            </tbody>
+          </table>
+          <span data-zh="解读：t=0 时 \(\delta_0 = +1.148\)，说明这一步的实际回报比 Critic 预期的好得多——这个动作很棒！t=1 时 \(\delta_1 = -0.948\)，说明这一步表现很差。策略梯度会根据这些信号相应地增加/减少对应动作的概率。" data-en="Interpretation: At t=0, \(\delta_0 = +1.148\) means the actual return was much better than the Critic expected — great action! At t=1, \(\delta_1 = -0.948\) means this step performed poorly. The policy gradient adjusts action probabilities accordingly.">解读：t=0 时 \(\delta_0 = +1.148\)，说明这一步的实际回报比 Critic 预期的好得多——这个动作很棒！t=1 时 \(\delta_1 = -0.948\)，说明这一步表现很差。</span>
+        </div>
 
         <div class="two-col">
           <div class="col-card">
@@ -301,6 +344,36 @@
         </table>
 
         <p class="phase-desc" data-zh="这个表格揭示了一个两难困境：步数越多，偏差越小，但方差越大。GAE 用一个优雅的方式解决这个问题。" data-en="This table reveals a dilemma: more steps means less bias but more variance. GAE solves this dilemma in an elegant way.">这个表格揭示了一个两难困境：步数越多，偏差越小，但方差越大。GAE 用一个优雅的方式解决这个问题。</p>
+
+        <div class="callout" style="background:#f0fdf4; border-left-color:#16a34a;">
+          <strong data-zh="📊 数值例子：1 步 vs 3 步 vs 蒙特卡洛" data-en="📊 Numerical Example: 1-step vs 3-step vs Monte Carlo">📊 数值例子：1 步 vs 3 步 vs 蒙特卡洛</strong><br/>
+          <span data-zh="沿用上一节的轨迹数据，\(\gamma=0.99\)，比较不同步数对 \(t=0\) 的优势估计：" data-en="Using the same trajectory data from above, \(\gamma=0.99\), compare different step counts for the advantage estimate at \(t=0\):">沿用上一节的轨迹数据，\(\gamma=0.99\)，比较不同步数对 \(t=0\) 的优势估计：</span>
+          <table style="margin:0.75rem 0;">
+            <thead><tr>
+              <th data-zh="方法" data-en="Method">方法</th>
+              <th data-zh="计算过程" data-en="Calculation">计算过程</th>
+              <th>\(\hat{A}_0\)</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td><b>1-step (TD)</b></td>
+                <td data-zh="\(r_0 + \gamma V(s_1) - V(s_0) = 1.0 + 0.99 \times 5.2 - 5.0\)" data-en="\(r_0 + \gamma V(s_1) - V(s_0) = 1.0 + 0.99 \times 5.2 - 5.0\)">\(r_0 + \gamma V(s_1) - V(s_0) = 1.0 + 0.99 \times 5.2 - 5.0\)</td>
+                <td><b>+1.148</b></td>
+              </tr>
+              <tr>
+                <td><b>3-step</b></td>
+                <td data-zh="\(r_0 + \gamma r_1 + \gamma^2 r_2 + \gamma^3 V(s_3) - V(s_0)\)<br/>\(= 1.0 + 0.99(-0.5) + 0.98(0.3) + 0.97 \times 5.1 - 5.0\)" data-en="\(r_0 + \gamma r_1 + \gamma^2 r_2 + \gamma^3 V(s_3) - V(s_0)\)<br/>\(= 1.0 + 0.99(-0.5) + 0.98(0.3) + 0.97 \times 5.1 - 5.0\)">\(r_0 + \gamma r_1 + \gamma^2 r_2 + \gamma^3 V(s_3) - V(s_0)\)<br/>= 1.0 + 0.99×(−0.5) + 0.98×0.3 + 0.97×5.1 − 5.0</td>
+                <td><b>+0.791</b></td>
+              </tr>
+              <tr>
+                <td data-zh="<b>蒙特卡洛</b>" data-en="<b>Monte Carlo</b>"><b>蒙特卡洛</b></td>
+                <td data-zh="\(G_0 - V(s_0)\)，假设真实回报 \(G_0 = 5.7\)" data-en="\(G_0 - V(s_0)\), suppose true return \(G_0 = 5.7\)">\(G_0 - V(s_0)\)，假设真实回报 \(G_0 = 5.7\)</td>
+                <td><b>+0.700</b></td>
+              </tr>
+            </tbody>
+          </table>
+          <span data-zh="注意三种估计给出了不同的值！1-step 最依赖 Critic，偏差最大；蒙特卡洛最接近真实，但在不同轨迹中波动会很大（方差高）。这就是为什么我们需要 GAE 来平衡两者。" data-en="Notice all three give different values! 1-step relies most on the Critic (highest bias); Monte Carlo is closest to truth but varies wildly across trajectories (high variance). This is exactly why we need GAE to balance the two.">注意三种估计给出了不同的值！1-step 最依赖 Critic，偏差最大；蒙特卡洛最接近真实，但波动很大。这就是为什么我们需要 GAE。</span>
+        </div>
       </section>
 
       <!-- SECTION 5: GAE -->
@@ -343,6 +416,34 @@
           \[ \hat{A}_T = 0, \qquad \hat{A}_t = \delta_t + \gamma\lambda \cdot \hat{A}_{t+1} \]
         </div>
         <p class="phase-desc" data-zh="这个递推公式是 GAE 代码实现的核心，非常优雅且高效。" data-en="This recurrence is the core of any GAE implementation — elegant and efficient.">这个递推公式是 GAE 代码实现的核心，非常优雅且高效。</p>
+
+        <div class="callout" style="background:#f0fdf4; border-left-color:#16a34a;">
+          <strong data-zh="📊 数值例子：手算 GAE 逆向递推" data-en="📊 Numerical Example: Hand-Computing GAE Backward Pass">📊 数值例子：手算 GAE 逆向递推</strong><br/>
+          <span data-zh="用一条长度 T=4 的轨迹，\(\gamma=0.99, \lambda=0.95\)，完整展示递推过程：" data-en="Using a trajectory of length T=4, \(\gamma=0.99, \lambda=0.95\), let's walk through the full recursion:">用一条长度 T=4 的轨迹，\(\gamma=0.99, \lambda=0.95\)，完整展示递推过程：</span>
+          <table style="margin:0.75rem 0; font-size:0.88rem;">
+            <thead><tr>
+              <th>t</th><th>\(r_t\)</th><th>\(V(s_t)\)</th><th>\(V(s_{t+1})\)</th><th>\(\delta_t\)</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>0</td><td>+1.0</td><td>5.0</td><td>5.2</td><td>1.0 + 0.99×5.2 − 5.0 = <b>+1.148</b></td></tr>
+              <tr><td>1</td><td>−0.5</td><td>5.2</td><td>4.8</td><td>−0.5 + 0.99×4.8 − 5.2 = <b>−0.948</b></td></tr>
+              <tr><td>2</td><td>+0.3</td><td>4.8</td><td>5.1</td><td>0.3 + 0.99×5.1 − 4.8 = <b>+0.549</b></td></tr>
+              <tr><td>3</td><td>+0.6</td><td>5.1</td><td>4.9</td><td>0.6 + 0.99×4.9 − 5.1 = <b>+0.351</b></td></tr>
+            </tbody>
+          </table>
+          <span data-zh="现在从末尾往前递推 \(\hat{A}_t = \delta_t + \gamma\lambda \cdot \hat{A}_{t+1}\)：" data-en="Now recurse backward: \(\hat{A}_t = \delta_t + \gamma\lambda \cdot \hat{A}_{t+1}\):">现在从末尾往前递推 \(\hat{A}_t = \delta_t + \gamma\lambda \cdot \hat{A}_{t+1}\)：</span>
+          <div style="background:#1e1e2e; color:#cdd6f4; padding:1rem; border-radius:6px; margin:0.75rem 0; font-family:'JetBrains Mono',monospace; font-size:0.82rem; line-height:1.8; overflow-x:auto;">
+            <span style="color:#585b70;"># Step 1: t=3 (末尾，无后续)</span><br/>
+            Â₃ = δ₃ = <b style="color:#a6e3a1;">+0.351</b><br/><br/>
+            <span style="color:#585b70;"># Step 2: t=2</span><br/>
+            Â₂ = δ₂ + γλ·Â₃ = 0.549 + 0.99×0.95×0.351 = 0.549 + 0.330 = <b style="color:#a6e3a1;">+0.879</b><br/><br/>
+            <span style="color:#585b70;"># Step 3: t=1</span><br/>
+            Â₁ = δ₁ + γλ·Â₂ = −0.948 + 0.9405×0.879 = −0.948 + 0.827 = <b style="color:#fab387;">−0.121</b><br/><br/>
+            <span style="color:#585b70;"># Step 4: t=0</span><br/>
+            Â₀ = δ₀ + γλ·Â₁ = 1.148 + 0.9405×(−0.121) = 1.148 − 0.114 = <b style="color:#a6e3a1;">+1.034</b>
+          </div>
+          <span data-zh="对比纯 TD：\(\hat{A}_0^{\text{TD}} = \delta_0 = +1.148\)，纯 MC：\(\hat{A}_0^{\text{MC}} \approx +0.700\)。GAE 给出 \(+1.034\)，在两者之间做了权衡——这就是 \(\lambda\) 的魔力！" data-en="Compare: pure TD gives \(\hat{A}_0^{\text{TD}} = +1.148\), pure MC gives \(\hat{A}_0^{\text{MC}} \approx +0.700\). GAE gives \(+1.034\), balancing between the two — that's the magic of \(\lambda\)!">对比纯 TD：\(\hat{A}_0^{\text{TD}} = +1.148\)，纯 MC：\(\hat{A}_0^{\text{MC}} \approx +0.700\)。GAE 给出 \(+1.034\)，在两者之间做了权衡——这就是 \(\lambda\) 的魔力！</span>
+        </div>
       </section>
 
       <!-- SECTION 6: Visualization -->
@@ -376,9 +477,100 @@
         </div>
       </section>
 
-      <!-- SECTION 7: PPO context -->
+      <!-- SECTION 7: Lambda Tuning Guide -->
+      <section id="sec-lambda-tuning">
+        <h2 class="phase-heading" data-zh="7. λ 调参实战指南" data-en="7. Practical λ Tuning Guide">7. λ 调参实战指南</h2>
+        <p class="phase-desc" data-zh="\(\lambda\) 是 GAE 最重要的超参数。下面通过具体场景帮你建立直觉：" data-en="\(\lambda\) is GAE's most important hyperparameter. Let's build intuition through concrete scenarios:">\(\lambda\) 是 GAE 最重要的超参数。下面通过具体场景帮你建立直觉：</p>
+
+        <table>
+          <thead><tr>
+            <th data-zh="场景" data-en="Scenario">场景</th>
+            <th data-zh="推荐 λ" data-en="Recommended λ">推荐 λ</th>
+            <th data-zh="原因" data-en="Reasoning">原因</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td data-zh="Critic 还没训好（训练早期）" data-en="Critic not yet trained (early training)">Critic 还没训好（训练早期）</td>
+              <td><b>λ → 1</b> (0.97–0.99)</td>
+              <td data-zh="Critic 不准，少依赖它，多用真实轨迹" data-en="Critic is inaccurate, rely less on it, use more real trajectory data">Critic 不准，少依赖它，多用真实轨迹</td>
+            </tr>
+            <tr>
+              <td data-zh="Critic 已经很准（训练后期）" data-en="Critic is well-trained (late training)">Critic 已经很准（训练后期）</td>
+              <td><b>λ → 0</b> (0.9–0.95)</td>
+              <td data-zh="Critic 可信，多依赖它，减少方差" data-en="Critic is reliable, lean on it more, reduce variance">Critic 可信，多依赖它，减少方差</td>
+            </tr>
+            <tr>
+              <td data-zh="奖励稀疏（如机器人抵达目标）" data-en="Sparse rewards (e.g., robot reaching goal)">奖励稀疏（如机器人抵达目标）</td>
+              <td><b>λ ≈ 0.97</b></td>
+              <td data-zh="需要看得更远才能拿到奖励信号" data-en="Need to look further ahead to capture the reward signal">需要看得更远才能拿到奖励信号</td>
+            </tr>
+            <tr>
+              <td data-zh="奖励密集（如 Atari 游戏）" data-en="Dense rewards (e.g., Atari games)">奖励密集（如 Atari 游戏）</td>
+              <td><b>λ ≈ 0.95</b></td>
+              <td data-zh="每步都有奖励反馈，不需要看太远" data-en="Every step provides reward feedback, no need to look far ahead">每步都有奖励反馈，不需要看太远</td>
+            </tr>
+            <tr>
+              <td data-zh="环境噪声很大（随机性高）" data-en="Noisy environment (high stochasticity)">环境噪声很大</td>
+              <td><b>λ ≈ 0.9</b></td>
+              <td data-zh="远处的奖励信号被噪声淘没，少用" data-en="Distant reward signals are drowned by noise, rely on nearby steps">远处信号被噪声淘没，少用</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="analogy-box">
+          <span class="emoji">🎯</span>
+          <strong data-zh="类比：" data-en="Analogy:">类比：</strong>
+          <span data-zh="\(\lambda\) 就像望远镜的变焦。\(\lambda \to 0\) 像放大镜（只看眼前细节，很清晰但视野窄）；\(\lambda \to 1\) 像望远镜（看得很远但模糊）。\(\lambda = 0.95\) 像一副好眼镜——远近都看得清楚。" data-en="\(\lambda\) is like the zoom on binoculars. \(\lambda \to 0\) is a magnifying glass (sees nearby details sharply but narrow field); \(\lambda \to 1\) is a telescope (sees far but blurry). \(\lambda = 0.95\) is like good eyeglasses — clear at all distances.">\(\lambda\) 就像望远镜的变焦。\(\lambda \to 0\) 像放大镜；\(\lambda \to 1\) 像望远镜；\(\lambda = 0.95\) 像一副好眼镜。</span>
+        </div>
+
+        <div class="callout">
+          <strong data-zh="🔧 调参小贴士" data-en="🔧 Tuning Tips">🔧 调参小贴士</strong>
+          <ul style="padding-left:1.2rem; line-height:1.9; margin-top:0.4rem;" data-zh="<li>从 PPO 默认值 \(\lambda=0.95, \gamma=0.99\) 开始，不确定时别改。</li><li>先调 \(\gamma\)（控制时间尺度），再调 \(\lambda\)（控制偏差-方差）。</li><li>\(\lambda\) 与 \(\gamma\) 是乘性关系：\(\gamma\lambda\) 才是真正的衰减率。如 \(\gamma=0.99, \lambda=0.95 \Rightarrow \gamma\lambda=0.9405\)。</li><li>训练不稳定时试降 \(\lambda\)，学不到远处奖励时试升 \(\lambda\)。</li>" data-en="<li>Start with PPO defaults: \(\lambda=0.95, \gamma=0.99\). When in doubt, don't change them.</li><li>Tune \(\gamma\) first (controls time horizon), then \(\lambda\) (controls bias-variance).</li><li>\(\lambda\) and \(\gamma\) are multiplicative: \(\gamma\lambda\) is the real decay rate. E.g., \(\gamma=0.99, \lambda=0.95 \Rightarrow \gamma\lambda=0.9405\).</li><li>If training is unstable, try lowering \(\lambda\). If the agent can't learn distant rewards, try raising \(\lambda\).</li>"><li>从 PPO 默认值 \(\lambda=0.95, \gamma=0.99\) 开始。</li><li>先调 \(\gamma\)，再调 \(\lambda\)。</li><li>\(\gamma\lambda\) 才是真正的衰减率。</li><li>不稳定时降 \(\lambda\)，学不到远处奖励时升 \(\lambda\)。</li></ul>
+        </div>
+      </section>
+
+      <!-- SECTION 8: Common Pitfalls & FAQ -->
+      <section id="sec-faq">
+        <h2 class="phase-heading" data-zh="8. 常见坑点与 FAQ" data-en="8. Common Pitfalls & FAQ">8. 常见坑点与 FAQ</h2>
+
+        <div class="callout" style="border-left-color:#dc2626; background:#fef2f2;">
+          <strong data-zh="❗ 坑 1：忽略 episode 边界" data-en="❗ Pitfall 1: Ignoring Episode Boundaries">❗ 坑 1：忽略 episode 边界</strong><br/>
+          <span data-zh="当 episode 结束时（done=True），必须截断 GAE 累积：\(\hat{A}_t = \delta_t\)，而不是继续累加 \(\gamma\lambda \hat{A}_{t+1}\)。否则上一个 episode 的奖励会泄漏到下一个，产生错误信号。" data-en="When an episode ends (done=True), you MUST truncate GAE accumulation: \(\hat{A}_t = \delta_t\), not continue adding \(\gamma\lambda \hat{A}_{t+1}\). Otherwise rewards from one episode leak into the next, producing corrupt signals.">当 episode 结束时（done=True），必须截断 GAE 累积。否则奖励会跨 episode 泄漏。</span>
+          <div style="background:#1e1e2e; color:#cdd6f4; padding:0.8rem; border-radius:6px; margin-top:0.5rem; font-family:'JetBrains Mono',monospace; font-size:0.82rem;">
+            <span style="color:#585b70;"># ✅ 正确写法</span><br/>
+            next_val = values[t+1] * (<span style="color:#fab387;">1.0</span> - <span style="color:#89b4fa;">float</span>(dones[t]))<br/>
+            delta = rewards[t] + gamma * next_val - values[t]<br/>
+            last_gae = delta + gamma * lam * last_gae * (<span style="color:#fab387;">1.0</span> - <span style="color:#89b4fa;">float</span>(dones[t]))
+          </div>
+        </div>
+
+        <div class="callout" style="border-left-color:#dc2626; background:#fef2f2;">
+          <strong data-zh="❗ 坑 2：忘记优势归一化" data-en="❗ Pitfall 2: Forgetting Advantage Normalization">❗ 坑 2：忘记优势归一化</strong><br/>
+          <span data-zh="计算完 GAE 优势后，必须做归一化（减均值除标准差）。不归一化的话，策略梯度的尺度会随训练进展剧烈变化，导致训练崩溃。" data-en="After computing GAE advantages, you MUST normalize them (subtract mean, divide by std). Without normalization, the scale of policy gradients fluctuates wildly during training, causing instability or collapse.">计算完 GAE 后必须归一化。不归一化会导致训练崩溃。</span>
+          <div class="math-block" style="margin:0.75rem 0;">
+            \[ \hat{A}_t \leftarrow \frac{\hat{A}_t - \text{mean}(\hat{A})}{\text{std}(\hat{A}) + \epsilon} \]
+          </div>
+        </div>
+
+        <div class="callout" style="border-left-color:#f59e0b; background:#fffbeb;">
+          <strong data-zh="❓ FAQ：\(\gamma\) 和 \(\lambda\) 有什么区别？" data-en="❓ FAQ: What's the difference between γ and λ?">❓ FAQ：\(\gamma\) 和 \(\lambda\) 有什么区别？</strong><br/>
+          <span data-zh="\(\gamma\) 是 MDP 的折扣因子，定义了任务本身的时间尺度（未来奖励多重要）。\(\lambda\) 是 GAE 的超参数，控制优势估计的偏差-方差权衡。它们角色不同，但在 GAE 公式中以乘积 \(\gamma\lambda\) 的形式共同作用。" data-en="\(\gamma\) is the MDP discount factor — it defines the task's time horizon (how much future rewards matter). \(\lambda\) is GAE's hyperparameter that controls the bias-variance tradeoff of the advantage estimate. They play different roles but combine multiplicatively as \(\gamma\lambda\) in the GAE formula.">\(\gamma\) 是 MDP 的折扣因子（任务时间尺度），\(\lambda\) 是 GAE 的偏差-方差权衡。它们以 \(\gamma\lambda\) 的形式共同作用。</span>
+        </div>
+
+        <div class="callout" style="border-left-color:#f59e0b; background:#fffbeb;">
+          <strong data-zh="❓ FAQ：GAE 跟 TD(λ) 是一回事吗？" data-en="❓ FAQ: Is GAE the same as TD(λ)?">❓ FAQ：GAE 跟 TD(λ) 是一回事吗？</strong><br/>
+          <span data-zh="几乎一样！GAE 可以看作 TD(λ) 在策略梯度背景下的表达。TD(λ) 用于价值函数估计，GAE 用于优势估计。数学形式完全相同——都是 TD 残差的指数加权和。" data-en="Almost the same! GAE can be viewed as TD(λ) applied in the policy gradient setting. TD(λ) is for value estimation, GAE is for advantage estimation. The mathematical form is identical — both are exponentially weighted sums of TD residuals.">几乎一样！GAE 可以看作 TD(λ) 在策略梯度背景下的表达。数学形式完全相同。</span>
+        </div>
+
+        <div class="callout" style="border-left-color:#f59e0b; background:#fffbeb;">
+          <strong data-zh="❓ FAQ：为什么不直接用网络预测 Q(s,a)，而要用 GAE？" data-en="❓ FAQ: Why not just predict Q(s,a) with a network instead of using GAE?">❓ FAQ：为什么不直接用网络预测 Q(s,a)？</strong><br/>
+          <span data-zh="可以，但 Q 网络在连续动作空间中很难训练（输入维度高、过估问题）。V 网络 + GAE 的组合更稳定：V 只需输入状态，更容易训练；GAE 用真实轨迹数据补充了动作维度的信息。这是 PPO 的标准做法。" data-en="You can, but Q-networks are hard to train in continuous action spaces (high-dimensional input, overestimation issues). The V-network + GAE combo is more stable: V only takes state as input (easier to train), and GAE fills in the action dimension using real trajectory data. This is the standard PPO approach.">可以，但 Q 网络在连续动作空间难训练。V 网络 + GAE 更稳定，这是 PPO 的标准做法。</span>
+        </div>
+      </section>
+
+      <!-- SECTION 9: PPO context -->
       <section id="sec-ppo">
-        <h2 class="phase-heading" data-zh="7. GAE 在 PPO 训练循环中的位置" data-en="7. GAE in the PPO Training Loop">7. GAE 在 PPO 训练循环中的位置</h2>
+        <h2 class="phase-heading" data-zh="9. GAE 在 PPO 训练循环中的位置" data-en="9. GAE in the PPO Training Loop">9. GAE 在 PPO 训练循环中的位置</h2>
         <p class="phase-desc" data-zh="GAE 是 PPO（Proximal Policy Optimization）的重要组成部分。完整的 PPO 训练循环如下：" data-en="GAE is a key component of PPO (Proximal Policy Optimization). The full PPO training loop looks like:">GAE 是 PPO（Proximal Policy Optimization）的重要组成部分。完整的 PPO 训练循环如下：</p>
 
         <div class="pipeline">
