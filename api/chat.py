@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
-from openai import OpenAI, RateLimitError
+from openai import OpenAI, RateLimitError, BadRequestError
 import rag_utils
 import tools as agent_tools
 
@@ -217,6 +217,103 @@ def _parse_retry_after(e):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# Context Summarization (compress older messages when context limit exceeded)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Rough char-to-token ratio for CJK-heavy text (conservative)
+_CHARS_PER_TOKEN = 2.5
+# Leave headroom for system prompt (~4k tokens) + RAG (~2k) + reply (131k)
+_MAX_CONTEXT_CHARS = 100_000  # ~40k tokens, well under 131k limit
+
+
+def _estimate_message_chars(messages):
+    """Sum up character count across all messages."""
+    total = 0
+    for m in messages:
+        total += len(m.get("content", "") or "")
+        # tool_calls arguments also consume tokens
+        for tc in m.get("tool_calls", []):
+            total += len(tc.get("function", {}).get("arguments", ""))
+    return total
+
+
+def _summarize_messages(client, messages):
+    """Compress older conversation messages into a single summary.
+
+    Strategy:
+      - Keep system message (index 0) and the last 4 messages intact
+      - Summarize everything in between into a compact assistant message
+      - This preserves recent context while freeing token budget
+    """
+    if len(messages) <= 6:
+        # Too few messages to summarize — just truncate tool results
+        return _truncate_tool_results(messages)
+
+    system_msg = messages[0]  # system prompt
+    recent = messages[-4:]  # keep last 4 messages for immediate context
+    middle = messages[1:-4]  # everything else gets summarized
+
+    # Build a summary of the middle section
+    summary_parts = []
+    for m in middle:
+        role = m.get("role", "")
+        content = (m.get("content", "") or "").strip()
+        if role == "user" and content:
+            summary_parts.append(f"User: {content[:200]}")
+        elif role == "assistant" and content:
+            summary_parts.append(f"Assistant: {content[:300]}")
+        elif role == "tool":
+            summary_parts.append(f"[Tool result: {content[:100]}...]")
+    
+    if not summary_parts:
+        return [system_msg] + recent
+
+    # Use the LLM to produce a concise summary if client available,
+    # otherwise fall back to simple truncation
+    try:
+        summary_text = "\n".join(summary_parts)
+        if len(summary_text) > 6000:
+            summary_text = summary_text[:6000] + "..."
+        
+        completion = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": "你是一个对话摘要助手。请将以下对话历史压缩为简洁的中文摘要，保留关键信息（用户问了什么、AI回答了什么要点、使用了哪些工具、得到了什么关键结果）。摘要控制在500字以内。"},
+                {"role": "user", "content": summary_text}
+            ],
+            max_tokens=1024,
+        )
+        summary = completion.choices[0].message.content or ""
+    except Exception as e:
+        logger.warning(f"Summarization LLM call failed, using simple truncation: {e}")
+        summary = "\n".join(summary_parts)[:1500]
+    
+    compressed = [
+        system_msg,
+        {
+            "role": "assistant",
+            "content": f"[以下是之前对话的摘要]\n{summary}\n[摘要结束，以下是最近的对话]"
+        },
+    ] + recent
+    
+    logger.info(
+        f"Context compressed: {len(messages)} messages → {len(compressed)} messages, "
+        f"{_estimate_message_chars(messages)} → {_estimate_message_chars(compressed)} chars"
+    )
+    return compressed
+
+
+def _truncate_tool_results(messages):
+    """Truncate long tool results to save context space."""
+    truncated = []
+    for m in messages:
+        if m.get("role") == "tool" and len(m.get("content", "")) > 2000:
+            m = dict(m)
+            m["content"] = m["content"][:2000] + "\n... [truncated for context limit]"
+        truncated.append(m)
+    return truncated
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Agent Loop (SSE streaming)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -249,8 +346,16 @@ def _run_agent_loop(client, messages, system_content):
     api_messages = [{"role": "system", "content": full_system}] + messages
 
     for round_num in range(MAX_TOOL_ROUNDS):
+        # ── Proactive context compression ────────────────────────────────
+        ctx_chars = _estimate_message_chars(api_messages)
+        if ctx_chars > _MAX_CONTEXT_CHARS:
+            logger.info(f"Context too large ({ctx_chars} chars), compressing...")
+            yield _sse_event("thinking", {"content": "Compressing conversation context..."})
+            api_messages = _summarize_messages(client, api_messages)
+
         # ── Streaming API call with retry ──────────────────────────────────
         stream = None
+        context_compressed = False
         for attempt in range(4):
             try:
                 stream = client.chat.completions.create(
@@ -262,6 +367,19 @@ def _run_agent_loop(client, messages, system_content):
                     stream=True,
                 )
                 break
+            except BadRequestError as e:
+                err_msg = str(e).lower()
+                if ("context" in err_msg or "token" in err_msg or "length" in err_msg) and not context_compressed:
+                    # Context limit hit — compress and retry
+                    logger.info(f"Context limit exceeded, compressing: {e}")
+                    yield _sse_event("thinking", {"content": "Context limit reached, compressing history..."})
+                    api_messages = _summarize_messages(client, api_messages)
+                    context_compressed = True
+                    continue
+                else:
+                    logger.exception("Bad request error")
+                    yield _sse_event("error", {"message": f"API error: {e}"})
+                    return
             except RateLimitError as e:
                 wait = _parse_retry_after(e)
                 if attempt < 3:
@@ -286,45 +404,50 @@ def _run_agent_loop(client, messages, system_content):
         finish_reason = None
         in_reasoning = False  # track if we already sent reasoning_start
 
-        for chunk in stream:
-            if not chunk.choices:
-                continue
-            delta = chunk.choices[0].delta
-            finish_reason = chunk.choices[0].finish_reason
+        try:
+            for chunk in stream:
+                if not chunk.choices:
+                    continue
+                delta = chunk.choices[0].delta
+                finish_reason = chunk.choices[0].finish_reason
 
-            # Reasoning tokens (K2.5 thinking chain)
-            rc = getattr(delta, 'reasoning_content', None)
-            if rc:
-                if not in_reasoning:
-                    # First reasoning chunk — tell frontend to create the block
-                    yield _sse_event("reasoning_start", {})
-                    in_reasoning = True
-                accumulated_reasoning += rc
-                yield _sse_event("reasoning_delta", {"content": rc})
+                # Reasoning tokens (K2.5 thinking chain)
+                rc = getattr(delta, 'reasoning_content', None)
+                if rc:
+                    if not in_reasoning:
+                        # First reasoning chunk — tell frontend to create the block
+                        yield _sse_event("reasoning_start", {})
+                        in_reasoning = True
+                    accumulated_reasoning += rc
+                    yield _sse_event("reasoning_delta", {"content": rc})
 
-            # Content tokens (final answer or intermediate text)
-            if delta.content:
-                accumulated_content += delta.content
-                yield _sse_event("message_delta", {"content": delta.content})
+                # Content tokens (final answer or intermediate text)
+                if delta.content:
+                    accumulated_content += delta.content
+                    yield _sse_event("message_delta", {"content": delta.content})
 
-            # Tool call tokens
-            if delta.tool_calls:
-                for tc_delta in delta.tool_calls:
-                    idx = tc_delta.index
-                    if idx not in accumulated_tool_calls:
-                        accumulated_tool_calls[idx] = {
-                            "id": tc_delta.id or "",
-                            "name": tc_delta.function.name or "" if tc_delta.function else "",
-                            "arguments": "",
-                        }
-                    entry = accumulated_tool_calls[idx]
-                    if tc_delta.id:
-                        entry["id"] = tc_delta.id
-                    if tc_delta.function:
-                        if tc_delta.function.name:
-                            entry["name"] = tc_delta.function.name
-                        if tc_delta.function.arguments:
-                            entry["arguments"] += tc_delta.function.arguments
+                # Tool call tokens
+                if delta.tool_calls:
+                    for tc_delta in delta.tool_calls:
+                        idx = tc_delta.index
+                        if idx not in accumulated_tool_calls:
+                            accumulated_tool_calls[idx] = {
+                                "id": tc_delta.id or "",
+                                "name": tc_delta.function.name or "" if tc_delta.function else "",
+                                "arguments": "",
+                            }
+                        entry = accumulated_tool_calls[idx]
+                        if tc_delta.id:
+                            entry["id"] = tc_delta.id
+                        if tc_delta.function:
+                            if tc_delta.function.name:
+                                entry["name"] = tc_delta.function.name
+                            if tc_delta.function.arguments:
+                                entry["arguments"] += tc_delta.function.arguments
+        except Exception as e:
+            logger.exception("Stream consumption error")
+            yield _sse_event("error", {"message": f"Stream interrupted: {e}"})
+            return
 
         # ── End reasoning block if open ─────────────────────────────────
         if in_reasoning:
@@ -374,7 +497,11 @@ def _run_agent_loop(client, messages, system_content):
                     "status": "running",
                 })
 
-                result = agent_tools.execute_tool(tool_name, tool_args_raw)
+                try:
+                    result = agent_tools.execute_tool(tool_name, tool_args_raw)
+                except Exception as e:
+                    logger.exception(f"Tool execution error: {tool_name}")
+                    result = f"Error executing {tool_name}: {e}"
 
                 display_result = result
                 if len(display_result) > 2000:

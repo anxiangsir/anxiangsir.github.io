@@ -5,7 +5,7 @@
 - Responsive personal homepage with research profile (Wikipedia-style layout)
 - Bilingual support (English / 中文) with one-click language toggle
 - **AI Agent chat assistant** — Kimi K2.5 with function calling, SSE streaming, and Claude Code-style dark UI
-- 6 agent tools: publication search, webpage fetching, GitHub repo browsing, citation stats, and more
+- 10 agent tools: publication search, webpage fetching, GitHub repo browsing, citation stats, site search, and more
 - Lightweight RAG retrieval over `research_data.yaml` (publications + GitHub projects)
 - Word-level blurIn streaming animation (ChatGPT-grade fluidity)
 - Interactive visualizations: PartialFC training pipeline, video codec pipeline, LLaVA-OneVision2 codec animation, and more
@@ -42,7 +42,7 @@ anxiangsir.github.io/
 │
 ├── api/                       # Backend — Python (Flask / Vercel serverless)
 │   ├── chat.py                #   Chat API — Kimi K2.5 agent loop + SSE streaming
-│   ├── tools.py               #   6 agent tools (schemas + implementations)
+│   ├── tools.py               #   10 agent tools (schemas + implementations)
 │   ├── rag_utils.py           #   RAG retrieval over research_data.yaml
 │   ├── chat_log.py            #   Conversation logging endpoint
 │   ├── db_utils.py            #   Database utilities (Neon Postgres)
@@ -111,6 +111,9 @@ User → chat.html (SSE) → /api/chat (Flask) → Kimi K2.5 API (Moonshot)
                     │  list_github_repos                │
                     │  get_citation_stats               │
                     │  read_site_page                   │
+                    │  get_pinned_repos (GraphQL)       │
+                    │  search_site_pages                │
+                    │  get_repo_contributors            │
                     └─────────────────────────────────┘
 ```
 
@@ -126,6 +129,7 @@ User → chat.html (SSE) → /api/chat (Flask) → Kimi K2.5 API (Moonshot)
   - `done` — completion signal
 - **RAG**: Lightweight retrieval from `research_data.yaml` prepended to system prompt
 - **Rate limit handling**: Automatic retry with `Retry-After` parsing for 429 errors
+- **Context compression**: Automatic conversation summarization when context limit is reached — older messages are LLM-summarized to free token budget
 - **max_tokens**: 131072 (128K context window)
 
 ### Frontend (`pages/chat.html`)
@@ -147,6 +151,9 @@ User → chat.html (SSE) → /api/chat (Flask) → Kimi K2.5 API (Moonshot)
 | `list_github_repos` | List public repos for a GitHub user/org |
 | `get_citation_stats` | Citation statistics with geographic breakdown |
 | `read_site_page` | Read HTML pages from this website |
+| `get_pinned_repos` | Get GitHub user's pinned repos via GraphQL API |
+| `search_site_pages` | Search all site pages (blogs, visualizations) by keyword |
+| `get_repo_contributors` | Get repo contributor list with commit counts |
 
 ### SSE Event Protocol
 

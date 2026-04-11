@@ -789,7 +789,8 @@
 
         /* Responsive Mobile Styles */
         @media (max-width: 768px) {
-            header { padding: 0.6rem 1rem; }
+            header { padding: 0.6rem 1rem; gap: 0.75rem; }
+            .header-center { font-size: 0.9em; }
             main { padding: 1rem 0.75rem; }
             .messages-container, .input-container, .input-footer { max-width: 100%; }
             .mascot-container {
@@ -807,12 +808,24 @@
 
         @media (max-width: 480px) {
             body { font-size: 13px; }
-            header { padding: 0.5rem 0.75rem; }
-            .header-center { font-size: 0.95em; }
+            header { padding: 0.5rem 0.75rem; gap: 0.5rem; }
+            .header-left { flex: 0 0 auto; }
+            .header-center { 
+                font-size: 0.85em; 
+                white-space: nowrap; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+            }
+            .header-right { gap: 0.5rem; }
             a.back-link span { display: none !important; }
             .btn {
-                padding: 0.3rem 0.5rem;
-                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            .header-right button:last-child {
+                background: var(--bg-tertiary); 
+                border-color: var(--accent); 
+                color: var(--accent);
             }
             main { padding: 0.75rem 0.5rem; }
             .message.user { gap: 0.5rem; }
@@ -834,7 +847,11 @@
             }
             .tool-card-header, .reasoning-header { padding: 0.5rem; }
             .tool-card-body, .reasoning-body { padding: 0.5rem; }
-            .input-area { padding: 0.5rem; }
+            .input-area { 
+                padding: 0.5rem;
+                padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+            }
+            textarea { font-size: 16px; }
             .input-container {
                 padding: 0.4rem 0.5rem;
                 gap: 0.5rem;
@@ -849,6 +866,9 @@
                 border-radius: 4px;
             }
             .msg-content img { margin: 0.75rem 0; }
+            .input-footer {
+                font-size: 0.65em;
+            }
         }
     </style>
 </head>
@@ -1235,7 +1255,21 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    // Try to read error body (backend may return JSON error)
+                    let errMsg = `HTTP ${response.status}`;
+                    try {
+                        const errBody = await response.text();
+                        const errJson = JSON.parse(errBody);
+                        errMsg = errJson.reply || errJson.error || errMsg;
+                    } catch(_) {}
+                    throw new Error(errMsg);
+                }
+
+                // Verify we got an SSE stream, not a JSON response
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    const jsonBody = await response.json();
+                    throw new Error(jsonBody.reply || jsonBody.error || 'Unexpected JSON response');
                 }
 
                 const reader = response.body.getReader();
@@ -1495,8 +1529,26 @@
             } catch (error) {
                 console.error("Chat error:", error);
                 statusBar.style.display = 'none';
-                const errorMsgEn = "Service temporarily unavailable. Please try again later.";
-                const errorMsgZh = "服务暂时不可用，请稍后再试。";
+                const errDetail = error.message || 'Unknown error';
+                const isNetwork = errDetail.includes('Failed to fetch') || errDetail.includes('NetworkError') || errDetail.includes('net::');
+                const isTimeout = errDetail.includes('HTTP 504') || errDetail.includes('HTTP 503') || errDetail.includes('timeout');
+                const isRateLimit = errDetail.includes('HTTP 429') || errDetail.includes('Rate limit') || errDetail.includes('频率超限');
+                const isEn = document.documentElement.getAttribute('lang') === 'en';
+
+                let errorMsgEn, errorMsgZh;
+                if (isNetwork) {
+                    errorMsgEn = 'Cannot connect to the server. Please check your network and try again.';
+                    errorMsgZh = '无法连接到服务器，请检查网络后重试。';
+                } else if (isRateLimit) {
+                    errorMsgEn = 'Too many requests. Please wait a moment and try again.';
+                    errorMsgZh = '请求过于频繁，请稍等片刻后重试。';
+                } else if (isTimeout) {
+                    errorMsgEn = 'Server timeout. The AI may be thinking deeply — please try again.';
+                    errorMsgZh = '服务器超时，AI 可能正在深度思考——请重试。';
+                } else {
+                    errorMsgEn = `Service error: ${errDetail}. Please try again later.`;
+                    errorMsgZh = `服务异常：${errDetail}，请稍后再试。`;
+                }
                 replyContent.innerHTML = `
                     <div class="error-text">
                         <p data-lang="en">${errorMsgEn}</p>
