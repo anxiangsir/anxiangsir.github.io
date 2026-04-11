@@ -6,15 +6,15 @@ This website uses YAML files to dynamically generate publication content. This a
 
 The system consists of three main components:
 
-1. **YAML Files** (`_data/*.yaml`) - Store publication data
+1. **YAML Files** (`data/*.yaml`) - Store research data (publications + GitHub projects)
 2. **YAML Parser** (`assets/js/yaml-parser.js`) - Parses YAML into JavaScript objects
 3. **Publications Loader** (`assets/js/publications-loader.js`) - Generates HTML from parsed data
 
 ## YAML Files
 
-### `_data/publications.yaml`
+### `data/research_data.yaml`
 
-Contains the full list of all publications displayed on `publications.html`. This is the **single source of truth** for all publication details. Selected publications also get their full details from this file.
+Contains the full list of all publications and GitHub projects. This is the **single source of truth** for all publication details and project information. Selected publications also get their full details from this file.
 
 **Structure:**
 ```yaml
@@ -31,26 +31,26 @@ publications:
       Can span multiple lines.
 ```
 
-### `_data/selected_publications.yaml`
+### `data/selected_publications.yaml`
 
-Contains only the **titles** of publications to be featured on the homepage (`index.html`). The full publication details are automatically looked up from `publications.yaml`.
+Contains only the **titles** of publications to be featured on the homepage (`index.html`). The full publication details are automatically looked up from `research_data.yaml`.
 
 **Structure:**
 ```yaml
-# Selected publications are looked up from publications.yaml by title
+# Selected publications are looked up from research_data.yaml by title
 selected_publications:
   - "Paper Title 1"
   - "Paper Title 2"
   - "Paper Title 3"
 ```
 
-**Note:** The title must exactly match the title in `publications.yaml`.
+**Note:** The title must exactly match the title in `research_data.yaml`.
 
 ## How to Add a New Publication
 
 ### For All Publications List
 
-1. Open `_data/publications.yaml`
+1. Open `data/research_data.yaml`
 2. Add a new entry at the appropriate position:
 
 ```yaml
@@ -63,7 +63,7 @@ selected_publications:
 
 ### For Selected Publications (Homepage)
 
-1. First, add the publication to `_data/publications.yaml` with all details:
+1. First, add the publication to `data/research_data.yaml` with all details:
 
 ```yaml
   - title: "Your New Paper Title"
@@ -77,7 +77,7 @@ selected_publications:
       Explain the main idea and impact.
 ```
 
-2. Then, add just the title to `_data/selected_publications.yaml`:
+2. Then, add just the title to `data/selected_publications.yaml`:
 
 ```yaml
 selected_publications:
@@ -93,7 +93,7 @@ selected_publications:
 
 ### Single Source of Truth
 
-All publication details are stored in `publications.yaml`. The `selected_publications.yaml` file only contains titles, which are used to look up the full details from `publications.yaml`. This eliminates data redundancy and makes maintenance easier.
+All publication details are stored in `research_data.yaml`. The `selected_publications.yaml` file only contains titles, which are used to look up the full details from `research_data.yaml`. This eliminates data redundancy and makes maintenance easier.
 
 ### Automatic Author Highlighting
 
@@ -101,7 +101,7 @@ The system automatically highlights "Xiang An" in the author list with special s
 
 ### External Link Support
 
-For selected publications, the system automatically adds "Paper" and "Code" badges if URLs are provided in `publications.yaml`.
+For selected publications, the system automatically adds "Paper" and "Code" badges if URLs are provided in `research_data.yaml`.
 
 ### Loading States
 
@@ -129,7 +129,7 @@ The loader includes comprehensive error handling:
 - Parse errors in YAML syntax
 - Missing or invalid data structures
 - Missing DOM elements
-- Warnings for selected publications not found in publications.yaml
+- Warnings for selected publications not found in research_data.yaml
 
 All errors are logged to the console and displayed to users when appropriate.
 
@@ -185,7 +185,7 @@ The code has been scanned with CodeQL and no security vulnerabilities were found
 ### Selected Publications List
 
 ```yaml
-# Selected publications are looked up from publications.yaml by title
+# Selected publications are looked up from research_data.yaml by title
 selected_publications:
   - "Comprehensive Research Paper"
   - "Another Featured Paper"
@@ -203,7 +203,7 @@ selected_publications:
 ### Selected Publication Not Found
 
 If a selected publication doesn't appear:
-1. Check that the title in `selected_publications.yaml` exactly matches the title in `publications.yaml`
+1. Check that the title in `selected_publications.yaml` exactly matches the title in `research_data.yaml`
 2. Look for console warnings about publications not found
 
 ### YAML Syntax Errors

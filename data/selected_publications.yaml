@@ -1,4 +1,4 @@
-# Selected publications are looked up from publications.yaml by title
+# Selected publications are looked up from research_data.yaml by title
 selected_publications:
   - "OneVision-Encoder: Codec-Aligned Sparsity as a Foundational Principle for Multimodal Intelligence"
   - "LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training"

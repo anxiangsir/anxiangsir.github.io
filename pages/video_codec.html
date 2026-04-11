@@ -112,6 +112,40 @@
       .source-links { margin-bottom: 2rem; font-family: var(--font-sans); font-size: 0.9rem; text-align: center; }
       .source-links a { color: var(--accent); text-decoration: none; margin: 0 10px; font-weight: 600; }
       .source-links a:hover { text-decoration: underline; }
+      /* Section 11: Bitcost */
+      .bitcost-highlight { border-left: 4px solid var(--accent-red); background: #fee2e2; padding: 15px 20px; border-radius: 0 8px 8px 0; margin: 1.5rem 0; color: var(--text); }
+      .quad-tree-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: center; margin: 20px 0; padding: 20px; background: var(--bg-alt); border-radius: 8px; border: 1px solid var(--border); }
+      .qt-box { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+      .qt-grid-wrap { width: 256px; height: 256px; position: relative; background: white; border: 2px solid var(--text); display: flex; flex-wrap: wrap; }
+      .h264-mb { width: 25%; height: 25%; border: 1px solid var(--border); background: #f8fafc; box-sizing: border-box; }
+      .h265-ctu { width: 100%; height: 100%; border: 1px solid var(--border); background: #ecfdf5; position: absolute; top: 0; left: 0; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; }
+      .h265-split.active .h265-ctu { border: 1px solid #10b981; }
+      .h265-level-1 { position: absolute; border: 1px solid #10b981; background: #d1fae5; transition: opacity 0.4s, transform 0.5s; opacity: 0; box-sizing: border-box; }
+      .h265-level-2 { position: absolute; border: 1px solid #06b6d4; background: #cffafe; transition: opacity 0.4s, transform 0.5s; opacity: 0; box-sizing: border-box; }
+      .h265-level-3 { position: absolute; border: 1px solid #f59e0b; background: #fef3c7; transition: opacity 0.4s, transform 0.5s; opacity: 0; box-sizing: border-box; }
+      .h265-split.active.step1 .h265-level-1 { opacity: 1; }
+      .h265-split.active.step2 .h265-level-2 { opacity: 1; }
+      .h265-split.active.step3 .h265-level-3 { opacity: 1; }
+      .qt-title { font-family: var(--font-sans); font-weight: bold; font-size: 1rem; color: var(--text); }
+      
+      .norm-flow { display: flex; flex-direction: column; gap: 15px; margin: 20px auto; max-width: 600px; position: relative; }
+      .norm-flow::before { content: ''; position: absolute; left: 24px; top: 20px; bottom: 20px; width: 2px; background: var(--border); z-index: 0; }
+      .norm-step { display: flex; align-items: center; gap: 15px; background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; z-index: 1; opacity: 0.5; transform: translateX(-10px); transition: all 0.4s; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+      .norm-step.active { opacity: 1; transform: translateX(0); border-color: var(--accent); box-shadow: 0 4px 12px rgba(37,99,235,0.1); }
+      .norm-num { min-width: 32px; height: 32px; border-radius: 50%; background: var(--bg-alt); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: var(--font-sans); color: var(--text-secondary); transition: all 0.3s; }
+      .norm-step.active .norm-num { background: var(--accent); border-color: var(--accent); color: white; }
+      .norm-desc { font-family: var(--font-sans); flex-grow: 1; }
+      .norm-desc strong { color: var(--text); font-size: 1.05rem; display: block; margin-bottom: 2px; }
+      .norm-desc span { color: var(--text-secondary); font-size: 0.9rem; font-family: var(--font-math); }
+      
+      .fallback-rings { position: relative; width: 300px; height: 300px; margin: 30px auto; display: flex; justify-content: center; align-items: center; }
+      .fr-ring { position: absolute; border-radius: 50%; display: flex; align-items: flex-start; justify-content: center; padding-top: 15px; font-family: var(--font-sans); font-weight: bold; font-size: 0.85rem; transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); transform: scale(0.8); opacity: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 2px solid white; }
+      .fallback-rings.active .fr-ring { transform: scale(1); opacity: 1; }
+      .fr-level3 { width: 300px; height: 300px; background: #fef3c7; color: #b45309; z-index: 1; transition-delay: 0s; }
+      .fr-level2 { width: 220px; height: 220px; background: #e0f2fe; color: #0369a1; z-index: 2; transition-delay: 0.2s; }
+      .fr-level1 { width: 140px; height: 140px; background: #d1fae5; color: #047857; z-index: 3; padding-top: 55px; transition-delay: 0.4s; }
+      
+      .b-win { background-color: #ecfdf5 !important; color: #065f46; font-weight: 600; }
     </style>
   </head>
   <body>
@@ -137,6 +171,7 @@
       <a href="#sec-8" class="toc-item">8</a>
       <a href="#sec-9" class="toc-item">9</a>
       <a href="#sec-10" class="toc-item">10</a>
+      <a href="#sec-11" class="toc-item">11</a>
     </nav>
     
     <a href="#" class="back-to-top" id="back-to-top">↑</a>
@@ -589,6 +624,232 @@
           </tr>
         </tbody>
       </table>
+      <!-- Section 11: Bitcost Scoring System -->
+      <h3 class="phase-heading" id="sec-11" data-lang="zh"><span class="phase-num">11</span> Bitcost 评分系统</h3>
+      <h3 class="phase-heading" data-lang="en"><span class="phase-num">11</span> Bitcost Scoring System</h3>
+      
+      <div class="bitcost-highlight">
+        <p data-lang="zh"><strong>概述：</strong>Bitcost 是一种改进的评分方法，来源于 lmms-eval-ov2 评估流水线（见 <code>scoring.py</code> 中的 <code>mv_res_score_map()</code>）。它直接利用视频编解码器的率失真优化 (RDO) 比特分配数据来评估图像区域的重要性。</p>
+        <p data-lang="en"><strong>Overview:</strong> Bitcost is an improved scoring method from the lmms-eval-ov2 evaluation pipeline (see <code>mv_res_score_map()</code> in <code>scoring.py</code>). It leverages Rate-Distortion Optimization (RDO) bit allocation data directly from the video codec to evaluate regional importance.</p>
+      </div>
+
+      <p class="phase-desc" data-lang="zh">
+        <br>
+        <strong>11.2 RDO 理论基础</strong><br>
+        在视频压缩中，编码器在决定如何划分宏块时，会进行率失真优化 (Rate-Distortion Optimization)。其核心公式为：
+      </p>
+      <p class="phase-desc" data-lang="en">
+        <br>
+        <strong>11.2 RDO Theory</strong><br>
+        In video compression, encoders perform Rate-Distortion Optimization when deciding how to partition macroblocks. The core formula is:
+      </p>
+
+      <div class="math-block">
+        $$J = D + \lambda \cdot R$$
+      </div>
+
+      <p class="phase-desc" data-lang="zh">
+        其中，$D$ 是失真 (Distortion)，$R$ 是消耗的比特数 (Rate)，$\lambda$ 是拉格朗日乘子。核心洞察在于：<strong>编码器会自动为视觉上更复杂、包含更多信息的区域分配更多的比特</strong>。因此，Bitcost 得分越高，代表该区域的视觉信息越丰富。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        Where $D$ is Distortion, $R$ is Rate (bits), and $\lambda$ is the Lagrange multiplier. The key insight: <strong>the encoder automatically allocates more bits to visually complex, information-rich regions</strong>. Thus, a higher bitcost indicates a region with more visual information.
+      </p>
+
+      <p class="phase-desc" data-lang="zh">
+        <br><strong>11.3 H.264 宏块 vs H.265 四叉树</strong><br>
+        H.264 使用固定的 16×16 宏块 (Macroblock)，而 H.265 (HEVC) 引入了编码树单元 (CTU)，支持从 64×64 到 8×8 的四叉树 (Quad-Tree) 递归划分。点击下方按钮演示四叉树划分过程。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        <br><strong>11.3 H.264 MB vs H.265 Quad-Tree</strong><br>
+        H.264 uses fixed 16×16 Macroblocks (MB), while H.265 (HEVC) introduces Coding Tree Units (CTU) supporting recursive Quad-Tree splits from 64×64 down to 8×8. Click below to animate the split.
+      </p>
+
+      <div class="stage-wrapper">
+        <div class="quad-tree-container">
+          <div class="qt-box">
+            <div class="qt-title">H.264 (16×16 MBs)</div>
+            <div class="qt-grid-wrap">
+              <!-- JS will fill 16 MBs -->
+              <script>
+                document.write(Array(16).fill('<div class="h264-mb"></div>').join(''));
+              </script>
+            </div>
+          </div>
+          <div class="qt-box">
+            <div class="qt-title">H.265 (CTU Quad-Tree)</div>
+            <div class="qt-grid-wrap h265-split" id="qt-anim">
+              <div class="h265-ctu"></div>
+              <!-- step1: 4x 32x32 -->
+              <div class="h265-level-1" style="width:50%; height:50%; top:0; left:0;"></div>
+              <div class="h265-level-1" style="width:50%; height:50%; top:0; left:50%;"></div>
+              <div class="h265-level-1" style="width:50%; height:50%; top:50%; left:0;"></div>
+              <div class="h265-level-1" style="width:50%; height:50%; top:50%; left:50%;">
+                <!-- step2: 1x 16x16 inside bottom right -->
+                <div class="h265-level-2" style="width:50%; height:50%; top:0; left:0;"></div>
+                <div class="h265-level-2" style="width:50%; height:50%; top:0; left:50%;"></div>
+                <div class="h265-level-2" style="width:50%; height:50%; top:50%; left:0;"></div>
+                <div class="h265-level-2" style="width:50%; height:50%; top:50%; left:50%;">
+                   <!-- step3: 1x 8x8 inside bottom right of bottom right -->
+                   <div class="h265-level-3" style="width:50%; height:50%; top:0; left:0;"></div>
+                   <div class="h265-level-3" style="width:50%; height:50%; top:0; left:50%;"></div>
+                   <div class="h265-level-3" style="width:50%; height:50%; top:50%; left:0;"></div>
+                   <div class="h265-level-3" style="width:50%; height:50%; top:50%; left:50%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="btn-qt-play">
+            <span data-lang="zh">演示四叉树划分</span>
+            <span data-lang="en">Animate Quad-Tree Split</span>
+          </button>
+          <div class="status-text" id="status-qt">CTU: 64×64</div>
+        </div>
+      </div>
+
+      <p class="phase-desc" data-lang="zh">
+        <br><strong>11.4 Bitcost 归一化流水线</strong><br>
+        提取出原始比特开销后，需要经过严格的 4 步归一化处理。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        <br><strong>11.4 Bitcost Normalization Pipeline</strong><br>
+        After extracting raw bit costs, they pass through a strict 4-step normalization pipeline.
+      </p>
+
+      <div class="stage-wrapper" style="background:var(--bg);">
+        <div class="norm-flow" id="norm-flow">
+          <div class="norm-step">
+            <div class="norm-num">1</div>
+            <div class="norm-desc">
+              <strong data-lang="zh">非负截断</strong><strong data-lang="en">Clip Negative</strong>
+              <span>cost = max(0, cost)</span>
+            </div>
+          </div>
+          <div class="norm-step">
+            <div class="norm-num">2</div>
+            <div class="norm-desc">
+              <strong data-lang="zh">Log 变换</strong><strong data-lang="en">Log Transform</strong>
+              <span>cost = log1p(cost)</span>
+            </div>
+          </div>
+          <div class="norm-step">
+            <div class="norm-num">3</div>
+            <div class="norm-desc">
+              <strong data-lang="zh">P99 截断 + Min-Max 归一化</strong><strong data-lang="en">P99 Clip + Min-Max</strong>
+              <span>cost = clip(cost, 0, P99) → scale to [0,1]</span>
+            </div>
+          </div>
+          <div class="norm-step">
+            <div class="norm-num">4</div>
+            <div class="norm-desc">
+              <strong data-lang="zh">空间插值</strong><strong data-lang="en">Spatial Interpolation</strong>
+              <span>cv2.resize(grid, (W, H), interpolation=BILINEAR)</span>
+            </div>
+          </div>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="btn-norm-play">
+            <span data-lang="zh">演示归一化过程</span>
+            <span data-lang="en">Animate Normalization</span>
+          </button>
+          <div class="status-text" id="status-norm">Ready</div>
+        </div>
+      </div>
+
+      <p class="phase-desc" data-lang="zh">
+        <br><strong>11.5 三级网格层级</strong><br>
+        为了兼容不同编码器，评估管线采用“层级回退 (Fallback)”机制：优先使用高分辨率的 CTU 网格，若不支持则降级为 MB 或 Sub-MB。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        <br><strong>11.5 Three-Level Grid Hierarchy</strong><br>
+        To support various encoders, the pipeline uses a fallback mechanism: preferring high-res CTU grids, then degrading to MB or Sub-MB if unsupported.
+      </p>
+
+      <div class="fallback-rings fade-in-section" id="fallback-rings">
+        <div class="fr-ring fr-level3"><span data-lang="zh">Level 3: Sub-MB (4×4)</span><span data-lang="en">Level 3: Sub-MB (4×4)</span></div>
+        <div class="fr-ring fr-level2"><span data-lang="zh">Level 2: MB (16×16)</span><span data-lang="en">Level 2: MB (16×16)</span></div>
+        <div class="fr-ring fr-level1"><span data-lang="zh">Level 1: CTU (64×64)<br>(优先/Preferred)</span><span data-lang="en">Level 1: CTU (64×64)<br>(Preferred)</span></div>
+      </div>
+
+      <p class="phase-desc" data-lang="zh">
+        <br><strong>11.6 Bitcost vs MV+残差 对比</strong>
+      </p>
+      <p class="phase-desc" data-lang="en">
+        <br><strong>11.6 Bitcost vs MV+Residual Comparison</strong>
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th><span data-lang="zh">维度</span><span data-lang="en">Dimension</span></th>
+            <th>Bitcost</th>
+            <th>MV+Residual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-lang="zh">信号来源</span><span data-lang="en">Source</span></td>
+            <td class="b-win">RDO bit allocation (single signal)</td>
+            <td>MV magnitude + residual energy (two signals)</td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">归一化</span><span data-lang="en">Normalization</span></td>
+            <td class="b-win">log1p → P99 → MinMax</td>
+            <td>P95 percentile clipping</td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">空间分辨率</span><span data-lang="en">Resolution</span></td>
+            <td class="b-win">Adaptive (64×64 → 4×4)</td>
+            <td>Fixed macroblock grid</td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">编码器依赖</span><span data-lang="en">Encoder</span></td>
+            <td class="b-win">H.264/H.265 auto-detect</td>
+            <td>Codec-agnostic</td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">计算复杂度</span><span data-lang="en">Complexity</span></td>
+            <td class="b-win">Lower (single stream)</td>
+            <td>Higher (dual stream fusion)</td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">推荐场景</span><span data-lang="en">Best for</span></td>
+            <td class="b-win">Production evaluation</td>
+            <td>Research & visualization</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="phase-desc" data-lang="zh">
+        <br><strong>11.7 Canvas 交互：生成 Bitcost 热力图</strong><br>
+        下方的 Canvas 会生成模拟的 Bitcost 数据，并经过完整的 4 步归一化渲染成热力图。你可以切换编码器以观察网格粒度的变化。
+      </p>
+      <p class="phase-desc" data-lang="en">
+        <br><strong>11.7 Interactive Canvas: Bitcost Heatmap</strong><br>
+        The Canvas below generates synthetic Bitcost data and renders a heatmap after applying the full 4-step normalization. Toggle the encoder to see grid granularity changes.
+      </p>
+
+      <div class="stage-wrapper">
+        <div class="canvas-container" style="background: #1e1e2e;">
+          <canvas id="canvas-bitcost"></canvas>
+        </div>
+        <div class="controls">
+          <div class="slider-container">
+            <label><span data-lang="zh">编码器:</span><span data-lang="en">Encoder:</span></label>
+            <select id="sel-bitcost-enc" style="padding: 4px; border-radius: 4px; border: 1px solid var(--border); font-family: var(--font-sans);">
+              <option value="h264">H.264 (MB 16×16)</option>
+              <option value="h265" selected>H.265 (CTU 64×64+)</option>
+            </select>
+          </div>
+          <button type="button" class="btn" id="btn-bitcost-play">
+            <span data-lang="zh">生成 Bitcost 热力图</span>
+            <span data-lang="en">Generate Heatmap</span>
+          </button>
+          <div class="status-text" id="status-bitcost">Idle</div>
+        </div>
+      </div>
+
 
     </div>
 
@@ -2635,6 +2896,198 @@
         }
         requestAnimationFrame(step);
       });
+      // -----------------------------------------------------------------
+      // Section 11 Animations: Bitcost
+      // -----------------------------------------------------------------
+      
+      // 11.3 Quad-Tree Split Animation
+      const btnQtPlay = document.getElementById('btn-qt-play');
+      const qtAnim = document.getElementById('qt-anim');
+      const statusQt = document.getElementById('status-qt');
+      let qtStep = 0;
+      if (btnQtPlay) {
+        btnQtPlay.addEventListener('click', () => {
+          if (qtStep === 0) {
+            qtAnim.className = 'qt-grid-wrap h265-split active step1';
+            statusQt.textContent = 'Split 1: 4× 32×32';
+            qtStep = 1;
+          } else if (qtStep === 1) {
+            qtAnim.className = 'qt-grid-wrap h265-split active step1 step2';
+            statusQt.textContent = 'Split 2: 1× 16×16';
+            qtStep = 2;
+          } else if (qtStep === 2) {
+            qtAnim.className = 'qt-grid-wrap h265-split active step1 step2 step3';
+            statusQt.textContent = 'Split 3: 1× 8×8';
+            qtStep = 3;
+          } else {
+            qtAnim.className = 'qt-grid-wrap h265-split';
+            statusQt.textContent = 'CTU: 64×64';
+            qtStep = 0;
+          }
+        });
+      }
+
+      // 11.4 Normalization Flow Animation
+      const btnNormPlay = document.getElementById('btn-norm-play');
+      const normSteps = document.querySelectorAll('#norm-flow .norm-step');
+      const statusNorm = document.getElementById('status-norm');
+      let normRunning = false;
+      if (btnNormPlay) {
+        btnNormPlay.addEventListener('click', () => {
+          if (normRunning) return;
+          normRunning = true;
+          normSteps.forEach(s => s.classList.remove('active'));
+          let i = 0;
+          statusNorm.textContent = 'Running...';
+          const interval = setInterval(() => {
+            if (i < normSteps.length) {
+              normSteps[i].classList.add('active');
+              i++;
+            } else {
+              clearInterval(interval);
+              normRunning = false;
+              statusNorm.textContent = 'Complete';
+            }
+          }, 600);
+        });
+      }
+
+      // 11.5 Fallback Rings Animation (IntersectionObserver)
+      const fallbackRings = document.getElementById('fallback-rings');
+      if (fallbackRings) {
+        const ringObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('active');
+            }
+          });
+        }, { threshold: 0.5 });
+        ringObserver.observe(fallbackRings);
+      }
+
+      // 11.7 Bitcost Heatmap Canvas
+      const bitcostCanvas = document.getElementById('canvas-bitcost');
+      const btnBitcostPlay = document.getElementById('btn-bitcost-play');
+      const selBitcostEnc = document.getElementById('sel-bitcost-enc');
+      const statusBitcost = document.getElementById('status-bitcost');
+      let bcCtx, bcW, bcH;
+      let bcState = { playing: false, t: 0, data: [], gridCells: [] };
+
+      function initBitcost() {
+        if (!bitcostCanvas) return;
+        const s = setupCanvas(bitcostCanvas);
+        bcCtx = s.ctx; bcW = s.width; bcH = s.height;
+        drawBitcostEmpty();
+      }
+
+      function drawBitcostEmpty() {
+        bcCtx.clearRect(0, 0, bcW, bcH);
+        bcCtx.fillStyle = "#475569";
+        bcCtx.font = "italic 16px var(--font-sans)";
+        bcCtx.textAlign = "center";
+        bcCtx.textBaseline = "middle";
+        bcCtx.fillText("Click 'Generate Heatmap' to simulate Bitcost pipeline", bcW/2, bcH/2);
+      }
+
+      function generateBitcostData() {
+        const enc = selBitcostEnc.value;
+        const cells = [];
+        const cols = enc === 'h264' ? 16 : 8; // h264=16x16 MBs, h265=8x8 CTUs
+        const rows = cols;
+        const cellW = bcW / cols;
+        const cellH = bcH / rows;
+
+        for (let r=0; r<rows; r++) {
+          for (let c=0; c<cols; c++) {
+            // Synthetic bitcost: some noise, some structural
+            let rawCost = Math.random() * 5000 + Math.sin(r/2)*1000 + Math.cos(c/2)*1000;
+            if (rawCost < 0 && Math.random()>0.8) rawCost = -500; // Negative noise
+            
+            // H265 quad-tree simulation (variable size)
+            if (enc === 'h265' && Math.random() > 0.6) {
+               // split into 4 subcells
+               const subW = cellW/2;
+               const subH = cellH/2;
+               cells.push({ x: c*cellW, y: r*cellH, w: subW, h: subH, cost: rawCost*1.5 });
+               cells.push({ x: c*cellW+subW, y: r*cellH, w: subW, h: subH, cost: rawCost*0.5 });
+               cells.push({ x: c*cellW, y: r*cellH+subH, w: subW, h: subH, cost: Math.random()*2000 });
+               cells.push({ x: c*cellW+subW, y: r*cellH+subH, w: subW, h: subH, cost: Math.random()*6000 });
+            } else {
+               cells.push({ x: c*cellW, y: r*cellH, w: cellW, h: cellH, cost: rawCost });
+            }
+          }
+        }
+        return cells;
+      }
+
+      function drawBitcost() {
+        bcCtx.clearRect(0, 0, bcW, bcH);
+        const { t, gridCells } = bcState;
+
+        // Pipeline Logic
+        let renderData = gridCells.map(c => ({...c}));
+        
+        // Step 1: Clip Negative
+        if (t >= 0.25) {
+          renderData.forEach(c => c.cost = Math.max(0, c.cost));
+        }
+        // Step 2: Log1p
+        if (t >= 0.5) {
+          renderData.forEach(c => c.cost = Math.log1p(c.cost));
+        }
+        // Step 3: P99 & MinMax
+        if (t >= 0.75) {
+          const costs = renderData.map(c => c.cost).sort((a,b)=>a-b);
+          const p99 = costs[Math.floor(costs.length*0.99)] || 0.001;
+          const min = costs[0];
+          renderData.forEach(c => {
+             c.cost = Math.min(c.cost, p99);
+             c.norm = (c.cost - min) / (p99 - min + 1e-9);
+          });
+        } else {
+          // Pre-normalization visualization coloring
+          const maxRaw = Math.max(...renderData.map(c=>c.cost)) || 1;
+          renderData.forEach(c => c.norm = Math.max(0, c.cost) / maxRaw);
+        }
+
+        // Draw cells
+        renderData.forEach(c => {
+          bcCtx.fillStyle = getColormap(c.norm);
+          bcCtx.fillRect(c.x, c.y, c.w+0.5, c.h+0.5); // +0.5 fixes rounding gaps
+          
+          if (t < 1.0) {
+            bcCtx.strokeStyle = "rgba(0,0,0,0.1)";
+            bcCtx.strokeRect(c.x, c.y, c.w, c.h);
+          }
+        });
+
+        // UI text
+        if (t < 0.25) statusBitcost.textContent = "1. Raw Bitcost Extracted";
+        else if (t < 0.5) statusBitcost.textContent = "2. Clip Negative: max(0, x)";
+        else if (t < 0.75) statusBitcost.textContent = "3. Log Transform: log1p(x)";
+        else if (t < 1.0) statusBitcost.textContent = "4. P99 Clip & MinMax";
+        else statusBitcost.textContent = "5. Final Interpolated Heatmap";
+      }
+
+      if (btnBitcostPlay) {
+        btnBitcostPlay.addEventListener('click', () => {
+          if (bcState.playing) return;
+          bcState.playing = true;
+          bcState.gridCells = generateBitcostData();
+          
+          const startTime = performance.now();
+          const duration = 4000;
+          
+          function step(time) {
+            bcState.t = Math.min(1, (time - startTime) / duration);
+            drawBitcost();
+            if (bcState.t < 1) requestAnimationFrame(step);
+            else bcState.playing = false;
+          }
+          requestAnimationFrame(step);
+        });
+      }
+
 
             // Handle Resizes
       window.addEventListener('resize', () => {
@@ -2647,6 +3100,7 @@
         initPatch();
         initTopk();
         initMosaic();
+        initBitcost();
       });
 
       // Init All
@@ -2660,6 +3114,7 @@
         initPatch();
         initTopk();
         initMosaic();
+        initBitcost();
       };
     </script>
   </body>

@@ -462,7 +462,153 @@
     }
     .pub-entry .hidden.open { max-height: 30em; padding: 8px; }
 
-
+    /* === AI AGENT BANNER === */
+    #ai-agent-section {
+      margin: 28px 0 32px 0;
+      scroll-margin-top: 64px;
+    }
+    .ai-agent-banner {
+      display: flex;
+      align-items: center;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 16px 20px;
+      text-decoration: none !important;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      gap: 16px;
+    }
+    .ai-agent-banner:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(88, 166, 255, 0.15);
+      border-color: #58a6ff;
+    }
+    .ai-agent-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%; right: -50%; bottom: -50%;
+      background: conic-gradient(from 0deg, transparent 0%, transparent 70%, rgba(88, 166, 255, 0.2) 80%, rgba(136, 192, 208, 0.4) 100%);
+      animation: rotate-glow 4s linear infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+    @keyframes rotate-glow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .ai-agent-banner-inner {
+      position: absolute;
+      inset: 1px;
+      background: #0d1117;
+      border-radius: 9px;
+      z-index: 1;
+    }
+    .ai-agent-banner::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(88, 166, 255, 0.15), transparent);
+      animation: shimmer 3s infinite;
+      z-index: 2;
+      pointer-events: none;
+    }
+    @keyframes shimmer {
+      0% { left: -100%; }
+      20% { left: 200%; }
+      100% { left: 200%; }
+    }
+    .ai-agent-icon {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 46px;
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.25);
+      border-radius: 8px;
+      color: #58a6ff;
+      flex-shrink: 0;
+      box-shadow: 0 0 15px rgba(88, 166, 255, 0.2);
+      animation: pulse-icon 2s ease-in-out infinite;
+    }
+    @keyframes pulse-icon {
+      0%, 100% { box-shadow: 0 0 15px rgba(88, 166, 255, 0.2); border-color: rgba(88, 166, 255, 0.25); }
+      50% { box-shadow: 0 0 25px rgba(88, 166, 255, 0.4); border-color: rgba(88, 166, 255, 0.5); }
+    }
+    .ai-agent-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+    .ai-agent-text {
+      position: relative;
+      z-index: 3;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .ai-agent-title {
+      font-family: var(--font-heading);
+      font-size: 1.15em;
+      font-weight: 700;
+      color: #e6edf3;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.2px;
+    }
+    .ai-agent-badge {
+      font-size: 0.65em;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: rgba(88, 166, 255, 0.15);
+      color: #58a6ff;
+      padding: 1px 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      letter-spacing: 0.5px;
+    }
+    .ai-agent-desc {
+      font-family: var(--font-body);
+      font-size: 0.9em;
+      color: #8b949e;
+      line-height: 1.4;
+      margin: 0;
+    }
+    .ai-agent-arrow {
+      position: relative;
+      z-index: 3;
+      color: #58a6ff;
+      opacity: 0.7;
+      transition: opacity 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+    .ai-agent-banner:hover .ai-agent-arrow {
+      opacity: 1;
+      transform: translateX(4px);
+    }
+    .ai-agent-arrow svg {
+      width: 20px;
+      height: 20px;
+    }
+    @media (max-width: 600px) {
+      .ai-agent-banner {
+        padding: 14px 16px;
+        gap: 12px;
+      }
+      .ai-agent-icon {
+        width: 40px; height: 40px;
+      }
+      .ai-agent-icon svg { width: 20px; height: 20px; }
+      .ai-agent-title { font-size: 1.05em; }
+      .ai-agent-desc { font-size: 0.85em; }
+    }
 
     /* === FOOTER === */
     .wiki-footer {
@@ -615,6 +761,7 @@
       border: 1px solid var(--color-border-soft);
       border-radius: 2px;
     }
+    .i18n[data-lang="zh"] { display: none; }
   </style>
 </head>
 <body>
@@ -629,6 +776,8 @@
           <a href="/pages/llava_onevision2.html">OV2</a>
           <span class="wiki-brand-sep">|</span>
           <a href="/pages/blog.html">Blog</a>
+          <span class="wiki-brand-sep">|</span>
+          <a href="/pages/chat.html">AI Agent</a>
         </nav>
       </div>
       <button type="button" id="lang-toggle" class="lang-toggle">中文</button>
@@ -637,37 +786,72 @@
 
   <div class="wiki-wrapper">
     <aside class="wiki-sidebar">
-      <div class="wiki-sidebar-title">Contents</div>
+      <div class="wiki-sidebar-title i18n" data-lang="en">Contents</div>
+      <div class="wiki-sidebar-title i18n" data-lang="zh" style="display:none">目录</div>
       <ol class="toc-list">
         <li><a href="#">(Top)</a></li>
-
-        <li><a href="#publications">Publications</a></li>
-        <li><a href="#awards">Awards &amp; Competitions</a></li>
-        <li><a href="#open-source">Open Source</a>
+        <li><a href="#ai-agent-section"><span class="i18n" data-lang="en">AI Agent</span><span class="i18n" data-lang="zh" style="display:none">AI 智能助手</span></a></li>
+        <li><a href="#publications"><span class="i18n" data-lang="en">Publications</span><span class="i18n" data-lang="zh" style="display:none">发表论文</span></a></li>
+        <li><a href="#awards"><span class="i18n" data-lang="en">Awards &amp; Competitions</span><span class="i18n" data-lang="zh" style="display:none">荣誉与竞赛</span></a></li>
+        <li><a href="#open-source"><span class="i18n" data-lang="en">Open Source</span><span class="i18n" data-lang="zh" style="display:none">开源项目</span></a>
           <ol class="toc-sub">
             <li><a href="#open-source">InsightFace</a></li>
             <li><a href="#open-source">LLaVA-OneVision</a></li>
             <li><a href="#open-source">UNICOM</a></li>
           </ol>
         </li>
-        <li><a href="#external-links">External Links</a></li>
+        <li><a href="#external-links"><span class="i18n" data-lang="en">External Links</span><span class="i18n" data-lang="zh" style="display:none">外部链接</span></a></li>
         <!-- <li><a href="#visitor-map">Visitor Map</a></li> -->
-        <li><a href="#citation-map">Citation Map</a></li>
+        <li><a href="#citation-map"><span class="i18n" data-lang="en">Citation Map</span><span class="i18n" data-lang="zh" style="display:none">引用地图</span></a></li>
       </ol>
     </aside>
 
     <main class="wiki-content">
       <h1 class="wiki-title">Xiang An</h1>
 
-<p><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, specializing in computer vision and multimodal large models. You can find his research on <a href="https://scholar.google.com.hk/citations?hl=en&user=1ckaPgwAAAAJ&view_op=list_works&sortby=pubdate" target="_blank">Google Scholar</a><span id="scholar-citations-bio-wrapper" style="display:none"> (with <b><span id="scholar-citations-bio"></span> citations</b>)</span> and his open-source projects on <a href="https://github.com/anxiangsir" target="_blank">GitHub</a> (with a total of <b>34,177+ stars</b>). His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐).</p>
+<p class="i18n" data-lang="en"><b>Xiang An</b> (Chinese: 安翔) is a <b>Research Scientist</b> and <b>Team Lead</b> of the Multimodal Large Model Group at <b>GlintLab</b>, specializing in computer vision and multimodal large models. You can find his research on <a href="https://scholar.google.com.hk/citations?hl=en&user=1ckaPgwAAAAJ&view_op=list_works&sortby=pubdate" target="_blank">Google Scholar</a><span id="scholar-citations-bio-wrapper" style="display:none"> (with <b><span id="scholar-citations-bio"></span> citations</b>)</span> and his open-source projects on <a href="https://github.com/anxiangsir" target="_blank">GitHub</a> (with a total of <b>34,177+ stars</b>). His current research focuses on building the <b>next-generation Vision Transformer (ViT)</b> to address urgent needs in modern <abbr title="Multimodal Large Language Models">MLLMs</abbr>. He is also the <b>#2 contributor</b> to the <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> ecosystem (~27k⭐).</p>
+<p class="i18n" data-lang="zh" style="display:none"><b>安翔</b>，<b>GlintLab</b> 多模态大模型组<b>研究科学家</b>、<b>团队负责人</b>，专注于计算机视觉与多模态大模型研究。他的学术成果可在 <a href="https://scholar.google.com.hk/citations?hl=en&amp;user=1ckaPgwAAAAJ&amp;view_op=list_works&amp;sortby=pubdate" target="_blank">Google Scholar</a><span id="scholar-citations-bio-wrapper-zh" style="display:none">（<b><span id="scholar-citations-bio-zh"></span> 引用</b>）</span>上查阅，开源项目发布在 <a href="https://github.com/anxiangsir" target="_blank">GitHub</a>（共获 <b>34,177+ Star</b>）。他目前的研究方向是构建<b>下一代视觉 Transformer (ViT)</b>，以满足现代<abbr title="多模态大语言模型">MLLM</abbr>的迫切需求。他同时也是 <a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> 生态系统的<b>第二贡献者</b>（~27k⭐）。</p>
 
-<p class="hatnote">For a complete list of publications, see <a href="/pages/publications.html">All Publications</a>.</p>
+<p class="hatnote i18n" data-lang="en">For a complete list of publications, see <a href="/pages/publications.html">All Publications</a>.</p>
+<p class="hatnote i18n" data-lang="zh" style="display:none">完整论文列表请参见<a href="/pages/publications.html">所有发表论文</a>。</p>
+<div id="ai-agent-section">
+  <a href="/pages/chat.html" class="ai-agent-banner">
+    <div class="ai-agent-banner-inner"></div>
+    <div class="ai-agent-icon">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 8V4H8"></path>
+        <rect x="4" y="8" width="16" height="12" rx="2"></rect>
+        <path d="M2 14h2"></path>
+        <path d="M20 14h2"></path>
+        <path d="M15 13v2"></path>
+        <path d="M9 13v2"></path>
+      </svg>
+    </div>
+    <div class="ai-agent-text">
+      <div class="ai-agent-title">
+        <span class="i18n" data-lang="en">AI Agent</span>
+        <span class="i18n" data-lang="zh" style="display:none">AI 智能助手</span>
+        <span class="ai-agent-badge">New</span>
+      </div>
+      <div class="ai-agent-desc">
+        <span class="i18n" data-lang="en">Chat with an AI assistant about my research, publications, and projects</span>
+        <span class="i18n" data-lang="zh" style="display:none">与 AI 助手交流我的研究、论文和项目</span>
+      </div>
+    </div>
+    <div class="ai-agent-arrow">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </div>
+  </a>
+</div>
 
+<h2 id="publications" class="i18n" data-lang="en">Publications <a class="section-anchor" href="#publications">§</a></h2>
+<h2 class="i18n" data-lang="zh" style="display:none" id="publications-zh">发表论文 <a class="section-anchor" href="#publications">§</a></h2>
 
-
-<h2 id="publications">Publications <a class="section-anchor" href="#publications">§</a></h2>
-
-<p>The following is a selection of notable publications. For a complete list, see <a href="/pages/publications.html">All Publications</a>.</p>
+<p class="i18n" data-lang="en">The following is a selection of notable publications. For a complete list, see <a href="/pages/publications.html">All Publications</a>.</p>
+<p class="i18n" data-lang="zh" style="display:none">以下为代表性论文精选。完整列表请参见<a href="/pages/publications.html">所有发表论文</a>。</p>
 
 <div class="publications">
 <ol class="bibliography">
@@ -776,9 +960,10 @@
 </ol>
 </div>
 
-<h2 id="awards">Awards &amp; Competitions <a class="section-anchor" href="#awards">§</a></h2>
+<h2 id="awards" class="i18n" data-lang="en">Awards &amp; Competitions <a class="section-anchor" href="#awards">§</a></h2>
+<h2 class="i18n" data-lang="zh" style="display:none">荣誉与竞赛 <a class="section-anchor" href="#awards">§</a></h2>
 
-<ul>
+<ul class="i18n" data-lang="en">
   <li><b>ICCV 2025 Outstanding Reviewer</b></li>
   <li><b>CVPR 2024 Outstanding Reviewer</b></li>
   <li><b>Ranked 1st in NIST FRVT Competition, Visa Track 1:1</b></li>
@@ -786,56 +971,72 @@
   <li><b>Ranked 1st in the graduate entrance examination (major)</b></li>
   <li><b>First Place in Vehicle Re-Identification, PRCV 2019</b></li>
 </ul>
+<ul class="i18n" data-lang="zh" style="display:none">
+  <li><b>ICCV 2025 杰出审稿人</b></li>
+  <li><b>CVPR 2024 杰出审稿人</b></li>
+  <li><b>NIST FRVT 竞赛 Visa Track 1:1 第一名</b></li>
+  <li><b>2024 中国年度力量人物提名</b></li>
+  <li><b>研究生入学考试（专业课）第一名</b></li>
+  <li><b>PRCV 2019 车辆重识别第一名</b></li>
+</ul>
 
-<h2 id="open-source">Open Source <a class="section-anchor" href="#open-source">§</a></h2>
+<h2 id="open-source" class="i18n" data-lang="en">Open Source <a class="section-anchor" href="#open-source">§</a></h2>
+<h2 class="i18n" data-lang="zh" style="display:none">开源项目 <a class="section-anchor" href="#open-source">§</a></h2>
 
 <div class="publications">
 <ol class="bibliography">
 <li><div class="pub-entry">
     <span class="title"><a href="https://github.com/deepinsight/insightface" target="_blank">InsightFace</a> <span class="stars-insightface"></span></span>
     <span class="periodical"><span class="genre-tag">Open Source Library</span></span>
-    <span class="author">#2 contributor to the open-source 2D & 3D deep face analysis library. Author of Glint360K (the largest open-source face recognition training dataset) and Partial FC (enabling training 10 million identities on a single machine). Also organized the ICCV 2021 Workshop on masked face recognition challenge.</span>
+    <span class="author i18n" data-lang="en">#2 contributor to the open-source 2D &amp; 3D deep face analysis library. Author of Glint360K (the largest open-source face recognition training dataset) and Partial FC (enabling training 10 million identities on a single machine). Also organized the ICCV 2021 Workshop on masked face recognition challenge.</span>
+    <span class="author i18n" data-lang="zh" style="display:none">开源2D/3D深度人脸分析库的第二贡献者。Glint360K（最大开源人脸识别训练数据集）和Partial FC（实现单机训练千万级身份）的作者。还组织了ICCV 2021口罩人脸识别挑战赛Workshop。</span>
 </div>
 </li>
 
 <li><div class="pub-entry">
     <span class="title"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">LLaVA-OneVision-1.5</a> <span class="stars-llava-onevision"></span></span>
     <span class="periodical"><span class="genre-tag">Multimodal LLM Framework</span></span>
-    <span class="author">Team Leader of this fully open framework designed to democratize multimodal training. Released mid-training and instruct data for community use, and developed offline sampling pack for efficient training. Implemented RiceViT with native resolution support.</span>
+    <span class="author i18n" data-lang="en">Team Leader of this fully open framework designed to democratize multimodal training. Released mid-training and instruct data for community use, and developed offline sampling pack for efficient training. Implemented RiceViT with native resolution support.</span>
+    <span class="author i18n" data-lang="zh" style="display:none">该完全开放框架的团队负责人，旨在推动多模态训练的民主化。向社区发布了中期训练数据和指令数据，并开发了离线采样包以提高训练效率。实现了支持原生分辨率的RiceViT。</span>
 </div>
 </li>
 
 <li><div class="pub-entry">
     <span class="title"><a href="https://github.com/EvolvingLMMs-Lab/OneVision-Encoder" target="_blank">OneVision-Encoder</a> <span class="stars-onevision-encoder"></span></span>
     <span class="periodical"><span class="genre-tag">Vision Encoder</span></span>
-    <span class="author">Lead author of this next-generation vision encoder that introduces codec-aligned sparsity as a foundational principle for multimodal intelligence. Achieves state-of-the-art performance on 16 image, video, and document understanding benchmarks while using substantially fewer visual tokens. Demonstrates 4.1% average improvement over Qwen3-ViT on video understanding tasks.</span>
+    <span class="author i18n" data-lang="en">Lead author of this next-generation vision encoder that introduces codec-aligned sparsity as a foundational principle for multimodal intelligence. Achieves state-of-the-art performance on 16 image, video, and document understanding benchmarks while using substantially fewer visual tokens. Demonstrates 4.1% average improvement over Qwen3-ViT on video understanding tasks.</span>
+    <span class="author i18n" data-lang="zh" style="display:none">下一代视觉编码器的第一作者，提出编解码器对齐稀疏性作为多模态智能的基础原则。在內16个图像、视频和文档理解基准上取得最先进性能，同时显著减少视觉token数量。在视频理解任务上比Qwen3-ViT平均提升84.1%。</span>
 </div>
 </li>
 
 <li><div class="pub-entry">
     <span class="title"><a href="https://github.com/deepglint/unicom" target="_blank">UNICOM</a> <span class="stars-unicom"></span></span>
     <span class="periodical"><span class="genre-tag">Image Retrieval Framework</span></span>
-    <span class="author">Lead author and maintainer of Universal and Compact Representation Learning framework for universal image representations. Designed the novel cluster discrimination approach for representation learning. Developed the multi-label and region-based extensions (published at ECCV 2024 and ICCV 2025 (Highlight)).</span>
+    <span class="author i18n" data-lang="en">Lead author and maintainer of Universal and Compact Representation Learning framework for universal image representations. Designed the novel cluster discrimination approach for representation learning. Developed the multi-label and region-based extensions (published at ECCV 2024 and ICCV 2025 (Highlight)).</span>
+    <span class="author i18n" data-lang="zh" style="display:none">通用紧凑表征学习框架的第一作者和维护者，用于通用图像表征。设计了新颖的聚类判别方法用于表征学习。开发了多标签和区域级扩展（分别发表于ECCV 2024和ICCV 2025 (Highlight)）。</span>
 </div>
 </li>
 
 <li><div class="pub-entry">
     <span class="title"><a href="https://github.com/LLaVA-VL/LLaVA-NeXT" target="_blank">LLaVA-NeXT</a> <span class="stars-llava-next"></span></span>
     <span class="periodical"><span class="genre-tag">Large Multimodal Model</span></span>
-    <span class="author">Vision module contributor to the next-generation large multimodal model. Enhanced the OCR capability of the vision module for better text recognition in images. Optimized the visual encoder for processing text-rich and document images.</span>
+    <span class="author i18n" data-lang="en">Vision module contributor to the next-generation large multimodal model. Enhanced the OCR capability of the vision module for better text recognition in images. Optimized the visual encoder for processing text-rich and document images.</span>
+    <span class="author i18n" data-lang="zh" style="display:none">下一代大型多模态模型的视觉模块贡献者。增强了视觉模块的OCR能力以改善图像中的文字识别。优化了视觉编码器以处理富文本和文档图像。</span>
 </div>
 </li>
 
 <li><div class="pub-entry">
     <span class="title"><a href="https://github.com/anxiangsir/urban_seg" target="_blank">Urban Seg</a> <span class="stars-urban-seg"></span></span>
     <span class="periodical"><span class="genre-tag">Educational Project</span></span>
-    <span class="author">Author and maintainer of this educational project for semantic segmentation on remote sensing and satellite imagery. Designed a simple single-file training approach for accessibility and integrated popular pretrained models. Created comprehensive tutorials and documentation for beginners.</span>
+    <span class="author i18n" data-lang="en">Author and maintainer of this educational project for semantic segmentation on remote sensing and satellite imagery. Designed a simple single-file training approach for accessibility and integrated popular pretrained models. Created comprehensive tutorials and documentation for beginners.</span>
+    <span class="author i18n" data-lang="zh" style="display:none">该教育项目的作者和维护者，用于遥感和卫星图像的语义分割。设计了简洁的单文件训练方法以提高可用性，并集成了流行的预训练模型。为初学者编写了全面的教程和文档。</span>
 </div>
 </li>
 </ol>
 </div>
 
-<h2 id="external-links">External Links <a class="section-anchor" href="#external-links">§</a></h2>
+<h2 id="external-links" class="i18n" data-lang="en">External Links <a class="section-anchor" href="#external-links">§</a></h2>
+<h2 class="i18n" data-lang="zh" style="display:none">外部链接 <a class="section-anchor" href="#external-links">§</a></h2>
 
 <ul>
   <li><a href="mailto:anxiangsir@outlook.com"><i class="fas fa-envelope"></i> Email: anxiangsir@outlook.com</a></li>
@@ -846,25 +1047,28 @@
 
 <hr />
 
-<p><em>This page is styled after <a href="https://en.wikipedia.org/">Wikipedia</a>.</em></p>
+<p class="i18n" data-lang="en"><em>This page is styled after <a href="https://en.wikipedia.org/">Wikipedia</a>.</em></p>
+<p class="i18n" data-lang="zh" style="display:none"><em>本页面样式参考自<a href="https://en.wikipedia.org/">维基百科</a>。</em></p>
 
     </main>
 
     <aside class="wiki-infobox-container">
       <div class="infobox">
-        <div class="infobox-title">Xiang An</div>
+        <div class="infobox-title i18n" data-lang="en">Xiang An</div>
+        <div class="infobox-title i18n" data-lang="zh" style="display:none">安翔</div>
         <img src="assets/img/profile_pic.jpg" alt="Xiang An">
-        <div class="infobox-caption">Research Scientist &amp; Team Lead</div>
+        <div class="infobox-caption i18n" data-lang="en">Research Scientist &amp; Team Lead</div>
+        <div class="infobox-caption i18n" data-lang="zh" style="display:none">研究科学家 &amp; 团队负责人</div>
         <div class="infobox-row">
-          <span class="infobox-label">Position</span>
-          <span class="infobox-value">Research Scientist, Team Lead</span>
+          <span class="infobox-label"><span class="i18n" data-lang="en">Position</span><span class="i18n" data-lang="zh" style="display:none">职位</span></span>
+          <span class="infobox-value"><span class="i18n" data-lang="en">Research Scientist, Team Lead</span><span class="i18n" data-lang="zh" style="display:none">研究科学家、团队负责人</span></span>
         </div>
         <div class="infobox-row">
-          <span class="infobox-label">Field</span>
-          <span class="infobox-value">Computer Vision, Multimodal AI</span>
+          <span class="infobox-label"><span class="i18n" data-lang="en">Field</span><span class="i18n" data-lang="zh" style="display:none">研究领域</span></span>
+          <span class="infobox-value"><span class="i18n" data-lang="en">Computer Vision, Multimodal AI</span><span class="i18n" data-lang="zh" style="display:none">计算机视觉、多模态AI</span></span>
         </div>
         <div class="infobox-row">
-          <span class="infobox-label">Notable&nbsp;work</span>
+          <span class="infobox-label"><span class="i18n" data-lang="en">Notable&nbsp;work</span><span class="i18n" data-lang="zh" style="display:none">代表成果</span></span>
           <span class="infobox-value">InsightFace, UNICOM/MLCD, LLaVA-OneVision-1.5, OneVision-Encoder</span>
         </div>
         <div class="infobox-row">
@@ -876,7 +1080,7 @@
           <span class="infobox-value"><a href="https://scholar.google.com.hk/citations?hl=en&amp;user=1ckaPgwAAAAJ&amp;view_op=list_works&amp;sortby=pubdate"><i class="ai ai-google-scholar"></i> Profile</a></span>
         </div>
         <div class="infobox-row">
-          <span class="infobox-label">Citations</span>
+          <span class="infobox-label"><span class="i18n" data-lang="en">Citations</span><span class="i18n" data-lang="zh" style="display:none">引用量</span></span>
           <span class="infobox-value"><span id="scholar-citations"></span><span id="scholar-citations-suffix" style="display:none"> (Google Scholar)</span></span>
         </div>
         <div class="infobox-row">
@@ -884,7 +1088,7 @@
           <span class="infobox-value">34,177+ total</span>
         </div>
         <div class="infobox-row">
-          <span class="infobox-label">Email</span>
+          <span class="infobox-label"><span class="i18n" data-lang="en">Email</span><span class="i18n" data-lang="zh" style="display:none">邮箱</span></span>
           <span class="infobox-value"><a href="mailto:anxiangsir@outlook.com"><i class="fas fa-envelope"></i> Contact</a></span>
         </div>
       </div>
@@ -900,15 +1104,18 @@
   -->
 
   <div style="max-width: 960px; margin: 16px auto 0; padding: 0 20px;">
-      <h2 id="citation-map">Citation Map <a class="section-anchor" href="#citation-map">§</a></h2>
-      <p class="hatnote">City-level citing-author locations generated offline from <a href="https://www.semanticscholar.org/author/Xiang-An/2054941340" target="_blank">Semantic Scholar</a> + <a href="https://openalex.org/" target="_blank">OpenAlex</a>.</p>
+      <h2 id="citation-map" class="i18n" data-lang="en">Citation Map <a class="section-anchor" href="#citation-map">§</a></h2>
+      <h2 class="i18n" data-lang="zh" style="display:none">引用地图 <a class="section-anchor" href="#citation-map">§</a></h2>
+      <p class="hatnote i18n" data-lang="en">City-level citing-author locations generated offline from <a href="https://www.semanticscholar.org/author/Xiang-An/2054941340" target="_blank">Semantic Scholar</a> + <a href="https://openalex.org/" target="_blank">OpenAlex</a>.</p>
+      <p class="hatnote i18n" data-lang="zh" style="display:none">引用作者的城市级地理分布，通过 <a href="https://www.semanticscholar.org/author/Xiang-An/2054941340" target="_blank">Semantic Scholar</a> + <a href="https://openalex.org/" target="_blank">OpenAlex</a> 离线生成。</p>
       <div id="citation-stats" style="margin-bottom: 12px; font-weight: bold; color: var(--color-text);">Loading citation data...</div>
       <div id="citation-map-container" class="citation-map-container"></div>
       <div id="citation-map-legend" class="citation-map-legend"></div>
   </div>
 
   <footer class="wiki-footer">
-    This page was last edited on January 28, 2025. &nbsp;|&nbsp; Powered by pixels &amp; caffeine &nbsp;&#x2665;
+    <span class="i18n" data-lang="en">This page was last edited on January 28, 2025. &nbsp;|&nbsp; Powered by pixels &amp; caffeine &nbsp;&#x2665;</span>
+    <span class="i18n" data-lang="zh" style="display:none">本页面最后编辑于2025年1月28日。 &nbsp;|&nbsp; 由像素和咏啡因驱动 &nbsp;&#x2665;</span>
   </footer>
 
   <!-- GitHub Stars Loader -->
@@ -936,6 +1143,10 @@
             if (bioWrapper) bioWrapper.style.display = '';
             const suffix = document.getElementById('scholar-citations-suffix');
             if (suffix) suffix.style.display = '';
+            const el3 = document.getElementById('scholar-citations-bio-zh');
+            if (el3) el3.textContent = formatted;
+            const bioWrapperZh = document.getElementById('scholar-citations-bio-wrapper-zh');
+            if (bioWrapperZh) bioWrapperZh.style.display = '';
           }
         })
         .catch(err => { console.warn('Scholar API unavailable:', err); });
@@ -949,7 +1160,12 @@
       if (!toggleBtn) return;
       toggleBtn.addEventListener('click', function() {
         currentLang = currentLang === 'en' ? 'zh' : 'en';
+        // Toggle .additional elements (existing behavior)
         document.querySelectorAll('.additional[data-lang]').forEach(function(el) {
+          el.style.display = el.getAttribute('data-lang') === currentLang ? '' : 'none';
+        });
+        // Toggle .i18n elements (new behavior)
+        document.querySelectorAll('.i18n[data-lang]').forEach(function(el) {
           el.style.display = el.getAttribute('data-lang') === currentLang ? '' : 'none';
         });
         toggleBtn.textContent = currentLang === 'en' ? '中文' : 'EN';

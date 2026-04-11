@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with AI Assistant | Xiang An</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/highlight.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0d1117;        /* Main background */
+            --bg-secondary: #161b22;      /* Cards, panels */
+            --bg-tertiary: #21262d;       /* Hover states */
+            --text-primary: #f0f6fc;      /* Main text */
+            --text-secondary: #8b949e;    /* Muted text */
+            --accent: #58a6ff;            /* Links, highlights */
+            --accent-green: #3fb950;      /* Success states */
+            --error: #f85149;             /* Error states */
+            --border: #30363d;            /* Borders */
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-mono);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .header-right {
+            justify-content: flex-end;
+        }
+
+        .header-center {
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 2;
+        }
+
+        a.back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        a.back-link:hover {
+            color: var(--text-primary);
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        /* Chat Area */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        .messages-container {
+            max-width: 850px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding-bottom: 2rem;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+            width: 100%;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* User Message */
+        .message.user {
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .user-prompt {
+            color: var(--accent);
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        .message.user .msg-content {
+            background: transparent;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-width: 0;
+        }
+
+        /* Assistant Message */
+        .message.assistant .msg-content {
+            width: 100%;
+            min-width: 0;
+        }
+
+        /* Mascot Box */
+        .mascot-container {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1rem;
+            background: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .mascot-svg-wrapper {
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+        }
+
+        .mascot-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .rabbit-body-group {
+            animation: rabbitFloat 3s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .ear-left {
+            transform-origin: 45px 40px;
+            animation: earWiggleLeft 4s ease-in-out infinite;
+        }
+
+        .ear-right {
+            transform-origin: 55px 40px;
+            animation: earWiggleRight 4s ease-in-out infinite;
+        }
+
+        .eyes {
+            transform-origin: center;
+            animation: eyeBlink 4.5s infinite;
+        }
+
+        .sparkle {
+            transform-origin: center;
+            animation: sparkleTwinkle 2s ease-in-out infinite alternate;
+        }
+        .s2 { animation-delay: 0.7s; }
+        .s3 { animation-delay: 1.3s; }
+
+        @keyframes rabbitFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        @keyframes earWiggleLeft {
+            0%, 80%, 100% { transform: rotate(0deg); }
+            85% { transform: rotate(-12deg); }
+            90% { transform: rotate(5deg); }
+            95% { transform: rotate(-6deg); }
+        }
+
+        @keyframes earWiggleRight {
+            0%, 80%, 100% { transform: rotate(0deg); }
+            85% { transform: rotate(12deg); }
+            90% { transform: rotate(-5deg); }
+            95% { transform: rotate(6deg); }
+        }
+
+        @keyframes eyeBlink {
+            0%, 96%, 100% { transform: scaleY(1); }
+            98% { transform: scaleY(0.1); }
+        }
+
+        @keyframes sparkleTwinkle {
+            0% { transform: scale(0.8) rotate(0deg); opacity: 0.2; }
+            100% { transform: scale(1.2) rotate(45deg); opacity: 0.8; }
+        }
+
+        .mascot-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .mascot-text span[data-lang] { display: none; }
+        html[lang="en"] .mascot-text span[data-lang="en"] { display: inline; }
+        html[lang="zh"] .mascot-text span[data-lang="zh"] { display: inline; }
+
+        .mascot-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .mascot-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .mascot-tip {
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-top: 0.2rem;
+            padding-left: 0.5rem;
+            border-left: 2px solid var(--accent);
+        }
+
+        /* Markdown Styles */
+        .msg-content h1, .msg-content h2, .msg-content h3, 
+        .msg-content h4, .msg-content h5, .msg-content h6 {
+            color: var(--text-primary);
+            margin: 1.5rem 0 0.75rem;
+            line-height: 1.25;
+        }
+
+        .msg-content h1, .msg-content h2 {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.3em;
+        }
+
+        .msg-content h1 { font-size: 1.5em; }
+        .msg-content h2 { font-size: 1.3em; }
+        .msg-content h3 { font-size: 1.1em; }
+
+        .msg-content p {
+            margin-bottom: 1rem;
+        }
+
+        .msg-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .msg-content a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .msg-content a:hover {
+            text-decoration: underline;
+        }
+
+        .msg-content ul, .msg-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .msg-content li {
+            margin-bottom: 0.25rem;
+        }
+
+        /* Task lists */
+        .msg-content li.task-list-item {
+            list-style-type: none;
+            margin-left: -1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .msg-content li.task-list-item input[type="checkbox"] {
+            margin-top: 0.25rem;
+            accent-color: var(--accent);
+        }
+
+        /* Blockquotes */
+        .msg-content blockquote {
+            border-left: 3px solid var(--accent);
+            color: var(--text-secondary);
+            margin: 1rem 0;
+            background: var(--bg-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Tables */
+        .msg-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1rem 0;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .msg-content th, .msg-content td {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .msg-content th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+        }
+
+        .msg-content tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Images */
+        .msg-content img {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+        }
+
+        /* Horizontal rules */
+        .msg-content hr {
+            height: 1px;
+            background-color: var(--border);
+            border: none;
+            margin: 1.5rem 0;
+        }
+
+        .inline-code {
+            background: var(--bg-secondary);
+            padding: 0.15rem 0.3rem;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0.75rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            font-family: var(--font-mono);
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: var(--font-mono);
+            transition: color 0.2s;
+        }
+
+        .copy-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .code-block pre {
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        /* Thinking Blocks */
+        .reasoning-block {
+            margin-bottom: 1rem;
+            border-left: 2px solid var(--border);
+            padding-left: 0.75rem;
+        }
+
+        .reasoning-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.9em;
+        }
+
+        .reasoning-header:hover {
+            color: var(--text-primary);
+        }
+
+        .reasoning-chevron {
+            transition: transform 0.2s;
+            font-size: 0.8em;
+        }
+
+        .reasoning-block.expanded .reasoning-chevron {
+            transform: rotate(90deg);
+        }
+
+        .reasoning-body {
+            display: none;
+            margin-top: 0.5rem;
+            color: var(--text-secondary);
+            word-break: break-word;
+            font-size: 0.9em;
+            border-radius: 4px;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .reasoning-body.streaming > *:last-child::after,
+        .reasoning-body.streaming:empty::after {
+            content: '▊';
+            color: var(--text-secondary);
+            animation: cursorBlink 0.8s step-end infinite;
+            margin-left: 1px;
+            font-weight: 400;
+        }
+
+        .reasoning-block.expanded .reasoning-body {
+            display: block;
+        }
+
+        /* Tool Cards */
+        .tool-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tool-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .tool-card-header {
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-secondary);
+        }
+
+        .tool-card-header:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .tool-status {
+            font-size: 0.8em;
+            margin-right: 0.25rem;
+        }
+
+        .tool-status.running {
+            color: var(--accent-green);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .tool-status.done {
+            color: var(--accent-green);
+        }
+
+        .tool-label {
+            flex: 1;
+            font-size: 0.9em;
+        }
+
+        .tool-chevron {
+            transition: transform 0.2s;
+            font-size: 0.8em;
+        }
+
+        .tool-card.expanded .tool-chevron {
+            transform: rotate(90deg);
+        }
+
+        .tool-card-body {
+            display: none;
+            border-top: 1px solid var(--border);
+            padding: 0.75rem;
+            background: var(--bg-primary);
+        }
+
+        .tool-card.expanded .tool-card-body {
+            display: block;
+        }
+
+        .tool-section-title {
+            color: var(--text-secondary);
+            font-size: 0.75em;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .tool-args pre, .tool-result pre {
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 250px;
+            overflow-y: auto;
+            margin: 0;
+        }
+
+        .tool-args {
+            margin-bottom: 0.75rem;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 1rem;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        .input-container {
+            max-width: 850px;
+            margin: 0 auto;
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-container:focus-within {
+            border-color: var(--accent);
+        }
+
+        .input-prompt {
+            color: var(--accent);
+            font-weight: bold;
+            padding-bottom: 0.35rem;
+            user-select: none;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+        }
+
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 1em;
+            resize: none;
+            outline: none;
+            max-height: 200px;
+            min-height: 24px;
+            line-height: 1.5;
+            padding: 0.25rem 0;
+        }
+
+        textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .send-btn {
+            background: transparent;
+            color: var(--accent);
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-bottom: 0.1rem;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: var(--bg-tertiary);
+        }
+
+        .send-btn:disabled {
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .input-footer {
+            max-width: 850px;
+            margin: 0.5rem auto 0;
+            text-align: right;
+            font-size: 0.75em;
+            color: var(--text-secondary);
+        }
+
+        /* Status / Agent Thinking */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 0.5rem;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 3px;
+        }
+
+        .dot {
+            width: 4px;
+            height: 4px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            animation: blink 1.4s infinite both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+            40% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .agent-thinking {
+            color: var(--text-secondary);
+            font-style: italic;
+            font-size: 0.9em;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Word-level blur-in animation (ChatGPT/DeepSeek style) */
+        .word-new {
+            display: inline;
+            animation: blurIn 0.28s ease-out both;
+        }
+
+        .word-old {
+            display: inline;
+        }
+
+        @keyframes blurIn {
+            from {
+                opacity: 0;
+                filter: blur(4px);
+            }
+            to {
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+
+        /* Block-level slide-in for new structural elements */
+        .stream-content.streaming > * {
+            animation: blockSlideIn 0.2s ease-out;
+        }
+        .reasoning-body.streaming > * {
+            animation: blockSlideIn 0.2s ease-out;
+        }
+        @keyframes blockSlideIn {
+            from { opacity: 0.7; transform: translateY(3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Streaming cursor - pulsing dot */
+        .stream-content.streaming > *:last-child::after,
+        .stream-content.streaming:empty::after {
+            content: '';
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-left: 4px;
+            vertical-align: middle;
+            animation: cursorPulse 1s ease-in-out infinite;
+        }
+
+        .reasoning-body.streaming > *:last-child::after,
+        .reasoning-body.streaming:empty::after {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            margin-left: 3px;
+            vertical-align: middle;
+            animation: cursorPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes cursorPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.75); }
+        }
+
+        .error-text {
+            color: var(--error);
+        }
+
+        /* Bilingual setup */
+        [data-lang="en"] { display: none; }
+        html[lang="en"] [data-lang="zh"] { display: none; }
+        html[lang="en"] [data-lang="en"] { display: inline-block; }
+        html[lang="en"] div[data-lang="en"], html[lang="en"] p[data-lang="en"], html[lang="en"] span[data-lang="en"] { display: block; }
+
+        .header-center span[data-lang], .btn span[data-lang], .back-link span[data-lang], .input-footer span[data-lang] { display: none; }
+        html[lang="en"] .header-center span[data-lang="en"], html[lang="en"] .btn span[data-lang="en"], html[lang="en"] .back-link span[data-lang="en"], html[lang="en"] .input-footer span[data-lang="en"] { display: inline; }
+        html[lang="zh"] .header-center span[data-lang="zh"], html[lang="zh"] .btn span[data-lang="zh"], html[lang="zh"] .back-link span[data-lang="zh"], html[lang="zh"] .input-footer span[data-lang="zh"] { display: inline; }
+
+        /* Responsive Mobile Styles */
+        @media (max-width: 768px) {
+            header { padding: 0.6rem 1rem; }
+            main { padding: 1rem 0.75rem; }
+            .messages-container, .input-container, .input-footer { max-width: 100%; }
+            .mascot-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .input-area { padding: 0.75rem; }
+            .input-footer {
+                text-align: center;
+                margin-top: 0.4rem;
+            }
+            .code-block pre { padding: 0.75rem; }
+        }
+
+        @media (max-width: 480px) {
+            body { font-size: 13px; }
+            header { padding: 0.5rem 0.75rem; }
+            .header-center { font-size: 0.95em; }
+            a.back-link span { display: none !important; }
+            .btn {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            main { padding: 0.75rem 0.5rem; }
+            .message.user { gap: 0.5rem; }
+            .mascot-container {
+                padding: 0.5rem;
+                align-items: center;
+                text-align: center;
+            }
+            .mascot-svg-wrapper {
+                width: 70px;
+                height: 70px;
+            }
+            .mascot-tip {
+                border-left: none;
+                border-top: 1px solid var(--border);
+                padding-left: 0;
+                padding-top: 0.5rem;
+                margin-top: 0.5rem;
+            }
+            .tool-card-header, .reasoning-header { padding: 0.5rem; }
+            .tool-card-body, .reasoning-body { padding: 0.5rem; }
+            .input-area { padding: 0.5rem; }
+            .input-container {
+                padding: 0.4rem 0.5rem;
+                gap: 0.5rem;
+            }
+            .send-btn {
+                min-width: 44px;
+                min-height: 44px;
+                padding: 0;
+            }
+            .code-block {
+                margin: 0.75rem 0;
+                border-radius: 4px;
+            }
+            .msg-content img { margin: 0.75rem 0; }
+        }
+    </style>
+</head>
+<body lang="en">
+    <header>
+        <div class="header-left">
+            <a href="/" class="back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <span data-lang="en">Back</span>
+                <span data-lang="zh">返回主页</span>
+            </a>
+        </div>
+        <div class="header-center">
+            <span data-lang="en">Xiang An's AI Agent</span>
+            <span data-lang="zh">Xiang An 的 AI 助手</span>
+        </div>
+        <div class="header-right">
+            <button class="btn" onclick="clearChat()">
+                <span data-lang="en">Clear</span>
+                <span data-lang="zh">清空</span>
+            </button>
+            <button class="btn" onclick="toggleLang()">
+                <span data-lang="en">中文</span>
+                <span data-lang="zh">EN</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="chatMain">
+        <div class="messages-container" id="messagesContainer">
+            <div class="message assistant">
+                <div class="msg-content">
+                    <div class="mascot-container">
+                        <div class="mascot-svg-wrapper">
+                            <svg class="mascot-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <g class="sparkles">
+                                    <path class="sparkle s1" d="M20,30 l2,-5 l5,-2 l-5,-2 l-2,-5 l-2,5 l-5,2 l5,2 z" fill="#58a6ff" opacity="0.6"/>
+                                    <path class="sparkle s2" d="M80,20 l1.5,-4 l4,-1.5 l-4,-1.5 l-1.5,-4 l-1.5,4 l-4,1.5 l4,1.5 z" fill="#58a6ff" opacity="0.4"/>
+                                    <path class="sparkle s3" d="M75,70 l1,-3 l3,-1 l-3,-1 l-1,-3 l-1,3 l-3,1 l3,1 z" fill="#3fb950" opacity="0.5"/>
+                                </g>
+                                <g class="rabbit-body-group">
+                                    <path class="ear-left" d="M40,40 C30,10 40,5 50,40 Z" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+                                    <path class="ear-left-inner" d="M42,40 C35,18 40,12 48,40 Z" fill="#58a6ff" opacity="0.3"/>
+                                    <path class="ear-right" d="M60,40 C70,10 60,5 50,40 Z" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+                                    <path class="ear-right-inner" d="M58,40 C65,18 60,12 52,40 Z" fill="#58a6ff" opacity="0.3"/>
+                                    <rect x="25" y="40" width="50" height="40" rx="20" fill="#161b22" stroke="#30363d" stroke-width="2"/>
+                                    <rect x="32" y="47" width="36" height="22" rx="8" fill="#0d1117" stroke="#58a6ff" stroke-width="1.5" opacity="0.9"/>
+                                    <g class="eyes">
+                                        <rect class="eye" x="38" y="53" width="6" height="8" rx="3" fill="#58a6ff"/>
+                                        <rect class="eye" x="56" y="53" width="6" height="8" rx="3" fill="#58a6ff"/>
+                                    </g>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="mascot-text">
+                            <div class="mascot-title">
+                                <span data-lang="en">Xiang An's AI Assistant v1.0</span>
+                                <span data-lang="zh">Xiang An 的 AI 助手 v1.0</span>
+                            </div>
+                            <div class="mascot-subtitle">
+                                <span data-lang="en">Describe a task or question.</span>
+                                <span data-lang="zh">描述一个任务或提出问题。</span>
+                            </div>
+                            <div class="mascot-tip">
+                                <span data-lang="en">Tip: Ask about research or projects.</span>
+                                <span data-lang="zh">提示：可以询问关于研究、项目或论文</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="input-area">
+        <div class="input-container">
+            <div class="input-prompt">&gt;</div>
+            <div class="input-wrapper">
+                <textarea id="chatInput" rows="1" placeholder="Type a message..."></textarea>
+            </div>
+            <button id="sendBtn" class="send-btn" aria-label="Send message" onclick="sendMessage()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+        <div class="input-footer">
+            <span data-lang="en">Enter to send, Shift+Enter for new line</span>
+            <span data-lang="zh">按 Enter 发送，Shift + Enter 换行</span>
+        </div>
+    </div>
+
+    <script>
+        // Language Toggle
+        function toggleLang() {
+            const html = document.documentElement;
+            const currentLang = html.getAttribute('lang');
+            const newLang = currentLang === 'en' ? 'zh' : 'en';
+            html.setAttribute('lang', newLang);
+            updatePlaceholder();
+        }
+
+        function updatePlaceholder() {
+            const isEn = document.documentElement.getAttribute('lang') === 'en';
+            document.getElementById('chatInput').placeholder = isEn ? "Type a message..." : "输入消息...";
+        }
+
+        // Initialize
+        updatePlaceholder();
+        let conversationHistory = [];
+
+        // Configure marked.js
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        const renderer = new marked.Renderer();
+        
+        // Custom renderer for links
+        renderer.link = function({href, title, text}) {
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer" ${title ? `title="${title}"` : ''}>${text}</a>`;
+        };
+
+        // Custom renderer for codespan (inline code)
+        renderer.codespan = function({text}) {
+            return `<code class="inline-code">${text}</code>`;
+        };
+
+        // Custom renderer for code blocks
+        renderer.code = function({text, lang}) {
+            const validLanguage = hljs.getLanguage(lang) ? lang : 'plaintext';
+            const highlightedCode = validLanguage === 'plaintext' 
+                ? escapeHtml(text) 
+                : hljs.highlight(text, { language: validLanguage }).value;
+            
+            return `<div class="code-block">
+                <div class="code-header">
+                    <span>${lang || 'code'}</span>
+                    <button class="copy-btn">Copy</button>
+                </div>
+                <pre><code class="hljs ${validLanguage}">${highlightedCode}</code></pre>
+            </div>`;
+        };
+
+        marked.use({ renderer });
+
+        // Event delegation for copy buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('copy-btn')) {
+                const btn = e.target;
+                const codeElement = btn.closest('.code-block').querySelector('code');
+                const code = codeElement.textContent;
+                
+                navigator.clipboard.writeText(code).then(() => {
+                    const isEn = document.documentElement.getAttribute('lang') === 'en';
+                    const originalText = btn.innerText;
+                    btn.innerText = isEn ? 'Copied!' : '已复制!';
+                    setTimeout(() => { btn.innerText = originalText; }, 2000);
+                });
+            }
+        });
+        // UI Elements
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const chatMain = document.getElementById('chatMain');
+
+        // Auto-resize textarea
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+            if (this.value.trim() === '') {
+                sendBtn.disabled = true;
+            } else {
+                sendBtn.disabled = false;
+            }
+        });
+
+        // Handle Enter key
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (this.value.trim() !== '') {
+                    sendMessage();
+                }
+            }
+        });
+
+        function clearChat() {
+            conversationHistory = [];
+            messagesContainer.innerHTML = `
+                <div class="message assistant">
+                    <div class="msg-content">
+                        <div class="mascot-container">
+                            <div class="mascot-svg-wrapper">
+                                <svg class="mascot-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                    <g class="sparkles">
+                                        <path class="sparkle s1" d="M20,30 l2,-5 l5,-2 l-5,-2 l-2,-5 l-2,5 l-5,2 l5,2 z" fill="#58a6ff" opacity="0.6"/>
+                                        <path class="sparkle s2" d="M80,20 l1.5,-4 l4,-1.5 l-4,-1.5 l-1.5,-4 l-1.5,4 l-4,1.5 l4,1.5 z" fill="#58a6ff" opacity="0.4"/>
+                                        <path class="sparkle s3" d="M75,70 l1,-3 l3,-1 l-3,-1 l-1,-3 l-1,3 l-3,1 l3,1 z" fill="#3fb950" opacity="0.5"/>
+                                    </g>
+                                    <g class="rabbit-body-group">
+                                        <path class="ear-left" d="M40,40 C30,10 40,5 50,40 Z" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+                                        <path class="ear-left-inner" d="M42,40 C35,18 40,12 48,40 Z" fill="#58a6ff" opacity="0.3"/>
+                                        <path class="ear-right" d="M60,40 C70,10 60,5 50,40 Z" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+                                        <path class="ear-right-inner" d="M58,40 C65,18 60,12 52,40 Z" fill="#58a6ff" opacity="0.3"/>
+                                        <rect x="25" y="40" width="50" height="40" rx="20" fill="#161b22" stroke="#30363d" stroke-width="2"/>
+                                        <rect x="32" y="47" width="36" height="22" rx="8" fill="#0d1117" stroke="#58a6ff" stroke-width="1.5" opacity="0.9"/>
+                                        <g class="eyes">
+                                            <rect class="eye" x="38" y="53" width="6" height="8" rx="3" fill="#58a6ff"/>
+                                            <rect class="eye" x="56" y="53" width="6" height="8" rx="3" fill="#58a6ff"/>
+                                        </g>
+                                    </g>
+                                </svg>
+                            </div>
+                            <div class="mascot-text">
+                                <div class="mascot-title">
+                                    <span data-lang="en">Xiang An's AI Assistant v1.0</span>
+                                    <span data-lang="zh">Xiang An 的 AI 助手 v1.0</span>
+                                </div>
+                                <div class="mascot-subtitle">
+                                    <span data-lang="en">Describe a task or question.</span>
+                                    <span data-lang="zh">描述一个任务或提出问题。</span>
+                                </div>
+                                <div class="mascot-tip">
+                                    <span data-lang="en">Tip: Ask about research or projects.</span>
+                                    <span data-lang="zh">提示：可以询问关于研究、项目或论文</span>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+            `;
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            sendBtn.disabled = true;
+        }
+
+
+        window.copyCode = function(btn) {
+            const code = btn.parentElement.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const isEn = document.documentElement.getAttribute('lang') === 'en';
+                const originalText = btn.innerText;
+                btn.innerText = isEn ? 'Copied!' : '已复制!';
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+            });
+        };
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chatMain');
+            if (container) {
+                container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            }
+        }
+
+        // Word-level blur-in animation processor
+        // Takes marked.parse() HTML output and wraps text words in animated spans
+        // prevLen: character count of previously rendered text (skip animation for those)
+        function animateStreamHTML(html, prevCharCount) {
+            const container = document.createElement('div');
+            container.innerHTML = html;
+            const SKIP_TAGS = new Set(['CODE', 'PRE', 'SVG', 'MATH', 'KBD', 'SCRIPT', 'STYLE']);
+            let charIndex = 0;
+
+            function processNode(node) {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (SKIP_TAGS.has(node.tagName)) {
+                        // Count chars but don't animate inside code/pre
+                        charIndex += node.textContent.length;
+                        return;
+                    }
+                    // Process children (iterate copy since we mutate)
+                    Array.from(node.childNodes).forEach(processNode);
+                } else if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.textContent;
+                    if (!text || !text.trim()) {
+                        charIndex += text.length;
+                        return;
+                    }
+                    // Split into words preserving whitespace
+                    const parts = text.match(/(\S+|\s+)/g);
+                    if (!parts || parts.length <= 1) {
+                        charIndex += text.length;
+                        return;
+                    }
+                    const frag = document.createDocumentFragment();
+                    for (const part of parts) {
+                        if (/^\s+$/.test(part)) {
+                            // Whitespace — keep as-is
+                            frag.appendChild(document.createTextNode(part));
+                        } else {
+                            const span = document.createElement('span');
+                            span.className = charIndex < prevCharCount ? 'word-old' : 'word-new';
+                            span.textContent = part;
+                            frag.appendChild(span);
+                        }
+                        charIndex += part.length;
+                    }
+                    node.parentNode.replaceChild(frag, node);
+                }
+            }
+
+            Array.from(container.childNodes).forEach(processNode);
+            return container.innerHTML;
+        }
+
+        function appendUserMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message user';
+            
+            const escapedText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            
+            msgDiv.innerHTML = `
+                <div class="user-prompt">❯</div>
+                <div class="msg-content">${escapedText}</div>
+            `;
+            messagesContainer.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            
+            const isEn = document.documentElement.getAttribute('lang') === 'en';
+
+            // UI updates
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            sendBtn.disabled = true;
+            chatInput.disabled = true;
+            
+            appendUserMessage(text);
+            conversationHistory.push({ role: 'user', content: text });
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message assistant';
+            msgDiv.innerHTML = `
+                <div class="msg-content">
+                    <div class="tool-cards"></div>
+                    <div class="status-bar">
+                        <div class="typing-indicator">
+                            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                        </div>
+                        <span class="status-text" data-lang="en">Starting...</span>
+                        <span class="status-text" data-lang="zh">开始...</span>
+                    </div>
+                    <div class="agent-reply stream-content"></div>
+                </div>
+            `;
+            messagesContainer.appendChild(msgDiv);
+            scrollToBottom();
+
+            const toolCardsContainer = msgDiv.querySelector('.tool-cards');
+            const statusBar = msgDiv.querySelector('.status-bar');
+            const statusTextEn = msgDiv.querySelectorAll('.status-text')[0];
+            const statusTextZh = msgDiv.querySelectorAll('.status-text')[1];
+            const replyContent = msgDiv.querySelector('.stream-content');
+
+            try {
+                const isVercel = location.hostname.includes('vercel.app');
+                const isGitHubPages = location.hostname.includes('github.io');
+                const isLocal = !isVercel && !isGitHubPages;
+                const API_BASE = isVercel ? '' : isLocal ? `http://${location.hostname}:5000` : 'https://anxiangsir-github-io.vercel.app';
+                const CHAT_URL = API_BASE + '/api/chat';
+
+                const response = await fetch(CHAT_URL, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream'
+                    },
+                    body: JSON.stringify({ messages: conversationHistory, stream: true })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullReply = '';
+                let currentEvent = 'message';
+                let currentReasoningBlock = null;
+                let fullReasoning = '';
+
+                // Token drip system for smooth streaming
+                // Tokens arrive in bursts from SSE; we drip them at a steady rate
+                let displayedReply = '';
+                let replyRenderPending = false;
+                let prevReplyCharCount = 0; // for word-level animation tracking
+                let displayedReasoning = '';
+                let reasoningRenderPending = false;
+                let prevReasoningCharCount = 0;
+                const CHARS_PER_FRAME = 3; // chars to drip per 16ms frame
+                let dripTimer = null;
+
+                const startDrip = () => {
+                    if (dripTimer) return;
+                    dripTimer = setInterval(() => {
+                        let needsRender = false;
+
+                        // Drip reply tokens
+                        if (displayedReply.length < fullReply.length) {
+                            const remaining = fullReply.length - displayedReply.length;
+                            // Adaptive: drip faster when backlog grows
+                            const chunk = remaining > 80 ? Math.ceil(remaining * 0.15) : Math.min(CHARS_PER_FRAME, remaining);
+                            displayedReply = fullReply.slice(0, displayedReply.length + chunk);
+                            if (!replyRenderPending) {
+                                replyRenderPending = true;
+                                const snapPrev = prevReplyCharCount;
+                                const snapDisplayed = displayedReply;
+                                requestAnimationFrame(() => {
+                                    const html = marked.parse(snapDisplayed);
+                                    replyContent.innerHTML = animateStreamHTML(html, snapPrev);
+                                    prevReplyCharCount = snapDisplayed.length;
+                                    replyRenderPending = false;
+                                });
+                            }
+                            needsRender = true;
+                        }
+
+                        // Drip reasoning tokens
+                        if (currentReasoningBlock && displayedReasoning.length < fullReasoning.length) {
+                            const remaining = fullReasoning.length - displayedReasoning.length;
+                            const chunk = remaining > 80 ? Math.ceil(remaining * 0.15) : Math.min(CHARS_PER_FRAME, remaining);
+                            displayedReasoning = fullReasoning.slice(0, displayedReasoning.length + chunk);
+                            if (!reasoningRenderPending) {
+                                reasoningRenderPending = true;
+                                const snapPrev = prevReasoningCharCount;
+                                const snapDisplayed = displayedReasoning;
+                                requestAnimationFrame(() => {
+                                    if (currentReasoningBlock) {
+                                        const html = marked.parse(snapDisplayed);
+                                        currentReasoningBlock.innerHTML = animateStreamHTML(html, snapPrev);
+                                        prevReasoningCharCount = snapDisplayed.length;
+                                    }
+                                    reasoningRenderPending = false;
+                                });
+                            }
+                            needsRender = true;
+                        }
+
+                        if (needsRender) scrollToBottom();
+
+                        // Stop drip when caught up and stream ended
+                        if (!needsRender && displayedReply.length >= fullReply.length && 
+                            displayedReasoning.length >= fullReasoning.length) {
+                            // Keep timer alive — new tokens may arrive
+                        }
+                    }, 16); // ~60fps
+                }
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // keep incomplete line
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('event:')) {
+                            currentEvent = line.substring(6).trim();
+                        } else if (line.startsWith('data:')) {
+                            const dataStr = line.substring(5).trim();
+                            if (!dataStr || dataStr === '[DONE]') continue;
+                            
+                            let data = {};
+                            try {
+                                data = JSON.parse(dataStr);
+                            } catch(e) {}
+
+                            if (currentEvent === 'reasoning_start') {
+                                // Create a new reasoning block
+                                const block = document.createElement('div');
+                                block.className = 'reasoning-block expanded';
+                                const isEn = document.documentElement.getAttribute('lang') === 'en';
+                                block.innerHTML = `
+                                    <div class="reasoning-header" onclick="this.parentElement.classList.toggle('expanded')">
+                                        <span class="reasoning-icon">⟐</span>
+                                        <span class="reasoning-label">${isEn ? 'Thinking...' : '思考中...'}</span>
+                                        <span class="reasoning-chevron">▸</span>
+                                    </div>
+                                    <div class="reasoning-body"></div>
+                                `;
+                                toolCardsContainer.appendChild(block);
+                                currentReasoningBlock = block.querySelector('.reasoning-body');
+                                currentReasoningBlock.classList.add('streaming');
+                                fullReasoning = '';
+                                displayedReasoning = '';
+                                prevReasoningCharCount = 0;
+                                statusTextEn.textContent = 'Reasoning...';
+                                statusTextZh.textContent = '推理中...';
+                                startDrip();
+                                scrollToBottom();
+
+                            } else if (currentEvent === 'reasoning_delta') {
+                                // Accumulate — drip timer handles rendering
+                                if (currentReasoningBlock && data.content) {
+                                    fullReasoning += data.content;
+                                }
+
+                            } else if (currentEvent === 'reasoning_end') {
+                                // Flush remaining reasoning immediately
+                                if (currentReasoningBlock) {
+                                    displayedReasoning = fullReasoning;
+                                    currentReasoningBlock.innerHTML = marked.parse(fullReasoning);
+                                    currentReasoningBlock.classList.remove('streaming');
+                                    const block = currentReasoningBlock.closest('.reasoning-block');
+                                    if (block) {
+                                        block.classList.remove('expanded');
+                                        const label = block.querySelector('.reasoning-label');
+                                        const isEn = document.documentElement.getAttribute('lang') === 'en';
+                                        if (label) label.textContent = isEn ? 'Thought process' : '思考过程';
+                                    }
+                                    currentReasoningBlock = null;
+                                }
+
+                            } else if (currentEvent === 'reasoning') {
+                                // Legacy: full reasoning block (backward compat)
+                                const block = document.createElement('div');
+                                block.className = 'reasoning-block';
+                                const isEn = document.documentElement.getAttribute('lang') === 'en';
+                                block.innerHTML = `
+                                    <div class="reasoning-header" onclick="this.parentElement.classList.toggle('expanded')">
+                                        <span class="reasoning-icon">⟐</span>
+                                        <span class="reasoning-label">${isEn ? 'Thought process' : '思考过程'}</span>
+                                        <span class="reasoning-chevron">▸</span>
+                                    </div>
+                                    <div class="reasoning-body">${escapeHtml(data.content || '')}</div>
+                                `;
+                                toolCardsContainer.appendChild(block);
+                                statusTextEn.textContent = 'Reasoning...';
+                                statusTextZh.textContent = '推理中...';
+                                scrollToBottom();
+
+                            } else if (currentEvent === 'tool_call') {
+                                const card = document.createElement('div');
+                                card.className = 'tool-card expanded';
+                                card.id = `tool-${data.id}`;
+                                card.innerHTML = `
+                                    <div class="tool-card-header" onclick="this.parentElement.classList.toggle('expanded')">
+                                        <span class="tool-status running">●</span>
+                                        <span class="tool-label">${data.label || data.name}</span>
+                                        <span class="tool-chevron">▸</span>
+                                    </div>
+                                    <div class="tool-card-body">
+                                        <div class="tool-section-title">IN</div>
+                                        <div class="tool-args"><pre>${JSON.stringify(data.args, null, 2)}</pre></div>
+                                        <div class="tool-result" style="display:none">
+                                            <div class="tool-section-title">OUT</div>
+                                            <pre></pre>
+                                        </div>
+                                    </div>
+                                `;
+                                toolCardsContainer.appendChild(card);
+                                
+                                const label = data.label || data.name;
+                                statusTextEn.textContent = `${label}...`;
+                                statusTextZh.textContent = `${label}...`;
+                                scrollToBottom();
+                                
+                            } else if (currentEvent === 'tool_result') {
+                                const card = document.getElementById(`tool-${data.id}`);
+                                if (card) {
+                                    card.classList.remove('expanded');
+                                    const statusIcon = card.querySelector('.tool-status');
+                                    statusIcon.className = 'tool-status done';
+                                    statusIcon.textContent = '✓';
+                                    
+                                    const resultContainer = card.querySelector('.tool-result');
+                                    resultContainer.style.display = 'block';
+                                    resultContainer.querySelector('pre').textContent = typeof data.result === 'string' ? data.result : JSON.stringify(data.result, null, 2);
+                                }
+                                statusTextEn.textContent = "Thinking...";
+                                statusTextZh.textContent = "思考中...";
+                                scrollToBottom();
+                                
+                            } else if (currentEvent === 'thinking') {
+                                // Update status bar
+                                statusTextEn.textContent = data.content || "Thinking...";
+                                statusTextZh.textContent = data.content || "思考中...";
+                                // Also show agent's intermediate reasoning as visible text
+                                if (data.content && !data.content.startsWith('Rate limited')) {
+                                    const thinkDiv = document.createElement('div');
+                                    thinkDiv.className = 'agent-thinking';
+                                    thinkDiv.textContent = data.content;
+                                    toolCardsContainer.appendChild(thinkDiv);
+                                }
+                                scrollToBottom();
+                                
+                            } else if (currentEvent === 'message_delta') {
+                                // Accumulate — drip timer handles rendering
+                                statusBar.style.display = 'none';
+                                replyContent.classList.add('streaming');
+                                if (data.content) {
+                                    fullReply += data.content;
+                                    startDrip();
+                                }
+
+                            } else if (currentEvent === 'message') {
+                                // Legacy: full message (backward compat)
+                                statusBar.style.display = 'none';
+                                if (data.content) {
+                                    fullReply += data.content;
+                                }
+                            } else if (currentEvent === 'error') {
+                                statusBar.style.display = 'none';
+                                fullReply += `\n\n**Error:** ${data.message || 'Unknown error'}`;
+                            } else if (currentEvent === 'done') {
+                                statusBar.style.display = 'none';
+                                // Flush all remaining tokens immediately
+                                if (dripTimer) { clearInterval(dripTimer); dripTimer = null; }
+                                displayedReply = fullReply;
+                                replyContent.innerHTML = marked.parse(fullReply);
+                                replyContent.classList.remove('streaming');
+                            }
+                        }
+                    }
+                }
+
+                if (!fullReply) {
+                    fullReply = isEn ? "Sorry, no response generated." : "抱歉，没有生成回复。";
+                }
+                
+                // Clean up drip timer
+                if (dripTimer) { clearInterval(dripTimer); dripTimer = null; }
+                conversationHistory.push({ role: 'assistant', content: fullReply });
+                replyContent.classList.remove('streaming');
+                // Final render with full content
+                replyContent.innerHTML = marked.parse(fullReply);
+            } catch (error) {
+                console.error("Chat error:", error);
+                statusBar.style.display = 'none';
+                const errorMsgEn = "Service temporarily unavailable. Please try again later.";
+                const errorMsgZh = "服务暂时不可用，请稍后再试。";
+                replyContent.innerHTML = `
+                    <div class="error-text">
+                        <p data-lang="en">${errorMsgEn}</p>
+                        <p data-lang="zh">${errorMsgZh}</p>
+                    </div>
+                `;
+                replyContent.classList.remove('streaming');
+                if (dripTimer) { clearInterval(dripTimer); dripTimer = null; }
+            } finally {
+                chatInput.disabled = false;
+                chatInput.focus();
+                scrollToBottom();
+            }
+        }
+    </script>
+</body>
+</html>

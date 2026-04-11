@@ -330,7 +330,7 @@ Description: State-of-the-art 2D and 3D face analysis toolbox. ...
 1. **零依赖**：不需要向量数据库、Embedding 模型或任何额外服务
 2. **极低延迟**：知识库加载后缓存在内存中，检索耗时 < 1ms
 3. **跨语言**：中文查询通过翻译字典映射为英文，覆盖常见研究术语
-4. **可维护**：添加新论文只需编辑 `knowledge_base.json`，无需重建索引
+4. **可维护**：添加新论文只需编辑 `knowledge_base.json`（或 `data/research_data.yaml`），无需重建索引
 5. **优雅降级**：如果检索无结果，系统回退到纯 System Prompt 模式，不影响基本功能
 
 ---
@@ -342,4 +342,4 @@ Description: State-of-the-art 2D and 3D face analysis toolbox. ...
 | [`api/rag_utils.py`](api/rag_utils.py) | RAG 检索引擎（分词、BM25 打分、格式化） |
 | [`api/knowledge_base.json`](api/knowledge_base.json) | 知识库（论文 + GitHub 项目） |
 | [`api/chat.py`](api/chat.py) | Chat API，集成 RAG 检索 |
-| [`_data/publications.yaml`](_data/publications.yaml) | 论文原始数据（knowledge_base.json 的数据来源） |
+| [`data/research_data.yaml`](../data/research_data.yaml) | 论文 + GitHub 项目原始数据（单一数据源） |

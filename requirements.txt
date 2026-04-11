@@ -3,3 +3,5 @@ flask>=3.0.0
 flask-cors>=4.0.0
 psycopg2-binary>=2.9.0
 requests>=2.31.0
+pyyaml>=6.0.0
+trafilatura>=2.0.0

@@ -2,280 +2,251 @@
 
 ## Features
 
-- Responsive personal homepage with research profile
-- AI-powered chat assistant using Alibaba Cloud DashScope (Qwen model)
-- Automatic conversation logging to Neon Postgres database
-- Interactive visualizations: PartialFC training pipeline, LLaVA-OneVision2 codec animation
+- Responsive personal homepage with research profile (Wikipedia-style layout)
+- Bilingual support (English / 中文) with one-click language toggle
+- **AI Agent chat assistant** — Kimi K2.5 with function calling, SSE streaming, and Claude Code-style dark UI
+- 6 agent tools: publication search, webpage fetching, GitHub repo browsing, citation stats, and more
+- Lightweight RAG retrieval over `research_data.yaml` (publications + GitHub projects)
+- Word-level blurIn streaming animation (ChatGPT-grade fluidity)
+- Interactive visualizations: PartialFC training pipeline, video codec pipeline, LLaVA-OneVision2 codec animation, and more
 - Citation World Map: citing-author geographic distribution from Semantic Scholar (offline-generated)
+- Visitor tracking with geographic heatmap (Vercel serverless + Neon Postgres)
+- KaTeX SSR build for math-heavy pages (zero runtime math JS)
 - Hybrid deployment: GitHub Pages (static) + Vercel (API + Database)
 
 ## Project Structure
 
 ```
 anxiangsir.github.io/
-├── index.html                 # Homepage (Wikipedia-style layout)
+├── index.html                 # Homepage (Wikipedia-style layout, bilingual en/zh)
 │
 ├── pages/                     # HTML pages (non-index)
+│   ├── chat.html              #   AI Agent chat (Claude Code dark UI, SSE streaming)
 │   ├── partial_fc.html        #   PartialFC interactive visualization
 │   ├── llava_onevision2.html  #   LLaVA-OneVision2 codec animation
+│   ├── video_codec.html       #   Video codec pipeline + Bitcost scoring system
+│   ├── video_subtitle_benchmark.html  # Video subtitle benchmark
+│   ├── verl_grpo.html         #   VERL GRPO / DPO / PPO visualization
 │   ├── blog.html              #   Blog index
 │   ├── publications.html      #   Publications page
-│   └── yarn.html              #   YaRN visualization
+│   ├── yarn.html              #   YaRN visualization
+│   ├── areal.html             #   Areal interpolation
+│   ├── ddpm.html              #   DDPM diffusion
+│   ├── diffusion_models.html  #   Diffusion models overview
+│   ├── funasr.html            #   FunASR speech recognition
+│   ├── gae.html               #   Graph Autoencoder
+│   ├── mario.html             #   Super Mario Bros game
+│   ├── megatron_fp8.html      #   Megatron FP8 training
+│   ├── monte_carlo_method.html #  Monte Carlo methods
+│   └── rabitq.html            #   RaBitQ quantization
 │
-├── api/                       # Backend — Vercel serverless functions (Python)
-│   ├── chat.py                #   Chat API endpoint
-│   ├── chat_log.py            #   Chat logging endpoint
-│   ├── db_utils.py            #   Database utilities
-│   ├── knowledge_base.json    #   RAG knowledge base
-│   ├── rag_utils.py           #   RAG retrieval utilities
-│   ├── scholar.py             #   Google Scholar API
+├── api/                       # Backend — Python (Flask / Vercel serverless)
+│   ├── chat.py                #   Chat API — Kimi K2.5 agent loop + SSE streaming
+│   ├── tools.py               #   6 agent tools (schemas + implementations)
+│   ├── rag_utils.py           #   RAG retrieval over research_data.yaml
+│   ├── chat_log.py            #   Conversation logging endpoint
+│   ├── db_utils.py            #   Database utilities (Neon Postgres)
+│   ├── scholar.py             #   Google Scholar citation fetcher
 │   ├── sessions.py            #   Session management
+│   ├── visitor.py             #   Visitor tracking & geo heatmap API
 │   └── README.md              #   API documentation
 │
 ├── assets/                    # Frontend shared assets
-│   ├── css/                   #   Stylesheets (wikipedia.css)
+│   ├── css/wikipedia.css      #   Main stylesheet
 │   ├── js/                    #   Client-side JavaScript
 │   │   ├── github-stars.js    #     GitHub star counter
 │   │   ├── navigation.js      #     Page navigation
 │   │   ├── publications-loader.js  # Publications YAML loader
 │   │   └── yaml-parser.js     #     YAML parser
-│   ├── img/                   #   Images (profile pic, sprites)
-│   ├── audio/                 #   Audio files
-│   └── snd/                   #   Sound effects
+│   ├── img/                   #   Images (profile pic, sprites, world map SVG)
+│   └── audio/                 #   Audio files (Mario game sounds)
 │
 ├── data/                      # Data files
+│   ├── research_data.yaml     #   Publications + GitHub projects (single source of truth)
 │   ├── citation_data.json     #   Citation map data (generated offline)
-│   ├── publications.yaml      #   Full publications list
-│   └── selected_publications.yaml  # Selected publications
+│   └── selected_publications.yaml  # Selected publications for homepage
 │
-├── docs/                      # Documentation & screenshots
+├── docs/                      # Documentation
 │   ├── DATABASE_SETUP.md      #   Neon Postgres setup guide
 │   ├── RAG_DESIGN.md          #   RAG system architecture
-│   ├── YAML_USAGE.md          #   YAML data format reference
-│   └── screenshot*.png        #   Site screenshots
+│   └── YAML_USAGE.md          #   YAML data format reference
 │
-├── scripts/                   # Development & build scripts
-│   ├── generate_citation_data.py  # Citation map data generator (headless)
+├── scripts/                   # Build & data generation scripts
+│   ├── prerender-katex.js     #   KaTeX SSR pre-renderer (build step)
+│   ├── generate_citation_data.py  # Citation map data generator
 │   ├── screenshot.js          #   Playwright screenshot automation
-│   ├── take_screenshot.py     #   Python screenshot helper
-│   ├── mcp-client.js          #   MCP client utility
-│   └── test-mcp.js            #   MCP connection test
+│   └── take_screenshot.py     #   Python screenshot helper
 │
-├── tests/                     # Test files
-│   ├── test.js                #   Mario game engine tests
-│   ├── test2.js               #   Mario game engine v2
-│   ├── test_sim2.js           #   Simulation tests
-│   └── test_mario.py          #   Mario integration test
+├── tests/                     # Tests
+│   ├── test_site.py           #   Site integration tests
+│   ├── test_mario.py          #   Mario game tests
+│   └── test*.js               #   JS game engine tests
 │
 ├── .github/workflows/
-│   └── static.yml             # GitHub Pages deployment workflow
+│   └── static.yml             # GitHub Pages deployment (KaTeX SSR build → dist/)
 │
 ├── vercel.json                # Vercel config (API routes, rewrites, CORS)
-├── package.json               # Node.js dependencies
+├── package.json               # Node.js dependencies (KaTeX)
 ├── requirements.txt           # Python dependencies
 ├── schema.sql                 # Database schema
 └── .gitignore
 ```
 
-### Architecture Notes
+## AI Agent Chat System
 
-- **`index.html` stays at root** — GitHub Pages serves from `/` directly.
-- **Non-index HTML pages live in `pages/`** — old URLs (`/blog.html`, `/partial_fc.html`, etc.) are preserved via Vercel rewrites in `vercel.json`.
-- **`api/` stays at root** — Vercel's serverless convention requires this.
-- **All internal links use absolute paths** (`/pages/blog.html`, `/assets/js/...`, `/data/...`) so pages work regardless of their directory depth.
-- **`llava_onevision2.html`** and **`partial_fc.html`** use inline `<style>` and `<script>` — their CSS/JS is tightly coupled to the DOM pool rendering system and not suitable for extraction.
+The chat page (`pages/chat.html`) is a full-featured AI agent powered by **Kimi K2.5** (Moonshot AI) with function calling, real-time streaming, and a Claude Code-inspired dark terminal UI.
+
+### Architecture
+
+```
+User → chat.html (SSE) → /api/chat (Flask) → Kimi K2.5 API (Moonshot)
+                                    ↕
+                              Agent Tool Loop
+                          (up to 10 rounds per query)
+                                    ↕
+                    ┌─────────────────────────────────┐
+                    │  search_publications             │
+                    │  fetch_webpage (trafilatura)      │
+                    │  search_github_repo (GitHub API)  │
+                    │  list_github_repos                │
+                    │  get_citation_stats               │
+                    │  read_site_page                   │
+                    └─────────────────────────────────┘
+```
+
+### Backend (`api/chat.py`)
+
+- **Model**: Kimi K2.5 via OpenAI-compatible SDK (`https://api.moonshot.cn/v1`)
+- **Agent loop**: Function calling with up to 10 tool rounds per query
+- **Streaming**: SSE (Server-Sent Events) with distinct event types:
+  - `reasoning_start/delta/end` — K2.5 thinking process (token-by-token)
+  - `message_delta` — final response content
+  - `tool_call` / `tool_result` — tool invocation and results
+  - `thinking` — status updates
+  - `done` — completion signal
+- **RAG**: Lightweight retrieval from `research_data.yaml` prepended to system prompt
+- **Rate limit handling**: Automatic retry with `Retry-After` parsing for 429 errors
+- **max_tokens**: 131072 (128K context window)
+
+### Frontend (`pages/chat.html`)
+
+- **Claude Code UI**: Deep dark theme (`#0d1117`), monospace font (JetBrains Mono), terminal-style `>` prompt
+- **Streaming rendering**: marked.js + highlight.js for real-time Markdown
+- **Word-level blurIn animation**: Each new word fades in with `opacity:0 + blur(4px) → opacity:1 + blur(0)` (280ms ease-out)
+- **Token drip system**: SSE tokens are buffered and rendered at a steady 60fps rate with adaptive acceleration to prevent backlog
+- **Collapsible panels**: Tool calls show as `● Tool Name` with expandable IN/OUT blocks; thinking blocks show as `⟐ Thinking...`
+- **Pulsing dot cursor**: Animated `●` indicator during streaming
+
+### Agent Tools
+
+| Tool | Description |
+|---|---|
+| `search_publications` | Search Xiang An's papers by keyword from `research_data.yaml` |
+| `fetch_webpage` | Fetch and extract text from any URL via trafilatura |
+| `search_github_repo` | Read files / list directories in a GitHub repo via API |
+| `list_github_repos` | List public repos for a GitHub user/org |
+| `get_citation_stats` | Citation statistics with geographic breakdown |
+| `read_site_page` | Read HTML pages from this website |
+
+### SSE Event Protocol
+
+```
+reasoning_start  → Create collapsible thinking block
+reasoning_delta  → Stream thinking content (Markdown rendered, blurIn animated)
+reasoning_end    → Collapse thinking block
+message_delta    → Stream response (Markdown rendered, blurIn animated)
+tool_call        → Show tool invocation panel
+tool_result      → Fill tool result into panel
+thinking         → Status bar update
+done             → Finalize, flush all buffers
+```
 
 ## Deployment
 
-### Vercel (Recommended — supports Chat API + Database)
-
-The site includes a Python-based Chat API (`api/chat.py`) and database logging features that require a serverless runtime and Postgres database. [Vercel](https://vercel.com/) is recommended because it serves both the static pages and Python API endpoints, while [Neon](https://neon.tech/) provides the serverless Postgres database.
-
-1. **Import the repository** at [vercel.com/new](https://vercel.com/new).
-2. **Add the environment variable** `DASHSCOPE_API_KEY` in **Settings → Environment Variables** with your API key from [阿里云百炼](https://help.aliyun.com/model-studio/getting-started/models).
-3. **Create and connect Neon Postgres database** (optional, for conversation logging):
-   - Create a database at [Neon Console](https://console.neon.tech/) (recommended) or via Vercel Storage
-   - Add the `POSTGRES_URL` environment variable in **Settings → Environment Variables**
-   - Follow the setup guide in [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md)
-4. **Deploy** — Vercel automatically serves static files and the Python serverless functions.
-
-> **Note:** GitHub Actions **Repository secrets** are only available during CI/CD workflow runs. They are **not** injected into the runtime environment of static sites or serverless functions. Use Vercel Environment Variables instead.
-
-### GitHub Pages (Static only — Chat API unavailable)
-
-The `static.yml` workflow now installs Node.js dependencies, runs the KaTeX pre-render build, and deploys the generated `dist/` directory to GitHub Pages. Because GitHub Pages serves only static files, the Chat API (`/api/chat`) is **not available** under this deployment method.
-
 ### Hybrid: GitHub Pages + Vercel API (Recommended)
 
-When the site is visited at `https://anxiangsir.github.io/`, the frontend automatically detects that it is **not** running on Vercel and redirects Chat API calls to the Vercel deployment (`https://anxiangsir-github-anxiangsirs-projects.vercel.app/api/chat`).
+- **GitHub Pages** (`anxiangsir.github.io`) serves all static pages
+- **Vercel** serves the Python Chat API + database endpoints
+- The frontend auto-detects its host and routes API calls to the Vercel deployment cross-origin
+- CORS configured in `vercel.json`
 
-This means:
-- **Static pages** are served by GitHub Pages at `anxiangsir.github.io`.
-- **Chat API** is served by Vercel's serverless function cross-origin.
-- CORS headers in `vercel.json` allow requests from `anxiangsir.github.io`.
+### Vercel Setup
 
-> **Tip:** If your Vercel production URL changes, update the `VERCEL_ORIGIN` constant in `index.html`.
+1. Import the repository at [vercel.com/new](https://vercel.com/new)
+2. Add environment variables:
+   - `MOONSHOT_API_KEY` — Moonshot AI API key for Kimi K2.5
+   - `POSTGRES_URL` (optional) — Neon Postgres connection string for conversation logging
+3. Deploy — Vercel auto-detects `api/*.py` as Python serverless functions
+
+### GitHub Pages (Static only)
+
+The `static.yml` workflow runs `npm run build` (KaTeX SSR pre-rendering) and deploys `dist/` to GitHub Pages. The Chat API is **not available** under GitHub Pages alone.
 
 ## Local Development
 
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/anxiangsir/anxiangsir.github.io.git
-   cd anxiangsir.github.io
-   ```
-
-2. **Start the Chat API (optional)**
-
-   ```bash
-   pip install -r requirements.txt
-   export DASHSCOPE_API_KEY="sk-xxx"
-   python api/chat.py
-   ```
-
-3. **Start a Local Server**
-
-   ```bash
-   python -m http.server 8000
-   # or
-   npx live-server
-   ```
-
-4. **Open** http://localhost:8000
-
-### KaTeX SSR Build
-
-Math-heavy pages are pre-rendered at build time into static KaTeX HTML so the deployed site has zero runtime math rendering JavaScript.
-
-#### Pages Covered
-
-- `pages/areal.html`
-- `pages/yarn.html`
-- `pages/diffusion_models.html`
-
-#### What the build does
-
-- copies the repository into `dist/`
-- pre-renders LaTeX in both static HTML and JavaScript i18n strings
-- removes runtime `katex.min.js`, `auto-render.min.js`, and `renderMathInElement(...)`
-- localizes KaTeX CSS/fonts to `dist/assets/vendor/katex/`
-- keeps source HTML files in `pages/` unchanged
-
-#### Build locally
-
 ```bash
-npm install
-npm run build
+# Clone
+git clone https://github.com/anxiangsir/anxiangsir.github.io.git
+cd anxiangsir.github.io
 
-# Preview the built site
+# Install dependencies
+pip install -r requirements.txt
+npm install
+
+# Start the Chat API
+export MOONSHOT_API_KEY="sk-xxx"
+python api/chat.py          # Runs on http://localhost:5000
+
+# Start the static file server
+python -m http.server 8000  # Open http://localhost:8000
+
+# (Optional) Build KaTeX SSR for math pages
+npm run build
 python -m http.server 8000 --directory dist
 ```
 
-#### Proxy notes for this server environment
+### Proxy Notes
 
-External network access requires the internal proxy:
+External network access on internal servers requires:
 
 ```bash
 export http_proxy=http://172.16.5.77:8889
 export https_proxy=http://172.16.5.77:8889
-```
-
-For local preview, bypass the proxy for localhost requests:
-
-```bash
 export no_proxy=127.0.0.1,localhost
-python -m http.server 8000 --directory dist
 ```
 
-### Deployment & Maintenance (Simple Overview)
+## KaTeX SSR Build
 
-This site is currently managed as a **static GitHub Pages deployment with a build step**.
+Math-heavy pages (`areal.html`, `yarn.html`, `diffusion_models.html`) are pre-rendered at build time into static KaTeX HTML — zero runtime math JS on the deployed site.
 
-#### How deployment works
-
-1. Source files live in the repository root (`index.html`, `pages/`, `assets/`, `data/`, etc.).
-2. On every push to `main`, GitHub Actions runs `.github/workflows/static.yml`.
-3. The workflow:
-   - installs Node dependencies with `npm ci`
-   - runs `npm run build`
-   - generates a built site into `dist/`
-   - deploys `dist/` to GitHub Pages
-
-#### What is generated vs. what is edited
-
-- **Edit by hand:** source files in `pages/`, `index.html`, `assets/`, `data/`, scripts, README, workflow files
-- **Generated by build:** `dist/`
-
-For math-heavy pages, the build step pre-renders KaTeX into static HTML, strips runtime math JS, and copies local KaTeX assets into `dist/assets/vendor/katex/`.
-
-#### How to update the site safely
-
-Typical workflow:
-
-```bash
-# edit source files
-npm run build
-python -m http.server 8000 --directory dist
-```
-
-Then open the built page locally and verify it before committing.
-
-#### What to maintain
-
-- **Content changes** → edit source HTML / JSON / assets
-- **Math rendering changes** → update `scripts/prerender-katex.js`
-- **Deployment behavior** → update `.github/workflows/static.yml`
-- **Dependencies** → update `package.json` / `package-lock.json`
-
-#### Current deployment split
-
-- **GitHub Pages** serves the static frontend
-- **Vercel** is only needed if you want the Python Chat API runtime
-
-So for normal blog/page updates, the main thing to remember is:
-
-> edit source → build to `dist/` → GitHub Actions deploys `dist/`
+The build copies the repo into `dist/`, pre-renders LaTeX in HTML and JS i18n strings, removes runtime KaTeX scripts, and localizes CSS/fonts to `dist/assets/vendor/katex/`.
 
 ## RAG System
 
-The chat assistant uses a lightweight RAG (Retrieval-Augmented Generation) system to retrieve relevant publications and GitHub projects from a local knowledge base before calling the LLM. See [docs/RAG_DESIGN.md](docs/RAG_DESIGN.md) for architecture details.
-
-## Database Setup
-
-For setting up conversation logging with Neon Postgres, see [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md).
+The chat assistant uses lightweight RAG retrieval from `data/research_data.yaml` (the single source of truth for all publications and GitHub projects). Relevant entries are prepended to the system prompt before each LLM call. See [docs/RAG_DESIGN.md](docs/RAG_DESIGN.md) for architecture details.
 
 ## Citation World Map
 
-The homepage includes an interactive Citation World Map showing the geographic distribution of citing authors, generated offline from Semantic Scholar data.
+The homepage includes an interactive Citation World Map showing the geographic distribution of citing authors.
 
-### How It Works
-
-1. `scripts/generate_citation_data.py` collects all citing papers via the Semantic Scholar API, then batch-looks up author affiliations
-2. Affiliations are geocoded via `geopy` (Nominatim) to determine country locations
-3. Results are aggregated by country and written to `data/citation_data.json`
-4. The homepage JS reads this JSON and colors the SVG world map with warm orange tones
-
-### Regenerating Citation Data
+- Data generated offline via `scripts/generate_citation_data.py` (Semantic Scholar API → geocoding → `data/citation_data.json`)
+- Warm orange color scale on `assets/img/world-map.min.svg`
 
 ```bash
-# Set proxy (required on internal servers)
-export http_proxy=http://172.16.5.77:8889
-export https_proxy=http://172.16.5.77:8889
-
-# Install dependencies
+# Regenerate citation data (~5-10 min, rate-limited by S2 API)
 pip install requests geopy pycountry tqdm
-
-# Generate data (~5-10 minutes, rate-limited by S2 API)
 python scripts/generate_citation_data.py
-
-# Output: data/citation_data.json
-# Cache: scripts/.citation_cache/ (delete to force re-scrape)
 ```
 
-### Configuration
+## Database Setup
 
-- **S2 Author ID**: `2054941340` (hardcoded in `scripts/generate_citation_data.py`)
-- **Google Scholar ID**: `1ckaPgwAAAAJ` (used for display link only)
-- **Color scale**: Warm orange (`#fde8d0` → `#b35a1a`), distinct from the Visitor Map's blue tones
-- **SVG**: Reuses `assets/img/world-map.min.svg` with ISO 3166-1 lowercase country code IDs
-- **JSON schema**: `{scholar_id, s2_author_id, total_citations, total_countries, total_institutions, countries: {ISO_CODE: {name, count, institutions: [{name, count, lat, lng}]}}}`
+For conversation logging with Neon Postgres, see [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md).
+
+## Architecture Notes
+
+- `index.html` stays at root — GitHub Pages serves from `/` directly
+- Non-index pages live in `pages/` — old URLs preserved via Vercel rewrites
+- `api/` stays at root — Vercel serverless convention
+- All internal links use absolute paths (`/pages/`, `/assets/`, `/data/`)
+- `chat.html`, `llava_onevision2.html`, `partial_fc.html`, `video_codec.html`, `verl_grpo.html` use inline CSS/JS (tightly coupled to DOM)
+- Bilingual pages (`index.html`, `video_codec.html`, `chat.html`) use `data-lang` attributes with a shared toggle pattern

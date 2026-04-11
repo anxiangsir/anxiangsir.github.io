@@ -6,29 +6,31 @@ of publications and GitHub projects.  No external vector-DB or embedding
 model is required — designed for Vercel serverless cold-start constraints.
 """
 
-import json
+import yaml
 import math
 import os
 import re
 from collections import Counter
 
-_KB_PATH = os.path.join(os.path.dirname(__file__), "knowledge_base.json")
+_KB_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "research_data.yaml")
 _knowledge_base = None
 _MEDIA_KEYWORDS = "media news 媒体 新闻 报道"
 
 
 def _load_knowledge_base():
-    """Load and cache the knowledge base from JSON."""
+    """Load and cache the knowledge base from research_data.yaml."""
     global _knowledge_base
     if _knowledge_base is not None:
         return _knowledge_base
 
     with open(_KB_PATH, "r", encoding="utf-8") as fh:
-        data = json.load(fh)
+        data = yaml.safe_load(fh)
 
     docs = []
-    for doc in data.get("documents", []):
-        # Build a single searchable string per document
+
+    # Publications section
+    for pub in data.get("publications", []):
+        doc = {**pub, "type": "publication"}
         parts = [
             doc.get("title", ""),
             doc.get("authors", ""),
@@ -46,6 +48,22 @@ def _load_knowledge_base():
         if media_links:
             parts.append(" ".join(ml.get("name", "") for ml in media_links))
             parts.append(_MEDIA_KEYWORDS)
+
+        searchable = " ".join(p for p in parts if p).lower()
+        docs.append({**doc, "_searchable": searchable})
+
+    # GitHub projects section
+    for proj in data.get("github_projects", []):
+        doc = {**proj, "type": "github_project"}
+        parts = [
+            doc.get("name", ""),
+            doc.get("description", ""),
+            doc.get("role", ""),
+            doc.get("url", ""),
+        ]
+        keywords = doc.get("keywords", [])
+        if keywords:
+            parts.append(" ".join(keywords))
 
         searchable = " ".join(p for p in parts if p).lower()
         docs.append({**doc, "_searchable": searchable})

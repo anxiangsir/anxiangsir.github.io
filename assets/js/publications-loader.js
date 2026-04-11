@@ -84,10 +84,10 @@ function renderExtraLinks(container, pub) {
 
 // Render selected publications for index.html (Wikipedia style)
 async function loadSelectedPublications() {
-    // Load both files: selected_publications.yaml (titles only) and publications.yaml (full data)
+    // Load both files: selected_publications.yaml (titles only) and research_data.yaml (full data)
     const [selectedData, allData] = await Promise.all([
         loadYAML('/data/selected_publications.yaml'),
-        loadYAML('/data/publications.yaml')
+        loadYAML('/data/research_data.yaml')
     ]);
     
     // Try Wikipedia-style selector first, then fallback to old style
@@ -211,7 +211,7 @@ async function loadSelectedPublications() {
 
 // Render all publications for publications.html (Wikipedia style)
 async function loadAllPublications() {
-    const data = await loadYAML('/data/publications.yaml');
+    const data = await loadYAML('/data/research_data.yaml');
     
     // Try Wikipedia-style selector first, then fallback
     let pubList = document.querySelector('.wiki-publications-full-list');

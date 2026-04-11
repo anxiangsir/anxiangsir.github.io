@@ -17,6 +17,8 @@ publications:
   - title: "ViCToR: Improving Visual Comprehension via Token Reconstruction for Pretraining LMMs"
     authors: "Yin Xie, Kaicheng Yang, Peirou Liang, Xiang An, Yongle Zhao, Yumeng Wang, Ziyong Feng, Roy Miles, Ismail Elezi, Jiankang Deng"
     venue: "AAAI 2026"
+    year: 2026
+    paper_url: "https://arxiv.org/abs/2410.14332"
 
   - title: "UniME-V2: MLLM-as-a-Judge for Universal Multimodal Embedding Learning"
     authors: "Tiancheng Gu, Kaicheng Yang, Kaichen Zhang, Xiang An, Ziyong Feng, Yueyi Zhang, Weidong Cai, Jiankang Deng, Lidong Bing"
@@ -28,14 +30,15 @@ publications:
       UniME-V2 introduces an innovative approach to multimodal embedding learning by leveraging Multimodal Large Language Models (MLLMs) as judges to evaluate and guide the learning process. This work addresses the fundamental challenge of learning universal embeddings that can effectively represent diverse multimodal data including images, text, and their combinations. The key innovation is using MLLMs to assess the quality of embeddings through various evaluation criteria, enabling more nuanced and context-aware learning. This "MLLM-as-a-Judge" paradigm allows the embedding model to learn from rich feedback signals that go beyond simple similarity metrics. The framework achieves superior performance across multiple multimodal benchmarks, demonstrating the effectiveness of using advanced language models to guide representation learning. UniME-V2's approach opens new directions for developing more robust and generalizable multimodal embeddings that can better capture semantic relationships across different modalities.
 
   - title: "UniViT: Unifying Image and Video Understanding in One Vision Encoder"
-    authors: "Feilong Tang, Xiang An, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Ziyong Feng, Jiankang Deng, Zongyuan Ge, et al."
+    authors: "Feilong Tang, Xiang An, Haolin Yang, Yin Xie, Kaicheng Yang, Ming Hu, Zheng Cheng, Xingyu Zhou, Zimin Ran, Imran Razzak, Ziyong Feng, Behzad Bozorgtabar, Jiankang Deng, Zongyuan Ge"
     venue: "NeurIPS 2025"
+    paper_url: "https://openreview.net/forum?id=NABGO9Bful"
     media_links:
       - name: "新浪财经"
         url: "https://finance.sina.cn/stock/jdts/2026-01-20/detail-inhhxvez7537617.d.html?vt=4"
 
   - title: "LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training"
-    authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Changrui Chen, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng, et al."
+    authors: "Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Didi Zhu, Chunsheng Wu, Huajie Tan, Chunyuan Li, Jing Yang, Jie Yu, Xiyao Wang, Bin Qin, Yumeng Wang, Zizhen Yan, Ziyong Feng, Ziwei Liu, Bo Li, Jiankang Deng"
     venue: "Preprint, 2025"
     paper_url: "https://arxiv.org/abs/2509.23661"
     code_url: "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5"
@@ -57,6 +60,7 @@ publications:
     venue: "ICCV, 2025 (Highlight)"
     paper_url: "https://arxiv.org/abs/2507.20025"
     code_url: "https://github.com/deepglint/unicom"
+    homepage_url: "https://deepglint.github.io/MVT/"
     preview_image: "assets/img/publication_preview_3.jpg"
     media_links:
       - name: "知乎专栏"
@@ -67,34 +71,46 @@ publications:
   - title: "RealSyn: An Effective and Scalable Multimodal Interleaved Document Transformation Paradigm"
     authors: "Tiancheng Gu, Kaicheng Yang, Chaoyi Zhang, Yin Xie, Xiang An, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng"
     venue: "ACM MM 2025"
+    paper_url: "https://arxiv.org/abs/2502.12513"
+    code_url: "https://github.com/deepglint/RealSyn"
 
   - title: "ForCenNet: Foreground-Centric Network for Document Image Rectification"
     authors: "Peng Cai, Qiang Li, Kaicheng Yang, Dong Guo, Jia Li, Nan Zhou, Xiang An, Ninghua Yang, Jiankang Deng"
     venue: "ICCV 2025"
+    paper_url: "https://arxiv.org/abs/2507.19804"
+    code_url: "https://github.com/caipeng328/ForCenNet"
 
   - title: "HUST: High-Fidelity Unbiased Skin Tone Estimation via Texture Quantization"
     authors: "Zimin Ran, Xingyu Ren, Xiang An, Kaicheng Yang, Ziyong Feng, Jing Yang, Rolandos Alexandros Potamias, Linchao Zhu, Jiankang Deng"
     venue: "ICCV 2025"
+    homepage_url: "https://ziminran.github.io/hust-iccv/"
 
   - title: "Gradient-Attention Guided Dual-Masking Synergetic Framework for Robust Text-based Person Retrieval"
     authors: "Tianlu Zheng, Yifan Zhang, Xiang An, Ziyong Feng, Kaicheng Yang, Qichuan Ding"
     venue: "EMNLP 2025"
+    paper_url: "https://arxiv.org/abs/2509.09118"
 
   - title: "StreamAgent: Towards Anticipatory Agents for Streaming Video Understanding"
-    authors: "Haolin Yang, Feilong Tang, Linxiao Zhao, Xiang An, Ming Hu, Huifa Li, Xinlin Zhuang, Boqian Wang, Yifan Lu, Xiaofeng Zhang"
+    authors: "Haolin Yang, Feilong Tang, Lingxiao Zhao, Xiang An, Ming Hu, Huifa Li, Xinlin Zhuang, Yifan Lu, Xiaofeng Zhang, Abdalla Swikir, Junjun He, Zongyuan Ge, Imran Razzak"
     venue: "Preprint 2025"
+    paper_url: "https://arxiv.org/abs/2508.01875"
 
   - title: "ProCLIP: Progressive Vision-Language Alignment via LLM-based Embedder"
-    authors: "Xiaoxing Hu, Kaicheng Yang, Ziyong Feng, Qi Ming, Zonghao Guo, Xiang An, Junchi Yan, Xue Yang"
+    authors: "Xiaoxing Hu, Kaicheng Yang, Ziyang Gong, Qi Ming, Zonghao Guo, Yu Tian, Xiang An, Ziyong Feng, Xue Yang"
     venue: "Preprint 2025"
+    paper_url: "https://arxiv.org/abs/2510.18795"
+    code_url: "https://github.com/VisionXLab/ProCLIP"
 
   - title: "RWKV-CLIP: A Robust Vision-Language Representation Learner"
     authors: "Tiancheng Gu, Kaicheng Yang, Xiang An, Ziyong Feng, Dongnan Liu, Weidong Cai, Jiankang Deng"
     venue: "EMNLP 2024"
+    paper_url: "https://arxiv.org/abs/2406.06973"
+    code_url: "https://github.com/deepglint/RWKV-CLIP"
 
   - title: "CLIP-CID: Efficient CLIP Distillation via Cluster-Instance Discrimination"
     authors: "Kaicheng Yang, Tiancheng Gu, Xiang An, Haiqiang Jiang, Xiangzi Dai, Ziyong Feng, Weidong Cai, Jiankang Deng"
     venue: "AAAI 2024"
+    paper_url: "https://arxiv.org/abs/2408.09441"
 
   - title: "Multi-label Cluster Discrimination for Visual Representation Learning"
     authors: "Xiang An, Kaicheng Yang, Xiangzi Dai, Ziyong Feng, Jiankang Deng"
@@ -114,10 +130,12 @@ publications:
   - title: "IDAdapter: Learning Mixed Features for Tuning-Free Personalization of Text-to-Image Models"
     authors: "Siying Cui, Jia Guo, Xiang An, Jiankang Deng, Yongle Zhao, Xinyu Wei, Ziyong Feng"
     venue: "CVPRW 2024"
+    paper_url: "https://arxiv.org/abs/2403.13535"
 
   - title: "ORID: Organ-Regional Information Driven Framework for Radiology Report Generation"
     authors: "Tiancheng Gu, Kaicheng Yang, Xiang An, Ziyong Feng, Dongnan Liu, Weidong Cai"
     venue: "WACV 2025"
+    paper_url: "https://arxiv.org/abs/2411.13025"
 
   - title: "Unicom: Universal and Compact Representation Learning for Image Retrieval"
     authors: "Xiang An, Jiankang Deng, Kaicheng Yang, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu"
@@ -131,6 +149,8 @@ publications:
   - title: "ALIP: Adaptive Language-Image Pre-training with Synthetic Caption"
     authors: "Kaicheng Yang, Jiankang Deng, Xiang An, Jiawei Li, Ziyong Feng, Jia Guo, Jing Yang, Tongliang Liu"
     venue: "ICCV 2023"
+    paper_url: "https://arxiv.org/abs/2308.08428"
+    code_url: "https://github.com/deepglint/ALIP"
 
   - title: "Killing Two Birds with One Stone: Efficient and Robust Training of Face Recognition CNNs by Partial FC"
     authors: "Xiang An, Jiankang Deng, Jia Guo, Ziyong Feng, Xuhan Zhu, Jing Yang, Tongliang Liu"
@@ -138,6 +158,7 @@ publications:
     paper_url: "https://arxiv.org/abs/2203.15565"
     code_url: "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch"
     preview_image: "assets/img/publication_preview_6.jpg"
+    keywords: ["partialfc", "partial fc", "face recognition", "large-scale training"]
     media_links:
       - name: "知乎"
         url: "https://zhuanlan.zhihu.com/p/267346623"
@@ -155,6 +176,7 @@ publications:
     paper_url: "https://arxiv.org/abs/2010.05222"
     code_url: "https://github.com/deepinsight/insightface/tree/master/recognition/arcface_torch"
     preview_image: "assets/img/publication_preview_7.jpg"
+    keywords: ["partialfc", "partial fc", "face recognition", "large-scale training"]
     media_links:
       - name: "知乎"
         url: "https://zhuanlan.zhihu.com/p/267346623"
@@ -169,7 +191,40 @@ publications:
   - title: "Masked Face Recognition Challenge: The InsightFace Track Report"
     authors: "Jiankang Deng, Jia Guo, Xiang An, Zheng Zhu, Stefanos Zafeiriou"
     venue: "ICCVW 2021"
+    paper_url: "https://arxiv.org/abs/2108.08191"
 
   - title: "InsightFace: 2D and 3D Face Analysis Project"
     authors: "Jia Guo, Jiankang Deng, Xiang An, Jack Yu"
     venue: "GitHub 2020"
+
+github_projects:
+  - name: "InsightFace"
+    url: "https://github.com/deepinsight/insightface"
+    stars: "27k+"
+    role: "2nd largest contributor"
+    description: "State-of-the-art 2D and 3D face analysis toolbox. Xiang An proposed Partial FC for training 10M+ identities on a single machine and built Glint360K, the largest open-source face recognition training dataset."
+    keywords: ["face recognition", "face detection", "face alignment", "3D face", "partial fc", "glint360k", "insightface", "arcface"]
+
+  - name: "LLaVA-OneVision-1.5"
+    url: "https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5"
+    role: "Team Leader"
+    description: "Fully open-source multimodal training framework that democratizes the development of large multimodal models. Provides better open-source ViT and validates that simple scaling of dense captions can improve overall multimodal task performance."
+    keywords: ["multimodal", "LLM", "vision transformer", "ViT", "LLaVA", "training framework", "open source", "MLLM"]
+
+  - name: "OneVision-Encoder"
+    url: "https://github.com/EvolvingLMMs-Lab/OneVision-Encoder"
+    role: "Lead Author"
+    description: "Next-generation vision encoder that introduces codec-aligned sparsity as a foundational principle for multimodal intelligence. Achieves state-of-the-art performance on 16 image, video, and document understanding benchmarks while using substantially fewer visual tokens. Demonstrates 4.1% average improvement over Qwen3-ViT on video understanding tasks and achieves 17.1% and 8.1% Top-1 accuracy improvements over SigLIP2 and DINOv3 on Diving-48."
+    keywords: ["vision encoder", "sparsity", "codec", "video understanding", "multimodal", "visual representation", "compression", "ViT", "efficiency"]
+
+  - name: "UNICOM / MLCD"
+    url: "https://github.com/deepglint/unicom"
+    role: "Project Leader and Main Author"
+    description: "Universal image retrieval representation learning framework. Proposed region-based cluster discrimination method. Includes Unicom (ICLR 2023), Multi-label CD (ECCV 2024), and Region-based CD (ICCV 2025 Highlight). MLCD has been integrated into Hugging Face Transformers library (https://huggingface.co/docs/transformers/main/model_doc/mlcd). Also developed MLCD-Seg for multimodal referring expression segmentation (https://github.com/deepglint/MLCD-Seg)."
+    keywords: ["image retrieval", "representation learning", "cluster discrimination", "self-supervised", "unicom", "MLCD", "contrastive learning", "transformers", "referring expression segmentation", "multimodal"]
+
+  - name: "LLaVA-NeXT"
+    url: "https://github.com/LLaVA-VL/LLaVA-NeXT"
+    role: "Vision Module Contributor"
+    description: "Enhanced OCR capabilities and processing of rich text/document images in the LLaVA-NeXT multimodal model."
+    keywords: ["OCR", "document understanding", "multimodal", "LLaVA", "vision", "text recognition"]

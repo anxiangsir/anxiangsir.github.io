@@ -28,6 +28,10 @@
     {
       "source": "/ddpm.html",
       "destination": "/pages/ddpm.html"
+    },
+    {
+      "source": "/verl_grpo.html",
+      "destination": "/pages/verl_grpo.html"
     }
   ],
   "headers": [

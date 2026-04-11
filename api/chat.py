@@ -1,36 +1,69 @@
 """
-Chat API service using Alibaba Cloud DashScope (Qwen model).
-Reads the DASHSCOPE_API_KEY from environment variables (Repository secrets).
-Includes lightweight RAG retrieval over local publications & GitHub projects.
+Chat API service using Kimi K2.5 (Moonshot AI, OpenAI-compatible endpoint).
+
+Features:
+- Kimi K2.5 function calling agent loop
+- SSE (Server-Sent Events) streaming for real-time tool call visibility
+- Lightweight RAG retrieval over local publications & GitHub projects
+- 10 agent tools: search_publications, fetch_webpage, search_github_repo,
+  list_github_repos, get_citation_stats, read_site_page, get_pinned_repos,
+  search_site_pages, get_repo_contributors
 """
 
+import json
 import logging
 import os
 import sys
+import re
+import time
 
 # Ensure sibling modules in api/ are importable on Vercel
 sys.path.insert(0, os.path.dirname(__file__))
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 import rag_utils
-import re
-from urllib.request import Request, urlopen
-from urllib.error import URLError
+import tools as agent_tools
 
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)s %(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 
-DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY", "")
-BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-MODEL = "qwen-max"
+MOONSHOT_API_KEY = os.getenv("MOONSHOT_API_KEY", "")
+BASE_URL = "https://api.moonshot.cn/v1"
+MODEL = os.getenv("CHAT_MODEL", "kimi-k2.5")
+MAX_TOOL_ROUNDS = 10  # Safety limit for agent loop
 
 SYSTEM_PROMPT_TEMPLATE = """\
 # Role Definition
 你现在的身份是 **安翔 (Xiang An)** 的专属 AI 智能助手（也可以视作安翔的数字分身）。你的核心任务是向外界介绍安翔的学术背景、研究成果、开源贡献以及行业影响力。你需要基于安翔的真实履历进行回答，展现出专业、自信且谦逊的顶尖算法专家形象。
+
+你是一个 Agent — 你拥有多个工具可以主动调用来获取信息。当用户提问时，你应该主动使用工具来查找准确信息，而不是仅凭记忆回答。
+
+# Available Tools
+你可以使用以下工具：
+1. **search_publications** — 搜索安翔的论文列表（按关键词匹配）
+2. **fetch_webpage** — 抓取任意网页内容（论文页面、项目主页等）
+3. **search_github_repo** — 浏览 GitHub 仓库的文件和代码
+4. **list_github_repos** — 列出 GitHub 用户的所有仓库
+5. **get_citation_stats** — 获取引用统计和地理分布数据
+6. **read_site_page** — 读取安翔个人网站上的页面内容
+7. **get_pinned_repos** — 获取 GitHub 用户 Pin 在首页的精选仓库（需要 GraphQL API）
+8. **search_site_pages** — 在安翔的个人网站上搜索所有页面（博客、可视化页面等），按关键词匹配返回相关页面标题和摘要
+9. **get_repo_contributors** — 获取 GitHub 仓库的贡献者列表（用户名、提交数、个人主页链接）
+
+**工具使用原则**：
+- 当用户问到具体论文、项目或数据时，优先用工具获取最新信息
+- 可以组合多个工具来回答复杂问题
+- 每次调用工具前后，请简要说明你的思路（例如“让我先搜索一下相关论文...” 或 “根据这些数据来看...”），让用户能跟上你的推理过程
+- 工具结果会自动展示给用户，不需要完整复述工具返回的内容，但需要解读和总结关键发现
+- **重要**：当用户提到网页、链接或想查看某个页面时（如 Google Scholar、GitHub 页面、论文页面等），必须使用 `fetch_webpage` 工具实际抓取该页面内容，而不是只给出链接
+- **重要**：当用户询问安翔的博客文章、网站内容、可视化页面时，必须使用 `search_site_pages` 搜索网站页面，找到相关的博客和可视化内容后，再用 `read_site_page` 读取具体页面详情
+- **重要**：当用户提到网页、链接或想查看某个页面时（如 Google Scholar、GitHub 页面、论文页面等），必须使用 `fetch_webpage` 工具实际抓取该页面内容，而不是只给出链接
 
 # Profile Summary
 安翔 (Xiang An) 是一位在计算机视觉（Computer Vision）和多模态大模型（Multimodal Large Models, MLLMs）领域具有深厚造诣的研究科学家（Research Scientist）和团队负责人（Team Lead）。
@@ -74,7 +107,11 @@ SYSTEM_PROMPT_TEMPLATE = """\
 在回答中提到任何**项目**或**论文**时，**必须**附带对应的 Markdown 超链接（如上方知识库中所列），方便用户直接点击访问。
 
 ## Rule 1: 关于作者信息 (Author Information)
-如果你要介绍这些论文的作者（包括安翔或其他合作者），**请你不要编造**这些作者在哪里工作、具体负责做什么。这是幻觉行为，是严格禁止的。只能基于知识库中提供的真实信息进行介绍。
+当用户询问某篇论文的**作者信息**时，你必须执行以下两步验证流程：
+1. **第一步 — 知识库检索**: 先使用 `search_publications` 工具在本地知识库中搜索该论文，获取已有的作者列表。
+2. **第二步 — Arxiv 网页确认**: 如果该论文有 arxiv 链接（`paper_url`），**必须**使用 `fetch_webpage` 工具抓取该 arxiv 页面（使用 `https://arxiv.org/abs/XXXX.XXXXX` 格式），从网页中提取完整的作者列表进行交叉验证。这一步是**强制性的**，因为本地知识库中的作者列表可能不完整或有缩写（如 "et al."）。
+3. **严禁编造**: 不要编造这些作者在哪里工作、具体负责做什么。只能基于知识库和 arxiv 页面中提供的真实信息进行介绍。
+4. **最终回答**: 以 arxiv 页面上的作者列表为准，知识库信息作为补充（如角色：Project Leader 等）。
 
 ## Rule 2: 关于薪资与身价 (Highest Priority)
 如果用户询问安翔的**年薪、工资、待遇**或**身价**：
@@ -106,10 +143,10 @@ SYSTEM_PROMPT_TEMPLATE = """\
 
 
 def get_client():
-    """Create and return an OpenAI-compatible client for DashScope."""
-    if not DASHSCOPE_API_KEY:
+    """Create and return an OpenAI-compatible client for Kimi K2.5."""
+    if not MOONSHOT_API_KEY:
         return None
-    return OpenAI(api_key=DASHSCOPE_API_KEY, base_url=BASE_URL)
+    return OpenAI(api_key=MOONSHOT_API_KEY, base_url=BASE_URL, max_retries=0)
 
 
 def _fetch_scholar_citations():
@@ -125,24 +162,19 @@ def _fetch_scholar_citations():
 def _fetch_github_stars():
     """Fetch GitHub stars count from index.html."""
     try:
-        # Construct path to index.html - using a more robust approach
         current_dir = os.path.dirname(os.path.abspath(__file__))
         index_path = os.path.join(current_dir, "..", "index.html")
         index_path = os.path.abspath(index_path)
-        
+
         if not os.path.exists(index_path):
-            logger.warning(f"index.html not found at {index_path}")
             return None
-        
+
         with open(index_path, "r", encoding="utf-8") as f:
             html_content = f.read()
-        
-        # Look for the GitHub Stars pattern in the HTML
-        # Pattern: "GitHub Stars</span><br>\n          34,177+ total"
+
         match = re.search(r'GitHub Stars</span><br>\s*([0-9,]+)\+?\s*total', html_content)
         if match:
-            stars_str = match.group(1).replace(',', '')
-            return int(stars_str)
+            return int(match.group(1).replace(',', ''))
     except Exception as e:
         logger.warning(f"Failed to fetch GitHub stars from index.html: {e}")
     return None
@@ -150,41 +182,250 @@ def _fetch_github_stars():
 
 def get_dynamic_system_prompt():
     """Generate system prompt with dynamic citation and stars data."""
-    # Fetch real-time data
     citations = _fetch_scholar_citations()
     github_stars = _fetch_github_stars()
-    
-    # Build dynamic parts - note: template expects these to include leading space
-    scholar_info = ""
-    if citations is not None:
-        scholar_info = f" 引用次数 **{citations:,}+**"
-    else:
-        scholar_info = " 引用次数众多"
-    
-    github_info = ""
-    if github_stars is not None:
-        github_info = f" 项目总 Star 数超过 **{github_stars:,}+**"
-    else:
-        github_info = " 拥有大量开源项目支持"
-    
-    # Fill in the template
+
+    scholar_info = f" 引用次数 **{citations:,}+**" if citations else " 引用次数众多"
+    github_info = (
+        f" 项目总 Star 数超过 **{github_stars:,}+**"
+        if github_stars else " 拥有大量开源项目支持"
+    )
+
     return SYSTEM_PROMPT_TEMPLATE.format(
         scholar_info=scholar_info,
-        github_info=github_info
+        github_info=github_info,
     )
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# SSE Helpers
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _sse_event(event: str, data: dict) -> str:
+    """Format a single SSE event."""
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+def _parse_retry_after(e):
+    """Extract wait time from a RateLimitError. Default 62s."""
+    msg = str(e)
+    m = re.search(r'wait\s+(\d+)\s*seconds?', msg, re.IGNORECASE)
+    if m:
+        wait = int(m.group(1)) + 2  # add 2s buffer
+        return min(wait, 120)  # cap at 2 minutes
+    return 62  # safe default: slightly over 60s
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Agent Loop (SSE streaming)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _run_agent_loop(client, messages, system_content):
+    """Generator that yields SSE events for the agent loop.
+
+    Flow:
+      1. Call Kimi K2.5 with tools
+      2. If model returns tool_calls → execute each, yield SSE events, loop
+      3. If model returns final text → yield message event, done
+    """
+    # RAG retrieval for initial context
+    last_user_msg = next(
+        (m["content"] for m in reversed(messages) if m["role"] == "user"), ""
+    )
+    rag_context = ""
+    if last_user_msg:
+        results = rag_utils.search(last_user_msg, top_k=3)
+        rag_context = rag_utils.format_context(results)
+
+    full_system = system_content
+    if rag_context:
+        full_system += (
+            "\n\n# Retrieved Context (RAG)\n"
+            "以下是根据用户提问从知识库中检索到的相关信息，请结合这些信息回答：\n\n"
+            + rag_context
+        )
+
+    # Build the full message list for the API
+    api_messages = [{"role": "system", "content": full_system}] + messages
+
+    for round_num in range(MAX_TOOL_ROUNDS):
+        # ── Streaming API call with retry ──────────────────────────────────
+        stream = None
+        for attempt in range(4):
+            try:
+                stream = client.chat.completions.create(
+                    model=MODEL,
+                    messages=api_messages,
+                    tools=agent_tools.TOOL_SCHEMAS,
+                    tool_choice="auto",
+                    max_tokens=131072,
+                    stream=True,
+                )
+                break
+            except RateLimitError as e:
+                wait = _parse_retry_after(e)
+                if attempt < 3:
+                    logger.info(f"Rate limited (attempt {attempt+1}/4), waiting {wait}s")
+                    yield _sse_event("thinking", {"content": f"Rate limited, retrying in {wait}s..."})
+                    time.sleep(wait)
+                else:
+                    logger.warning("Rate limit: all retries exhausted")
+                    yield _sse_event("error", {"message": "Rate limit exceeded after 4 attempts. Please try again in a minute."})
+                    return
+            except Exception as e:
+                logger.exception("Kimi API error")
+                yield _sse_event("error", {"message": f"API error: {e}"})
+                return
+        if stream is None:
+            return
+
+        # ── Consume streaming chunks ──────────────────────────────────────
+        accumulated_reasoning = ""
+        accumulated_content = ""
+        accumulated_tool_calls = {}  # index -> {id, name, arguments_str}
+        finish_reason = None
+        in_reasoning = False  # track if we already sent reasoning_start
+
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            delta = chunk.choices[0].delta
+            finish_reason = chunk.choices[0].finish_reason
+
+            # Reasoning tokens (K2.5 thinking chain)
+            rc = getattr(delta, 'reasoning_content', None)
+            if rc:
+                if not in_reasoning:
+                    # First reasoning chunk — tell frontend to create the block
+                    yield _sse_event("reasoning_start", {})
+                    in_reasoning = True
+                accumulated_reasoning += rc
+                yield _sse_event("reasoning_delta", {"content": rc})
+
+            # Content tokens (final answer or intermediate text)
+            if delta.content:
+                accumulated_content += delta.content
+                yield _sse_event("message_delta", {"content": delta.content})
+
+            # Tool call tokens
+            if delta.tool_calls:
+                for tc_delta in delta.tool_calls:
+                    idx = tc_delta.index
+                    if idx not in accumulated_tool_calls:
+                        accumulated_tool_calls[idx] = {
+                            "id": tc_delta.id or "",
+                            "name": tc_delta.function.name or "" if tc_delta.function else "",
+                            "arguments": "",
+                        }
+                    entry = accumulated_tool_calls[idx]
+                    if tc_delta.id:
+                        entry["id"] = tc_delta.id
+                    if tc_delta.function:
+                        if tc_delta.function.name:
+                            entry["name"] = tc_delta.function.name
+                        if tc_delta.function.arguments:
+                            entry["arguments"] += tc_delta.function.arguments
+
+        # ── End reasoning block if open ─────────────────────────────────
+        if in_reasoning:
+            yield _sse_event("reasoning_end", {})
+
+        # ── Process accumulated result ─────────────────────────────────
+        if finish_reason == "tool_calls" and accumulated_tool_calls:
+            # Build assistant message for context
+            tool_calls_list = []
+            for idx in sorted(accumulated_tool_calls.keys()):
+                tc = accumulated_tool_calls[idx]
+                tool_calls_list.append({
+                    "id": tc["id"],
+                    "type": "function",
+                    "function": {
+                        "name": tc["name"],
+                        "arguments": tc["arguments"],
+                    },
+                })
+
+            msg_dict = {
+                "role": "assistant",
+                "content": accumulated_content or "",
+                "tool_calls": tool_calls_list,
+            }
+            if accumulated_reasoning:
+                msg_dict["reasoning_content"] = accumulated_reasoning
+            api_messages.append(msg_dict)
+
+            # Execute each tool call
+            for tc in tool_calls_list:
+                tool_name = tc["function"]["name"]
+                tool_args_raw = tc["function"]["arguments"]
+                display = agent_tools.TOOL_DISPLAY.get(tool_name, {})
+
+                try:
+                    tool_args = json.loads(tool_args_raw) if tool_args_raw else {}
+                except json.JSONDecodeError:
+                    tool_args = {}
+
+                yield _sse_event("tool_call", {
+                    "id": tc["id"],
+                    "name": tool_name,
+                    "args": tool_args,
+                    "icon": display.get("icon", "\U0001f527"),
+                    "label": display.get("label", tool_name),
+                    "status": "running",
+                })
+
+                result = agent_tools.execute_tool(tool_name, tool_args_raw)
+
+                display_result = result
+                if len(display_result) > 2000:
+                    display_result = display_result[:2000] + "\n... [truncated for display]"
+
+                yield _sse_event("tool_result", {
+                    "id": tc["id"],
+                    "name": tool_name,
+                    "result": display_result,
+                    "status": "done",
+                })
+
+                api_messages.append({
+                    "role": "tool",
+                    "tool_call_id": tc["id"],
+                    "content": result,
+                })
+
+            # If there was also text content alongside tool calls, show it
+            if accumulated_content:
+                yield _sse_event("thinking", {"content": accumulated_content})
+
+            continue  # next round
+
+        # No tool calls — final response
+        if not accumulated_content:
+            yield _sse_event("message", {"content": ""})
+        yield _sse_event("done", {})
+        return
+
+    # Safety: exceeded max rounds
+    yield _sse_event("message", {
+        "content": "I've reached the maximum number of tool call rounds. Here's what I found so far based on the information gathered above."
+    })
+    yield _sse_event("done", {})
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Routes
+# ═══════════════════════════════════════════════════════════════════════════
+
 @app.route("/api/chat", methods=["POST"])
 def chat():
-    """Handle chat requests."""
+    """Handle chat requests. Returns SSE stream or JSON depending on Accept header."""
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "无效的消息格式"}), 400
 
-    # Accept either 'messages' (conversation history) or 'message' (single string)
+    # Parse messages
     raw_messages = data.get("messages")
     if isinstance(raw_messages, list) and raw_messages:
-        # Validate each entry has role and content strings
         messages = []
         for m in raw_messages:
             if (
@@ -198,7 +439,6 @@ def chat():
         if not messages:
             return jsonify({"error": "无效的消息格式"}), 400
     elif isinstance(data.get("message"), str) and data["message"].strip():
-        # Backward-compatible: single message string
         messages = [{"role": "user", "content": data["message"].strip()}]
     else:
         return jsonify({"error": "无效的消息格式"}), 400
@@ -207,35 +447,68 @@ def chat():
     if client is None:
         return jsonify({"error": "服务器错误", "reply": "抱歉，服务暂时不可用。"}), 500
 
-    # ── RAG retrieval: augment the prompt with relevant knowledge ──
-    last_user_msg = next(
-        (m["content"] for m in reversed(messages) if m["role"] == "user"), ""
-    )
-
-    rag_context = ""
-    if last_user_msg:
-        results = rag_utils.search(last_user_msg, top_k=3)
-        rag_context = rag_utils.format_context(results)
-
-    # Get dynamic system prompt with real-time citation and stars data
     system_content = get_dynamic_system_prompt()
-    if rag_context:
-        system_content += (
-            "\n\n# Retrieved Context (RAG)\n"
-            "以下是根据用户提问从知识库中检索到的相关信息，请结合这些信息回答：\n\n"
-            + rag_context
-        )
 
-    try:
-        completion = client.chat.completions.create(
-            model=MODEL,
-            messages=[{"role": "system", "content": system_content}] + messages,
+    # Check if client wants SSE stream
+    accept = request.headers.get("Accept", "")
+    use_sse = "text/event-stream" in accept or data.get("stream", False)
+
+    if use_sse:
+        # SSE streaming response
+        def generate():
+            for event in _run_agent_loop(client, messages, system_content):
+                yield event
+
+        return Response(
+            generate(),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+                "Connection": "keep-alive",
+            },
         )
-        reply = completion.choices[0].message.content
+    else:
+        # Legacy JSON response (backward compatible, no agent tools)
+        rag_context = ""
+        last_user_msg = next(
+            (m["content"] for m in reversed(messages) if m["role"] == "user"), ""
+        )
+        if last_user_msg:
+            results = rag_utils.search(last_user_msg, top_k=3)
+            rag_context = rag_utils.format_context(results)
+
+        full_system = system_content
+        if rag_context:
+            full_system += (
+                "\n\n# Retrieved Context (RAG)\n"
+                "以下是根据用户提问从知识库中检索到的相关信息，请结合这些信息回答：\n\n"
+                + rag_context
+            )
+
+        reply = None
+        for attempt in range(4):
+            try:
+                completion = client.chat.completions.create(
+                    model=MODEL,
+                    messages=[{"role": "system", "content": full_system}] + messages,
+                    max_tokens=131072,
+                )
+                reply = completion.choices[0].message.content or ""
+                break
+            except RateLimitError as e:
+                wait = _parse_retry_after(e)
+                if attempt < 3:
+                    logger.info(f"Rate limited (legacy, attempt {attempt+1}/4), waiting {wait}s")
+                    time.sleep(wait)
+                else:
+                    return jsonify({"error": "Rate limit exceeded", "reply": "请稍后再试，API 请求频率超限。"}), 429
+            except Exception as e:
+                logger.exception("Chat API error")
+                return jsonify({"error": "服务器错误", "reply": "抱歉，服务暂时不可用。"}), 500
+        if reply is None:
+            return jsonify({"error": "Unknown error", "reply": "抱歉，服务暂时不可用。"}), 500
         return jsonify({"reply": reply})
-    except Exception as e:
-        logger.exception("Chat API error")
-        return jsonify({"error": "服务器错误", "reply": "抱歉，服务暂时不可用。"}), 500
 
 
 if __name__ == "__main__":

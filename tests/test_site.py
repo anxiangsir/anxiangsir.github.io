@@ -102,25 +102,27 @@ def test_vercel_json_has_rewrites():
     assert len(data["rewrites"]) > 0, "vercel.json has empty rewrites"
 
 
-def test_knowledge_base_valid():
-    """knowledge_base.json must be valid and have documents."""
-    path = API_DIR / "knowledge_base.json"
-    assert path.exists(), "knowledge_base.json not found"
-    data = json.loads(path.read_text(encoding="utf-8"))
-    assert "documents" in data
-    assert len(data["documents"]) > 0, "knowledge_base.json has no documents"
+def test_research_data_yaml_valid():
+    """research_data.yaml must be valid YAML with publications and projects."""
+    import yaml
+
+    path = ROOT / "data" / "research_data.yaml"
+    assert path.exists(), "research_data.yaml not found"
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    assert "publications" in data, "research_data.yaml missing 'publications'"
+    assert len(data["publications"]) > 0, "research_data.yaml has no publications"
+    assert "github_projects" in data, "research_data.yaml missing 'github_projects'"
+    assert len(data["github_projects"]) > 0, "research_data.yaml has no github_projects"
 
 
-def test_knowledge_base_documents_have_required_fields():
-    """Each document in knowledge_base.json must have id and type."""
-    data = json.loads((API_DIR / "knowledge_base.json").read_text(encoding="utf-8"))
-    for i, doc in enumerate(data["documents"]):
-        assert "id" in doc, f"Document #{i} missing 'id'"
-        assert "type" in doc, f"Document #{i} missing 'type'"
-        assert doc["type"] in ("publication", "github_project"), (
-            f"Document #{i} has unknown type: {doc['type']}"
-        )
+def test_research_data_publications_have_required_fields():
+    """Each publication in research_data.yaml must have title and venue."""
+    import yaml
 
+    data = yaml.safe_load((ROOT / "data" / "research_data.yaml").read_text(encoding="utf-8"))
+    for i, pub in enumerate(data["publications"]):
+        assert "title" in pub, f"Publication #{i} missing 'title'"
+        assert "venue" in pub, f"Publication #{i} missing 'venue'"
 
 # ═══════════════════════════════════════════════════════════════════════
 # GROUP 4: vercel.json rewrite targets — files must exist
